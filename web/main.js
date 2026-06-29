@@ -112,15 +112,105 @@ function recordStep(move) {
   return hash;
 }
 
+// ---- url permalink + clipboard --------------------------------------------
+// The hash isn't reversible to coordinates, so a shareable link encodes (z, n)
+// and carries the hash as a proof token. An open book adds &b=<shelf>&p=<page>.
+function permalink(zv, nv, hash, book = null, page = null) {
+  const base = `${location.origin}${location.pathname}`;
+  let frag = `#z=${zv}&n=${nv}&h=${hash.slice(0, 16)}`;
+  if (book !== null) frag += `&b=${book}`;
+  if (page !== null) frag += `&p=${page}`;
+  return `${base}${frag}`;
+}
+
+// the link to wherever we are right now (gallery, or gallery + open book/page)
+function currentUrl() {
+  const hash = node_hash_hex(z, n);
+  if (currentBook && el("bookModal").open) {
+    return permalink(z, n, hash, currentBook.index, currentBook.page + 1);
+  }
+  return permalink(z, n, hash);
+}
+
+function syncUrl() {
+  const base = currentUrl();
+  history.replaceState(null, "", base.slice(base.indexOf("#")));
+}
+
+// read #z=..&n=..(&h=..&b=..&p=..) from the URL
+function parsePermalink() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const zs = p.get("z");
+  const ns = p.get("n");
+  if (zs === null || ns === null) return null;
+  try {
+    const bs = p.get("b");
+    const ps = p.get("p");
+    return {
+      z: BigInt(zs),
+      n: BigInt(ns),
+      h: p.get("h") || "",
+      b: bs === null ? null : Number(bs),
+      p: ps === null ? null : Number(ps),
+    };
+  } catch {
+    return null; // malformed coordinates
+  }
+}
+
+async function copyText(text, btn, okMsg = "copied") {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    return; // clipboard blocked (e.g. insecure context) — fail quietly
+  }
+  if (!btn) return;
+  const prev = btn.textContent;
+  btn.textContent = okMsg;
+  setTimeout(() => (btn.textContent = prev), 1000);
+}
+
 // ---- rendering ------------------------------------------------------------
 const el = (id) => document.getElementById(id);
+
+// Hexagon minimap: current gallery in the middle, the hash awaiting down each
+// of the four exits (two hallways + stairs up/down). Click an exit to walk it.
+function renderMinimap(curHash, accentHue) {
+  const accent = `hsl(${accentHue} 70% 58%)`;
+  const exit = (mv) => {
+    const [nz, nn] = neighbor(z, n, mv);
+    const h = node_hash_hex(nz, nn);
+    return { h, color: `hsl(${parseInt(h.slice(0, 4), 16) % 360} 60% 62%)` };
+  };
+  const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
+  const hex = "110,30 179,70 179,150 110,190 41,150 41,70";
+
+  el("minimap").innerHTML = `
+    <svg viewBox="0 0 220 222" width="100%">
+      <polygon points="${hex}" fill="rgba(255,255,255,0.025)"
+        stroke="${accent}" stroke-width="1.5"/>
+      <text x="110" y="105" text-anchor="middle" font-size="9" fill="#6f6a5e">(${z}, ${n})</text>
+      <text x="110" y="119" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
+      <g id="mm-2" class="mm-exit"><text x="110" y="15" text-anchor="middle" font-size="11" fill="${up.color}">▲ ${up.h.slice(0, 6)}</text></g>
+      <g id="mm-3" class="mm-exit"><text x="110" y="213" text-anchor="middle" font-size="11" fill="${down.color}">▼ ${down.h.slice(0, 6)}</text></g>
+      <g id="mm-0" class="mm-exit"><text x="3" y="114" text-anchor="start" font-size="11" fill="${left.color}">◁ ${left.h.slice(0, 6)}</text></g>
+      <g id="mm-1" class="mm-exit"><text x="217" y="114" text-anchor="end" font-size="11" fill="${right.color}">${right.h.slice(0, 6)} ▷</text></g>
+    </svg>`;
+  [0, 1, 2, 3].forEach((mv) => {
+    const g = el(`mm-${mv}`);
+    g.style.cursor = "pointer";
+    g.addEventListener("click", () => step(mv));
+  });
+}
 
 function render() {
   const titles = JSON.parse(gallery_titles_json(z, n));
   const hash = node_hash_hex(z, n);
   el("coord").textContent = `(${z}, ${n})`;
   el("hash").textContent = hash;
+  el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, trail.length - 1));
+  syncUrl();
 
   // gallery accent colour derived from its hash (deterministic per node)
   const accentHue = parseInt(hash.slice(0, 4), 16) % 360;
@@ -128,6 +218,8 @@ function render() {
     "--accent",
     `hsl(${accentHue} 70% 58%)`,
   );
+
+  renderMinimap(hash, accentHue);
 
   const wallsEl = el("walls");
   wallsEl.innerHTML = "";
@@ -161,29 +253,75 @@ function render() {
     wallsEl.appendChild(wall);
   }
 
-  const recent = windowBuf
-    .slice(-12)
-    .map((e) => `(${e.z},${e.n})`)
-    .join(" → ");
-  el("breadcrumb").innerHTML =
-    `<b>window</b> (last ${windowBuf.length}/${WINDOW_MAX}): ${recent || "—"}` +
-    `<br><b>trail</b>: ${trail.length} nodes · gen v${gv}`;
+  el("historyBtn").textContent = `window · last ${windowBuf.length}/${WINDOW_MAX}`;
+  el("trailNote").textContent = `trail ${trail.length} nodes · gen v${gv}`;
+  if (el("historyModal").open) renderHistory();
+}
+
+const MOVE_ARROW = { 0: "◁", 1: "▷", 2: "▲", 3: "▼", null: "•" };
+
+// last-50 window, newest first, vertically — click a row to jump back to it.
+function renderHistory() {
+  const win = trail.slice(-WINDOW_MAX); // {z,n,move,hash}; oldest→newest
+  el("historyMeta").textContent =
+    `${win.length} galleries (of ${trail.length} walked) · newest first`;
+  const startIdx = trail.length - win.length; // global step number offset
+  const list = el("historyList");
+  list.innerHTML = "";
+  for (let i = win.length - 1; i >= 0; i--) {
+    const e = win[i];
+    const isCurrent = i === win.length - 1;
+    const hue = parseInt(e.hash.slice(0, 4), 16) % 360;
+    const row = document.createElement("div");
+    row.className = "hrow" + (isCurrent ? " current" : "");
+    row.innerHTML =
+      `<span class="step">${startIdx + i}</span>` +
+      `<span class="coord">(${e.z}, ${e.n})</span>` +
+      `<span class="move">${MOVE_ARROW[e.move]}</span>` +
+      `<span class="hh" style="color:hsl(${hue} 60% 62%)">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
+    row.title = `gallery (${e.z}, ${e.n}) — ${e.hash}`;
+    row.addEventListener("click", () => {
+      z = BigInt(e.z);
+      n = BigInt(e.n);
+      el("historyModal").close();
+      render();
+    });
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy";
+    copyBtn.textContent = "link";
+    copyBtn.title = "copy a shareable link to this gallery";
+    copyBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      copyText(permalink(e.z, e.n, e.hash), copyBtn, "✓");
+    });
+    row.appendChild(copyBtn);
+    list.appendChild(row);
+  }
 }
 
 let currentBook = null; // { index, title, text, page }
 
-function openBook(bookIndex, title) {
+function titleForIndex(i) {
+  try {
+    return JSON.parse(gallery_titles_json(z, n))[i] || null;
+  } catch {
+    return null;
+  }
+}
+
+function openBook(bookIndex, title, startPage = 1) {
   // generate the whole 410-page book once, then page through it from the cache
   const text = book_text_for(z, n, bookIndex);
+  const page = Math.min(PAGES_PER_BOOK, Math.max(1, startPage)) - 1;
   currentBook = {
     index: bookIndex,
-    title: title || `book ${bookIndex}`,
+    title: title || titleForIndex(bookIndex) || `book ${bookIndex}`,
     text,
-    page: 0,
+    page,
   };
   el("bookTitle").textContent = currentBook.title;
   renderBookPage();
-  el("bookModal").showModal();
+  if (!el("bookModal").open) el("bookModal").showModal();
 }
 
 function renderBookPage() {
@@ -199,6 +337,7 @@ function renderBookPage() {
   el("bookPage").scrollTop = 0;
   el("prevPage").disabled = p <= 0;
   el("nextPage").disabled = p >= PAGES_PER_BOOK - 1;
+  syncUrl();
 }
 
 function turnPage(delta) {
@@ -277,12 +416,31 @@ async function main() {
   gv = generator_version();
 
   const saved = await kvGet("journey");
-  if (
+  const savedOk =
     saved &&
     saved.current &&
     Array.isArray(saved.trail) &&
-    saved.trail.length
-  ) {
+    saved.trail.length;
+
+  // a permalink (#z=..&n=..) takes priority — unless it's just our own
+  // session being refreshed (coords already match the saved trail).
+  const link = parsePermalink();
+  const isOwnRefresh =
+    link &&
+    savedOk &&
+    saved.current.z === link.z.toString() &&
+    saved.current.n === link.n.toString();
+
+  if (link && !isOwnRefresh) {
+    z = link.z;
+    n = link.n;
+    trail = [];
+    windowBuf = [];
+    startedAt = new Date().toISOString();
+    recordStep(null);
+    await persist();
+    render();
+  } else if (savedOk) {
     z = BigInt(saved.current.z);
     n = BigInt(saved.current.n);
     trail = saved.trail;
@@ -295,6 +453,19 @@ async function main() {
     await newWalk();
   }
 
+  // a permalink can also point at a specific book + page — open it
+  const TOTAL_BOOKS = WALLS * SHELVES_PER_WALL * BOOKS_PER_SHELF;
+  if (
+    link &&
+    Number.isInteger(link.b) &&
+    link.b >= 0 &&
+    link.b < TOTAL_BOOKS &&
+    z === link.z &&
+    n === link.n
+  ) {
+    openBook(link.b, null, link.p || 1);
+  }
+
   // ask the browser not to evict the trail under disk pressure
   if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
 
@@ -305,6 +476,24 @@ async function main() {
     );
   el("aboutBtn").addEventListener("click", () => el("aboutModal").showModal());
   el("closeAbout").addEventListener("click", () => el("aboutModal").close());
+  el("historyBtn").addEventListener("click", () => {
+    renderHistory();
+    el("historyModal").showModal();
+  });
+  el("closeHistory").addEventListener("click", () => el("historyModal").close());
+  el("copyLink").addEventListener("click", (ev) =>
+    copyText(currentUrl(), ev.currentTarget, "copied!"),
+  );
+  el("hash").addEventListener("click", (ev) =>
+    copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
+  );
+  el("copyBookLink").addEventListener("click", (ev) =>
+    copyText(currentUrl(), ev.currentTarget, "copied!"),
+  );
+  el("bookModal").addEventListener("close", () => {
+    currentBook = null;
+    syncUrl();
+  });
   el("export").addEventListener("click", exportJourney);
   el("reset").addEventListener("click", newWalk);
   el("closeBook").addEventListener("click", () => el("bookModal").close());
