@@ -27,6 +27,31 @@ function hueFromString(s) {
   return h % 360;
 }
 
+// OKLCH (L 0..1, C, H degrees) -> sRGB "#rrggbb". Converted in JS rather than
+// relying on canvas oklch() support, so the heatmap renders identically on
+// every browser. Math: Björn Ottosson's OKLab -> linear sRGB transform.
+function oklchToHex(L, C, H) {
+  const h = (H * Math.PI) / 180;
+  const a = C * Math.cos(h);
+  const b = C * Math.sin(h);
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+  const l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
+  const lin = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+  let out = "#";
+  for (let c of lin) {
+    c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+    const v = Math.max(0, Math.min(255, Math.round(c * 255)));
+    out += v.toString(16).padStart(2, "0");
+  }
+  return out;
+}
+
 // ---- tiny IndexedDB key/value store ---------------------------------------
 const DB_NAME = "lib-of-babel";
 const STORE = "kv";
@@ -335,19 +360,19 @@ function renderBookCanvas(pageText) {
   // hue = letter's position in the alphabet, evenly spaced and rotated by the
   // gallery's accent hue; chroma + lightness are seeded per gallery so each
   // one reads as a distinct mood while staying a faithful per-page content map.
+  // precompute one sRGB swatch per symbol so each cell is just an array lookup.
   const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
   const step = 360 / alpha.length;
-  const L = accentLightness.toFixed(3);
-  const C = accentChroma.toFixed(3);
+  const palette = new Array(alpha.length);
+  for (let i = 0; i < alpha.length; i++) {
+    palette[i] = oklchToHex(accentLightness, accentChroma, (i * step + accentHue) % 360);
+  }
   for (let r = 0; r < rows; r++) {
     const line = lines[r] || "";
     for (let c = 0; c < cols; c++) {
       const ch = line[c] ?? " ";
       const i = alpha.indexOf(ch);
-      ctx.fillStyle =
-        ch === " " || i < 0
-          ? "#15131a"
-          : `oklch(${L} ${C} ${(i * step + accentHue) % 360})`;
+      ctx.fillStyle = ch === " " || i < 0 ? "#15131a" : palette[i];
       ctx.fillRect(c * cell, r * cell, cell, cell);
     }
   }
