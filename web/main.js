@@ -305,6 +305,29 @@ function renderHistory() {
 }
 
 let currentBook = null; // { index, title, text, page }
+let viewMode = "text"; // "text" | "color" — how the open page is shown
+
+// draw the page as an 80×40 grid of character colours (looks like colour noise,
+// since the text is maximum-entropy; structured pages would break the static).
+function renderBookCanvas(pageText) {
+  const cols = CHARS_PER_LINE, rows = LINES_PER_PAGE, cell = 8;
+  const cv = el("bookCanvas");
+  cv.width = cols * cell;
+  cv.height = rows * cell;
+  const ctx = cv.getContext("2d");
+  const lines = pageText.split("\n");
+  for (let r = 0; r < rows; r++) {
+    const line = lines[r] || "";
+    for (let c = 0; c < cols; c++) {
+      const ch = line[c] ?? " ";
+      ctx.fillStyle =
+        ch === " "
+          ? "#15131a"
+          : `hsl(${(ch.charCodeAt(0) * 137.5) % 360} 65% 55%)`;
+      ctx.fillRect(c * cell, r * cell, cell, cell);
+    }
+  }
+}
 
 function titleForIndex(i) {
   try {
@@ -335,11 +358,17 @@ function renderBookPage() {
   el("bookMeta").textContent =
     `gallery (${z}, ${n}) · shelf index ${currentBook.index}`;
   el("pageInd").textContent = `page ${p + 1} / ${PAGES_PER_BOOK}`;
-  el("bookPage").textContent = currentBook.text.slice(
-    p * PAGE_CHARS,
-    (p + 1) * PAGE_CHARS,
-  );
-  el("bookPage").scrollTop = 0;
+  const pageText = currentBook.text.slice(p * PAGE_CHARS, (p + 1) * PAGE_CHARS);
+  if (viewMode === "color") {
+    el("bookPage").hidden = true;
+    el("bookCanvas").hidden = false;
+    renderBookCanvas(pageText);
+  } else {
+    el("bookCanvas").hidden = true;
+    el("bookPage").hidden = false;
+    el("bookPage").textContent = pageText;
+    el("bookPage").scrollTop = 0;
+  }
   el("prevPage").disabled = p <= 0;
   el("nextPage").disabled = p >= PAGES_PER_BOOK - 1;
   syncUrl();
@@ -525,6 +554,11 @@ async function main() {
   });
   el("closeBook").addEventListener("click", () => el("bookModal").close());
   el("downloadBook").addEventListener("click", downloadBook);
+  el("viewToggle").addEventListener("click", (ev) => {
+    viewMode = viewMode === "color" ? "text" : "color";
+    ev.currentTarget.textContent = viewMode === "color" ? "text" : "color";
+    renderBookPage();
+  });
   el("prevPage").addEventListener("click", () => turnPage(-1));
   el("nextPage").addEventListener("click", () => turnPage(1));
   el("goPage").addEventListener("click", jumpPage);
