@@ -14,8 +14,17 @@ const WALLS = 4;
 const SHELVES_PER_WALL = 5;
 const BOOKS_PER_SHELF = 35;
 const WINDOW_MAX = 50; // forget rendered nodes beyond this; trail keeps hashes
+const PAGES_PER_BOOK = 410;
 const LINES_PER_PAGE = 40;
 const CHARS_PER_LINE = 80;
+const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // 80 chars + newline per line
+
+// deterministic hue from a string (spine title) — stable per book
+function hueFromString(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 360;
+}
 
 // ---- tiny IndexedDB key/value store ---------------------------------------
 const DB_NAME = "lib-of-babel";
@@ -106,6 +115,10 @@ function render() {
   el("hash").textContent = hash;
   el("steps").textContent = String(Math.max(0, trail.length - 1));
 
+  // gallery accent colour derived from its hash (deterministic per node)
+  const accentHue = parseInt(hash.slice(0, 4), 16) % 360;
+  document.documentElement.style.setProperty("--accent", `hsl(${accentHue} 70% 58%)`);
+
   const wallsEl = el("walls");
   wallsEl.innerHTML = "";
   let idx = 0;
@@ -120,10 +133,14 @@ function render() {
       shelf.className = "shelf";
       for (let b = 0; b < BOOKS_PER_SHELF; b++) {
         const bookIndex = idx++;
+        const title = titles[bookIndex] || `book ${bookIndex}`;
+        const hue = hueFromString(title);
         const book = document.createElement("div");
         book.className = "book";
-        book.title = titles[bookIndex] || `book ${bookIndex}`;
-        book.addEventListener("click", () => openBook(bookIndex, titles[bookIndex]));
+        book.title = title;
+        book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
+        book.textContent = title.replace(/[^a-z]/gi, "").slice(0, 6).toUpperCase();
+        book.addEventListener("click", () => openBook(bookIndex, title));
         shelf.appendChild(book);
       }
       wall.appendChild(shelf);
@@ -137,13 +154,42 @@ function render() {
     `<br><b>trail</b>: ${trail.length} nodes · gen v${gv}`;
 }
 
+let currentBook = null; // { index, title, text, page }
+
 function openBook(bookIndex, title) {
-  el("bookTitle").textContent = title || `book ${bookIndex}`;
-  el("bookMeta").textContent = `gallery (${z}, ${n}) · shelf index ${bookIndex} · page 1 of 410`;
-  // book_text_for returns the full 410-page book; show just page 1.
-  const full = book_text_for(z, n, bookIndex);
-  el("bookPage").textContent = full.slice(0, (CHARS_PER_LINE + 1) * LINES_PER_PAGE);
+  // generate the whole 410-page book once, then page through it from the cache
+  const text = book_text_for(z, n, bookIndex);
+  currentBook = { index: bookIndex, title: title || `book ${bookIndex}`, text, page: 0 };
+  el("bookTitle").textContent = currentBook.title;
+  renderBookPage();
   el("bookModal").showModal();
+}
+
+function renderBookPage() {
+  if (!currentBook) return;
+  const p = currentBook.page;
+  el("bookMeta").textContent = `gallery (${z}, ${n}) · shelf index ${currentBook.index}`;
+  el("pageInd").textContent = `page ${p + 1} / ${PAGES_PER_BOOK}`;
+  el("bookPage").textContent = currentBook.text.slice(p * PAGE_CHARS, (p + 1) * PAGE_CHARS);
+  el("bookPage").scrollTop = 0;
+  el("prevPage").disabled = p <= 0;
+  el("nextPage").disabled = p >= PAGES_PER_BOOK - 1;
+}
+
+function turnPage(delta) {
+  if (!currentBook) return;
+  const next = currentBook.page + delta;
+  if (next < 0 || next >= PAGES_PER_BOOK) return;
+  currentBook.page = next;
+  renderBookPage();
+}
+
+function jumpPage() {
+  if (!currentBook) return;
+  const v = parseInt(el("pageJump").value, 10);
+  if (!Number.isFinite(v)) return;
+  currentBook.page = Math.min(PAGES_PER_BOOK, Math.max(1, v)) - 1;
+  renderBookPage();
 }
 
 // ---- movement -------------------------------------------------------------
@@ -202,9 +248,21 @@ async function main() {
   el("export").addEventListener("click", exportJourney);
   el("reset").addEventListener("click", newWalk);
   el("closeBook").addEventListener("click", () => el("bookModal").close());
+  el("prevPage").addEventListener("click", () => turnPage(-1));
+  el("nextPage").addEventListener("click", () => turnPage(1));
+  el("goPage").addEventListener("click", jumpPage);
+  el("pageJump").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); jumpPage(); }
+  });
 
   window.addEventListener("keydown", (e) => {
-    if (el("bookModal").open) return;
+    // inside an open book, arrows turn pages instead of walking
+    if (el("bookModal").open) {
+      if (e.target === el("pageJump")) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); turnPage(-1); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); turnPage(1); }
+      return;
+    }
     const map = { ArrowLeft: 0, ArrowRight: 1, ArrowUp: 2, ArrowDown: 3 };
     if (e.key in map) { e.preventDefault(); step(map[e.key]); }
   });
