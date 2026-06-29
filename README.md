@@ -32,9 +32,10 @@ Canonical dimensions we honor:
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened. |
 | **Determinism** | Content is a pure function of address. `(z,n) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
 | **Hashing** | `node_hash` = fingerprint over the 700 book identities. A permalink / integrity proof, **not** a dedup key — the address already guarantees uniqueness. |
-| **History** | Bounded ring buffer for the live breadcrumb + append-on-step export log so the full path survives. |
+| **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
+| **Permalinks** | URL encodes `(z, n)` (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
-| **Persistence** | Export the **path** (addresses + moves) and **per-node hash**. JSON first; Tessera `.tes` later. |
+| **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. Tessera `.tes` later. |
 
 ## The generation chain (never store text)
 
@@ -64,11 +65,11 @@ is never stored because it is always regenerable.
 lib-of-babel/
 ├── src/                 Rust → WASM generator core (deterministic, reversible-by-design)
 │   └── lib.rs           gallery seed, 700 book ids, lazy book text, node hash
-├── web/                 static frontend: render gallery, walk hallways, history, export
-├── scripts/
-│   └── check-config-sizes.sh   supply-chain guard: caps toolchain config file sizes
-└── .github/workflows/
-    └── config-integrity.yml    CI runs the config-size guard on every push/PR
+├── web/                 static frontend: gallery + minimap, book reader, history, permalinks, export
+│   ├── index.html       layout + styles
+│   ├── main.js          the librarian: render, move, 50-node window, IndexedDB trail, URLs
+│   └── pkg/             wasm-pack output (generated; gitignored)
+└── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
 
 The core is intentionally written as a (future) **reversible mapping** between coordinate
@@ -76,27 +77,47 @@ space and content space, so a later **search-by-content** feature ("type a sente
 the coordinates where it already exists" — the famous libraryofbabel.info trick) drops in
 without a rewrite.
 
-## Roadmap (mirrored as Linear issues)
+## Run it locally (dev)
 
-1. **Generator core (Rust→WASM)** — `(z,n)` → gallery seed → 700 book spines; lazy book text; node hash. Frozen `generator_version`.
-2. **Web frontend — the walk** — render a gallery (4 walls / shelves / spines), four move controls, random start.
-3. **Open a book** — lazily generate and render a book's pages from its seed.
-4. **History + export** — bounded breadcrumb ring buffer; append-on-step path log; export JSON (`{ generator_version, steps: [{z,n,move,node_hash}] }`).
-5. **Living membrane (later)** — persisted discovery log ("coral growth"), wear paths.
-6. **Puzzle layer (later)** — hash-rarity "treasure" galleries; rare coherent books.
-7. **Reverse lookup (later)** — search-by-content via the reversible mapping.
-8. **Tessera export (later)** — write the journey as a `.tes` document once Tessera ships.
-
-## Supply-chain guard
-
-`scripts/check-config-sizes.sh` enforces byte-size limits on toolchain config files
-(vite, eslint, postcss, tsconfig, etc.) as defense-in-depth: a config that suddenly grows
-may have malware appended to it. CI (`config-integrity.yml`) fails the build if any config
-exceeds its limit. Ported from VerifyLocal. Run locally:
+Tooling is managed by [mise](https://mise.jdx.dev/) (Rust + wasm-pack + uv). Activating it
+puts its shims first on `PATH`, which sidesteps a Homebrew `rustc` shadowing rustup (the
+`wasm32` target lives in the rustup toolchain, pinned by `rust-toolchain.toml`).
 
 ```bash
-sh scripts/check-config-sizes.sh
+mise trust && mise install   # one-time: install the pinned toolchain
+mise run dev                 # build the wasm core into web/pkg, then serve
 ```
+
+Then open <http://127.0.0.1:8777/index.html>.
+
+Other tasks:
+
+- `mise run build` — release WASM build into `web/pkg`
+- `mise run dev-fast` — faster debug build, then serve
+- `mise run serve` — just serve `web/` (after a build); keeps running until you stop it
+- `mise run test` — host unit tests (`cargo test`)
+- `mise run check` — fmt + clippy + tests
+
+The trail lives in the browser's IndexedDB (per-device), so it survives reloads. **export**
+downloads it as JSON; **new walk** clears it and drops you somewhere random.
+
+## Roadmap (mirrored as Linear issues)
+
+**Shipped (v1):**
+
+1. ✅ **Generator core (Rust→WASM)** — `(z,n)` → gallery seed → 700 book spines; lazy book text; node hash; frozen `generator_version`.
+2. ✅ **The walk** — 4 walls / shelves / color-coded spines, four move controls, keyboard nav, random start.
+3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
+4. ✅ **History + export** — 50-node window popup (newest-first, click to revisit), append-on-step trail in IndexedDB, JSON export.
+5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
+
+**Later:**
+
+6. **Living membrane** — persisted discovery log ("coral growth"), wear paths.
+7. **Puzzle layer** — hash-rarity "treasure" galleries; rare coherent books.
+8. **Reverse lookup** — search-by-content via the reversible mapping.
+9. **Crypto fingerprint** — replace the 64-bit placeholder with BLAKE3 (256-bit); bump `generator_version`.
+10. **Tessera export** — write the journey as a `.tes` document once Tessera ships.
 
 Repo: <https://github.com/Latka-Industries/lib-of-babel>
 
