@@ -38,7 +38,8 @@
       .logo:hover { color: var(--accent); border: none; }
       .stat { color: var(--muted); }
       .stat b { color: var(--ink); font-weight: 600; }
-      .hash { color: var(--accent); }
+      .hash { color: var(--accent); cursor: pointer; }
+      .hash:hover { text-decoration: underline; }
       .spacer { flex: 1; }
       button {
         font: inherit; color: var(--ink); background: var(--panel);
@@ -48,8 +49,22 @@
       button:hover { border-color: var(--accent); }
       .moves { display: flex; gap: 0.35rem; }
       .moves button { min-width: 2.4rem; }
-      main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
-      .walls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      main { padding: 1rem; max-width: 1320px; margin: 0 auto; }
+      .stage { display: flex; gap: 1rem; align-items: flex-start; }
+      .minimap-wrap {
+        flex: 0 0 210px; position: sticky; top: 60px;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+        padding: 0.75rem 0.5rem;
+      }
+      .minimap-title, .minimap-hint {
+        text-align: center; color: var(--muted); font-size: 0.7rem;
+        letter-spacing: 0.08em; text-transform: uppercase;
+      }
+      .minimap-hint { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; }
+      #minimap text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .mm-exit:hover text { opacity: 0.7; }
+      .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      @media (max-width: 720px) { .stage { flex-direction: column; } .minimap-wrap { position: static; width: 100%; flex-basis: auto; } }
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
@@ -73,8 +88,29 @@
         overflow: hidden; padding: 3px 0; transition: transform 0.06s;
       }
       .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
-      .breadcrumb { margin-top: 1rem; color: var(--muted); font-size: 12px; word-break: break-all; }
-      .breadcrumb b { color: var(--ink); }
+      .footer { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+      .footer .dim { color: var(--muted); font-size: 12px; }
+      .history-btn { font-size: 12px; }
+      .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
+      .hrow {
+        display: grid; grid-template-columns: 2.6rem 1fr 1.4rem auto 2rem;
+        align-items: center; gap: 0.6rem;
+        padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line);
+        font-size: 12px; cursor: pointer; border-radius: 6px;
+      }
+      .hrow .copy {
+        padding: 0.1rem 0.35rem; font-size: 11px; line-height: 1.4;
+        opacity: 0.55;
+      }
+      .hrow:hover .copy { opacity: 1; }
+      .hrow:last-child { border-bottom: none; }
+      .hrow:hover { background: rgba(255,255,255,0.04); }
+      .hrow.current { background: rgba(255,255,255,0.05); }
+      .hrow .step { color: var(--muted); text-align: right; }
+      .hrow .coord { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .hrow .move { text-align: center; color: var(--muted); }
+      .hrow .hh { font-variant-ligatures: none; }
+      .hrow .you { color: var(--accent); }
       dialog {
         background: var(--panel); color: var(--ink);
         border: 1px solid var(--line); border-radius: 10px;
@@ -119,7 +155,7 @@
     <header>
       <button id="aboutBtn" class="logo" title="what is this?">LIB&middot;OF&middot;BABEL</button>
       <span class="stat">gallery <b id="coord">…</b></span>
-      <span class="stat">hash <b class="hash" id="hash">…</b></span>
+      <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
       <span class="stat">steps <b id="steps">0</b></span>
       <span class="spacer"></span>
       <div class="moves">
@@ -128,12 +164,23 @@
         <button data-move="3" title="stairs down (↓)">▼</button>
         <button data-move="1" title="right hallway (→)">▷</button>
       </div>
+      <button id="copyLink" title="copy a shareable link to this gallery">copy link</button>
       <button id="export" title="download journey JSON">export</button>
       <button id="reset" title="forget trail, start somewhere new">new walk</button>
     </header>
     <main>
-      <div id="walls" class="walls"><div class="loading">summoning the wasm…</div></div>
-      <div id="breadcrumb" class="breadcrumb"></div>
+      <div class="stage">
+        <aside class="minimap-wrap">
+          <div class="minimap-title">you are here</div>
+          <div id="minimap"></div>
+          <div class="minimap-hint">click an exit to move</div>
+        </aside>
+        <div id="walls" class="walls"><div class="loading">summoning the wasm…</div></div>
+      </div>
+      <div class="footer">
+        <button id="historyBtn" class="history-btn">window · last 0/50</button>
+        <span id="trailNote" class="dim"></span>
+      </div>
     </main>
 
     <dialog id="aboutModal">
@@ -169,11 +216,21 @@
           Your last 50 galleries are kept in full; every step's hash is kept forever.
         </p>
         <p class="dim">
-          After Jorge Luis Borges,
           <a href="https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf"
-             target="_blank" rel="noopener noreferrer">“The Library of Babel”</a> (1941).
+             target="_blank" rel="noopener noreferrer">Jorge Luis Borges, &ldquo;The Library of Babel&rdquo; (1941).</a>
         </p>
       </div>
+    </dialog>
+
+    <dialog id="historyModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">your window</h3>
+          <small id="historyMeta"></small>
+        </div>
+        <button id="closeHistory">close</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
     </dialog>
 
     <dialog id="bookModal">
@@ -183,6 +240,7 @@
           <small id="bookMeta"></small>
         </div>
         <div class="book-actions">
+          <button id="copyBookLink" title="copy a link to this book at this page">link</button>
           <button id="downloadBook" title="take the full 410-page book home as a .txt (~1.3 MB)">borrow book</button>
           <button id="closeBook">close</button>
         </div>
