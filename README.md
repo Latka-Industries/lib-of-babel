@@ -98,6 +98,8 @@ exceeds its limit. Ported from VerifyLocal. Run locally:
 sh scripts/check-config-sizes.sh
 ```
 
+Repo: <https://github.com/Latka-Industries/lib-of-babel>
+
 ## Relation to sibling projects
 
 - **[Tessera](../tessera)** (`.tes`) — open document format; the planned home for exported journeys.
