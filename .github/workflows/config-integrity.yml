@@ -1,0 +1,21 @@
+# Fail pushes/PRs when toolchain config files exceed size limits.
+# Supply-chain defense in depth for the frontend (ported from VerifyLocal).
+name: Config integrity
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: config-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  config-integrity:
+    name: Config size check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check toolchain config file sizes
+        run: sh scripts/check-config-sizes.sh

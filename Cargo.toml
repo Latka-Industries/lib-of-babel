@@ -1,0 +1,21 @@
+[package]
+name = "lib-of-babel"
+version = "0.1.0"
+edition = "2021"
+authors = ["AHurowitz <latkaindustries@gmail.com>"]
+description = "A living, walkable Library of Babel: deterministic Rust->WASM gallery generator with cryptographic per-gallery fingerprints."
+license = "MIT"
+repository = "https://github.com/thicclatka/lib-of-babel"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
