@@ -8,6 +8,7 @@ import init, {
   node_hash_hex,
   book_text_for,
   generator_version,
+  default_alphabet,
 } from "./pkg/lib_of_babel.js";
 
 const WALLS = 4;
@@ -63,6 +64,7 @@ const MOVE_NAMES = { 0: "left", 1: "right", 2: "up", 3: "down" };
 let z = 0n;
 let n = 0n;
 let gv = 0;
+let alphabetId = 29; // symbol count; 25 = Borges, 29 = Basile. An axis of the universe.
 let trail = []; // [{ z:string, n:string, move:number|null, hash:string }]
 let windowBuf = []; // last <=50 visited {z,n,hash}
 let startedAt = new Date().toISOString();
@@ -97,6 +99,7 @@ function scheduleSave() {
 async function persist() {
   await kvSet("journey", {
     generator_version: gv,
+    alphabet: alphabetId,
     started_at: startedAt,
     current: { z: z.toString(), n: n.toString() },
     trail,
@@ -104,7 +107,7 @@ async function persist() {
 }
 
 function recordStep(move) {
-  const hash = node_hash_hex(z, n);
+  const hash = node_hash_hex(z, n, alphabetId);
   trail.push({ z: z.toString(), n: n.toString(), move, hash });
   windowBuf.push({ z: z.toString(), n: n.toString(), hash });
   if (windowBuf.length > WINDOW_MAX) windowBuf.shift(); // forget beyond 50
@@ -115,9 +118,9 @@ function recordStep(move) {
 // ---- url permalink + clipboard --------------------------------------------
 // The hash isn't reversible to coordinates, so a shareable link encodes (z, n)
 // and carries the hash as a proof token. An open book adds &b=<shelf>&p=<page>.
-function permalink(zv, nv, hash, book = null, page = null) {
+function permalink(zv, nv, hash, alpha = alphabetId, book = null, page = null) {
   const base = `${location.origin}${location.pathname}`;
-  let frag = `#z=${zv}&n=${nv}&h=${hash.slice(0, 16)}`;
+  let frag = `#z=${zv}&n=${nv}&a=${alpha}&h=${hash.slice(0, 16)}`;
   if (book !== null) frag += `&b=${book}`;
   if (page !== null) frag += `&p=${page}`;
   return `${base}${frag}`;
@@ -125,9 +128,9 @@ function permalink(zv, nv, hash, book = null, page = null) {
 
 // the link to wherever we are right now (gallery, or gallery + open book/page)
 function currentUrl() {
-  const hash = node_hash_hex(z, n);
+  const hash = node_hash_hex(z, n, alphabetId);
   if (currentBook && el("bookModal").open) {
-    return permalink(z, n, hash, currentBook.index, currentBook.page + 1);
+    return permalink(z, n, hash, alphabetId, currentBook.index, currentBook.page + 1);
   }
   return permalink(z, n, hash);
 }
@@ -146,10 +149,12 @@ function parsePermalink() {
   try {
     const bs = p.get("b");
     const ps = p.get("p");
+    const as = p.get("a");
     return {
       z: BigInt(zs),
       n: BigInt(ns),
       h: p.get("h") || "",
+      a: as === null ? null : Number(as),
       b: bs === null ? null : Number(bs),
       p: ps === null ? null : Number(ps),
     };
@@ -179,7 +184,7 @@ function renderMinimap(curHash, accentHue) {
   const accent = `hsl(${accentHue} 70% 58%)`;
   const exit = (mv) => {
     const [nz, nn] = neighbor(z, n, mv);
-    const h = node_hash_hex(nz, nn);
+    const h = node_hash_hex(nz, nn, alphabetId);
     return { h, color: `hsl(${parseInt(h.slice(0, 4), 16) % 360} 60% 62%)` };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
@@ -204,8 +209,8 @@ function renderMinimap(curHash, accentHue) {
 }
 
 function render() {
-  const titles = JSON.parse(gallery_titles_json(z, n));
-  const hash = node_hash_hex(z, n);
+  const titles = JSON.parse(gallery_titles_json(z, n, alphabetId));
+  const hash = node_hash_hex(z, n, alphabetId);
   el("coord").textContent = `(${z}, ${n})`;
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
@@ -254,7 +259,7 @@ function render() {
   }
 
   el("historyBtn").textContent = `window · last ${windowBuf.length}/${WINDOW_MAX}`;
-  el("trailNote").textContent = `trail ${trail.length} nodes · gen v${gv}`;
+  el("trailNote").textContent = `trail ${trail.length} nodes · ${alphabetId}-symbol · gen v${gv}`;
   if (el("historyModal").open) renderHistory();
 }
 
@@ -303,7 +308,7 @@ let currentBook = null; // { index, title, text, page }
 
 function titleForIndex(i) {
   try {
-    return JSON.parse(gallery_titles_json(z, n))[i] || null;
+    return JSON.parse(gallery_titles_json(z, n, alphabetId))[i] || null;
   } catch {
     return null;
   }
@@ -311,7 +316,7 @@ function titleForIndex(i) {
 
 function openBook(bookIndex, title, startPage = 1) {
   // generate the whole 410-page book once, then page through it from the cache
-  const text = book_text_for(z, n, bookIndex);
+  const text = book_text_for(z, n, bookIndex, alphabetId);
   const page = Math.min(PAGES_PER_BOOK, Math.max(1, startPage)) - 1;
   currentBook = {
     index: bookIndex,
@@ -386,7 +391,7 @@ function exportJourney() {
   const blob = new Blob(
     [
       JSON.stringify(
-        { generator_version: gv, started_at: startedAt, trail },
+        { generator_version: gv, alphabet: alphabetId, started_at: startedAt, trail },
         null,
         2,
       ),
@@ -425,6 +430,15 @@ async function main() {
   // a permalink (#z=..&n=..) takes priority — unless it's just our own
   // session being refreshed (coords already match the saved trail).
   const link = parsePermalink();
+
+  // alphabet is an axis of the universe: permalink wins, else saved, else default
+  alphabetId =
+    link && link.a != null
+      ? link.a
+      : savedOk && saved.alphabet
+        ? saved.alphabet
+        : default_alphabet();
+
   const isOwnRefresh =
     link &&
     savedOk &&
@@ -496,6 +510,19 @@ async function main() {
   });
   el("export").addEventListener("click", exportJourney);
   el("reset").addEventListener("click", newWalk);
+
+  // switching alphabet steps into a different library (same coordinate, new
+  // text + new hash), so it starts a fresh walk there.
+  el("alphabet").value = String(alphabetId);
+  el("alphabet").addEventListener("change", (ev) => {
+    alphabetId = Number(ev.target.value);
+    trail = [];
+    windowBuf = [];
+    startedAt = new Date().toISOString();
+    recordStep(null);
+    persist();
+    render();
+  });
   el("closeBook").addEventListener("click", () => el("bookModal").close());
   el("downloadBook").addEventListener("click", downloadBook);
   el("prevPage").addEventListener("click", () => turnPage(-1));
