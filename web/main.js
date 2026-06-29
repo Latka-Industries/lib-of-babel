@@ -192,6 +192,20 @@ function jumpPage() {
   renderBookPage();
 }
 
+function downloadBook() {
+  if (!currentBook) return;
+  const safe =
+    currentBook.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 40) ||
+    "book";
+  const name = `babel-${z}_${n}-shelf${currentBook.index}-${safe}.txt`;
+  const blob = new Blob([currentBook.text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 // ---- movement -------------------------------------------------------------
 function step(move) {
   [z, n] = neighbor(z, n, move);
@@ -248,6 +262,7 @@ async function main() {
   el("export").addEventListener("click", exportJourney);
   el("reset").addEventListener("click", newWalk);
   el("closeBook").addEventListener("click", () => el("bookModal").close());
+  el("downloadBook").addEventListener("click", downloadBook);
   el("prevPage").addEventListener("click", () => turnPage(-1));
   el("nextPage").addEventListener("click", () => turnPage(1));
   el("goPage").addEventListener("click", jumpPage);
