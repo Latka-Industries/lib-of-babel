@@ -1,0 +1,23 @@
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock.orig
+
+# WASM build output
+/pkg
+/web/pkg
+
+# Node (frontend toolchain, when added)
+node_modules
+dist
+.next
+.svelte-kit
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+*.log
