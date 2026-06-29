@@ -49,7 +49,10 @@ async function kvGet(key) {
 async function kvSet(key, val) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite").objectStore(STORE).put(val, key);
+    const tx = db
+      .transaction(STORE, "readwrite")
+      .objectStore(STORE)
+      .put(val, key);
     tx.onsuccess = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -68,10 +71,14 @@ let saveTimer = null;
 // neighbor math (kept in JS to avoid BigInt/JSON round-trips through wasm)
 function neighbor(z, n, mv) {
   switch (mv) {
-    case 0: return [z, n - 1n];
-    case 1: return [z, n + 1n];
-    case 2: return [z + 1n, n];
-    default: return [z - 1n, n];
+    case 0:
+      return [z, n - 1n];
+    case 1:
+      return [z, n + 1n];
+    case 2:
+      return [z + 1n, n];
+    default:
+      return [z - 1n, n];
   }
 }
 
@@ -117,7 +124,10 @@ function render() {
 
   // gallery accent colour derived from its hash (deterministic per node)
   const accentHue = parseInt(hash.slice(0, 4), 16) % 360;
-  document.documentElement.style.setProperty("--accent", `hsl(${accentHue} 70% 58%)`);
+  document.documentElement.style.setProperty(
+    "--accent",
+    `hsl(${accentHue} 70% 58%)`,
+  );
 
   const wallsEl = el("walls");
   wallsEl.innerHTML = "";
@@ -139,7 +149,10 @@ function render() {
         book.className = "book";
         book.title = title;
         book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
-        book.textContent = title.replace(/[^a-z]/gi, "").slice(0, 6).toUpperCase();
+        book.textContent = title
+          .replace(/[^a-z]/gi, "")
+          .slice(0, 6)
+          .toUpperCase();
         book.addEventListener("click", () => openBook(bookIndex, title));
         shelf.appendChild(book);
       }
@@ -148,7 +161,10 @@ function render() {
     wallsEl.appendChild(wall);
   }
 
-  const recent = windowBuf.slice(-12).map((e) => `(${e.z},${e.n})`).join(" → ");
+  const recent = windowBuf
+    .slice(-12)
+    .map((e) => `(${e.z},${e.n})`)
+    .join(" → ");
   el("breadcrumb").innerHTML =
     `<b>window</b> (last ${windowBuf.length}/${WINDOW_MAX}): ${recent || "—"}` +
     `<br><b>trail</b>: ${trail.length} nodes · gen v${gv}`;
@@ -159,7 +175,12 @@ let currentBook = null; // { index, title, text, page }
 function openBook(bookIndex, title) {
   // generate the whole 410-page book once, then page through it from the cache
   const text = book_text_for(z, n, bookIndex);
-  currentBook = { index: bookIndex, title: title || `book ${bookIndex}`, text, page: 0 };
+  currentBook = {
+    index: bookIndex,
+    title: title || `book ${bookIndex}`,
+    text,
+    page: 0,
+  };
   el("bookTitle").textContent = currentBook.title;
   renderBookPage();
   el("bookModal").showModal();
@@ -168,9 +189,13 @@ function openBook(bookIndex, title) {
 function renderBookPage() {
   if (!currentBook) return;
   const p = currentBook.page;
-  el("bookMeta").textContent = `gallery (${z}, ${n}) · shelf index ${currentBook.index}`;
+  el("bookMeta").textContent =
+    `gallery (${z}, ${n}) · shelf index ${currentBook.index}`;
   el("pageInd").textContent = `page ${p + 1} / ${PAGES_PER_BOOK}`;
-  el("bookPage").textContent = currentBook.text.slice(p * PAGE_CHARS, (p + 1) * PAGE_CHARS);
+  el("bookPage").textContent = currentBook.text.slice(
+    p * PAGE_CHARS,
+    (p + 1) * PAGE_CHARS,
+  );
   el("bookPage").scrollTop = 0;
   el("prevPage").disabled = p <= 0;
   el("nextPage").disabled = p >= PAGES_PER_BOOK - 1;
@@ -195,10 +220,14 @@ function jumpPage() {
 function downloadBook() {
   if (!currentBook) return;
   const safe =
-    currentBook.title.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 40) ||
-    "book";
+    currentBook.title
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "book";
   const name = `babel-${z}_${n}-shelf${currentBook.index}-${safe}.txt`;
-  const blob = new Blob([currentBook.text], { type: "text/plain;charset=utf-8" });
+  const blob = new Blob([currentBook.text], {
+    type: "text/plain;charset=utf-8",
+  });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -216,7 +245,13 @@ function step(move) {
 // ---- export ---------------------------------------------------------------
 function exportJourney() {
   const blob = new Blob(
-    [JSON.stringify({ generator_version: gv, started_at: startedAt, trail }, null, 2)],
+    [
+      JSON.stringify(
+        { generator_version: gv, started_at: startedAt, trail },
+        null,
+        2,
+      ),
+    ],
     { type: "application/json" },
   );
   const a = document.createElement("a");
@@ -242,12 +277,19 @@ async function main() {
   gv = generator_version();
 
   const saved = await kvGet("journey");
-  if (saved && saved.current && Array.isArray(saved.trail) && saved.trail.length) {
+  if (
+    saved &&
+    saved.current &&
+    Array.isArray(saved.trail) &&
+    saved.trail.length
+  ) {
     z = BigInt(saved.current.z);
     n = BigInt(saved.current.n);
     trail = saved.trail;
     startedAt = saved.started_at || startedAt;
-    windowBuf = trail.slice(-WINDOW_MAX).map((e) => ({ z: e.z, n: e.n, hash: e.hash }));
+    windowBuf = trail
+      .slice(-WINDOW_MAX)
+      .map((e) => ({ z: e.z, n: e.n, hash: e.hash }));
     render();
   } else {
     await newWalk();
@@ -256,9 +298,13 @@ async function main() {
   // ask the browser not to evict the trail under disk pressure
   if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
 
-  document.querySelectorAll(".moves button").forEach((btn) =>
-    btn.addEventListener("click", () => step(Number(btn.dataset.move))),
-  );
+  document
+    .querySelectorAll(".moves button")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => step(Number(btn.dataset.move))),
+    );
+  el("aboutBtn").addEventListener("click", () => el("aboutModal").showModal());
+  el("closeAbout").addEventListener("click", () => el("aboutModal").close());
   el("export").addEventListener("click", exportJourney);
   el("reset").addEventListener("click", newWalk);
   el("closeBook").addEventListener("click", () => el("bookModal").close());
@@ -267,19 +313,30 @@ async function main() {
   el("nextPage").addEventListener("click", () => turnPage(1));
   el("goPage").addEventListener("click", jumpPage);
   el("pageJump").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); jumpPage(); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      jumpPage();
+    }
   });
 
   window.addEventListener("keydown", (e) => {
     // inside an open book, arrows turn pages instead of walking
     if (el("bookModal").open) {
       if (e.target === el("pageJump")) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); turnPage(-1); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); turnPage(1); }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        turnPage(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        turnPage(1);
+      }
       return;
     }
     const map = { ArrowLeft: 0, ArrowRight: 1, ArrowUp: 2, ArrowDown: 3 };
-    if (e.key in map) { e.preventDefault(); step(map[e.key]); }
+    if (e.key in map) {
+      e.preventDefault();
+      step(map[e.key]);
+    }
   });
 }
 
