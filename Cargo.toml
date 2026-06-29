@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["AHurowitz <latkaindustries@gmail.com>"]
 description = "A living, walkable Library of Babel: deterministic Rust->WASM gallery generator with cryptographic per-gallery fingerprints."
 license = "MIT"
-repository = "https://github.com/thicclatka/lib-of-babel"
+repository = "https://github.com/Latka-Industries/lib-of-babel"
 publish = false
 
 [lib]
