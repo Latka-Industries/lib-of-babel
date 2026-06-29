@@ -30,6 +30,12 @@
         backdrop-filter: blur(6px);
       }
       header h1 { font-size: 1rem; letter-spacing: 0.18em; margin: 0; font-weight: 600; }
+      .logo {
+        font: inherit; font-size: 1rem; font-weight: 600; letter-spacing: 0.18em;
+        color: var(--ink); background: none; border: none; padding: 0; margin: 0;
+        cursor: pointer;
+      }
+      .logo:hover { color: var(--accent); border: none; }
       .stat { color: var(--muted); }
       .stat b { color: var(--ink); font-weight: 600; }
       .hash { color: var(--accent); }
@@ -95,11 +101,22 @@
       }
       .book-nav .grow { flex: 1; }
       .loading { color: var(--muted); padding: 2rem; text-align: center; }
+      .about-body { padding: 1rem 1.25rem; line-height: 1.6; max-height: 70vh; overflow: auto; }
+      .about-body p { margin: 0 0 0.85rem; }
+      .about-body h4 { margin: 1.1rem 0 0.4rem; font-size: 0.8rem; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--accent); }
+      .about-body ul { margin: 0 0 0.85rem; padding-left: 1.1rem; }
+      .about-body li { margin: 0.2rem 0; }
+      .about-body kbd {
+        background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
+        padding: 0 0.35rem; font-size: 0.85em;
+      }
+      .about-body .dim { color: var(--muted); }
     </style>
   </head>
   <body>
     <header>
-      <h1>LIB&middot;OF&middot;BABEL</h1>
+      <button id="aboutBtn" class="logo" title="what is this?">LIB&middot;OF&middot;BABEL</button>
       <span class="stat">gallery <b id="coord">…</b></span>
       <span class="stat">hash <b class="hash" id="hash">…</b></span>
       <span class="stat">steps <b id="steps">0</b></span>
@@ -117,6 +134,44 @@
       <div id="walls" class="walls"><div class="loading">summoning the wasm…</div></div>
       <div id="breadcrumb" class="breadcrumb"></div>
     </main>
+
+    <dialog id="aboutModal">
+      <div class="book-head">
+        <h3 style="margin:0">The Library of Babel</h3>
+        <button id="closeAbout">close</button>
+      </div>
+      <div class="about-body">
+        <p>
+          An endless library you can walk. It is made of hexagonal galleries — each with
+          <b>four walls of bookshelves</b> (700 books in all) and <b>two hallways</b> that
+          open onto the next gallery, plus a <b>staircase</b> up and down.
+        </p>
+        <p>
+          Nothing here is stored. Every gallery and every book is <b>generated on the
+          spot from its coordinates</b> — so the same place always holds exactly the same
+          books, forever, for everyone. The Library is infinite, yet it weighs almost
+          nothing: only your <i>path</i> is remembered.
+        </p>
+
+        <h4>How to wander</h4>
+        <ul>
+          <li><kbd>◁</kbd> <kbd>▷</kbd> hallways · <kbd>▲</kbd> <kbd>▼</kbd> stairs — or use the <kbd>arrow keys</kbd>.</li>
+          <li>Click any colored spine to read a book. Inside, arrow keys turn its 410 pages.</li>
+          <li><b>borrow book</b> downloads the full book (~1.3&nbsp;MB) as a .txt.</li>
+          <li><b>export</b> saves your journey; <b>new walk</b> drops you somewhere random.</li>
+        </ul>
+
+        <h4>The numbers in the header</h4>
+        <p class="dim">
+          <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a fingerprint of this
+          gallery's 700 books — a permalink and proof, identical every time you return.
+          Your last 50 galleries are kept in full; every step's hash is kept forever.
+        </p>
+        <p class="dim">
+          After Jorge Luis Borges, “The Library of Babel” (1941).
+        </p>
+      </div>
+    </dialog>
 
     <dialog id="bookModal">
       <div class="book-head">
