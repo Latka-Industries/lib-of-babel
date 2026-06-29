@@ -55,12 +55,17 @@
       }
       .shelf:last-child { border-bottom: none; }
       .book {
-        flex: 0 0 auto; width: 14px; height: 46px;
+        flex: 0 0 auto; width: 17px; height: 52px;
         border-radius: 2px; cursor: pointer;
+        border: 1px solid rgba(0, 0, 0, 0.55);
         background: linear-gradient(180deg, #3a3550, #211f2c);
-        border: 1px solid #000; position: relative;
+        display: flex; align-items: center; justify-content: center;
+        writing-mode: vertical-rl; text-orientation: mixed;
+        font-size: 8px; line-height: 1; letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+        overflow: hidden; padding: 3px 0; transition: transform 0.06s;
       }
-      .book:hover { outline: 1px solid var(--accent); transform: translateY(-2px); }
+      .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
       .breadcrumb { margin-top: 1rem; color: var(--muted); font-size: 12px; word-break: break-all; }
       .breadcrumb b { color: var(--ink); }
       dialog {
@@ -74,8 +79,19 @@
       .book-head small { color: var(--muted); }
       pre.page {
         margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
-        max-height: 60vh; overflow: auto; color: #b9b3a4; font-size: 13px;
+        max-height: 56vh; overflow: auto; color: #b9b3a4; font-size: 13px;
       }
+      .book-nav {
+        display: flex; align-items: center; gap: 0.6rem;
+        padding: 0.6rem 1rem; border-top: 1px solid var(--line);
+      }
+      .book-nav #pageInd { color: var(--muted); min-width: 9rem; }
+      .book-nav input {
+        width: 4.5rem; font: inherit; color: var(--ink);
+        background: var(--bg); border: 1px solid var(--line);
+        border-radius: 5px; padding: 0.25rem 0.4rem;
+      }
+      .book-nav .grow { flex: 1; }
       .loading { color: var(--muted); padding: 2rem; text-align: center; }
     </style>
   </head>
@@ -109,6 +125,14 @@
         <button id="closeBook">close</button>
       </div>
       <pre class="page" id="bookPage"></pre>
+      <div class="book-nav">
+        <button id="prevPage">‹ prev</button>
+        <button id="nextPage">next ›</button>
+        <span id="pageInd">page 1 / 410</span>
+        <span class="grow"></span>
+        <input id="pageJump" type="number" min="1" max="410" placeholder="page" />
+        <button id="goPage">go</button>
+      </div>
     </dialog>
 
     <script type="module" src="./main.js"></script>
