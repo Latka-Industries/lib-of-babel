@@ -49,6 +49,12 @@
       button:hover { border-color: var(--accent); }
       .moves { display: flex; gap: 0.35rem; }
       .moves button { min-width: 2.4rem; }
+      .alphabet {
+        font: inherit; color: var(--ink); background: var(--panel);
+        border: 1px solid var(--line); border-radius: 6px;
+        padding: 0.35rem 0.5rem; cursor: pointer;
+      }
+      .alphabet:hover { border-color: var(--accent); }
       main { padding: 1rem; max-width: 1320px; margin: 0 auto; }
       .stage { display: flex; gap: 1rem; align-items: flex-start; }
       .minimap-wrap {
@@ -164,6 +170,10 @@
         <button data-move="3" title="stairs down (↓)">▼</button>
         <button data-move="1" title="right hallway (→)">▷</button>
       </div>
+      <select id="alphabet" class="alphabet" title="alphabet — switching steps into a different library (new text + new hash)">
+        <option value="29">a&ndash;z &middot; 29</option>
+        <option value="25">a&ndash;v &middot; 25</option>
+      </select>
       <button id="copyLink" title="copy a shareable link to this gallery">copy link</button>
       <button id="export" title="download journey JSON">export</button>
       <button id="reset" title="forget trail, start somewhere new">new walk</button>

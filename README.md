@@ -22,7 +22,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **25 symbols** (22 letters + space, comma, period)
+- alphabet: **selectable** — Borges' **25** (22 letters `a–v` + space, comma, period) or Basile-style **29** (`a–z` + space, comma, period); default 29. The alphabet is **an axis of the universe** (folded into the seed), so each choice is a *distinct* library with its own text and fingerprints.
 
 ## Core design decisions
 
@@ -33,7 +33,8 @@ Canonical dimensions we honor:
 | **Determinism** | Content is a pure function of address. `(z,n) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
 | **Hashing** | `node_hash` = fingerprint over the 700 book identities. A permalink / integrity proof, **not** a dedup key — the address already guarantees uniqueness. |
 | **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
-| **Permalinks** | URL encodes `(z, n)` (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
+| **Alphabet** | Selectable (Borges 25 / Basile 29), folded into the gallery seed so each is a separate library. Carried in permalinks (`&a=`) and exports — a precursor of the multiverse `universe_seed`. |
+| **Permalinks** | URL encodes `(z, n)` + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
 | **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. Tessera `.tes` later. |
 
