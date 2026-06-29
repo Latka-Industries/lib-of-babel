@@ -217,8 +217,12 @@ function render() {
   el("steps").textContent = String(Math.max(0, trail.length - 1));
   syncUrl();
 
-  // gallery accent colour derived from its hash (deterministic per node)
-  const accentHue = parseInt(hash.slice(0, 4), 16) % 360;
+  // gallery accent colour derived from its hash (deterministic per node).
+  // separate hex slices seed hue / chroma / lightness so each gallery's
+  // heatmap has a distinct mood, not just a rotated copy of the same ring.
+  accentHue = parseInt(hash.slice(0, 4), 16) % 360;
+  accentChroma = 0.08 + 0.14 * (parseInt(hash.slice(4, 8), 16) / 0xffff);
+  accentLightness = 0.55 + 0.23 * (parseInt(hash.slice(8, 12), 16) / 0xffff);
   document.documentElement.style.setProperty(
     "--accent",
     `hsl(${accentHue} 70% 58%)`,
@@ -306,6 +310,17 @@ function renderHistory() {
 
 let currentBook = null; // { index, title, text, page }
 let viewMode = "text"; // "text" | "color" — how the open page is shown
+// current gallery's palette, derived from its hash (set in render). hue spaces
+// the letters; chroma + lightness give each gallery its own mood in OKLCH.
+let accentHue = 0;
+let accentChroma = 0.15;
+let accentLightness = 0.66;
+
+// alphabets mirror src/lib.rs; index is used to spread heatmap hues evenly
+const ALPHABETS = {
+  25: "abcdefghijklmnopqrstuv ,.",
+  29: "abcdefghijklmnopqrstuvwxyz ,.",
+};
 
 // draw the page as an 80×40 grid of character colours (looks like colour noise,
 // since the text is maximum-entropy; structured pages would break the static).
@@ -316,14 +331,23 @@ function renderBookCanvas(pageText) {
   cv.height = rows * cell;
   const ctx = cv.getContext("2d");
   const lines = pageText.split("\n");
+  // OKLCH so the spread is perceptually even (HSL clumps greens, crushes blues).
+  // hue = letter's position in the alphabet, evenly spaced and rotated by the
+  // gallery's accent hue; chroma + lightness are seeded per gallery so each
+  // one reads as a distinct mood while staying a faithful per-page content map.
+  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+  const step = 360 / alpha.length;
+  const L = accentLightness.toFixed(3);
+  const C = accentChroma.toFixed(3);
   for (let r = 0; r < rows; r++) {
     const line = lines[r] || "";
     for (let c = 0; c < cols; c++) {
       const ch = line[c] ?? " ";
+      const i = alpha.indexOf(ch);
       ctx.fillStyle =
-        ch === " "
+        ch === " " || i < 0
           ? "#15131a"
-          : `hsl(${(ch.charCodeAt(0) * 137.5) % 360} 65% 55%)`;
+          : `oklch(${L} ${C} ${(i * step + accentHue) % 360})`;
       ctx.fillRect(c * cell, r * cell, cell, cell);
     }
   }
