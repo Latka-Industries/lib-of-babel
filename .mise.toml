@@ -1,0 +1,57 @@
+# mise — local dev for lib-of-babel.  https://mise.jdx.dev/
+# One-time:  mise trust && mise install
+# Then:      mise run dev        # build the wasm + serve, open the URL below
+#
+# Why mise: activating it puts its shims first on PATH, which sidesteps a
+# Homebrew `rustc` shadowing rustup (the wasm32 target lives in the rustup
+# toolchain, pinned by rust-toolchain.toml).
+
+[tools]
+rust = "stable"                          # respects rust-toolchain.toml (pulls the wasm32 target)
+"aqua:wasm-bindgen/wasm-pack" = "latest" # Rust -> WASM bundler (generates web/pkg)
+uv = "latest"                            # Python runtime/runner for the static dev server
+
+[env]
+PORT = "8777"
+
+[tasks.build]
+description = "Build the WASM core (release) into web/pkg"
+run = "wasm-pack build --target web --out-dir web/pkg --release"
+
+[tasks.build-dev]
+description = "Build the WASM core (debug, faster) into web/pkg"
+run = "wasm-pack build --target web --out-dir web/pkg --dev"
+
+[tasks.serve]
+description = "Serve web/ over HTTP via uv-managed Python (http://127.0.0.1:$PORT/index.html)"
+dir = "web"
+run = "uv run --no-project --python 3.13 -- python -m http.server ${PORT:-8777}"
+
+[tasks.dev]
+description = "Build then serve — open http://127.0.0.1:8777/index.html"
+run = ["mise run build", "mise run serve"]
+
+[tasks.dev-fast]
+description = "Debug build then serve (faster iterate)"
+run = ["mise run build-dev", "mise run serve"]
+
+[tasks.test]
+description = "Run host unit tests"
+run = "cargo test"
+
+[tasks.fmt]
+description = "cargo fmt"
+run = "cargo fmt --all"
+
+[tasks.check]
+description = "fmt + clippy (-D warnings) + tests + config-size guard"
+run = [
+  "cargo fmt --all -- --check",
+  "cargo clippy --all-targets -- -D warnings",
+  "cargo test",
+  "sh scripts/check-config-sizes.sh",
+]
+
+[tasks.clean]
+description = "Remove build artifacts (target/ and web/pkg)"
+run = "rm -rf target web/pkg"
