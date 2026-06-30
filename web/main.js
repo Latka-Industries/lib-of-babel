@@ -7,6 +7,7 @@ import init, {
   gallery_titles_json,
   node_hash_hex,
   book_text_for,
+  book_image,
   generator_version,
   default_alphabet,
 } from "./pkg/lib_of_babel.js";
@@ -457,6 +458,37 @@ function downloadBook() {
   URL.revokeObjectURL(a.href);
 }
 
+// whole-book color map: WASM returns an RGBA contact sheet of all 410 pages,
+// we blit it straight to a canvas (one putImageData, no per-cell JS work).
+function renderBookImage() {
+  if (!currentBook) return;
+  const img = book_image(z, n, currentBook.index, alphabetId);
+  const cv = el("bookImageCanvas");
+  cv.width = img.width;
+  cv.height = img.height;
+  const data = new ImageData(
+    new Uint8ClampedArray(img.pixels),
+    img.width,
+    img.height,
+  );
+  cv.getContext("2d").putImageData(data, 0, 0);
+  el("imageTitle").textContent = currentBook.title;
+  el("imageMeta").textContent =
+    `gallery (${z}, ${n}) · shelf ${currentBook.index} · whole book · ${img.width}×${img.height}`;
+}
+
+function saveBookImage() {
+  if (!currentBook) return;
+  el("bookImageCanvas").toBlob((blob) => {
+    if (!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `babel-${z}_${n}-shelf${currentBook.index}-colors.png`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+}
+
 // ---- movement -------------------------------------------------------------
 function step(move) {
   [z, n] = neighbor(z, n, move);
@@ -602,12 +634,22 @@ async function main() {
     render();
   });
   el("closeBook").addEventListener("click", () => el("bookModal").close());
-  el("downloadBook").addEventListener("click", downloadBook);
+  el("saveMenu").addEventListener("change", (ev) => {
+    const choice = ev.currentTarget.value;
+    ev.currentTarget.selectedIndex = 0; // reset to the "save…" label
+    if (choice === "txt") downloadBook();
+    else if (choice === "img") {
+      renderBookImage();
+      if (!el("imageModal").open) el("imageModal").showModal();
+    }
+  });
   el("viewToggle").addEventListener("click", (ev) => {
     viewMode = viewMode === "color" ? "text" : "color";
     ev.currentTarget.textContent = viewMode === "color" ? "text" : "color";
     renderBookPage();
   });
+  el("saveImage").addEventListener("click", saveBookImage);
+  el("closeImage").addEventListener("click", () => el("imageModal").close());
   el("prevPage").addEventListener("click", () => turnPage(-1));
   el("nextPage").addEventListener("click", () => turnPage(1));
   el("goPage").addEventListener("click", jumpPage);
