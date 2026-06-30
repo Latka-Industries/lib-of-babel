@@ -146,9 +146,10 @@ function recordStep(move) {
 // and carries the hash as a proof token. An open book adds &b=<shelf>&p=<page>.
 function permalink(zv, nv, hash, alpha = alphabetId, book = null, page = null) {
   const base = `${location.origin}${location.pathname}`;
-  let frag = `#z=${zv}&n=${nv}&a=${alpha}&h=${hash.slice(0, 16)}`;
+  let frag = `#z=${zv}&n=${nv}&h=${hash.slice(0, 16)}`;
   if (book !== null) frag += `&b=${book}`;
   if (page !== null) frag += `&p=${page}`;
+  frag += `&a=${alpha}`; // alphabet last
   return `${base}${frag}`;
 }
 
