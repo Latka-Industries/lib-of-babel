@@ -10,6 +10,8 @@ import init, {
   book_image,
   generator_version,
   default_alphabet,
+  set_universe,
+  universe_seed_for,
 } from "./pkg/lib_of_babel.js";
 
 const WALLS = 4;
@@ -91,6 +93,11 @@ let z = 0n;
 let n = 0n;
 let gv = 0;
 let alphabetId = 29; // symbol count; 25 = Borges, 29 = Basile. An axis of the universe.
+// the multiverse: a memorable name selects one of infinitely many parallel
+// libraries. "" is the default/canonical universe (seed 0). The name → u64 seed
+// mapping lives in WASM so it's the one source of truth, set as global state
+// there via set_universe; everything downstream reads that.
+let universeName = "";
 let trail = []; // [{ z:string, n:string, move:number|null, hash:string }]
 let windowBuf = []; // last <=50 visited {z,n,hash}
 let startedAt = new Date().toISOString();
@@ -117,6 +124,23 @@ function randomCoord() {
   return [buf[0] % 1_000_000_000n, buf[1] % 1_000_000_000n];
 }
 
+// select a universe by name and push its seed into WASM (global there). Must be
+// called before any generation so hashes/text reflect the right library. Empty
+// name → the default universe (seed 0).
+function applyUniverse(name) {
+  universeName = (name || "").trim();
+  set_universe(universe_seed_for(universeName));
+}
+
+// a short, pronounceable-ish random universe name (memorable + shareable)
+function randomUniverseName() {
+  const buf = new Uint32Array(2);
+  crypto.getRandomValues(buf);
+  return (
+    buf[0].toString(36).slice(0, 4) + buf[1].toString(36).slice(0, 4)
+  ).slice(0, 8);
+}
+
 // ---- persistence ----------------------------------------------------------
 function scheduleSave() {
   clearTimeout(saveTimer);
@@ -126,6 +150,7 @@ async function persist() {
   await kvSet("journey", {
     generator_version: gv,
     alphabet: alphabetId,
+    universe: universeName,
     started_at: startedAt,
     current: { z: z.toString(), n: n.toString() },
     trail,
@@ -144,11 +169,21 @@ function recordStep(move) {
 // ---- url permalink + clipboard --------------------------------------------
 // The hash isn't reversible to coordinates, so a shareable link encodes (z, n)
 // and carries the hash as a proof token. An open book adds &b=<shelf>&p=<page>.
-function permalink(zv, nv, hash, alpha = alphabetId, book = null, page = null) {
+// &u=<universe> is omitted for the default universe so canonical links stay clean.
+function permalink(
+  zv,
+  nv,
+  hash,
+  alpha = alphabetId,
+  book = null,
+  page = null,
+  uni = universeName,
+) {
   const base = `${location.origin}${location.pathname}`;
   let frag = `#z=${zv}&n=${nv}&h=${hash.slice(0, 16)}`;
   if (book !== null) frag += `&b=${book}`;
   if (page !== null) frag += `&p=${page}`;
+  if (uni) frag += `&u=${encodeURIComponent(uni)}`;
   frag += `&a=${alpha}`; // alphabet last
   return `${base}${frag}`;
 }
@@ -184,6 +219,7 @@ function parsePermalink() {
       a: as === null ? null : Number(as),
       b: bs === null ? null : Number(bs),
       p: ps === null ? null : Number(ps),
+      u: p.get("u"), // universe name, or null for the default universe
     };
   } catch {
     return null; // malformed coordinates
@@ -290,7 +326,7 @@ function render() {
   }
 
   el("historyBtn").textContent = `window · last ${windowBuf.length}/${WINDOW_MAX}`;
-  el("trailNote").textContent = `trail ${trail.length} nodes · ${alphabetId}-symbol · gen v${gv}`;
+  el("trailNote").textContent = `trail ${trail.length} nodes · universe ${universeName || "default"} · ${alphabetId}-symbol · gen v${gv}`;
   if (el("historyModal").open) renderHistory();
 }
 
@@ -404,8 +440,9 @@ function openBook(bookIndex, title, startPage = 1) {
     page,
   };
   el("bookTitle").textContent = currentBook.title;
-  renderBookPage();
+  // open the modal first so renderBookPage's syncUrl sees it and writes &b/&p
   if (!el("bookModal").open) el("bookModal").showModal();
+  renderBookPage();
 }
 
 function renderBookPage() {
@@ -528,7 +565,13 @@ function exportJourney() {
   const blob = new Blob(
     [
       JSON.stringify(
-        { generator_version: gv, alphabet: alphabetId, started_at: startedAt, trail },
+        {
+          generator_version: gv,
+          universe: universeName,
+          alphabet: alphabetId,
+          started_at: startedAt,
+          trail,
+        },
         null,
         2,
       ),
@@ -576,11 +619,22 @@ async function main() {
         ? saved.alphabet
         : default_alphabet();
 
+  // universe is the outermost axis: permalink wins, else saved, else default.
+  // applyUniverse must run before any generation (it sets WASM global state).
+  applyUniverse(
+    link && link.u != null
+      ? link.u
+      : savedOk && saved.universe
+        ? saved.universe
+        : "",
+  );
+
   const isOwnRefresh =
     link &&
     savedOk &&
     saved.current.z === link.z.toString() &&
-    saved.current.n === link.n.toString();
+    saved.current.n === link.n.toString() &&
+    (saved.universe || "") === universeName;
 
   if (link && !isOwnRefresh) {
     z = link.z;
@@ -682,6 +736,33 @@ async function main() {
     persist();
     render();
   });
+
+  // entering / naming a universe steps into a wholly different parallel library
+  // at the same coordinate (new text + new hashes), so it starts a fresh walk.
+  el("universe").value = universeName;
+  const enterUniverse = (name) => {
+    const next = (name || "").trim();
+    if (next === universeName) return; // already here
+    applyUniverse(next);
+    el("universe").value = universeName;
+    trail = [];
+    windowBuf = [];
+    startedAt = new Date().toISOString();
+    recordStep(null);
+    persist();
+    render();
+  };
+  el("universe").addEventListener("change", (ev) => enterUniverse(ev.target.value));
+  el("universe").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      enterUniverse(e.target.value);
+      e.target.blur();
+    }
+  });
+  el("universeRandom").addEventListener("click", () =>
+    enterUniverse(randomUniverseName()),
+  );
   el("closeBook").addEventListener("click", () => el("bookModal").close());
   el("saveMenu").addEventListener("change", (ev) => {
     const choice = ev.currentTarget.value;
