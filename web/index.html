@@ -40,6 +40,21 @@
       .stat b { color: var(--ink); font-weight: 600; }
       .hash { color: var(--accent); cursor: pointer; }
       .hash:hover { text-decoration: underline; }
+      .coord { cursor: pointer; }
+      .coord:hover { color: var(--accent); text-decoration: underline; }
+      .jump-body {
+        display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+        padding: 0.9rem 1rem 1.1rem;
+      }
+      .jump-body label {
+        display: flex; align-items: center; gap: 0.35rem;
+        color: var(--muted); font-size: 0.85rem;
+      }
+      .jump-body input {
+        width: 11rem; font: inherit; color: var(--ink); background: var(--bg);
+        border: 1px solid var(--line); border-radius: 5px; padding: 0.3rem 0.45rem;
+      }
+      .jump-body input:focus { outline: none; border-color: var(--accent); }
       .spacer { flex: 1; }
       button {
         font: inherit; color: var(--ink); background: var(--panel);
@@ -175,7 +190,7 @@
   <body>
     <header>
       <button id="aboutBtn" class="logo" title="what is this?">LIB&middot;OF&middot;BABEL</button>
-      <span class="stat">gallery <b id="coord">…</b></span>
+      <span class="stat">gallery <b id="coord" class="coord" title="click to jump to any gallery">…</b></span>
       <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
       <span class="stat">steps <b id="steps">0</b></span>
       <span class="spacer"></span>
@@ -229,6 +244,7 @@
         <h4>How to wander</h4>
         <ul>
           <li><kbd>◁</kbd> <kbd>▷</kbd> hallways · <kbd>▲</kbd> <kbd>▼</kbd> stairs — or use the <kbd>arrow keys</kbd>.</li>
+          <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere — leap as far across the lattice as you like.</li>
           <li>The <b>minimap</b> (left) shows the four exits and their hashes — click one to move.</li>
           <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
           <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
@@ -267,6 +283,21 @@
         <button id="closeHistory">close</button>
       </div>
       <div class="history-list" id="historyList"></div>
+    </dialog>
+
+    <dialog id="jumpModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">jump to a gallery</h3>
+          <small>type any coordinates — the lattice is vast, so leap as far as you like.</small>
+        </div>
+        <button id="closeJump">close</button>
+      </div>
+      <div class="jump-body">
+        <label>z <input id="jumpZ" type="text" inputmode="numeric" spellcheck="false" placeholder="0" /></label>
+        <label>n <input id="jumpN" type="text" inputmode="numeric" spellcheck="false" placeholder="0" /></label>
+        <button id="goJump">go</button>
+      </div>
     </dialog>
 
     <dialog id="bookModal">

@@ -293,7 +293,7 @@ function render() {
   if (el("historyModal").open) renderHistory();
 }
 
-const MOVE_ARROW = { 0: "◁", 1: "▷", 2: "▲", 3: "▼", null: "•" };
+const MOVE_ARROW = { 0: "◁", 1: "▷", 2: "▲", 3: "▼", null: "•", jump: "⤳" };
 
 // last-50 window, newest first, vertically — click a row to jump back to it.
 function renderHistory() {
@@ -501,6 +501,27 @@ function step(move) {
   render();
 }
 
+// ---- jump to an arbitrary coordinate (big leaps across the lattice) --------
+const I64_MIN = -9223372036854775808n;
+const I64_MAX = 9223372036854775807n;
+const clampI64 = (v) => (v < I64_MIN ? I64_MIN : v > I64_MAX ? I64_MAX : v);
+
+function jumpTo(zStr, nStr) {
+  const parse = (s) => {
+    const t = String(s).trim();
+    return /^-?\d+$/.test(t) ? clampI64(BigInt(t)) : null;
+  };
+  const zv = parse(zStr);
+  const nv = parse(nStr);
+  if (zv === null || nv === null) return false;
+  if (zv === z && nv === n) return true; // already here; just close
+  z = zv;
+  n = nv;
+  recordStep("jump");
+  render();
+  return true;
+}
+
 // ---- export ---------------------------------------------------------------
 function exportJourney() {
   const blob = new Blob(
@@ -605,6 +626,28 @@ async function main() {
     );
   el("aboutBtn").addEventListener("click", () => el("aboutModal").showModal());
   el("closeAbout").addEventListener("click", () => el("aboutModal").close());
+
+  // click the (z, n) coordinate to jump anywhere on the lattice
+  const doJump = () => {
+    if (jumpTo(el("jumpZ").value, el("jumpN").value)) el("jumpModal").close();
+  };
+  el("coord").addEventListener("click", () => {
+    el("jumpZ").value = z.toString();
+    el("jumpN").value = n.toString();
+    el("jumpModal").showModal();
+    el("jumpZ").focus();
+    el("jumpZ").select();
+  });
+  el("goJump").addEventListener("click", doJump);
+  el("closeJump").addEventListener("click", () => el("jumpModal").close());
+  ["jumpZ", "jumpN"].forEach((id) =>
+    el(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        doJump();
+      }
+    }),
+  );
   el("historyBtn").addEventListener("click", () => {
     renderHistory();
     el("historyModal").showModal();
