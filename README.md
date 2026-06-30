@@ -134,7 +134,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 - **Living membrane** — persisted discovery log ("coral growth"), wear paths.
 - **Tessera export** — write the journey as a `.tes` document once Tessera ships.
-- **First-person 3D gallery** and **generative audio** (deferred).
+- **Generative audio** per gallery (deferred).
 
 Repo: <https://github.com/Latka-Industries/lib-of-babel>
 
