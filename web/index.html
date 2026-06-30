@@ -42,6 +42,31 @@
       .hash:hover { text-decoration: underline; }
       .coord { cursor: pointer; }
       .coord:hover { color: var(--accent); text-decoration: underline; }
+      .rarity { cursor: pointer; color: var(--tier, var(--ink)); }
+      .rarity:hover { text-decoration: underline; }
+      /* proof-of-find modals */
+      .find-body { padding: 0.75rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+      .find-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+      .find-row label { color: var(--muted); font-size: 0.85rem; }
+      .find-body select, .find-body input { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.5rem; }
+      .find-body button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; }
+      .find-body button:hover { border-color: var(--accent); }
+      .find-progress { color: var(--muted); font-size: 0.85rem; min-height: 1.2em; }
+      .find-result { border: 1px solid var(--line); border-radius: 8px; padding: 0.75rem; display: none; }
+      .find-result.show { display: block; }
+      .tier-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0b0b0d; }
+      .find-big { font-size: 1.4rem; font-weight: 700; margin: 0.25rem 0; }
+      .find-dim { color: var(--muted); font-size: 0.8rem; }
+      .trophy-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 60vh; overflow: auto; }
+      .trophy { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.65rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+      .trophy .coord { color: var(--ink); }
+      .trophy .grow { flex: 1; }
+      .trophy small { color: var(--muted); }
+      .trophy .bad { color: #ff6b6b; }
+      .trophy .ok { color: #51cf66; }
+      .trophy button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
+      .trophy button:hover { border-color: var(--accent); }
+      .trophy-empty { color: var(--muted); padding: 1rem; text-align: center; }
       .jump-body {
         display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
         padding: 0.9rem 1rem 1.1rem;
@@ -232,6 +257,7 @@
       <button id="aboutBtn" class="logo" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
       <span class="stat">gallery <b id="coord" class="coord" title="click to jump to any gallery">…</b></span>
       <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
+      <span class="stat">rarity <b class="rarity" id="rarity" title="leading zero bits of this gallery's BLAKE3 hash — click to prospect for rarer galleries">…</b></span>
       <span class="stat">steps <b id="steps">0</b></span>
       <span class="spacer"></span>
       <div class="moves">
@@ -255,6 +281,8 @@
         <option value="copy">copy link</option>
         <option value="export">export journey</option>
         <option value="verify">verify journey</option>
+        <option value="prospect">prospect rarity</option>
+        <option value="trophies">my trophies</option>
         <option value="reset">new walk</option>
       </select>
       <input id="verifyFile" type="file" accept="application/json,.json" hidden />
@@ -322,10 +350,23 @@
           <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
           fingerprint of this gallery's 700 books — a permalink and proof, identical
           every time you return (and unique to the current universe and alphabet).
-          Your last 50 galleries are kept in full; every step's hash is kept forever.
+          <b>rarity</b> is the number of leading zero bits in that hash. Your last 50
+          galleries are kept in full; every step's hash is kept forever.
           The <b>actions&hellip;</b> menu lets you <b>copy link</b>, <b>export</b> your
           journey, <b>verify</b> one (re-walk an exported file and prove every hash is
-          genuine), or start a <b>new walk</b>.
+          genuine), <b>prospect</b> for rarity, open your <b>trophies</b>, or start a
+          <b>new walk</b>.
+        </p>
+
+        <h4>Proof of find</h4>
+        <p class="dim">
+          A gallery whose hash starts with many <b>zero bits</b> is exponentially rare —
+          finding one is real proof-of-work, but anyone can verify it instantly by
+          recomputing the hash. Click <b>rarity</b> (or actions &rarr; <b>prospect</b>)
+          to scan random galleries for a rare hash, then <b>claim</b> it as a trophy.
+          Trophies live in your browser and re-verify against the current build; share a
+          trophy's link and whoever opens it can prove the find for themselves. Free
+          forever — no token, no payout.
         </p>
 
         <h4>Inspiration</h4>
@@ -357,6 +398,50 @@
         <button id="closeVerify">close</button>
       </div>
       <div class="verify-body" id="verifyBody"></div>
+    </dialog>
+
+    <dialog id="prospectModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">prospect for rarity</h3>
+          <small>Scan random galleries in this universe for a hash with many leading zero bits — proof-of-work you can prove to anyone.</small>
+        </div>
+        <button id="closeProspect">close</button>
+      </div>
+      <div class="find-body">
+        <div class="find-row">
+          <label>scan
+            <select id="prospectCount">
+              <option value="5000">5,000</option>
+              <option value="20000" selected>20,000</option>
+              <option value="80000">80,000</option>
+              <option value="200000">200,000</option>
+            </select>
+            galleries
+          </label>
+          <button id="prospectDig">dig</button>
+        </div>
+        <div class="find-progress" id="prospectProgress"></div>
+        <div class="find-result" id="prospectResult"></div>
+      </div>
+    </dialog>
+
+    <dialog id="trophiesModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">my trophies</h3>
+          <small>Your finds, re-verified against this build. Share a link and anyone can prove it.</small>
+        </div>
+        <button id="closeTrophies">close</button>
+      </div>
+      <div class="find-body">
+        <div class="find-row">
+          <label>finder <input id="finderHandle" type="text" maxlength="32" placeholder="anonymous" autocomplete="off" spellcheck="false" /></label>
+          <span class="grow"></span>
+          <button id="claimCurrent">claim this gallery</button>
+        </div>
+        <div class="trophy-list" id="trophyList"></div>
+      </div>
     </dialog>
 
     <dialog id="jumpModal">

@@ -75,7 +75,7 @@ lib-of-babel/
 ├── web/                 static frontend: gallery + minimap + sigil, book reader, history, permalinks, export, verifier
 │   ├── index.html       layout + styles
 │   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil
+│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · find
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -126,8 +126,8 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
-11. **Reverse lookup** — search-by-content via a reversible (Feistel) mapping.
-12. **Proof-of-find** — verifiable rare-discovery claims (free; no chain, no payout).
+11. ✅ **Proof-of-find** — rarity = leading-zero bits of a gallery's BLAKE3 hash (proof-of-work). Prospect random galleries for rare hashes, claim self-verifying **trophies** (kept in IndexedDB), and share a permalink that proves the find to anyone. Free; no chain, no payout.
+12. **Reverse lookup** — search-by-content via a reversible (Feistel) mapping (would also unlock notable-*text* finds).
 13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**
