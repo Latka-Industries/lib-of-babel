@@ -46,6 +46,24 @@
         display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
         padding: 0.9rem 1rem 1.1rem;
       }
+      .verify-body { padding: 1rem 1.25rem 1.25rem; }
+      .verify-verdict {
+        display: flex; align-items: center; gap: 0.6rem;
+        font-size: 1.05rem; font-weight: 600; margin-bottom: 0.6rem;
+      }
+      .verify-verdict .badge {
+        display: inline-grid; place-items: center;
+        width: 1.6rem; height: 1.6rem; border-radius: 50%;
+        font-size: 0.95rem;
+      }
+      .verify-ok { color: #57c46a; }
+      .verify-ok .badge { background: rgba(87,196,106,0.16); }
+      .verify-bad { color: #e0625e; }
+      .verify-bad .badge { background: rgba(224,98,94,0.16); }
+      .verify-reason { color: var(--ink); margin: 0 0 0.8rem; line-height: 1.5; }
+      .verify-facts { list-style: none; margin: 0; padding: 0; color: var(--muted); }
+      .verify-facts li { margin: 0.2rem 0; }
+      .verify-facts b { color: var(--ink); font-weight: 600; }
       .jump-body label {
         display: flex; align-items: center; gap: 0.35rem;
         color: var(--muted); font-size: 0.85rem;
@@ -224,12 +242,14 @@
         <option value="29">a&ndash;z &middot; 29</option>
         <option value="25">a&ndash;v &middot; 25</option>
       </select>
-      <select id="actionsMenu" class="actions-menu" title="copy link · export · new walk">
+      <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · new walk">
         <option value="" selected disabled>actions&hellip;</option>
         <option value="copy">copy link</option>
         <option value="export">export journey</option>
+        <option value="verify">verify journey</option>
         <option value="reset">new walk</option>
       </select>
+      <input id="verifyFile" type="file" accept="application/json,.json" hidden />
     </header>
     <main>
       <div class="stage">
@@ -293,7 +313,9 @@
           fingerprint of this gallery's 700 books — a permalink and proof, identical
           every time you return (and unique to the current universe and alphabet).
           Your last 50 galleries are kept in full; every step's hash is kept forever.
-          <b>export</b> saves your whole journey; <b>new walk</b> drops you somewhere random.
+          The <b>actions&hellip;</b> menu lets you <b>copy link</b>, <b>export</b> your
+          journey, <b>verify</b> one (re-walk an exported file and prove every hash is
+          genuine), or start a <b>new walk</b>.
         </p>
 
         <h4>Inspiration</h4>
@@ -314,6 +336,17 @@
         <button id="closeHistory">close</button>
       </div>
       <div class="history-list" id="historyList"></div>
+    </dialog>
+
+    <dialog id="verifyModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">verify journey</h3>
+          <small id="verifyMeta">drop in an exported journey to re-walk and prove it</small>
+        </div>
+        <button id="closeVerify">close</button>
+      </div>
+      <div class="verify-body" id="verifyBody"></div>
     </dialog>
 
     <dialog id="jumpModal">

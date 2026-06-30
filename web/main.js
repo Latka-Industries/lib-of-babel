@@ -18,6 +18,7 @@ import {
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
 import { step, jumpTo, exportJourney, newWalk } from "./js/nav.js";
+import { verifyJourney } from "./js/verify.js";
 import {
   openBook,
   renderBookPage,
@@ -112,6 +113,29 @@ function freshWalkHere() {
   render();
 }
 
+// ---- verify journey result ------------------------------------------------
+function showVerify(r, fileName) {
+  el("verifyMeta").textContent = fileName
+    ? fileName
+    : "re-walked in WASM against this build";
+  const facts =
+    r.total != null
+      ? `<ul class="verify-facts">
+           <li>universe: <b>${(r.universe || "default") .replace(/[<>&]/g, "")}</b></li>
+           <li>alphabet: <b>${r.alphabet ?? "—"}-symbol</b></li>
+           <li>generator: <b>v${r.gv ?? "—"}</b></li>
+           <li>steps checked: <b>${r.checked} / ${r.total}</b></li>
+         </ul>`
+      : "";
+  el("verifyBody").innerHTML =
+    `<div class="verify-verdict ${r.ok ? "verify-ok" : "verify-bad"}">` +
+    `<span class="badge">${r.ok ? "✓" : "✕"}</span>` +
+    `<span>${r.ok ? "verified" : "rejected"}</span></div>` +
+    `<p class="verify-reason">${String(r.reason).replace(/[<>&]/g, "")}</p>` +
+    facts;
+  if (!el("verifyModal").open) el("verifyModal").showModal();
+}
+
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
   document
@@ -156,8 +180,25 @@ function wireControls() {
     ev.currentTarget.selectedIndex = 0; // reset to the "actions…" label
     if (choice === "copy") copyText(currentUrl());
     else if (choice === "export") exportJourney();
+    else if (choice === "verify") el("verifyFile").click();
     else if (choice === "reset") newWalk();
   });
+
+  // verify journey: read an exported file, re-walk it in WASM, prove the hashes
+  el("verifyFile").addEventListener("change", async (ev) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    let journey;
+    try {
+      journey = JSON.parse(await file.text());
+    } catch {
+      showVerify({ ok: false, reason: "that file isn't valid JSON" });
+      return;
+    }
+    showVerify(verifyJourney(journey), file.name);
+  });
+  el("closeVerify").addEventListener("click", () => el("verifyModal").close());
   el("hash").addEventListener("click", (ev) =>
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
   );

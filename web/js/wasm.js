@@ -9,5 +9,6 @@ export {
   generator_version,
   default_alphabet,
   set_universe,
+  get_universe,
   universe_seed_for,
 } from "../pkg/lib_of_babel.js";
