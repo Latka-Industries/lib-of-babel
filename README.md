@@ -9,6 +9,10 @@ you walked and a cryptographic fingerprint of what each gallery held.
 > The Library is eternal and complete; the librarian is mortal. What "lives" here is not
 > the space — it is the traversal.
 
+![A grid of per-gallery sigils — generative emblems drawn deterministically from each gallery's hash](assets/sigils.svg)
+
+<sub>Each gallery has a **sigil**: a strange star-polygon emblem derived from its hash. Same coordinate + universe + alphabet → same sigil, forever. The 24 above are **real galleries** in the default universe — their coordinates, hashes, and permalinks are recorded in [`assets/sigils.json`](assets/sigils.json) (redraw with `node scripts/make-sigil-sheet.mjs`).</sub>
+
 ---
 
 ## Concept

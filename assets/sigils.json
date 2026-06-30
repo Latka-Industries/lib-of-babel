@@ -1,0 +1,31 @@
+{
+  "note": "Real galleries in the default universe (alphabet 29). Each tile's hash is the true BLAKE3-prefix node hash from the WASM core; hue = parseInt(hash[0:4],16) % 360, matching the live app. The permalink fragment opens that exact gallery. Regenerate hashes via the browser, then run: node scripts/make-sigil-sheet.mjs",
+  "alphabet": 29,
+  "universe": "",
+  "tiles": [
+    { "z": -818371, "n": -289750, "hash": "a1c332d3a76b7eb5", "hue": 11,  "permalink": "#z=-818371&n=-289750&h=a1c332d3a76b7eb5&a=29" },
+    { "z": 659343,  "n": -305293, "hash": "2020cd0c79a303fe", "hue": 304, "permalink": "#z=659343&n=-305293&h=2020cd0c79a303fe&a=29" },
+    { "z": -871495, "n": 690591,  "hash": "5862b4bedb7750a1", "hue": 306, "permalink": "#z=-871495&n=690591&h=5862b4bedb7750a1&a=29" },
+    { "z": -825983, "n": 290564,  "hash": "5913c61710082455", "hue": 123, "permalink": "#z=-825983&n=290564&h=5913c61710082455&a=29" },
+    { "z": 695570,  "n": -263886, "hash": "807449f1f185a2a8", "hue": 124, "permalink": "#z=695570&n=-263886&h=807449f1f185a2a8&a=29" },
+    { "z": -919459, "n": 493252,  "hash": "739f48cf65f3e61f", "hue": 79,  "permalink": "#z=-919459&n=493252&h=739f48cf65f3e61f&a=29" },
+    { "z": 359518,  "n": 283479,  "hash": "0ff45fdb378da138", "hue": 124, "permalink": "#z=359518&n=283479&h=0ff45fdb378da138&a=29" },
+    { "z": -89379,  "n": 196116,  "hash": "30d7d977b44c1cff", "hue": 263, "permalink": "#z=-89379&n=196116&h=30d7d977b44c1cff&a=29" },
+    { "z": 190923,  "n": 244819,  "hash": "8bb150c7a8f92946", "hue": 121, "permalink": "#z=190923&n=244819&h=8bb150c7a8f92946&a=29" },
+    { "z": 395855,  "n": 139448,  "hash": "1b12055c2ecb569b", "hue": 90,  "permalink": "#z=395855&n=139448&h=1b12055c2ecb569b&a=29" },
+    { "z": -532529, "n": 237896,  "hash": "8247e54bd75d63d9", "hue": 231, "permalink": "#z=-532529&n=237896&h=8247e54bd75d63d9&a=29" },
+    { "z": -194339, "n": -766595, "hash": "e6a76563b4edce3e", "hue": 7,   "permalink": "#z=-194339&n=-766595&h=e6a76563b4edce3e&a=29" },
+    { "z": 428263,  "n": 441172,  "hash": "4952feb441b9bb41", "hue": 50,  "permalink": "#z=428263&n=441172&h=4952feb441b9bb41&a=29" },
+    { "z": -196568, "n": -403706, "hash": "9314708984f2d579", "hue": 212, "permalink": "#z=-196568&n=-403706&h=9314708984f2d579&a=29" },
+    { "z": 523674,  "n": 510405,  "hash": "2abd247492f11b12", "hue": 141, "permalink": "#z=523674&n=510405&h=2abd247492f11b12&a=29" },
+    { "z": -490181, "n": 725362,  "hash": "23a8b36ea89dc03c", "hue": 128, "permalink": "#z=-490181&n=725362&h=23a8b36ea89dc03c&a=29" },
+    { "z": -663036, "n": -766728, "hash": "581ca3a2c86c253a", "hue": 236, "permalink": "#z=-663036&n=-766728&h=581ca3a2c86c253a&a=29" },
+    { "z": -155866, "n": -180872, "hash": "71b1618f3420c9f5", "hue": 305, "permalink": "#z=-155866&n=-180872&h=71b1618f3420c9f5&a=29" },
+    { "z": 164803,  "n": 398823,  "hash": "98009a126b7e0f54", "hue": 32,  "permalink": "#z=164803&n=398823&h=98009a126b7e0f54&a=29" },
+    { "z": -336142, "n": -361100, "hash": "97574aa92fa76bf8", "hue": 223, "permalink": "#z=-336142&n=-361100&h=97574aa92fa76bf8&a=29" },
+    { "z": -95230,  "n": 204396,  "hash": "e87898518b4ec635", "hue": 112, "permalink": "#z=-95230&n=204396&h=e87898518b4ec635&a=29" },
+    { "z": 767900,  "n": -275269, "hash": "0a02c560792253a2", "hue": 42,  "permalink": "#z=767900&n=-275269&h=0a02c560792253a2&a=29" },
+    { "z": -653085, "n": 647311,  "hash": "6e8d49a67cdf5457", "hue": 221, "permalink": "#z=-653085&n=647311&h=6e8d49a67cdf5457&a=29" },
+    { "z": 114679,  "n": 661788,  "hash": "2cdc0b7371f5f406", "hue": 324, "permalink": "#z=114679&n=661788&h=2cdc0b7371f5f406&a=29" }
+  ]
+}
