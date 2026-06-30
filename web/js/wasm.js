@@ -4,6 +4,7 @@ export { default as init } from "../pkg/lib_of_babel.js";
 export {
   gallery_titles_json,
   node_hash_hex,
+  node_hash_full_hex,
   book_text_for,
   book_image,
   generator_version,
