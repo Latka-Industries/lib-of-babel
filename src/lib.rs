@@ -7,10 +7,24 @@
 //! seeding order, fingerprint, or dimensions below invalidates every previously
 //! exported path/hash, so bump the version deliberately.
 
+use core::sync::atomic::{AtomicU64, Ordering};
 use wasm_bindgen::prelude::*;
 
 /// Bump only with intent — this is the schema for all generated content.
 pub const GENERATOR_VERSION: u32 = 0;
+
+/// The selected universe — the outermost axis of the multiverse. A single
+/// deployment hosts infinitely many distinct infinite libraries; `0` (the
+/// empty/default universe) is the canonical one. Set once from JS via
+/// `set_universe`; every WASM entry point reads it and threads it into the seed.
+/// Kept as global state so the JS call signatures stay coordinate-only, while
+/// the internal generator functions remain pure (they take `universe_seed`).
+static UNIVERSE: AtomicU64 = AtomicU64::new(0);
+
+#[inline]
+fn universe() -> u64 {
+    UNIVERSE.load(Ordering::Relaxed)
+}
 
 /// Selectable alphabets. The id IS the symbol count and is folded into the
 /// gallery seed, so each alphabet is a distinct library (different text AND
@@ -63,12 +77,15 @@ fn mix2(a: u64, b: u64) -> u64 {
     splitmix64(a ^ splitmix64(b).wrapping_add(0x1234_5678_9ABC_DEF0))
 }
 
-/// Seed for the gallery at coordinate `(z, n)` within an alphabet's universe.
+/// Seed for the gallery at coordinate `(z, n)` within an alphabet + universe.
+/// Universe is the outermost axis: it (with version + alphabet) is folded in so
+/// each universe is a wholly distinct library, deterministic and reproducible.
 #[inline]
-pub fn gallery_seed(z: i64, n: i64, alphabet_id: u32) -> u64 {
+pub fn gallery_seed(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> u64 {
     let s = mix2(z as u64, n as u64);
     let v = splitmix64(s ^ (GENERATOR_VERSION as u64).wrapping_mul(0xA5A5_5A5A_F0F0_0F0F));
-    splitmix64(v ^ (alphabet_id as u64).wrapping_mul(0x9E37_79B1_85EB_CA87))
+    let a = splitmix64(v ^ (alphabet_id as u64).wrapping_mul(0x9E37_79B1_85EB_CA87));
+    splitmix64(a ^ universe_seed.wrapping_mul(0xC2B2_AE3D_27D4_EB4F))
 }
 
 /// Seed for one book, addressed within a gallery by its flat shelf index.
@@ -107,31 +124,46 @@ pub fn book_title(book_seed: u64, alphabet: &[u8]) -> String {
 }
 
 /// The 700 spine titles for a gallery, in shelf order.
-pub fn gallery_titles(z: i64, n: i64, alphabet_id: u32) -> Vec<String> {
-    let gs = gallery_seed(z, n, alphabet_id);
+pub fn gallery_titles(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> Vec<String> {
+    let gs = gallery_seed(z, n, alphabet_id, universe_seed);
     let ab = alphabet(alphabet_id);
     (0..BOOKS_PER_GALLERY)
         .map(|i| book_title(book_seed(gs, i), ab))
         .collect()
 }
 
-/// Fingerprint over the 700 book identities — the gallery's permalink/proof.
-/// Alphabet-dependent (via `gallery_seed`), so each alphabet is a distinct library.
-///
-/// PLACEHOLDER: a 64-bit deterministic mix. Replace with BLAKE3 (256-bit) before
-/// shipping exports; that swap is a `GENERATOR_VERSION` bump.
-pub fn node_fingerprint(z: i64, n: i64, alphabet_id: u32) -> u64 {
-    let gs = gallery_seed(z, n, alphabet_id);
-    let mut acc: u64 = splitmix64(gs ^ GENERATOR_VERSION as u64);
+/// BLAKE3 (256-bit) fingerprint over the canonical 700 book identities — the
+/// gallery's collision-resistant permalink/proof. Depends on universe + version
+/// + alphabet + coordinate (via `gallery_seed`), so it is unique to this exact
+/// library and location. Hashing the per-book seeds (not just the gallery seed)
+/// binds the fingerprint to the full content identity of the gallery.
+pub fn node_hash_bytes(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> [u8; 32] {
+    let gs = gallery_seed(z, n, alphabet_id, universe_seed);
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:node:1"); // domain separation tag (hash-scheme version)
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(&universe_seed.to_le_bytes());
+    h.update(&alphabet_id.to_le_bytes());
+    h.update(&z.to_le_bytes());
+    h.update(&n.to_le_bytes());
     for i in 0..BOOKS_PER_GALLERY {
-        acc = mix2(acc, book_seed(gs, i));
+        h.update(&book_seed(gs, i).to_le_bytes());
     }
-    acc
+    *h.finalize().as_bytes()
+}
+
+/// 64-bit prefix of the full fingerprint — used for the compact header hash,
+/// permalink proof token, and the per-gallery colour palette. Big-endian so the
+/// hex string and this integer expose the same leading bytes (palette parity
+/// between the JS page view and the Rust whole-book image).
+pub fn node_fingerprint(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> u64 {
+    let b = node_hash_bytes(z, n, alphabet_id, universe_seed);
+    u64::from_be_bytes(b[..8].try_into().unwrap())
 }
 
 /// Full text of one book (lazy: only call when a book is opened).
-pub fn book_text(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> String {
-    let bs = book_seed(gallery_seed(z, n, alphabet_id), book_index);
+pub fn book_text(z: i64, n: i64, book_index: u32, alphabet_id: u32, universe_seed: u64) -> String {
+    let bs = book_seed(gallery_seed(z, n, alphabet_id, universe_seed), book_index);
     let ab = alphabet(alphabet_id);
     let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
     let total = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
@@ -182,10 +214,35 @@ pub fn default_alphabet() -> u32 {
     DEFAULT_ALPHABET
 }
 
-/// JSON array of the 700 spine titles for `(z, n)` in the given alphabet.
+/// Select the active universe. `0` is the default/canonical library. Call once
+/// (and whenever the universe changes) before reading galleries.
+#[wasm_bindgen]
+pub fn set_universe(universe_seed: u64) {
+    UNIVERSE.store(universe_seed, Ordering::Relaxed);
+}
+
+/// The currently selected universe seed.
+#[wasm_bindgen]
+pub fn get_universe() -> u64 {
+    universe()
+}
+
+/// Map a memorable universe name to a stable seed. Empty/whitespace → `0` (the
+/// default universe), so the canonical library needs no `&u=` in its links.
+#[wasm_bindgen]
+pub fn universe_seed_for(name: &str) -> u64 {
+    let t = name.trim();
+    if t.is_empty() {
+        return 0;
+    }
+    let b = blake3::hash(t.as_bytes());
+    u64::from_be_bytes(b.as_bytes()[..8].try_into().unwrap())
+}
+
+/// JSON array of the 700 spine titles for `(z, n)` in the active universe.
 #[wasm_bindgen]
 pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
-    let titles = gallery_titles(z, n, alphabet_id);
+    let titles = gallery_titles(z, n, alphabet_id, universe());
     let mut s = String::from("[");
     for (i, t) in titles.iter().enumerate() {
         if i > 0 {
@@ -199,16 +256,30 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
     s
 }
 
-/// Lowercase hex fingerprint of the gallery (currently 16 hex chars / 64 bits).
+/// Compact lowercase hex fingerprint (16 hex / 64-bit BLAKE3 prefix) — header
+/// display, permalink proof token, and palette seed. Cheap and short; the full
+/// 256-bit value is available via `node_hash_full_hex` for export/verification.
 #[wasm_bindgen]
 pub fn node_hash_hex(z: i64, n: i64, alphabet_id: u32) -> String {
-    format!("{:016x}", node_fingerprint(z, n, alphabet_id))
+    format!("{:016x}", node_fingerprint(z, n, alphabet_id, universe()))
+}
+
+/// Full 256-bit BLAKE3 fingerprint as 64 lowercase hex chars — the
+/// collision-resistant proof for exports, the journey verifier, and proof-of-find.
+#[wasm_bindgen]
+pub fn node_hash_full_hex(z: i64, n: i64, alphabet_id: u32) -> String {
+    let b = node_hash_bytes(z, n, alphabet_id, universe());
+    let mut s = String::with_capacity(64);
+    for byte in b {
+        s.push_str(&format!("{byte:02x}"));
+    }
+    s
 }
 
 /// Full text of one book at `(z, n)` shelf index `book_index` in the given alphabet.
 #[wasm_bindgen]
 pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> String {
-    book_text(z, n, book_index, alphabet_id)
+    book_text(z, n, book_index, alphabet_id, universe())
 }
 
 // ---------------------------------------------------------------------------
@@ -280,7 +351,7 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let space_idx = len - 3; // alphabets end with " ,." → space is third from last
 
     // per-gallery palette, identical formula to the JS page view (hash hex slices)
-    let fp = node_fingerprint(z, n, alphabet_id);
+    let fp = node_fingerprint(z, n, alphabet_id, universe());
     let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
@@ -307,7 +378,7 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let width = (total / h) as u32;
 
     // draw in generation order (page → line → col), which is exactly row-major
-    let bs = book_seed(gallery_seed(z, n, alphabet_id), book_index);
+    let bs = book_seed(gallery_seed(z, n, alphabet_id, universe()), book_index);
     let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
     let mut pixels = vec![0u8; total * 4];
     for px in pixels.chunks_exact_mut(4) {
@@ -343,20 +414,31 @@ mod tests {
 
     #[test]
     fn gallery_is_deterministic() {
-        assert_eq!(gallery_titles(3, -7, 29), gallery_titles(3, -7, 29));
-        assert_ne!(gallery_titles(3, -7, 29), gallery_titles(3, -8, 29));
+        assert_eq!(gallery_titles(3, -7, 29, 0), gallery_titles(3, -7, 29, 0));
+        assert_ne!(gallery_titles(3, -7, 29, 0), gallery_titles(3, -8, 29, 0));
     }
 
     #[test]
     fn gallery_has_700_books() {
-        assert_eq!(gallery_titles(0, 0, 29).len(), BOOKS_PER_GALLERY as usize);
+        assert_eq!(gallery_titles(0, 0, 29, 0).len(), BOOKS_PER_GALLERY as usize);
         assert_eq!(BOOKS_PER_GALLERY, 700);
     }
 
     #[test]
     fn fingerprint_is_stable() {
-        assert_eq!(node_fingerprint(1, 1, 29), node_fingerprint(1, 1, 29));
-        assert_ne!(node_fingerprint(1, 1, 29), node_fingerprint(1, 2, 29));
+        assert_eq!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 1, 29, 0));
+        assert_ne!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 2, 29, 0));
+    }
+
+    #[test]
+    fn fingerprint_is_blake3_and_full_hash_is_256_bit() {
+        // The compact hash is the big-endian first 8 bytes of the full BLAKE3.
+        let full = node_hash_bytes(1, 1, 29, 0);
+        let prefix = u64::from_be_bytes(full[..8].try_into().unwrap());
+        assert_eq!(node_fingerprint(1, 1, 29, 0), prefix);
+        // 32 bytes = 256 bits = 64 hex chars; not all zero.
+        assert_eq!(full.len(), 32);
+        assert!(full.iter().any(|&b| b != 0));
     }
 
     #[test]
@@ -369,11 +451,31 @@ mod tests {
     #[test]
     fn alphabet_is_a_universe_axis() {
         // same coordinate, different alphabet → different library (text + hash)
-        assert_ne!(node_fingerprint(1, 1, 25), node_fingerprint(1, 1, 29));
-        assert_ne!(gallery_titles(1, 1, 25), gallery_titles(1, 1, 29));
+        assert_ne!(node_fingerprint(1, 1, 25, 0), node_fingerprint(1, 1, 29, 0));
+        assert_ne!(gallery_titles(1, 1, 25, 0), gallery_titles(1, 1, 29, 0));
         // Borges text uses only a–v; Basile may use a–z
-        let borges = book_text(0, 0, 0, 25);
+        let borges = book_text(0, 0, 0, 25, 0);
         assert!(!borges.contains(['w', 'x', 'y', 'z']));
+    }
+
+    #[test]
+    fn universe_is_the_outermost_axis() {
+        // same coordinate + alphabet, different universe → wholly different library
+        assert_ne!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 1, 29, 7));
+        assert_ne!(gallery_titles(1, 1, 29, 0), gallery_titles(1, 1, 29, 7));
+        assert_ne!(book_text(0, 0, 0, 29, 0), book_text(0, 0, 0, 29, 7));
+        // but each universe is itself fully deterministic
+        assert_eq!(gallery_titles(1, 1, 29, 7), gallery_titles(1, 1, 29, 7));
+    }
+
+    #[test]
+    fn universe_names_map_to_stable_seeds() {
+        assert_eq!(universe_seed_for(""), 0);
+        assert_eq!(universe_seed_for("   "), 0);
+        assert_eq!(universe_seed_for("borges"), universe_seed_for("borges"));
+        assert_eq!(universe_seed_for("borges"), universe_seed_for("  borges  "));
+        assert_ne!(universe_seed_for("borges"), universe_seed_for("babel"));
+        assert_ne!(universe_seed_for("borges"), 0);
     }
 
     #[test]

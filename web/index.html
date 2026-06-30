@@ -70,6 +70,20 @@
         padding: 0.35rem 0.5rem; cursor: pointer;
       }
       .alphabet:hover, .save-menu:hover { border-color: var(--accent); }
+      .universe-wrap { display: flex; align-items: center; gap: 0.25rem; }
+      .universe {
+        font: inherit; color: var(--ink); background: var(--panel);
+        border: 1px solid var(--line); border-radius: 6px;
+        padding: 0.35rem 0.5rem; width: 9.5rem;
+      }
+      .universe::placeholder { color: var(--muted); }
+      .universe:focus { outline: none; border-color: var(--accent); }
+      .dice {
+        font: inherit; color: var(--ink); background: var(--panel);
+        border: 1px solid var(--line); border-radius: 6px;
+        padding: 0.35rem 0.5rem; cursor: pointer; line-height: 1;
+      }
+      .dice:hover { border-color: var(--accent); }
       main { padding: 1rem; max-width: 1320px; margin: 0 auto; }
       .stage { display: flex; gap: 1rem; align-items: flex-start; }
       .minimap-wrap {
@@ -200,6 +214,12 @@
         <button data-move="3" title="stairs down (↓)">▼</button>
         <button data-move="1" title="right hallway (→)">▷</button>
       </div>
+      <span class="universe-wrap">
+        <input id="universe" class="universe" type="text" maxlength="40"
+          placeholder="default universe" autocomplete="off" spellcheck="false"
+          title="universe — name a parallel library (blank = the default). Enter to travel." />
+        <button id="universeRandom" class="dice" title="jump to a random universe">&#9860;</button>
+      </span>
       <select id="alphabet" class="alphabet" title="alphabet — switching steps into a different library (new text + new hash)">
         <option value="29">a&ndash;z &middot; 29</option>
         <option value="25">a&ndash;v &middot; 25</option>
@@ -240,12 +260,19 @@
           books, forever, for everyone. The Library is infinite, yet it weighs almost
           nothing: only your <i>path</i> is remembered.
         </p>
+        <p>
+          And there isn't just one Library. Name a <b>universe</b> in the header and you
+          step into an entirely separate infinite library — same rooms, wholly different
+          books. Leave it blank for the <b>default universe</b>. There are infinitely
+          many, each one reproducible from its name: a multiverse of Babels.
+        </p>
 
         <h4>How to wander</h4>
         <ul>
           <li><kbd>◁</kbd> <kbd>▷</kbd> hallways · <kbd>▲</kbd> <kbd>▼</kbd> stairs — or use the <kbd>arrow keys</kbd>.</li>
           <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere — leap as far across the lattice as you like.</li>
           <li>The <b>minimap</b> (left) shows the four exits and their hashes — click one to move.</li>
+          <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
           <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
           <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
         </ul>
@@ -259,8 +286,9 @@
 
         <h4>The numbers in the header</h4>
         <p class="dim">
-          <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a fingerprint of this
-          gallery's 700 books — a permalink and proof, identical every time you return.
+          <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
+          fingerprint of this gallery's 700 books — a permalink and proof, identical
+          every time you return (and unique to the current universe and alphabet).
           Your last 50 galleries are kept in full; every step's hash is kept forever.
           <b>export</b> saves your whole journey; <b>new walk</b> drops you somewhere random.
         </p>

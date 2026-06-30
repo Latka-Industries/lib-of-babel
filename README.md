@@ -23,6 +23,7 @@ Canonical dimensions we honor:
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
 - alphabet: **selectable** — Borges' **25** (22 letters `a–v` + space, comma, period) or Basile-style **29** (`a–z` + space, comma, period); default 29. The alphabet is **an axis of the universe** (folded into the seed), so each choice is a *distinct* library with its own text and fingerprints.
+- universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
 
@@ -30,21 +31,22 @@ Canonical dimensions we honor:
 | --- | --- |
 | **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, staircase = `z ± 1`. Four moves per gallery. |
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened. |
-| **Determinism** | Content is a pure function of address. `(z,n) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
-| **Hashing** | `node_hash` = fingerprint over the 700 book identities. A permalink / integrity proof, **not** a dedup key — the address already guarantees uniqueness. |
+| **Determinism** | Content is a pure function of address. `(universe, z, n, alphabet) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
+| **Hashing** | `node_hash` = **BLAKE3-256** over the canonical book identities (+ universe, version, alphabet, coordinate). The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. A permalink / integrity proof, **not** a dedup key. |
 | **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
-| **Alphabet** | Selectable (Borges 25 / Basile 29), folded into the gallery seed so each is a separate library. Carried in permalinks (`&a=`) and exports — a precursor of the multiverse `universe_seed`. |
-| **Permalinks** | URL encodes `(z, n)` + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
+| **Alphabet** | Selectable (Borges 25 / Basile 29), folded into the gallery seed so each is a separate library. Carried in permalinks (`&a=`) and exports. |
+| **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
+| **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
 | **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. Tessera `.tes` later. |
 
 ## The generation chain (never store text)
 
 ```text
-(z, n)                        ──hash──▶  gallery_seed
+(universe, z, n, alphabet)    ──hash──▶  gallery_seed
 gallery_seed + wall/shelf/i   ──hash──▶  book_seed
 book_seed                     ──PRNG──▶  the 410 pages of one book
-700 book identities           ──hash──▶  node_hash  (the gallery's fingerprint)
+700 book identities           ─BLAKE3─▶  node_hash  (the gallery's 256-bit fingerprint)
 ```
 
 Visit `(z, n)` today, next year, or from another machine → identical seed → identical
@@ -111,14 +113,23 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
 4. ✅ **History + export** — 50-node window popup (newest-first, click to revisit), append-on-step trail in IndexedDB, JSON export.
 5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
+6. ✅ **Alphabets** — selectable Borges 25 / Basile 29, folded into the seed; carried in permalinks (`&a=`) and exports.
+
+**v2 — the multiverse:**
+
+7. ✅ **BLAKE3 fingerprint** — `node_hash` is now BLAKE3-256 over the canonical book identities; 64-bit prefix shown, full 256-bit exposed for proofs.
+8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
+9. **Per-gallery sigil** — a generative visual fingerprint drawn from the hash.
+10. **Journey verifier** — re-walk an exported path and prove every hash.
+11. **Reverse lookup** — search-by-content via a reversible (Feistel) mapping.
+12. **Proof-of-find** — verifiable rare-discovery claims (free; no chain, no payout).
+13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**
 
-6. **Living membrane** — persisted discovery log ("coral growth"), wear paths.
-7. **Puzzle layer** — hash-rarity "treasure" galleries; rare coherent books.
-8. **Reverse lookup** — search-by-content via the reversible mapping.
-9. **Crypto fingerprint** — replace the 64-bit placeholder with BLAKE3 (256-bit); bump `generator_version`.
-10. **Tessera export** — write the journey as a `.tes` document once Tessera ships.
+- **Living membrane** — persisted discovery log ("coral growth"), wear paths.
+- **Tessera export** — write the journey as a `.tes` document once Tessera ships.
+- **First-person 3D gallery** and **generative audio** (deferred).
 
 Repo: <https://github.com/Latka-Industries/lib-of-babel>
 
