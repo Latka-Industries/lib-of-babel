@@ -64,12 +64,12 @@
       button:hover { border-color: var(--accent); }
       .moves { display: flex; gap: 0.35rem; }
       .moves button { min-width: 2.4rem; }
-      .alphabet, .save-menu {
+      .alphabet, .save-menu, .actions-menu {
         font: inherit; color: var(--ink); background: var(--panel);
         border: 1px solid var(--line); border-radius: 6px;
         padding: 0.35rem 0.5rem; cursor: pointer;
       }
-      .alphabet:hover, .save-menu:hover { border-color: var(--accent); }
+      .alphabet:hover, .save-menu:hover, .actions-menu:hover { border-color: var(--accent); }
       .universe-wrap { display: flex; align-items: center; gap: 0.25rem; }
       .universe {
         font: inherit; color: var(--ink); background: var(--panel);
@@ -224,9 +224,12 @@
         <option value="29">a&ndash;z &middot; 29</option>
         <option value="25">a&ndash;v &middot; 25</option>
       </select>
-      <button id="copyLink" title="copy a shareable link to this gallery">copy link</button>
-      <button id="export" title="download journey JSON">export</button>
-      <button id="reset" title="forget trail, start somewhere new">new walk</button>
+      <select id="actionsMenu" class="actions-menu" title="copy link · export · new walk">
+        <option value="" selected disabled>actions&hellip;</option>
+        <option value="copy">copy link</option>
+        <option value="export">export journey</option>
+        <option value="reset">new walk</option>
+      </select>
     </header>
     <main>
       <div class="stage">
