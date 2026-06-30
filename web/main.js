@@ -348,15 +348,23 @@ const ALPHABETS = {
   29: "abcdefghijklmnopqrstuvwxyz ,.",
 };
 
-// draw the page as an 80×40 grid of character colours (looks like colour noise,
-// since the text is maximum-entropy; structured pages would break the static).
+// the page's 3200 characters, rewrapped into the near-square divisor pair
+// (64×50) so the colour map reads as a block rather than a 2:1 sliver. Looks
+// like colour noise, since the text is maximum-entropy.
+function pageGrid(total) {
+  let rows = Math.floor(Math.sqrt(total));
+  while (total % rows !== 0) rows--;
+  return { cols: total / rows, rows };
+}
+
 function renderBookCanvas(pageText) {
-  const cols = CHARS_PER_LINE, rows = LINES_PER_PAGE, cell = 8;
+  const chars = pageText.replace(/\n/g, "");
+  const { cols, rows } = pageGrid(chars.length);
+  const cell = 10;
   const cv = el("bookCanvas");
   cv.width = cols * cell;
   cv.height = rows * cell;
   const ctx = cv.getContext("2d");
-  const lines = pageText.split("\n");
   // OKLCH so the spread is perceptually even (HSL clumps greens, crushes blues).
   // hue = letter's position in the alphabet, evenly spaced and rotated by the
   // gallery's accent hue; chroma + lightness are seeded per gallery so each
@@ -368,14 +376,11 @@ function renderBookCanvas(pageText) {
   for (let i = 0; i < alpha.length; i++) {
     palette[i] = oklchToHex(accentLightness, accentChroma, (i * step + accentHue) % 360);
   }
-  for (let r = 0; r < rows; r++) {
-    const line = lines[r] || "";
-    for (let c = 0; c < cols; c++) {
-      const ch = line[c] ?? " ";
-      const i = alpha.indexOf(ch);
-      ctx.fillStyle = ch === " " || i < 0 ? "#15131a" : palette[i];
-      ctx.fillRect(c * cell, r * cell, cell, cell);
-    }
+  for (let k = 0; k < chars.length; k++) {
+    const ch = chars[k];
+    const i = alpha.indexOf(ch);
+    ctx.fillStyle = ch === " " || i < 0 ? "#15131a" : palette[i];
+    ctx.fillRect((k % cols) * cell, Math.floor(k / cols) * cell, cell, cell);
   }
 }
 
