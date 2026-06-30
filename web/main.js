@@ -169,6 +169,20 @@ function wireControls() {
     }),
   );
 
+  // click the sigil to take this gallery's emblem home as a standalone SVG
+  el("sigil").addEventListener("click", () => {
+    const svg = el("sigil").innerHTML.trim();
+    if (!svg) return;
+    const blob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`], {
+      type: "image/svg+xml",
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `sigil_${S.z}_${S.n}_${el("hash").textContent}.svg`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
   el("historyBtn").addEventListener("click", () => {
     renderHistory();
     el("historyModal").showModal();

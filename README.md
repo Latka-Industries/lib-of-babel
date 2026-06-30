@@ -68,10 +68,10 @@ is never stored because it is always regenerable.
 lib-of-babel/
 ├── src/                 Rust → WASM generator core (deterministic, reversible-by-design)
 │   └── lib.rs           gallery seed, 700 book ids, lazy book text, node hash
-├── web/                 static frontend: gallery + minimap, book reader, history, permalinks, export, verifier
+├── web/                 static frontend: gallery + minimap + sigil, book reader, history, permalinks, export, verifier
 │   ├── index.html       layout + styles
 │   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify
+│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -121,7 +121,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 7. ✅ **BLAKE3 fingerprint** — `node_hash` is now BLAKE3-256 over the canonical book identities; 64-bit prefix shown, full 256-bit exposed for proofs.
 8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
-10. **Per-gallery sigil** — a generative visual fingerprint drawn from the hash.
+10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. **Reverse lookup** — search-by-content via a reversible (Feistel) mapping.
 12. **Proof-of-find** — verifiable rare-discovery claims (free; no chain, no payout).
 13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.

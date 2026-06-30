@@ -114,6 +114,14 @@
         letter-spacing: 0.08em; text-transform: uppercase;
       }
       .minimap-hint { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; }
+      .sigil {
+        width: 76%; aspect-ratio: 1; margin: 0.5rem auto 0.6rem;
+        display: block; cursor: pointer; border-radius: 8px;
+        filter: drop-shadow(0 0 10px rgba(0,0,0,0.4));
+        transition: transform 0.12s ease, filter 0.12s ease;
+      }
+      .sigil:hover { transform: scale(1.04); filter: drop-shadow(0 0 14px var(--accent)); }
+      .sigil svg { display: block; }
       #minimap text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
@@ -255,6 +263,7 @@
       <div class="stage">
         <aside class="minimap-wrap">
           <div class="minimap-title">you are here</div>
+          <div id="sigil" class="sigil" title="this gallery's sigil — click to download the SVG"></div>
           <div id="minimap"></div>
           <div class="minimap-hint">click an exit to move</div>
         </aside>
@@ -295,6 +304,7 @@
           <li><kbd>◁</kbd> <kbd>▷</kbd> hallways · <kbd>▲</kbd> <kbd>▼</kbd> stairs — or use the <kbd>arrow keys</kbd>.</li>
           <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere — leap as far across the lattice as you like.</li>
           <li>The <b>minimap</b> (left) shows the four exits and their hashes — click one to move.</li>
+          <li>Each gallery has a <b>sigil</b> — a strange emblem drawn from its hash. Same place, same sigil; click it to download the <b>SVG</b>.</li>
           <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
           <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
           <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
