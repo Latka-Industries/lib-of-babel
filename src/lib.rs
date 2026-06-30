@@ -213,14 +213,12 @@ pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> Strin
 
 // ---------------------------------------------------------------------------
 // Whole-book color map: every character of all 410 pages as one RGBA image.
-// Layout is a near-square "contact sheet" of page tiles so the result has a
-// sane aspect ratio (not an 80 x 16400 sliver). Palette matches the web page
-// view: per-gallery hue/chroma/lightness in OKLCH, converted to sRGB here so
-// the output is identical on every browser.
+// The characters stream row-major into a fully-filled, near-square rectangle
+// (dimensions chosen to divide the character count exactly, so there are no
+// gutters and no empty cells). Palette matches the web page view: per-gallery
+// hue/chroma/lightness in OKLCH, converted to sRGB here so the output is
+// identical on every browser.
 // ---------------------------------------------------------------------------
-
-/// Gap (px) between page tiles in the contact sheet.
-const TILE_GUTTER: u32 = 2;
 
 /// Björn Ottosson's OKLCH -> linear sRGB -> gamma sRGB. `l` in 0..1, `h` in deg.
 fn oklch_to_srgb(l: f64, c: f64, h_deg: f64) -> [u8; 3] {
@@ -274,7 +272,7 @@ impl BookImage {
 }
 
 /// Render every character of the book at `(z, n)` shelf `book_index` as colors,
-/// tiled page-by-page into a near-square contact sheet.
+/// streamed row-major into a fully-filled, near-square rectangle.
 #[wasm_bindgen]
 pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImage {
     let ab = alphabet(alphabet_id);
@@ -297,45 +295,32 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
         })
         .collect();
     const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
-    const BG_RGB: [u8; 3] = [0x0b, 0x0b, 0x0d];
 
-    // contact-sheet geometry: pick cols so the montage is roughly square
-    let pages = PAGES_PER_BOOK;
-    let (pw, ph) = (CHARS_PER_LINE, LINES_PER_PAGE);
-    let cols = ((pages as f64 * ph as f64 / pw as f64).sqrt().round() as u32).max(1);
-    let rows = pages.div_ceil(cols);
-    let width = cols * pw + (cols - 1) * TILE_GUTTER;
-    let height = rows * ph + (rows - 1) * TILE_GUTTER;
-
-    let mut pixels = vec![0u8; (width as usize) * (height as usize) * 4];
-    for px in pixels.chunks_exact_mut(4) {
-        px[0] = BG_RGB[0];
-        px[1] = BG_RGB[1];
-        px[2] = BG_RGB[2];
-        px[3] = 255;
+    // total characters; choose the divisor pair nearest to square so the
+    // rectangle is completely filled — no gutters, no empty trailing cells.
+    let total = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
+    let mut h = (total as f64).sqrt() as usize;
+    while total % h != 0 {
+        h -= 1;
     }
+    let height = h as u32;
+    let width = (total / h) as u32;
 
-    // draw in the exact generation order (page → line → col) so colors match text
+    // draw in generation order (page → line → col), which is exactly row-major
     let bs = book_seed(gallery_seed(z, n, alphabet_id), book_index);
     let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
-    for page in 0..pages {
-        let x0 = (page % cols) * (pw + TILE_GUTTER);
-        let y0 = (page / cols) * (ph + TILE_GUTTER);
-        for ly in 0..ph {
-            for lx in 0..pw {
-                let idx = (p.next_u64() % len as u64) as usize;
-                let rgb = if idx == space_idx {
-                    SPACE_RGB
-                } else {
-                    palette[idx]
-                };
-                let off = (((y0 + ly) * width + (x0 + lx)) as usize) * 4;
-                pixels[off] = rgb[0];
-                pixels[off + 1] = rgb[1];
-                pixels[off + 2] = rgb[2];
-                pixels[off + 3] = 255;
-            }
-        }
+    let mut pixels = vec![0u8; total * 4];
+    for px in pixels.chunks_exact_mut(4) {
+        let idx = (p.next_u64() % len as u64) as usize;
+        let rgb = if idx == space_idx {
+            SPACE_RGB
+        } else {
+            palette[idx]
+        };
+        px[0] = rgb[0];
+        px[1] = rgb[1];
+        px[2] = rgb[2];
+        px[3] = 255;
     }
 
     BookImage {
@@ -394,11 +379,14 @@ mod tests {
     #[test]
     fn book_image_is_well_shaped_and_deterministic() {
         let img = book_image(2, -3, 17, 29);
-        // every character of the book is represented as one pixel
+        // every character of the book is exactly one pixel — fully filled, no padding
         let cells = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
-        assert!(img.pixels.len() == (img.width as usize) * (img.height as usize) * 4);
-        assert!(img.pixels.len() / 4 >= cells); // tiles + gutters cover all chars
-                                                // roughly square, never a degenerate sliver
+        assert_eq!(
+            img.pixels.len(),
+            (img.width as usize) * (img.height as usize) * 4
+        );
+        assert_eq!(img.pixels.len(), cells * 4);
+        // roughly square, never a degenerate sliver
         let ratio = img.width as f64 / img.height as f64;
         assert!(ratio > 0.5 && ratio < 2.0, "ratio {ratio} not near-square");
         // deterministic, and alphabet is still an axis of the universe
