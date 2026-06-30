@@ -708,9 +708,13 @@ async function main() {
     el("historyModal").showModal();
   });
   el("closeHistory").addEventListener("click", () => el("historyModal").close());
-  el("copyLink").addEventListener("click", (ev) =>
-    copyText(currentUrl(), ev.currentTarget, "copied!"),
-  );
+  el("actionsMenu").addEventListener("change", (ev) => {
+    const choice = ev.currentTarget.value;
+    ev.currentTarget.selectedIndex = 0; // reset to the "actions…" label
+    if (choice === "copy") copyText(currentUrl());
+    else if (choice === "export") exportJourney();
+    else if (choice === "reset") newWalk();
+  });
   el("hash").addEventListener("click", (ev) =>
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
   );
@@ -721,9 +725,6 @@ async function main() {
     currentBook = null;
     syncUrl();
   });
-  el("export").addEventListener("click", exportJourney);
-  el("reset").addEventListener("click", newWalk);
-
   // switching alphabet steps into a different library (same coordinate, new
   // text + new hash), so it starts a fresh walk there.
   el("alphabet").value = String(alphabetId);
