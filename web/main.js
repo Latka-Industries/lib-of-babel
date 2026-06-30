@@ -20,6 +20,19 @@ import { render, renderHistory } from "./js/view.js";
 import { step, jumpTo, exportJourney, newWalk } from "./js/nav.js";
 import { verifyJourney } from "./js/verify.js";
 import {
+  prospect,
+  claimFor,
+  addTrophy,
+  getTrophies,
+  removeTrophy,
+  verifyClaim,
+  claimPermalink,
+  getFinder,
+  setFinder,
+  rarityTier,
+  rarityOdds,
+} from "./js/find.js";
+import {
   openBook,
   renderBookPage,
   turnPage,
@@ -136,6 +149,114 @@ function showVerify(r, fileName) {
   if (!el("verifyModal").open) el("verifyModal").showModal();
 }
 
+// ---- proof-of-find: prospecting + trophies --------------------------------
+function tierColor(tier) {
+  return tier.dim ? "var(--muted)" : `hsl(${tier.hue} 75% 62%)`;
+}
+
+function openProspect() {
+  el("prospectProgress").textContent = "";
+  el("prospectResult").classList.remove("show");
+  el("prospectModal").showModal();
+}
+
+function renderProspectResult(best) {
+  const box = el("prospectResult");
+  if (!best) {
+    box.classList.remove("show");
+    return;
+  }
+  const tier = rarityTier(best.bits);
+  const color = tierColor(tier);
+  box.innerHTML =
+    `<span class="tier-badge" style="background:${color}">${tier.name}</span>` +
+    `<div class="find-big" style="color:${color}">${best.bits} leading zero bits</div>` +
+    `<div class="find-dim">gallery (${best.z}, ${best.n}) · hash ${best.hash} · ${rarityOdds(best.bits)}</div>` +
+    `<div class="find-row" style="margin-top:.5rem">` +
+    `<button id="prospectGo">travel here</button>` +
+    `<button id="prospectClaim">claim trophy</button></div>`;
+  box.classList.add("show");
+  el("prospectGo").onclick = () => {
+    jumpTo(best.z, best.n);
+    el("prospectModal").close();
+  };
+  el("prospectClaim").onclick = async (e) => {
+    const finder = await getFinder();
+    const { added } = await addTrophy(claimFor(best.z, best.n, finder));
+    e.currentTarget.textContent = added ? "claimed!" : "already yours";
+  };
+}
+
+async function runDig() {
+  const samples = Number(el("prospectCount").value);
+  const dig = el("prospectDig");
+  dig.disabled = true;
+  el("prospectResult").classList.remove("show");
+  const { best, scanned } = await prospect({
+    samples,
+    onProgress: (done, total, b) => {
+      el("prospectProgress").textContent =
+        `scanned ${done.toLocaleString()} / ${total.toLocaleString()} · best ${b ? b.bits : 0} bits`;
+    },
+  });
+  el("prospectProgress").textContent = `scanned ${scanned.toLocaleString()} galleries`;
+  renderProspectResult(best);
+  dig.disabled = false;
+}
+
+// travel to a trophy that may live in another universe/alphabet: rebuild via
+// its permalink so boot restores the right library, then reload.
+function travelToClaim(c) {
+  const url = claimPermalink(c);
+  location.hash = url.slice(url.indexOf("#"));
+  location.reload();
+}
+
+async function renderTrophyList() {
+  const list = (await getTrophies())
+    .slice()
+    .sort((a, b) => b.bits - a.bits || b.found_at.localeCompare(a.found_at));
+  const box = el("trophyList");
+  if (!list.length) {
+    box.innerHTML =
+      `<div class="trophy-empty">No trophies yet. Open <b>prospect rarity</b>, dig for a rare gallery, then claim it.</div>`;
+    return;
+  }
+  box.innerHTML = "";
+  for (const c of list) {
+    const v = verifyClaim(c);
+    const tier = rarityTier(c.bits);
+    const color = tierColor(tier);
+    const safe = (s) => String(s).replace(/[<>&]/g, "");
+    const row = document.createElement("div");
+    row.className = "trophy";
+    row.innerHTML =
+      `<span class="tier-badge" style="background:${color}">${tier.name}</span>` +
+      `<b style="color:${color}">${c.bits} bits</b>` +
+      `<span class="coord">(${c.z}, ${c.n})</span>` +
+      `<small>${safe(c.universe || "default")} · ${c.alphabet}-sym${c.finder ? ` · ${safe(c.finder)}` : ""}</small>` +
+      `<span class="grow"></span>` +
+      `<span class="${v.ok ? "ok" : "bad"}">${v.ok ? "✓ verified" : "✕ unverified"}</span>` +
+      `<button data-act="go">go</button>` +
+      `<button data-act="link">link</button>` +
+      `<button data-act="del">remove</button>`;
+    row.querySelector('[data-act="go"]').onclick = () => travelToClaim(c);
+    row.querySelector('[data-act="link"]').onclick = (e) =>
+      copyText(claimPermalink(c), e.currentTarget, "copied");
+    row.querySelector('[data-act="del"]').onclick = async () => {
+      await removeTrophy(c);
+      renderTrophyList();
+    };
+    box.appendChild(row);
+  }
+}
+
+async function openTrophies() {
+  el("finderHandle").value = await getFinder();
+  await renderTrophyList();
+  el("trophiesModal").showModal();
+}
+
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
   document
@@ -195,7 +316,23 @@ function wireControls() {
     if (choice === "copy") copyText(currentUrl());
     else if (choice === "export") exportJourney();
     else if (choice === "verify") el("verifyFile").click();
+    else if (choice === "prospect") openProspect();
+    else if (choice === "trophies") openTrophies();
     else if (choice === "reset") newWalk();
+  });
+
+  // proof-of-find: rarity badge opens the prospector; modals + claiming
+  el("rarity").addEventListener("click", openProspect);
+  el("closeProspect").addEventListener("click", () => el("prospectModal").close());
+  el("prospectDig").addEventListener("click", runDig);
+  el("closeTrophies").addEventListener("click", () => el("trophiesModal").close());
+  el("finderHandle").addEventListener("change", (ev) => setFinder(ev.target.value));
+  el("claimCurrent").addEventListener("click", async (ev) => {
+    await setFinder(el("finderHandle").value);
+    const { added } = await addTrophy(claimFor(S.z, S.n, el("finderHandle").value.trim()));
+    ev.currentTarget.textContent = added ? "claimed!" : "already claimed";
+    setTimeout(() => (ev.currentTarget.textContent = "claim this gallery"), 1200);
+    renderTrophyList();
   });
 
   // verify journey: read an exported file, re-walk it in WASM, prove the hashes

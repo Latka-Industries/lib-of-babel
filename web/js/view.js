@@ -12,6 +12,7 @@ import {
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
 import { sigilSvg } from "./sigil.js";
+import { leadingZeroBits, rarityTier } from "./find.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 
@@ -52,6 +53,17 @@ export function render() {
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, S.trail.length - 1));
+
+  // rarity = leading zero bits of the hash (proof-of-find). Colour by tier.
+  const bits = leadingZeroBits(hash);
+  const tier = rarityTier(bits);
+  const rarityEl = el("rarity");
+  rarityEl.textContent = `${bits} bits · ${tier.name}`;
+  rarityEl.style.setProperty(
+    "--tier",
+    tier.dim ? "var(--muted)" : `hsl(${tier.hue} 75% 62%)`,
+  );
+
   syncUrl();
 
   // gallery accent colour derived from its hash (deterministic per node).
