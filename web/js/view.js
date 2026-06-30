@@ -11,6 +11,7 @@ import {
 } from "./constants.js";
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
+import { sigilSvg } from "./sigil.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 
@@ -64,6 +65,7 @@ export function render() {
     `hsl(${S.accentHue} 70% 58%)`,
   );
 
+  el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
   renderMinimap(hash, S.accentHue);
 
   const wallsEl = el("walls");
