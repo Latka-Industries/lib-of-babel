@@ -211,6 +211,140 @@ pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> Strin
     book_text(z, n, book_index, alphabet_id)
 }
 
+// ---------------------------------------------------------------------------
+// Whole-book color map: every character of all 410 pages as one RGBA image.
+// Layout is a near-square "contact sheet" of page tiles so the result has a
+// sane aspect ratio (not an 80 x 16400 sliver). Palette matches the web page
+// view: per-gallery hue/chroma/lightness in OKLCH, converted to sRGB here so
+// the output is identical on every browser.
+// ---------------------------------------------------------------------------
+
+/// Gap (px) between page tiles in the contact sheet.
+const TILE_GUTTER: u32 = 2;
+
+/// Björn Ottosson's OKLCH -> linear sRGB -> gamma sRGB. `l` in 0..1, `h` in deg.
+fn oklch_to_srgb(l: f64, c: f64, h_deg: f64) -> [u8; 3] {
+    let h = h_deg * std::f64::consts::PI / 180.0;
+    let a = c * h.cos();
+    let b = c * h.sin();
+    let l_ = l + 0.396_337_777_4 * a + 0.215_803_757_3 * b;
+    let m_ = l - 0.105_561_345_8 * a - 0.063_854_172_8 * b;
+    let s_ = l - 0.089_484_177_5 * a - 1.291_485_548 * b;
+    let (l3, m3, s3) = (l_ * l_ * l_, m_ * m_ * m_, s_ * s_ * s_);
+    let lin = [
+        4.076_741_662_1 * l3 - 3.307_711_591_3 * m3 + 0.230_969_929_2 * s3,
+        -1.268_438_004_6 * l3 + 2.609_757_401_1 * m3 - 0.341_319_396_5 * s3,
+        -0.004_196_086_3 * l3 - 0.703_418_614_7 * m3 + 1.707_614_701 * s3,
+    ];
+    let mut out = [0u8; 3];
+    for (i, &cc) in lin.iter().enumerate() {
+        let v = if cc <= 0.003_130_8 {
+            12.92 * cc
+        } else {
+            1.055 * cc.powf(1.0 / 2.4) - 0.055
+        };
+        out[i] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+    }
+    out
+}
+
+/// One RGBA image of a whole book, ready for `ctx.putImageData`.
+#[wasm_bindgen]
+pub struct BookImage {
+    width: u32,
+    height: u32,
+    pixels: Vec<u8>,
+}
+
+#[wasm_bindgen]
+impl BookImage {
+    #[wasm_bindgen(getter)]
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+    #[wasm_bindgen(getter)]
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+    /// RGBA bytes, row-major, `width * height * 4` long.
+    #[wasm_bindgen(getter)]
+    pub fn pixels(&self) -> Vec<u8> {
+        self.pixels.clone()
+    }
+}
+
+/// Render every character of the book at `(z, n)` shelf `book_index` as colors,
+/// tiled page-by-page into a near-square contact sheet.
+#[wasm_bindgen]
+pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImage {
+    let ab = alphabet(alphabet_id);
+    let len = ab.len();
+    let space_idx = len - 3; // alphabets end with " ,." → space is third from last
+
+    // per-gallery palette, identical formula to the JS page view (hash hex slices)
+    let fp = node_fingerprint(z, n, alphabet_id);
+    let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
+    let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
+    let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
+    let step = 360.0 / len as f64;
+    let palette: Vec<[u8; 3]> = (0..len)
+        .map(|i| {
+            oklch_to_srgb(
+                accent_light,
+                accent_chroma,
+                (i as f64 * step + accent_hue) % 360.0,
+            )
+        })
+        .collect();
+    const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
+    const BG_RGB: [u8; 3] = [0x0b, 0x0b, 0x0d];
+
+    // contact-sheet geometry: pick cols so the montage is roughly square
+    let pages = PAGES_PER_BOOK;
+    let (pw, ph) = (CHARS_PER_LINE, LINES_PER_PAGE);
+    let cols = ((pages as f64 * ph as f64 / pw as f64).sqrt().round() as u32).max(1);
+    let rows = pages.div_ceil(cols);
+    let width = cols * pw + (cols - 1) * TILE_GUTTER;
+    let height = rows * ph + (rows - 1) * TILE_GUTTER;
+
+    let mut pixels = vec![0u8; (width as usize) * (height as usize) * 4];
+    for px in pixels.chunks_exact_mut(4) {
+        px[0] = BG_RGB[0];
+        px[1] = BG_RGB[1];
+        px[2] = BG_RGB[2];
+        px[3] = 255;
+    }
+
+    // draw in the exact generation order (page → line → col) so colors match text
+    let bs = book_seed(gallery_seed(z, n, alphabet_id), book_index);
+    let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
+    for page in 0..pages {
+        let x0 = (page % cols) * (pw + TILE_GUTTER);
+        let y0 = (page / cols) * (ph + TILE_GUTTER);
+        for ly in 0..ph {
+            for lx in 0..pw {
+                let idx = (p.next_u64() % len as u64) as usize;
+                let rgb = if idx == space_idx {
+                    SPACE_RGB
+                } else {
+                    palette[idx]
+                };
+                let off = (((y0 + ly) * width + (x0 + lx)) as usize) * 4;
+                pixels[off] = rgb[0];
+                pixels[off + 1] = rgb[1];
+                pixels[off + 2] = rgb[2];
+                pixels[off + 3] = 255;
+            }
+        }
+    }
+
+    BookImage {
+        width,
+        height,
+        pixels,
+    }
+}
+
 /// Neighbor for a move, as a JSON `[z, n]` pair.
 #[wasm_bindgen]
 pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
@@ -255,6 +389,21 @@ mod tests {
         // Borges text uses only a–v; Basile may use a–z
         let borges = book_text(0, 0, 0, 25);
         assert!(!borges.contains(['w', 'x', 'y', 'z']));
+    }
+
+    #[test]
+    fn book_image_is_well_shaped_and_deterministic() {
+        let img = book_image(2, -3, 17, 29);
+        // every character of the book is represented as one pixel
+        let cells = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
+        assert!(img.pixels.len() == (img.width as usize) * (img.height as usize) * 4);
+        assert!(img.pixels.len() / 4 >= cells); // tiles + gutters cover all chars
+                                                // roughly square, never a degenerate sliver
+        let ratio = img.width as f64 / img.height as f64;
+        assert!(ratio > 0.5 && ratio < 2.0, "ratio {ratio} not near-square");
+        // deterministic, and alphabet is still an axis of the universe
+        assert_eq!(book_image(2, -3, 17, 29).pixels, img.pixels);
+        assert_ne!(book_image(2, -3, 17, 25).pixels, img.pixels);
     }
 
     #[test]
