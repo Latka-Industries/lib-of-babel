@@ -34,7 +34,7 @@ Canonical dimensions we honor:
 | Topic | Decision |
 | --- | --- |
 | **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, staircase = `z ± 1`. Four moves per gallery. |
-| **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened. |
+| **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
 | **Determinism** | Content is a pure function of address. `(universe, z, n, alphabet) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
 | **Hashing** | `node_hash` = **BLAKE3-256** over the canonical book identities (+ universe, version, alphabet, coordinate). The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. A permalink / integrity proof, **not** a dedup key. |
 | **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
@@ -100,33 +100,44 @@ a Feistel permutation over each page's 3200 symbols, so **search-by-content**
 | --- | --- |
 | `generator_version()` | Schema stamp — must match on verify/export |
 | `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis |
-| `gallery_titles_json(z, n, a)` | 700 spine titles for a gallery |
+| `gallery_titles_json(z, n, a, title_embed)` | 700 spine titles; optional embed flat string for title-search hits |
 | `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 fingerprint |
 | `page_text_for(…, search_query, search_start_page)` | One page; pass `-1` for no search embed |
-| `locate_page_json(text, a)` | Reverse lookup → JSON hit or validation errors |
+| `locate_page_json(text, a)` | Reverse lookup (page content) → JSON hit or validation errors |
+| `locate_title_json(text, a)` | Reverse lookup (spine title, max 24 chars) → JSON hit or validation errors |
 | `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
 | `book_text_for` / `book_image` | Full book text or RGBA colour map |
 | `neighbor_json(z, n, mv)` | Lattice step (0=left, 1=right, 2=up, 3=down) |
 
-## Search-by-content (`generator_version` 6)
+## Search (`generator_version` 6)
 
-Paste a phrase in the **Search** modal → the core finds where it *already lives* in the
-**current universe** (not a random gallery elsewhere).
+**actions… → search…** opens a dialog with a **content / title** dropdown. Both modes use the alphabet selected in the header and stay in the universe you are standing in (no auto-hop to another library).
+
+### Search by content
+
+Paste a phrase in the **Search** modal ( **content** selected) → the core finds where it *already lives* in the current universe.
 
 **How it works:**
 
 1. **Validate** — only characters in the active alphabet are allowed (Borges `a–v` or Basile `a–z`, plus space, comma, period). Invalid characters are highlighted in red; there is no auto-sanitize.
 2. **Hash → address** — the normalized flat phrase is BLAKE3-hashed with universe + alphabet + version to get `(z, n, book, page)`.
 3. **Embed** — the phrase is written into the generated page text at a deterministic offset (Basile-style: real surrounding text, not a padded overlay). Phrases longer than one page span consecutive pages contiguously: page 0 from the computed offset, continuation pages from column 0.
-4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page. Universe is **not** switched — the search is scoped to where you are wandering.
+4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page + `q=` for the phrase.
 
 **Limits:** up to one full book (~1.3M characters); must fit in the remaining pages of the resolved book. Multi-page hits show `page … page_end` in the result panel.
 
+### Search by title
+
+Choose **title** in the same dialog. Type a spine label (up to **24 characters**, same alphabet rules).
+
+1. **Validate** — same alphabet rules as content search.
+2. **Hash → address** — normalized title → `(z, n, book)` in the current universe.
+3. **Embed** — the title is written onto the canonical spine for that book in the gallery (passed to `gallery_titles_json` as an embed string).
+4. **Go there** — jumps to the gallery and opens the book at page 1 with the searched title on the spine.
+
 ```text
-user phrase  ──validate──▶  flat text
-flat text    ──BLAKE3──▶   (z, n, book, page)     [universe-scoped]
-flat text    ──span──▶     page 0 offset + page 1…N from col 0
-page render  ──Feistel──▶  readable text with phrase embedded
+content:  user phrase  ──validate──▶  flat text  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
+title:    user title   ──validate──▶  flat text  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine label
 ```
 
 ## Run it locally (dev)
@@ -154,7 +165,9 @@ Other tasks:
 The trail lives in the browser's IndexedDB (per-device), so it survives reloads. **export**
 downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
-**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet id: 25 or 29), `book`, `page`, and `q` (search phrase for deep-linking a find).
+**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet id: 25 or 29), `book`, `page`, and `q` (search phrase when opened via content search).
+
+Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wander, books, more).
 
 ## Roadmap (mirrored as Linear issues)
 
@@ -175,7 +188,8 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. ✅ **Proof-of-find** — rarity = leading-zero bits of a gallery's BLAKE3 hash (proof-of-work). Prospect random galleries for rare hashes, claim self-verifying **trophies** (kept in IndexedDB), and share a permalink that proves the find to anyone. Free; no chain, no payout.
 12. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed (`generator_version` 6). Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
-13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
+13. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
+14. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**
 
