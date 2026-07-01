@@ -1,8 +1,8 @@
 // Proof-of-find — rarity as proof-of-work. A gallery's BLAKE3 node hash with N
 // leading zero bits is exponentially rare (P = 2^-N for a random gallery), so
 // finding one is hard but verifying it is trivial: anyone can recompute the hash
-// at (universe, z, n, alphabet) and count the zeros. Claims are self-verifying;
-// trophies live in IndexedDB and share as ordinary permalinks.
+// at (universe, z, n, alphabet) and count the zeros. Uncommon+ galleries (8+ bits)
+// visited on a walk are saved as trophies automatically.
 //
 // (The "notable-text" find category waits on a distinct needle-in-haystack generator — see THI-76.)
 
@@ -16,22 +16,9 @@ import {
   set_universe,
   universe_seed_for,
 } from "./wasm.js";
-import { randomCoord } from "./util.js";
+import { randomCoord, leadingZeroBits } from "./util.js";
 
-// count leading zero bits of a lowercase hex string
-export function leadingZeroBits(hex) {
-  let bits = 0;
-  for (const ch of hex) {
-    const v = parseInt(ch, 16);
-    if (v === 0) {
-      bits += 4;
-      continue;
-    }
-    bits += v < 2 ? 3 : v < 4 ? 2 : v < 8 ? 1 : 0;
-    break;
-  }
-  return bits;
-}
+export { leadingZeroBits };
 
 // rarity tiers by leading-zero bits. hue gives each tier an on-theme colour.
 const TIERS = [
@@ -42,6 +29,9 @@ const TIERS = [
   { min: 8, name: "uncommon", hue: 140 },
   { min: 0, name: "common", hue: 0, dim: true },
 ];
+
+/** Galleries at or above this many leading zero bits are auto-saved as trophies. */
+export const TROPHY_MIN_BITS = 8;
 
 export function rarityTier(bits) {
   return TIERS.find((t) => bits >= t.min);
@@ -121,6 +111,25 @@ export function verifyClaim(c) {
 
 export function claimPermalink(c) {
   return permalink(c.z, c.n, c.hash_full, c.alphabet, null, null, c.universe);
+}
+
+/** Save a rare gallery visit as a trophy (no-op below [`TROPHY_MIN_BITS`]). */
+export function autoTrophy(z, n, bits) {
+  if (bits < TROPHY_MIN_BITS) return;
+  getFinder()
+    .then((finder) => addTrophy(claimFor(z, n, finder)))
+    .catch(() => {});
+}
+
+/** Backfill trophies from an existing trail (e.g. after loading a saved walk). */
+export async function backfillTrophiesFromTrail(trail) {
+  for (const e of trail) {
+    const bits = e.bits ?? leadingZeroBits(e.hash);
+    if (bits >= TROPHY_MIN_BITS) {
+      const finder = await getFinder();
+      await addTrophy(claimFor(e.z, e.n, finder));
+    }
+  }
 }
 
 // ---- trophy cabinet (IndexedDB) -------------------------------------------

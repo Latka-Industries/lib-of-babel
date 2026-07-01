@@ -12,6 +12,21 @@ import {
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
+/** Count leading zero bits of a lowercase hex string (gallery hash prefix). */
+export function leadingZeroBits(hex) {
+  let bits = 0;
+  for (const ch of hex) {
+    const v = parseInt(ch, 16);
+    if (v === 0) {
+      bits += 4;
+      continue;
+    }
+    bits += v < 2 ? 3 : v < 4 ? 2 : v < 8 ? 1 : 0;
+    break;
+  }
+  return bits;
+}
+
 /** Lowercase only — punctuation is not auto-corrected. */
 export function normalizeSearchQuery(text) {
   return text.toLowerCase();

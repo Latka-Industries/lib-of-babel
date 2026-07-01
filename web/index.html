@@ -228,7 +228,7 @@
       .history-btn { font-size: 12px; }
       .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
       .hrow {
-        display: grid; grid-template-columns: 2.6rem 1fr 1.4rem auto 2rem;
+        display: grid; grid-template-columns: 2.6rem 1fr 4.2rem 1.4rem auto 2rem;
         align-items: center; gap: 0.6rem;
         padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line);
         font-size: 12px; cursor: pointer; border-radius: 6px;
@@ -244,6 +244,8 @@
       .hrow .step { color: var(--muted); text-align: right; }
       .hrow .coord { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .hrow .move { text-align: center; color: var(--muted); }
+      .hrow .rarity { font-size: 11px; text-align: center; white-space: nowrap; text-transform: capitalize; }
+      .hrow-rare { background: rgba(255,255,255,0.02); }
       .hrow .hh { font-variant-ligatures: none; }
       .hrow .you { color: var(--accent); }
       dialog {
@@ -399,8 +401,9 @@
           <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
           fingerprint of this gallery's 700 books — a permalink and proof, identical
           every time you return (and unique to the current universe and alphabet).
-          <b>rarity</b> is the number of leading zero bits in that hash. Your last 50
-          galleries are kept in full; every step's hash is kept forever.
+          <b>rarity</b> is the number of leading zero bits in that hash. Uncommon
+          galleries (8+ bits) are saved to your <b>trophies</b> automatically as you walk.
+          Your last 50 galleries are kept in full; every step's hash is kept forever.
           The <b>actions&hellip;</b> menu lets you <b>copy link</b>, <b>export</b> your
           journey, <b>verify</b> one (re-walk an exported file and prove every hash is
           genuine), <b>prospect</b> for rarity, open your <b>trophies</b>, or start a
@@ -421,10 +424,11 @@
           A gallery whose hash starts with many <b>zero bits</b> is exponentially rare —
           finding one is real proof-of-work, but anyone can verify it instantly by
           recomputing the hash. Click <b>rarity</b> (or actions &rarr; <b>prospect</b>)
-          to scan random galleries for a rare hash, then <b>claim</b> it as a trophy.
-          Trophies live in your browser and re-verify against the current build; share a
-          trophy's link and whoever opens it can prove the find for themselves. Free
-          forever — no token, no payout.
+          to scan random galleries for a rare hash. When you walk into an
+          <b>uncommon</b> gallery (8+ zero bits) or better, it is saved to your
+          <b>trophies</b> automatically — no claiming step. Trophies re-verify against
+          the current build; share a link and whoever opens it can prove the find.
+          Free forever — no token, no payout.
         </p>
 
         <h4>Inspiration</h4>
@@ -488,15 +492,13 @@
       <div class="book-head">
         <div>
           <h3 style="margin:0">my trophies</h3>
-          <small>Your finds, re-verified against this build. Share a link and anyone can prove it.</small>
+          <small>Rare finds from your walk (8+ zero bits), saved automatically. Share a link and anyone can prove it.</small>
         </div>
         <button id="closeTrophies">close</button>
       </div>
       <div class="find-body">
         <div class="find-row">
-          <label>finder <input id="finderHandle" type="text" maxlength="32" placeholder="anonymous" autocomplete="off" spellcheck="false" /></label>
-          <span class="grow"></span>
-          <button id="claimCurrent">claim this gallery</button>
+          <label>finder <input id="finderHandle" type="text" maxlength="32" placeholder="anonymous" autocomplete="off" spellcheck="false" title="optional label stamped on new trophies" /></label>
         </div>
         <div class="trophy-list" id="trophyList"></div>
       </div>
