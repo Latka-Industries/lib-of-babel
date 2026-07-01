@@ -1,8 +1,22 @@
 // Movement across the lattice, big jumps, journey export, and a fresh walk.
 
 import { S, recordStep, persist } from "./state.js";
-import { neighbor, randomCoord, clampI64 } from "./util.js";
+import { neighbor, randomCoord, clampI64, downloadBlob } from "./util.js";
 import { render } from "./view.js";
+
+export function resetTrail({ randomCoords = false } = {}) {
+  if (randomCoords) [S.z, S.n] = randomCoord();
+  S.trail = [];
+  S.windowBuf = [];
+  S.startedAt = new Date().toISOString();
+  recordStep(null);
+}
+
+export function freshWalkHere() {
+  resetTrail();
+  persist();
+  render();
+}
 
 export function step(move) {
   [S.z, S.n] = neighbor(S.z, S.n, move);
@@ -28,35 +42,29 @@ export function jumpTo(zStr, nStr) {
 }
 
 export function exportJourney() {
-  const blob = new Blob(
-    [
-      JSON.stringify(
-        {
-          generator_version: S.gv,
-          universe: S.universeName,
-          alphabet: S.alphabetId,
-          started_at: S.startedAt,
-          trail: S.trail,
-        },
-        null,
-        2,
-      ),
-    ],
-    { type: "application/json" },
+  downloadBlob(
+    new Blob(
+      [
+        JSON.stringify(
+          {
+            generator_version: S.gv,
+            universe: S.universeName,
+            alphabet: S.alphabetId,
+            started_at: S.startedAt,
+            trail: S.trail,
+          },
+          null,
+          2,
+        ),
+      ],
+      { type: "application/json" },
+    ),
+    `babel-journey-${Date.now()}.json`,
   );
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `babel-journey-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
 }
 
 export async function newWalk() {
-  [S.z, S.n] = randomCoord();
-  S.trail = [];
-  S.windowBuf = [];
-  S.startedAt = new Date().toISOString();
-  recordStep(null); // the starting node
+  resetTrail({ randomCoords: true });
   await persist();
   render();
 }

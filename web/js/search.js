@@ -9,6 +9,9 @@ import {
   escapeHtml,
   normalizeSearchQuery,
   validateSearchQuery,
+  formatUniverseLabel,
+  findActionRow,
+  wireFindActions,
 } from "./util.js";
 import { locate_page_json, node_hash_hex } from "./wasm.js";
 import { jumpTo } from "./nav.js";
@@ -122,10 +125,6 @@ function asBigInt(v) {
   return typeof v === "bigint" ? v : BigInt(v);
 }
 
-function currentUniverseLabel() {
-  return S.universeName || "default";
-}
-
 /** Permalink for a search hit (includes `q` query param). */
 export function searchPermalink(result, query) {
   syncSearchUniverse();
@@ -165,20 +164,21 @@ export function renderSearchResult(result, box) {
   box.innerHTML =
     `<div class="find-big">gallery (${safe(result.z)}, ${safe(result.n)})</div>` +
     `<div class="find-dim">` +
-    `universe <b>${safe(currentUniverseLabel())}</b> · ` +
+    `universe <b>${safe(formatUniverseLabel(S.universeName))}</b> · ` +
     `wall ${result.wall} · shelf ${result.shelf} · book ${result.book_on_shelf} · ` +
     `${pageLabel} · ${charLabel} · alphabet ${result.alphabet}-symbol` +
     `</div>` +
-    `<div class="find-row" style="margin-top:.5rem">` +
-    `<button type="button" id="searchGo">go there</button>` +
-    `<button type="button" id="searchLink">copy link</button>` +
-    `</div>`;
+    findActionRow([
+      { id: "go", label: "go there" },
+      { id: "link", label: "copy link" },
+    ]);
   box.classList.add("show");
 
   const query = syncSearchInput();
-  el("searchGo").onclick = () => goToSearchResult(result, query);
-  el("searchLink").onclick = (ev) =>
-    copyText(searchPermalink(result, query), ev.currentTarget, "copied!");
+  wireFindActions(box, {
+    go: () => goToSearchResult(result, query),
+    link: (ev) => copyText(searchPermalink(result, query), ev.currentTarget),
+  });
 }
 
 /** Navigate to a search hit without switching universe; opens book at hit page. */

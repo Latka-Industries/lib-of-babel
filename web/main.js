@@ -6,21 +6,20 @@
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { el, copyText, trailEntryBits, escapeHtml } from "./js/util.js";
+import { el, copyText, trailEntryBits, escapeHtml, downloadBlob, wireModalCloses, wireActionMenu, wireEnter, openModal, formatUniverseLabel, findActionRow, wireFindActions, validateSearchQuery } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
   S,
   applyUniverse,
   randomUniverseName,
   persist,
-  recordStep,
   markLastPickedUp,
   setOnRecordStep,
   syncUniverseToWasm,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
-import { step, jumpTo, exportJourney, newWalk } from "./js/nav.js";
+import { step, jumpTo, exportJourney, newWalk, freshWalkHere, resetTrail } from "./js/nav.js";
 import { verifyJourney } from "./js/verify.js";
 import {
   prospect,
@@ -30,12 +29,12 @@ import {
   claimPermalink,
   getFinder,
   setFinder,
-  rarityTier,
   rarityOdds,
   autoTrophy,
   backfillTrophiesFromTrail,
   formatProspectProgress,
-  tierColor,
+  formatTierDisplay,
+  TROPHY_MIN_BITS,
 } from "./js/find.js";
 import {
   openBook,
@@ -47,7 +46,6 @@ import {
   saveBookImage,
 } from "./js/book.js";
 import { locateText, renderSearchResult, syncSearchInput, clearSearchHighlights, renderSearchHighlights, syncSearchBackdropScroll } from "./js/search.js";
-import { validateSearchQuery } from "./js/util.js";
 
 // ---- restore the session, then render -------------------------------------
 async function boot() {
@@ -87,10 +85,7 @@ async function boot() {
   if (link && !isOwnRefresh) {
     S.z = link.z;
     S.n = link.n;
-    S.trail = [];
-    S.windowBuf = [];
-    S.startedAt = new Date().toISOString();
-    recordStep(null);
+    resetTrail();
     await persist();
     render();
   } else if (savedOk) {
@@ -136,16 +131,6 @@ async function boot() {
   wireControls();
 }
 
-// ---- a fresh walk in the current library (shared by alphabet/universe swaps) -
-function freshWalkHere() {
-  S.trail = [];
-  S.windowBuf = [];
-  S.startedAt = new Date().toISOString();
-  recordStep(null);
-  persist();
-  render();
-}
-
 // ---- verify journey result ------------------------------------------------
 function showVerify(r, fileName) {
   el("verifyMeta").textContent = fileName
@@ -154,7 +139,7 @@ function showVerify(r, fileName) {
   const facts =
     r.total != null
       ? `<ul class="verify-facts">
-           <li>universe: <b>${escapeHtml(r.universe || "default")}</b></li>
+           <li>universe: <b>${escapeHtml(formatUniverseLabel(r.universe))}</b></li>
            <li>alphabet: <b>${r.alphabet ?? "—"}-symbol</b></li>
            <li>generator: <b>v${r.gv ?? "—"}</b></li>
            <li>steps checked: <b>${r.checked} / ${r.total}</b></li>
@@ -166,7 +151,7 @@ function showVerify(r, fileName) {
     `<span>${r.ok ? "verified" : "rejected"}</span></div>` +
     `<p class="verify-reason">${escapeHtml(r.reason)}</p>` +
     facts;
-  if (!el("verifyModal").open) el("verifyModal").showModal();
+  openModal("verifyModal");
 }
 
 // ---- proof-of-find: prospecting + trophies --------------------------------
@@ -186,19 +171,19 @@ function renderProspectResult(best) {
     box.classList.remove("show");
     return;
   }
-  const tier = rarityTier(best.bits);
-  const color = tierColor(tier);
+  const { color, badgeHtml } = formatTierDisplay(best.bits);
   box.innerHTML =
-    `<span class="tier-badge" style="background:${color}">${tier.name}</span>` +
+    badgeHtml +
     `<div class="find-big" style="color:${color}">${best.bits} leading zero bits</div>` +
     `<div class="find-dim">gallery (${best.z}, ${best.n}) · hash ${best.hash} · ${rarityOdds(best.bits)}</div>` +
-    `<div class="find-row" style="margin-top:.5rem">` +
-    `<button id="prospectGo">travel here</button></div>`;
+    findActionRow([{ id: "go", label: "travel here" }]);
   box.classList.add("show");
-  el("prospectGo").onclick = () => {
-    jumpTo(best.z, best.n);
-    el("prospectModal").close();
-  };
+  wireFindActions(box, {
+    go: () => {
+      jumpTo(best.z, best.n);
+      el("prospectModal").close();
+    },
+  });
 }
 
 async function runDig() {
@@ -265,22 +250,21 @@ async function renderTrophyList() {
   const box = el("trophyList");
   if (!list.length) {
     box.innerHTML =
-      `<div class="trophy-empty">No trophies yet. Walk into galleries with <b>8+</b> leading zero bits (uncommon or better) — they are saved automatically.</div>`;
+      `<div class="trophy-empty">No trophies yet. Walk into galleries with <b>${TROPHY_MIN_BITS}+</b> leading zero bits (uncommon or better) — they are saved automatically.</div>`;
     return;
   }
   box.innerHTML = "";
   for (const c of list) {
     const v = verifyClaim(c);
-    const tier = rarityTier(c.bits);
-    const color = tierColor(tier);
+    const { color, badgeHtml } = formatTierDisplay(c.bits);
     const safe = escapeHtml;
     const row = document.createElement("div");
     row.className = "trophy";
     row.innerHTML =
-      `<span class="tier-badge" style="background:${color}">${tier.name}</span>` +
+      badgeHtml +
       `<b style="color:${color}">${c.bits} bits</b>` +
       `<span class="coord">(${c.z}, ${c.n})</span>` +
-      `<small>${safe(c.universe || "default")} · ${c.alphabet}-sym${c.finder ? ` · ${safe(c.finder)}` : ""}</small>` +
+      `<small>${safe(formatUniverseLabel(c.universe))} · ${c.alphabet}-sym${c.finder ? ` · ${safe(c.finder)}` : ""}</small>` +
       `<span class="grow"></span>` +
       `<span class="${v.ok ? "ok" : "bad"}">${v.ok ? "✓ verified" : "✕ unverified"}</span>` +
       `<button data-act="go">go</button>` +
@@ -318,10 +302,54 @@ function runSearch() {
   renderSearchResult(result, el("searchResult"));
 }
 
+function selectAboutTab(tabId) {
+  const tabs = [...document.querySelectorAll(".about-tab")];
+  const panels = [...document.querySelectorAll(".about-panel")];
+  for (const tab of tabs) {
+    const on = tab.id === tabId;
+    tab.setAttribute("aria-selected", on ? "true" : "false");
+    tab.tabIndex = on ? 0 : -1;
+  }
+  for (const panel of panels) {
+    const on = panel.getAttribute("aria-labelledby") === tabId;
+    panel.classList.toggle("active", on);
+    panel.hidden = !on;
+  }
+}
+
+function stepAboutTab(dir) {
+  const tabs = [...document.querySelectorAll(".about-tab")];
+  const i = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
+  const next = tabs[(i + dir + tabs.length) % tabs.length];
+  selectAboutTab(next.id);
+  next.focus();
+}
+
+function wireAboutTabs() {
+  document.querySelectorAll(".about-tab").forEach((tab) => {
+    tab.addEventListener("click", () => selectAboutTab(tab.id));
+  });
+}
+
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
-  el("aboutBtn").addEventListener("click", () => el("aboutModal").showModal());
-  el("closeAbout").addEventListener("click", () => el("aboutModal").close());
+  wireAboutTabs();
+  el("aboutBtn").addEventListener("click", () => {
+    selectAboutTab("aboutTab-overview");
+    openModal("aboutModal");
+  });
+
+  wireModalCloses([
+    ["closeAbout", "aboutModal"],
+    ["closeJump", "jumpModal"],
+    ["closeHistory", "historyModal"],
+    ["closeProspect", "prospectModal"],
+    ["closeTrophies", "trophiesModal"],
+    ["closeSearch", "searchModal"],
+    ["closeVerify", "verifyModal"],
+    ["closeBook", "bookModal"],
+    ["closeImage", "imageModal"],
+  ]);
 
   // click the (z, n) coordinate to jump anywhere on the lattice
   const doJump = () => {
@@ -330,60 +358,43 @@ function wireControls() {
   el("coord").addEventListener("click", () => {
     el("jumpZ").value = S.z.toString();
     el("jumpN").value = S.n.toString();
-    el("jumpModal").showModal();
+    openModal("jumpModal");
     el("jumpZ").focus();
     el("jumpZ").select();
   });
   el("goJump").addEventListener("click", doJump);
-  el("closeJump").addEventListener("click", () => el("jumpModal").close());
-  ["jumpZ", "jumpN"].forEach((id) =>
-    el(id).addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        doJump();
-      }
-    }),
-  );
+  wireEnter(["jumpZ", "jumpN"], doJump);
 
   // click the sigil to take this gallery's emblem home as a standalone SVG
   el("sigil").addEventListener("click", () => {
     const svg = el("sigil").innerHTML.trim();
     if (!svg) return;
-    const blob = new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`], {
-      type: "image/svg+xml",
-    });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `sigil_${S.z}_${S.n}_${el("hash").textContent}.svg`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    downloadBlob(
+      new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`], { type: "image/svg+xml" }),
+      `sigil_${S.z}_${S.n}_${el("hash").textContent}.svg`,
+      { revokeDelay: 1000 },
+    );
   });
 
   el("historyBtn").addEventListener("click", () => {
     renderHistory();
-    el("historyModal").showModal();
+    openModal("historyModal");
   });
-  el("closeHistory").addEventListener("click", () => el("historyModal").close());
 
-  el("actionsMenu").addEventListener("change", (ev) => {
-    const choice = ev.currentTarget.value;
-    ev.currentTarget.selectedIndex = 0; // reset to the "actions…" label
-    if (choice === "copy") copyText(currentUrl());
-    else if (choice === "search") openSearch();
-    else if (choice === "export") exportJourney();
-    else if (choice === "verify") el("verifyFile").click();
-    else if (choice === "prospect") openProspect();
-    else if (choice === "trophies") openTrophies();
-    else if (choice === "reset") newWalk();
+  wireActionMenu("actionsMenu", {
+    copy: () => copyText(currentUrl()),
+    search: openSearch,
+    export: exportJourney,
+    verify: () => el("verifyFile").click(),
+    prospect: openProspect,
+    trophies: openTrophies,
+    reset: newWalk,
   });
 
   // proof-of-find: rarity badge opens the prospector; modals + claiming
   el("rarity").addEventListener("click", openProspect);
-  el("closeProspect").addEventListener("click", () => el("prospectModal").close());
   el("prospectDig").addEventListener("click", runDig);
   el("prospectCancel").addEventListener("click", cancelDig);
-  el("closeTrophies").addEventListener("click", () => el("trophiesModal").close());
-  el("closeSearch").addEventListener("click", () => el("searchModal").close());
   el("searchFind").addEventListener("click", runSearch);
   el("searchInput").addEventListener("input", () => {
     syncSearchInput();
@@ -392,12 +403,7 @@ function wireControls() {
     else clearSearchHighlights();
   });
   el("searchInput").addEventListener("scroll", syncSearchBackdropScroll);
-  el("searchInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      runSearch();
-    }
-  });
+  wireEnter("searchInput", runSearch, { modKey: true });
   el("finderHandle").addEventListener("change", (ev) => setFinder(ev.target.value));
 
   // verify journey: read an exported file, re-walk it in WASM, prove the hashes
@@ -414,7 +420,6 @@ function wireControls() {
     }
     showVerify(verifyJourney(journey), file.name);
   });
-  el("closeVerify").addEventListener("click", () => el("verifyModal").close());
   el("hash").addEventListener("click", (ev) =>
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
   );
@@ -441,12 +446,9 @@ function wireControls() {
     freshWalkHere();
   };
   el("universe").addEventListener("change", (ev) => enterUniverse(ev.target.value));
-  el("universe").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      enterUniverse(e.target.value);
-      e.target.blur();
-    }
+  wireEnter("universe", (e) => {
+    enterUniverse(e.target.value);
+    e.target.blur();
   });
   el("universeRandom").addEventListener("click", () =>
     enterUniverse(randomUniverseName()),
@@ -461,15 +463,12 @@ function wireControls() {
     S.currentBook = null;
     syncUrl();
   });
-  el("closeBook").addEventListener("click", () => el("bookModal").close());
-  el("saveMenu").addEventListener("change", (ev) => {
-    const choice = ev.currentTarget.value;
-    ev.currentTarget.selectedIndex = 0; // reset to the "save…" label
-    if (choice === "txt") downloadBook();
-    else if (choice === "img") {
+  wireActionMenu("saveMenu", {
+    txt: downloadBook,
+    img: () => {
       renderBookImage();
-      if (!el("imageModal").open) el("imageModal").showModal();
-    }
+      openModal("imageModal");
+    },
   });
   el("viewToggle").addEventListener("click", (ev) => {
     S.viewMode = S.viewMode === "color" ? "text" : "color";
@@ -477,16 +476,10 @@ function wireControls() {
     renderBookPage();
   });
   el("saveImage").addEventListener("click", saveBookImage);
-  el("closeImage").addEventListener("click", () => el("imageModal").close());
+  wireEnter("pageJump", jumpPage);
   el("prevPage").addEventListener("click", () => turnPage(-1));
   el("nextPage").addEventListener("click", () => turnPage(1));
   el("goPage").addEventListener("click", jumpPage);
-  el("pageJump").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      jumpPage();
-    }
-  });
 
   window.addEventListener("keydown", (e) => {
     // inside an open book, arrows turn pages instead of walking
@@ -501,6 +494,19 @@ function wireControls() {
       }
       return;
     }
+    // about guide open — left/right switch tabs, but never walk the library underneath
+    if (el("aboutModal").open) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        stepAboutTab(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        stepAboutTab(1);
+      }
+      return;
+    }
+    // any other open dialog owns the keyboard — don't walk underneath it
+    if (document.querySelector("dialog[open]")) return;
     const map = { ArrowLeft: 0, ArrowRight: 1, ArrowUp: 2, ArrowDown: 3 };
     if (e.key in map) {
       e.preventDefault();

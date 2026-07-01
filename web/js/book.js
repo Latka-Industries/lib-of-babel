@@ -2,7 +2,7 @@
 // taking it home (full text, or the whole-book colour image from WASM).
 
 import { S } from "./state.js";
-import { el, oklchToHex, flattenSearchQuery } from "./util.js";
+import { el, oklchToHex, flattenSearchQuery, escapeHtml, downloadBlob } from "./util.js";
 import { PAGES_PER_BOOK, PAGE_CHARS, ALPHABETS } from "./constants.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
@@ -14,10 +14,6 @@ function pageGrid(total) {
   let rows = Math.floor(Math.sqrt(total));
   while (total % rows !== 0) rows--;
   return { cols: total / rows, rows };
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function phraseMatch(pageText, phrase) {
@@ -215,14 +211,7 @@ export function downloadBook() {
       .replace(/^-+|-+$/g, "")
       .slice(0, 40) || "book";
   const name = `babel-${S.z}_${S.n}-shelf${S.currentBook.index}-${safe}.txt`;
-  const blob = new Blob([S.currentBook.text], {
-    type: "text/plain;charset=utf-8",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  downloadBlob(new Blob([S.currentBook.text], { type: "text/plain;charset=utf-8" }), name);
 }
 
 export function renderBookImage() {
@@ -246,10 +235,6 @@ export function saveBookImage() {
   if (!S.currentBook) return;
   el("bookImageCanvas").toBlob((blob) => {
     if (!blob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `babel-${S.z}_${S.n}-shelf${S.currentBook.index}-colors.png`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    downloadBlob(blob, `babel-${S.z}_${S.n}-shelf${S.currentBook.index}-colors.png`);
   });
 }

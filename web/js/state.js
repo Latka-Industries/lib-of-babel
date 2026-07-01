@@ -5,7 +5,7 @@
 
 import { WINDOW_MAX } from "./constants.js";
 import { kvSet } from "./db.js";
-import { node_hash_hex, set_universe, universe_seed_for } from "./wasm.js";
+import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "./wasm.js";
 import { leadingZeroBits } from "./util.js";
 
 /** Called after each recorded step — wired at boot to auto-capture rare finds. */
@@ -53,6 +53,17 @@ export function applyUniverseSeed(seed) {
 /** Push the active universe name into WASM (no coordinate jump). */
 export function syncUniverseToWasm() {
   set_universe(universe_seed_for(S.universeName));
+}
+
+/** Run `fn` under a temporary universe; always restores the live one. */
+export function withUniverse(name, fn) {
+  const saved = get_universe();
+  try {
+    set_universe(universe_seed_for(name || ""));
+    return fn();
+  } finally {
+    set_universe(saved);
+  }
 }
 
 export function markLastPickedUp(bookIndex) {
