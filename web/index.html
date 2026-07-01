@@ -274,9 +274,10 @@
         <option value="29">a&ndash;z &middot; 29</option>
         <option value="25">a&ndash;v &middot; 25</option>
       </select>
-      <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · new walk">
+      <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · search · new walk">
         <option value="" selected disabled>actions&hellip;</option>
         <option value="copy">copy link</option>
+        <option value="search">search text</option>
         <option value="export">export journey</option>
         <option value="verify">verify journey</option>
         <option value="prospect">prospect rarity</option>
@@ -334,6 +335,7 @@
           <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
           <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
           <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
+          <li><b>search text</b> (actions menu) finds where a phrase already lives in the library — paste it, get coordinates, jump straight to that page.</li>
         </ul>
 
         <h4>Reading a book</h4>
@@ -354,6 +356,15 @@
           journey, <b>verify</b> one (re-walk an exported file and prove every hash is
           genuine), <b>prospect</b> for rarity, open your <b>trophies</b>, or start a
           <b>new walk</b>.
+        </p>
+
+        <h4>Search by content</h4>
+        <p class="dim">
+          The famous <i>libraryofbabel.info</i> trick: type any phrase (up to 3200
+          characters in the current alphabet) and the library tells you the exact
+          gallery, shelf, book, and page where it already exists — then opens it.
+          Shorter phrases are space-padded to a full page. This works across the
+          multiverse: each phrase has one canonical address.
         </p>
 
         <h4>Proof of find</h4>
@@ -439,6 +450,26 @@
           <button id="claimCurrent">claim this gallery</button>
         </div>
         <div class="trophy-list" id="trophyList"></div>
+      </div>
+    </dialog>
+
+    <dialog id="searchModal">
+      <div class="book-head">
+        <div>
+          <h3 style="margin:0">search by content</h3>
+          <small>Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
+        </div>
+        <button id="closeSearch">close</button>
+      </div>
+      <div class="find-body">
+        <textarea id="searchInput" rows="6" spellcheck="false"
+          placeholder="forgive me for i have sinned"
+          style="width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0.5rem;resize:vertical"></textarea>
+        <div class="find-row">
+          <button id="searchFind">find</button>
+          <span class="find-dim">uses the selected alphabet · max 3200 characters</span>
+        </div>
+        <div class="find-result" id="searchResult"></div>
       </div>
     </dialog>
 

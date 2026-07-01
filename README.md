@@ -49,7 +49,8 @@ Canonical dimensions we honor:
 ```text
 (universe, z, n, alphabet)    ──hash──▶  gallery_seed
 gallery_seed + wall/shelf/i   ──hash──▶  book_seed
-book_seed                     ──PRNG──▶  the 410 pages of one book
+book_seed + page              ──Feistel──▶  one page (3200 symbols; invertible)
+410 pages                     ──join──▶  the full book
 700 book identities           ─BLAKE3─▶  node_hash  (the gallery's 256-bit fingerprint)
 ```
 
@@ -80,10 +81,9 @@ lib-of-babel/
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
 
-The core is intentionally written as a (future) **reversible mapping** between coordinate
-space and content space, so a later **search-by-content** feature ("type a sentence, get
-the coordinates where it already exists" — the famous libraryofbabel.info trick) drops in
-without a rewrite.
+The core is a **reversible mapping** between coordinate space and page content:
+a Feistel permutation over each page's 3200 symbols, so **search-by-content**
+(`text → coordinates`) is the inverse of reading (`coordinates → text`).
 
 ## Run it locally (dev)
 
@@ -127,7 +127,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. ✅ **Proof-of-find** — rarity = leading-zero bits of a gallery's BLAKE3 hash (proof-of-work). Prospect random galleries for rare hashes, claim self-verifying **trophies** (kept in IndexedDB), and share a permalink that proves the find to anyone. Free; no chain, no payout.
-12. **Reverse lookup** — search-by-content via a reversible (Feistel) mapping (would also unlock notable-*text* finds).
+12. ✅ **Reverse lookup** — search-by-content via a reversible Feistel page mapping (`generator_version` 1). Paste a phrase → exact coordinates + deep-link to that page.
 13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**

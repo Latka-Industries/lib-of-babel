@@ -11,7 +11,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use wasm_bindgen::prelude::*;
 
 /// Bump only with intent — this is the schema for all generated content.
-pub const GENERATOR_VERSION: u32 = 0;
+pub const GENERATOR_VERSION: u32 = 1;
 
 /// The selected universe — the outermost axis of the multiverse. A single
 /// deployment hosts infinitely many distinct infinite libraries; `0` (the
@@ -60,6 +60,13 @@ const LINES_PER_PAGE: u32 = 40;
 const CHARS_PER_LINE: u32 = 80;
 
 const TITLE_LEN: usize = 24;
+
+/// Content symbols per page (40 × 80); newlines are inserted on format only.
+const PAGE_CONTENT_SYMBOLS: usize =
+    (LINES_PER_PAGE * CHARS_PER_LINE) as usize;
+const FEISTEL_ROUNDS: u32 = 12;
+/// Limbs for base-`alpha_len` expansion of a packed page address (~4660 bits).
+const LIMBS: usize = 73;
 
 /// SplitMix64 — small, fast, deterministic. Used as both mixer and PRNG step.
 #[inline]
@@ -161,22 +168,256 @@ pub fn node_fingerprint(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) ->
     u64::from_be_bytes(b[..8].try_into().unwrap())
 }
 
-/// Full text of one book (lazy: only call when a book is opened).
-pub fn book_text(z: i64, n: i64, book_index: u32, alphabet_id: u32, universe_seed: u64) -> String {
-    let bs = book_seed(gallery_seed(z, n, alphabet_id, universe_seed), book_index);
-    let ab = alphabet(alphabet_id);
-    let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
-    let total = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
-    let mut out = String::with_capacity(total + (PAGES_PER_BOOK * LINES_PER_PAGE) as usize);
-    for _page in 0..PAGES_PER_BOOK {
-        for _line in 0..LINES_PER_PAGE {
-            for _c in 0..CHARS_PER_LINE {
-                out.push(p.next_symbol(ab) as char);
-            }
-            out.push('\n');
+// ---------------------------------------------------------------------------
+// Reversible page mapping (Feistel PRP over PAGE_CONTENT_SYMBOLS symbols).
+// forward: address → page text; inverse: page text → address (search-by-content).
+// ---------------------------------------------------------------------------
+
+#[inline]
+fn feistel_key(alphabet_id: u32) -> u64 {
+    mix2(
+        splitmix64((GENERATOR_VERSION as u64).wrapping_mul(0xA5A5_5A5A_F0F0_0F0F)),
+        splitmix64(alphabet_id as u64),
+    )
+}
+
+#[inline]
+fn round_key(base: u64, round: u32) -> u64 {
+    splitmix64(base ^ (round as u64).wrapping_mul(0x1234_5678_9ABC_DEF0))
+}
+
+#[inline]
+fn feistel_f(right: u8, round: u32, pos: usize, base_key: u64, alpha_len: u8) -> u8 {
+    let rk = round_key(base_key, round);
+    let x = rk
+        .wrapping_add(pos as u64)
+        .wrapping_add((right as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
+    (splitmix64(x) % alpha_len as u64) as u8
+}
+
+fn feistel_encrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
+    let half = PAGE_CONTENT_SYMBOLS / 2;
+    let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
+    for round in 0..FEISTEL_ROUNDS {
+        for i in 0..half {
+            let f = feistel_f(state[half + i], round, i, base_key, alpha_len);
+            scratch[i] = state[half + i];
+            scratch[half + i] = (state[i] + f) % alpha_len;
+        }
+        state.copy_from_slice(&scratch);
+    }
+}
+
+fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
+    let half = PAGE_CONTENT_SYMBOLS / 2;
+    let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
+    for round in (0..FEISTEL_ROUNDS).rev() {
+        for i in 0..half {
+            let f = feistel_f(state[i], round, i, base_key, alpha_len);
+            scratch[half + i] = state[i];
+            scratch[i] = (state[half + i] + alpha_len - f) % alpha_len;
+        }
+        state.copy_from_slice(&scratch);
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Limbs([u64; LIMBS]);
+
+impl Limbs {
+    fn zero() -> Self {
+        Self([0; LIMBS])
+    }
+
+    fn mul_add_small(&mut self, mul: u64, add: u64) {
+        let mut carry = add as u128;
+        for limb in self.0.iter_mut() {
+            let v = carry + (*limb as u128) * (mul as u128);
+            *limb = v as u64;
+            carry = v >> 64;
         }
     }
+
+    fn div_mod_small(&mut self, div: u64) -> u64 {
+        let mut rem: u128 = 0;
+        for limb in self.0.iter_mut().rev() {
+            let v = (rem << 64) | (*limb as u128);
+            *limb = (v / div as u128) as u64;
+            rem = v % div as u128;
+        }
+        rem as u64
+    }
+}
+
+fn encode_coords_to_limbs(
+    universe_seed: u64,
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+) -> Limbs {
+    let mut inner = Limbs::zero();
+    inner.0[0] = n as u64;
+    inner.0[1] = z as u64;
+    inner.0[2] = universe_seed;
+    let mut l = inner;
+    l.mul_add_small(BOOKS_PER_GALLERY as u64, book_index as u64 % BOOKS_PER_GALLERY as u64);
+    l.mul_add_small(PAGES_PER_BOOK as u64, page as u64 % PAGES_PER_BOOK as u64);
+    l
+}
+
+fn decode_limbs_to_coords(mut l: Limbs) -> (u64, i64, i64, u32, u32) {
+    let page = (l.div_mod_small(PAGES_PER_BOOK as u64) as u32) % PAGES_PER_BOOK;
+    let book_index = (l.div_mod_small(BOOKS_PER_GALLERY as u64) as u32) % BOOKS_PER_GALLERY;
+    let n = l.0[0] as i64;
+    let z = l.0[1] as i64;
+    let universe_seed = l.0[2];
+    (universe_seed, z, n, book_index, page)
+}
+
+fn digits_from_address(
+    universe_seed: u64,
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+    alpha_len: u8,
+) -> [u8; PAGE_CONTENT_SYMBOLS] {
+    let mut nlimb = encode_coords_to_limbs(universe_seed, z, n, book_index, page);
+    let mut digits = [0u8; PAGE_CONTENT_SYMBOLS];
+    for d in digits.iter_mut().rev() {
+        *d = nlimb.div_mod_small(alpha_len as u64) as u8;
+    }
+    digits
+}
+
+fn address_from_digits(digits: &[u8; PAGE_CONTENT_SYMBOLS], alpha_len: u8) -> Limbs {
+    let mut n = Limbs::zero();
+    for &d in digits {
+        n.mul_add_small(alpha_len as u64, d as u64);
+    }
+    n
+}
+
+fn page_symbols(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> [u8; PAGE_CONTENT_SYMBOLS] {
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u8;
+    let mut state = digits_from_address(universe_seed, z, n, book_index, page, alpha_len);
+    feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
+    state
+}
+
+fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[u8]) -> String {
+    let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize);
+    for row in 0..LINES_PER_PAGE {
+        for col in 0..CHARS_PER_LINE {
+            let idx = (row * CHARS_PER_LINE + col) as usize;
+            out.push(ab[symbols[idx] as usize] as char);
+        }
+        out.push('\n');
+    }
     out
+}
+
+/// One page of content at `(z, n, book_index, page)` — reversible Feistel mapping.
+pub fn page_text(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> String {
+    let ab = alphabet(alphabet_id);
+    let state = page_symbols(z, n, book_index, page, alphabet_id, universe_seed);
+    symbols_to_page_text(&state, ab)
+}
+
+/// Full text of one book (lazy: only call when a book is opened).
+pub fn book_text(z: i64, n: i64, book_index: u32, alphabet_id: u32, universe_seed: u64) -> String {
+    let ab = alphabet(alphabet_id);
+    let mut out = String::with_capacity(
+        (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
+    );
+    for page in 0..PAGES_PER_BOOK {
+        let state = page_symbols(z, n, book_index, page, alphabet_id, universe_seed);
+        out.push_str(&symbols_to_page_text(&state, ab));
+    }
+    out
+}
+
+/// Decode user text into symbol indices; strips newlines. Returns Err on invalid chars.
+pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> {
+    let ab = alphabet(alphabet_id);
+    let mut out = Vec::with_capacity(PAGE_CONTENT_SYMBOLS);
+    for ch in text.chars() {
+        if ch == '\n' || ch == '\r' {
+            continue;
+        }
+        let b = ch as u8;
+        match ab.iter().position(|&c| c == b) {
+            Some(i) => out.push(i as u8),
+            None => return Err(format!("invalid character '{ch}' for this alphabet")),
+        }
+    }
+    Ok(out)
+}
+
+/// Result of a reverse lookup — the canonical address where this page text lives.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PageLocation {
+    pub universe_seed: u64,
+    pub z: i64,
+    pub n: i64,
+    pub book_index: u32,
+    pub page: u32,
+    pub alphabet_id: u32,
+}
+
+/// Reverse lookup: padded page text → unique coordinates. Shorter strings are
+/// space-padded to a full page (Borges-style: the phrase is at the start).
+pub fn locate_page(text: &str, alphabet_id: u32) -> Result<PageLocation, String> {
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u8;
+    let space_idx = (alpha_len - 3) as u8; // alphabets end with " ,."
+    let mut symbols = text_to_symbols(text, alphabet_id)?;
+    if symbols.len() > PAGE_CONTENT_SYMBOLS {
+        return Err(format!(
+            "text too long (max {PAGE_CONTENT_SYMBOLS} content characters)"
+        ));
+    }
+    while symbols.len() < PAGE_CONTENT_SYMBOLS {
+        symbols.push(space_idx);
+    }
+    let mut state: [u8; PAGE_CONTENT_SYMBOLS] = symbols.try_into().map_err(|_| "internal")?;
+    feistel_decrypt(&mut state, feistel_key(alphabet_id), alpha_len);
+    let (universe_seed, z, n, book_index, page) =
+        decode_limbs_to_coords(address_from_digits(&state, alpha_len));
+    Ok(PageLocation {
+        universe_seed,
+        z,
+        n,
+        book_index,
+        page,
+        alphabet_id,
+    })
+}
+
+#[inline]
+pub fn book_index_to_shelf(book_index: u32) -> (u32, u32, u32) {
+    let per_wall = SHELVES_PER_WALL * BOOKS_PER_SHELF;
+    let wall = book_index / per_wall;
+    let rem = book_index % per_wall;
+    let shelf = rem / BOOKS_PER_SHELF;
+    let book_on_shelf = rem % BOOKS_PER_SHELF;
+    (wall, shelf, book_on_shelf)
 }
 
 // ---------------------------------------------------------------------------
@@ -282,6 +523,35 @@ pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> Strin
     book_text(z, n, book_index, alphabet_id, universe())
 }
 
+/// Reverse lookup: find where `text` already exists (space-padded to a full page).
+/// Returns JSON `{ok, ...}` or `{ok:false, error}`.
+#[wasm_bindgen]
+pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
+    match locate_page(text, alphabet_id) {
+        Ok(loc) => {
+            let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
+            format!(
+                concat!(
+                    "{{\"ok\":true,",
+                    "\"universe_seed\":{},\"z\":{},\"n\":{},",
+                    "\"book\":{},\"page\":{},\"alphabet\":{},",
+                    "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
+                ),
+                loc.universe_seed,
+                loc.z,
+                loc.n,
+                loc.book_index,
+                loc.page + 1,
+                loc.alphabet_id,
+                wall + 1,
+                shelf + 1,
+                book_on_shelf + 1,
+            )
+        }
+        Err(e) => format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\"")),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Whole-book color map: every character of all 410 pages as one RGBA image.
 // The characters stream row-major into a fully-filled, near-square rectangle
@@ -378,20 +648,24 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let width = (total / h) as u32;
 
     // draw in generation order (page → line → col), which is exactly row-major
-    let bs = book_seed(gallery_seed(z, n, alphabet_id, universe()), book_index);
-    let mut p = Prng::new(bs ^ 0x00C0_FFEE_00C0_FFEE);
     let mut pixels = vec![0u8; total * 4];
-    for px in pixels.chunks_exact_mut(4) {
-        let idx = (p.next_u64() % len as u64) as usize;
-        let rgb = if idx == space_idx {
-            SPACE_RGB
-        } else {
-            palette[idx]
-        };
-        px[0] = rgb[0];
-        px[1] = rgb[1];
-        px[2] = rgb[2];
-        px[3] = 255;
+    let mut px_idx = 0;
+    for page in 0..PAGES_PER_BOOK {
+        let state = page_symbols(z, n, book_index, page, alphabet_id, universe());
+        for &sym in state.iter() {
+            let idx = sym as usize;
+            let rgb = if idx == space_idx {
+                SPACE_RGB
+            } else {
+                palette[idx]
+            };
+            let px = &mut pixels[px_idx * 4..(px_idx + 1) * 4];
+            px[0] = rgb[0];
+            px[1] = rgb[1];
+            px[2] = rgb[2];
+            px[3] = 255;
+            px_idx += 1;
+        }
     }
 
     BookImage {
@@ -505,5 +779,60 @@ mod tests {
         // up then down returns home
         let (c, d) = neighbor(z, n, 2);
         assert_eq!(neighbor(c, d, 3), (z, n));
+    }
+
+    #[test]
+    fn coord_codec_round_trips() {
+        let cases = [
+            (0_u64, 12_i64, -5_i64, 333_u32, 200_u32),
+            (7_u64, -3_i64, 42_i64, 17_u32, 99_u32),
+            (0_u64, 0_i64, 0_i64, 0_u32, 0_u32),
+        ];
+        for (uni, z, n, book, page) in cases {
+            let l = encode_coords_to_limbs(uni, z, n, book, page);
+            let (u2, z2, n2, b2, p2) = decode_limbs_to_coords(l);
+            assert_eq!((u2, z2, n2, b2, p2), (uni, z, n, book, page), "coords");
+        }
+    }
+
+    #[test]
+    fn feistel_round_trips() {
+        let alpha_len = 29;
+        let key = feistel_key(29);
+        let mut state = digits_from_address(7, -3, 42, 17, 99, alpha_len);
+        let orig = state;
+        feistel_encrypt(&mut state, key, alpha_len);
+        assert_ne!(state, orig);
+        feistel_decrypt(&mut state, key, alpha_len);
+        assert_eq!(state, orig);
+    }
+
+    #[test]
+    fn page_locate_round_trips() {
+        let (z, n, book, page) = (12_i64, -5_i64, 333_u32, 200_u32);
+        let alpha = 29;
+        let uni = 0_u64;
+        let generated = page_text(z, n, book, page, alpha, uni);
+        let loc = locate_page(&generated, alpha).expect("locate");
+        assert_eq!(loc.z, z);
+        assert_eq!(loc.n, n);
+        assert_eq!(loc.book_index, book);
+        assert_eq!(loc.page, page);
+        assert_eq!(loc.universe_seed, uni);
+        assert_eq!(loc.alphabet_id, alpha);
+    }
+
+    #[test]
+    fn locate_finds_padded_phrase() {
+        let phrase = "forgive me for i have sinned";
+        let loc = locate_page(phrase, 29).expect("locate phrase");
+        let page = page_text(loc.z, loc.n, loc.book_index, loc.page, 29, loc.universe_seed);
+        let loc2 = locate_page(&page, 29).expect("re-locate");
+        assert_eq!(loc, loc2);
+    }
+
+    #[test]
+    fn generator_version_is_frozen_in_tests() {
+        assert_eq!(GENERATOR_VERSION, 1);
     }
 }

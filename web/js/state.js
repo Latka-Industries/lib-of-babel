@@ -34,6 +34,13 @@ export function applyUniverse(name) {
   set_universe(universe_seed_for(S.universeName));
 }
 
+// when reverse lookup returns a seed with no known name (non-default, unnamed).
+export function applyUniverseSeed(seed) {
+  const s = typeof seed === "bigint" ? seed : BigInt(seed);
+  S.universeName = s === 0n ? "" : `0x${s.toString(16)}`;
+  set_universe(Number(s));
+}
+
 // a short, pronounceable-ish random universe name (memorable + shareable)
 export function randomUniverseName() {
   const buf = new Uint32Array(2);

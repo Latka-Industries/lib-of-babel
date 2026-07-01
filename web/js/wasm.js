@@ -7,6 +7,7 @@ export {
   node_hash_full_hex,
   book_text_for,
   book_image,
+  locate_page_json,
   generator_version,
   default_alphabet,
   set_universe,
