@@ -1,6 +1,6 @@
 // Rendering: the gallery walls, the hexagon minimap, and the history window.
 
-import { S } from "./state.js";
+import { S, isLastPickedUp } from "./state.js";
 import { el, copyText, hueFromString, neighbor } from "./util.js";
 import {
   WALLS,
@@ -87,7 +87,9 @@ export function render() {
     const wall = document.createElement("div");
     wall.className = "wall";
     const h = document.createElement("h2");
-    h.textContent = `Wall ${w + 1}`;
+    const wallNum = w + 1;
+    h.textContent = `Wall ${wallNum}`;
+    h.dataset.wallLabel = `Wall ${wallNum}`;
     wall.appendChild(h);
     for (let s = 0; s < SHELVES_PER_WALL; s++) {
       const shelf = document.createElement("div");
@@ -98,12 +100,21 @@ export function render() {
         const hue = hueFromString(title);
         const book = document.createElement("div");
         book.className = "book";
-        book.title = title;
+        if (isLastPickedUp(bookIndex)) book.classList.add("last-picked-up");
+        book.title = isLastPickedUp(bookIndex)
+          ? `${title} · last picked up`
+          : title;
         book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
         book.textContent = title
           .replace(/[^a-z]/gi, "")
           .slice(0, 6)
           .toUpperCase();
+        book.addEventListener("mouseenter", () => {
+          h.textContent = `Wall ${wallNum} · book ${bookIndex + 1}`;
+        });
+        book.addEventListener("mouseleave", () => {
+          h.textContent = h.dataset.wallLabel;
+        });
         book.addEventListener("click", () => openBook(bookIndex, title));
         shelf.appendChild(book);
       }

@@ -4,7 +4,7 @@
 //   constants · wasm · util · db · state · url · book · view · nav
 // Text is never stored — only the trail of {z, n, move, hash} in IndexedDB.
 
-import { init, generator_version, default_alphabet } from "./js/wasm.js";
+import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
 import { el, copyText } from "./js/util.js";
 import { kvGet } from "./js/db.js";
@@ -14,6 +14,7 @@ import {
   randomUniverseName,
   persist,
   recordStep,
+  markLastPickedUp,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
@@ -41,7 +42,8 @@ import {
   renderBookImage,
   saveBookImage,
 } from "./js/book.js";
-import { locateText, renderSearchResult } from "./js/search.js";
+import { locateText, renderSearchResult, syncSearchInput, clearSearchHighlights, renderSearchHighlights, syncSearchBackdropScroll } from "./js/search.js";
+import { validateSearchQuery } from "./js/util.js";
 
 // ---- restore the session, then render -------------------------------------
 async function boot() {
@@ -108,7 +110,13 @@ async function boot() {
     S.z === link.z &&
     S.n === link.n
   ) {
-    openBook(link.b, null, link.p || 1);
+    openBook(
+      link.b,
+      null,
+      link.p || 1,
+      link.q || null,
+      link.q ? search_page_span_for(link.q) : 1,
+    );
   }
 
   // ask the browser not to evict the trail under disk pressure
@@ -261,12 +269,13 @@ async function openTrophies() {
 function openSearch() {
   el("searchResult").classList.remove("show");
   el("searchInput").value = "";
+  clearSearchHighlights();
   el("searchModal").showModal();
   el("searchInput").focus();
 }
 
 function runSearch() {
-  const text = el("searchInput").value;
+  const text = syncSearchInput();
   if (!text.trim()) return;
   const result = locateText(text, S.alphabetId);
   renderSearchResult(result, el("searchResult"));
@@ -274,12 +283,6 @@ function runSearch() {
 
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
-  document
-    .querySelectorAll(".moves button")
-    .forEach((btn) =>
-      btn.addEventListener("click", () => step(Number(btn.dataset.move))),
-    );
-
   el("aboutBtn").addEventListener("click", () => el("aboutModal").showModal());
   el("closeAbout").addEventListener("click", () => el("aboutModal").close());
 
@@ -344,6 +347,13 @@ function wireControls() {
   el("closeTrophies").addEventListener("click", () => el("trophiesModal").close());
   el("closeSearch").addEventListener("click", () => el("searchModal").close());
   el("searchFind").addEventListener("click", runSearch);
+  el("searchInput").addEventListener("input", () => {
+    syncSearchInput();
+    const invalid = validateSearchQuery(el("searchInput").value, S.alphabetId);
+    if (invalid.length) renderSearchHighlights(invalid);
+    else clearSearchHighlights();
+  });
+  el("searchInput").addEventListener("scroll", syncSearchBackdropScroll);
   el("searchInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
@@ -413,6 +423,10 @@ function wireControls() {
 
   // book modal
   el("bookModal").addEventListener("close", () => {
+    if (S.currentBook) {
+      markLastPickedUp(S.currentBook.index);
+      render();
+    }
     S.currentBook = null;
     syncUrl();
   });

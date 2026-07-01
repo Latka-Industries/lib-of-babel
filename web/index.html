@@ -57,6 +57,49 @@
       .tier-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0b0b0d; }
       .find-big { font-size: 1.4rem; font-weight: 700; margin: 0.25rem 0; }
       .find-dim { color: var(--muted); font-size: 0.8rem; }
+      .search-error { color: #c44; }
+
+      .search-editor {
+        position: relative;
+        width: 100%;
+      }
+      .search-editor textarea {
+        width: 100%;
+        font: inherit;
+        color: transparent;
+        caret-color: var(--ink);
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.5rem;
+        resize: vertical;
+        position: relative;
+        z-index: 1;
+      }
+      .search-editor.search-invalid-field textarea {
+        border-color: #c44;
+      }
+      .search-backdrop {
+        position: absolute;
+        inset: 0;
+        padding: 0.5rem;
+        font: inherit;
+        line-height: inherit;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid transparent;
+        border-radius: 6px;
+        overflow: hidden;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .search-backdrop mark.search-invalid {
+        background: rgba(200, 60, 60, 0.35);
+        color: inherit;
+        border-radius: 2px;
+      }
       .trophy-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 60vh; overflow: auto; }
       .trophy { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.65rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
       .trophy .coord { color: var(--ink); }
@@ -104,8 +147,6 @@
         padding: 0.35rem 0.7rem; cursor: pointer;
       }
       button:hover { border-color: var(--accent); }
-      .moves { display: flex; gap: 0.35rem; }
-      .moves button { min-width: 2.4rem; }
       .alphabet, .save-menu, .actions-menu {
         font: inherit; color: var(--ink); background: var(--panel);
         border: 1px solid var(--line); border-radius: 6px;
@@ -173,6 +214,15 @@
         overflow: hidden; padding: 3px 0; transition: transform 0.06s;
       }
       .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
+      .book.last-picked-up {
+        outline: 2px solid #e05555;
+        outline-offset: 1px;
+        box-shadow: 0 0 0 1px rgba(224, 85, 85, 0.45);
+      }
+      .book.last-picked-up:hover {
+        outline: 2px solid #ff7070;
+        box-shadow: 0 0 6px rgba(224, 85, 85, 0.55);
+      }
       .footer { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
       .footer .dim { color: var(--muted); font-size: 12px; }
       .history-btn { font-size: 12px; }
@@ -209,6 +259,12 @@
       pre.page {
         margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
         max-height: 56vh; overflow: auto; color: #b9b3a4; font-size: 13px;
+      }
+      pre.page mark.search-hit {
+        background: rgba(201, 162, 39, 0.38);
+        color: #f0ead8;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.55);
       }
       .page-canvas {
         display: block; max-width: 100%; max-height: 56vh; height: auto;
@@ -258,12 +314,6 @@
       <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
       <span class="stat">rarity <b class="rarity" id="rarity" title="leading zero bits of this gallery's BLAKE3 hash — click to prospect for rarer galleries">…</b></span>
       <span class="stat">steps <b id="steps">0</b></span>
-      <div class="moves">
-        <button data-move="0" title="left hallway (←)">◁</button>
-        <button data-move="2" title="stairs up (↑)">▲</button>
-        <button data-move="3" title="stairs down (↓)">▼</button>
-        <button data-move="1" title="right hallway (→)">▷</button>
-      </div>
       <span class="universe-wrap">
         <input id="universe" class="universe" type="text" maxlength="40"
           placeholder="default universe" autocomplete="off" spellcheck="false"
@@ -328,9 +378,8 @@
 
         <h4>How to wander</h4>
         <ul>
-          <li><kbd>◁</kbd> <kbd>▷</kbd> hallways · <kbd>▲</kbd> <kbd>▼</kbd> stairs — or use the <kbd>arrow keys</kbd>.</li>
-          <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere — leap as far across the lattice as you like.</li>
-          <li>The <b>minimap</b> (left) shows the four exits and their hashes — click one to move.</li>
+          <li>Use the <b>minimap</b> (left) — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs too.</li>
+          <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere on the lattice.</li>
           <li>Each gallery has a <b>sigil</b> — a strange emblem drawn from its hash. Same place, same sigil; click it to download the <b>SVG</b>.</li>
           <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
           <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
@@ -360,11 +409,11 @@
 
         <h4>Search by content</h4>
         <p class="dim">
-          The famous <i>libraryofbabel.info</i> trick: type any phrase (up to 3200
-          characters in the current alphabet) and the library tells you the exact
-          gallery, shelf, book, and page where it already exists — then opens it.
-          Shorter phrases are space-padded to a full page. This works across the
-          multiverse: each phrase has one canonical address.
+          The famous <i>libraryofbabel.info</i> trick: paste any phrase (up to one
+          full book — ~1.3&nbsp;million characters) and the library tells you the
+          exact gallery, shelf, book, and page(s) where it lives — then opens it.
+          Longer text spans consecutive pages in the same volume. Search is scoped
+          to the universe you&rsquo;re standing in.
         </p>
 
         <h4>Proof of find</h4>
@@ -462,12 +511,14 @@
         <button id="closeSearch">close</button>
       </div>
       <div class="find-body">
-        <textarea id="searchInput" rows="6" spellcheck="false"
-          placeholder="forgive me for i have sinned"
-          style="width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0.5rem;resize:vertical"></textarea>
+        <div class="search-editor" id="searchEditor">
+          <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
+          <textarea id="searchInput" rows="6" spellcheck="false"
+            placeholder="forgive me for i have sinned"></textarea>
+        </div>
         <div class="find-row">
           <button id="searchFind">find</button>
-          <span class="find-dim">uses the selected alphabet · max 3200 characters</span>
+          <span class="find-dim">uses the selected alphabet · up to ~1.3M characters (one book)</span>
         </div>
         <div class="find-result" id="searchResult"></div>
       </div>
