@@ -1,7 +1,7 @@
 // Rendering: the gallery walls, the hexagon minimap, and the history window.
 
 import { S, isLastPickedUp } from "./state.js";
-import { el, copyText, hueFromString, neighbor, leadingZeroBits } from "./util.js";
+import { el, copyText, hueFromString, neighbor, leadingZeroBits, trailEntryBits } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -12,7 +12,7 @@ import {
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
 import { sigilSvg } from "./sigil.js";
-import { rarityTier } from "./find.js";
+import { rarityTier, tierColor } from "./find.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 
@@ -139,11 +139,9 @@ export function renderHistory() {
   for (let i = win.length - 1; i >= 0; i--) {
     const e = win[i];
     const isCurrent = i === win.length - 1;
-    const bits = e.bits ?? leadingZeroBits(e.hash);
+    const bits = trailEntryBits(e);
     const tier = rarityTier(bits);
-    const tierColor = tier.dim
-      ? "var(--muted)"
-      : `hsl(${tier.hue} 75% 62%)`;
+    const color = tierColor(tier);
     const hue = parseInt(e.hash.slice(0, 4), 16) % 360;
     const row = document.createElement("div");
     row.className = "hrow" + (isCurrent ? " current" : "");
@@ -151,7 +149,7 @@ export function renderHistory() {
     row.innerHTML =
       `<span class="step">${startIdx + i}</span>` +
       `<span class="coord">(${e.z}, ${e.n})</span>` +
-      `<span class="rarity" style="color:${tierColor}" title="${bits} leading zero bits">${tier.dim ? `${bits}b` : tier.name}</span>` +
+      `<span class="rarity" style="color:${color}" title="${bits} leading zero bits">${tier.dim ? `${bits}b` : tier.name}</span>` +
       `<span class="move">${MOVE_ARROW[e.move]}</span>` +
       `<span class="hh" style="color:hsl(${hue} 60% 62%)">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
     row.title = `gallery (${e.z}, ${e.n}) — ${bits} bits · ${tier.name} — ${e.hash}`;

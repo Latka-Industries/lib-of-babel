@@ -27,6 +27,19 @@ export function leadingZeroBits(hex) {
   return bits;
 }
 
+/** Bits for a trail entry — stored value or derived from hash prefix. */
+export function trailEntryBits(entry) {
+  return entry.bits ?? leadingZeroBits(entry.hash);
+}
+
+/** Escape text for safe HTML insertion. */
+export function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 /** Lowercase only — punctuation is not auto-corrected. */
 export function normalizeSearchQuery(text) {
   return text.toLowerCase();
