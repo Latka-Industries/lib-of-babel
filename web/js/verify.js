@@ -8,12 +8,10 @@
 // Editing a hash, a coordinate, or a move is therefore detectable.
 
 import { neighbor } from "./util.js";
+import { withUniverse } from "./state.js";
 import {
   node_hash_hex,
   generator_version,
-  get_universe,
-  set_universe,
-  universe_seed_for,
 } from "./wasm.js";
 
 // returns { ok, reason, total, checked, gv, universe, alphabet, badStep? }
@@ -48,50 +46,49 @@ export function verifyJourney(j) {
 
   // recompute under the file's universe, then always restore the live one so
   // verifying never disturbs the walk the user is on.
-  const savedUniverse = get_universe();
   try {
-    set_universe(universe_seed_for(base.universe));
-    let prev = null;
-    for (let i = 0; i < trail.length; i++) {
-      const e = trail[i];
-      let z, n;
-      try {
-        z = BigInt(e.z);
-        n = BigInt(e.n);
-      } catch {
-        return { ...base, ok: false, badStep: i, reason: `step ${i}: bad coordinate` };
-      }
+    return withUniverse(base.universe, () => {
+      let prev = null;
+      for (let i = 0; i < trail.length; i++) {
+        const e = trail[i];
+        let z, n;
+        try {
+          z = BigInt(e.z);
+          n = BigInt(e.n);
+        } catch {
+          return { ...base, ok: false, badStep: i, reason: `step ${i}: bad coordinate` };
+        }
 
-      // a hallway/stair move (0–3) must connect the previous coordinate to this
-      // one; null (start) and "jump" legitimately break continuity.
-      if (prev && typeof e.move === "number") {
-        const [pz, pn] = neighbor(prev.z, prev.n, e.move);
-        if (pz !== z || pn !== n) {
+        // a hallway/stair move (0–3) must connect the previous coordinate to this
+        // one; null (start) and "jump" legitimately break continuity.
+        if (prev && typeof e.move === "number") {
+          const [pz, pn] = neighbor(prev.z, prev.n, e.move);
+          if (pz !== z || pn !== n) {
+            return {
+              ...base,
+              ok: false,
+              badStep: i,
+              reason: `step ${i}: move "${e.move}" doesn't lead from (${prev.z}, ${prev.n}) to (${z}, ${n})`,
+            };
+          }
+        }
+
+        const h = node_hash_hex(z, n, alphabet);
+        if (h !== e.hash) {
           return {
             ...base,
             ok: false,
             badStep: i,
-            reason: `step ${i}: move "${e.move}" doesn't lead from (${prev.z}, ${prev.n}) to (${z}, ${n})`,
+            reason: `step ${i}: hash mismatch at (${z}, ${n}) — recomputed ${h.slice(0, 12)}…, file claims ${String(e.hash).slice(0, 12)}…`,
           };
         }
-      }
 
-      const h = node_hash_hex(z, n, alphabet);
-      if (h !== e.hash) {
-        return {
-          ...base,
-          ok: false,
-          badStep: i,
-          reason: `step ${i}: hash mismatch at (${z}, ${n}) — recomputed ${h.slice(0, 12)}…, file claims ${String(e.hash).slice(0, 12)}…`,
-        };
+        base.checked++;
+        prev = { z, n };
       }
-
-      base.checked++;
-      prev = { z, n };
-    }
-  } finally {
-    set_universe(savedUniverse);
+      return { ...base, ok: true, reason: `all ${base.total} steps verified` };
+    });
+  } catch {
+    return { ...base, ok: false, reason: "verification failed" };
   }
-
-  return { ...base, ok: true, reason: `all ${base.total} steps verified` };
 }

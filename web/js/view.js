@@ -1,7 +1,7 @@
 // Rendering: the gallery walls, the hexagon minimap, and the history window.
 
 import { S, isLastPickedUp } from "./state.js";
-import { el, copyText, hueFromString, neighbor, leadingZeroBits, trailEntryBits } from "./util.js";
+import { el, copyText, hueFromString, neighbor, leadingZeroBits, trailEntryBits, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -23,7 +23,7 @@ function renderMinimap(curHash, accentHue) {
   const exit = (mv) => {
     const [nz, nn] = neighbor(S.z, S.n, mv);
     const h = node_hash_hex(nz, nn, S.alphabetId);
-    return { h, color: `hsl(${parseInt(h.slice(0, 4), 16) % 360} 60% 62%)` };
+    return { h, color: hashAccentColor(h) };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
   const hex = "110,30 179,70 179,150 110,190 41,150 41,70";
@@ -49,7 +49,9 @@ function renderMinimap(curHash, accentHue) {
 export function render() {
   const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId));
   const hash = node_hash_hex(S.z, S.n, S.alphabetId);
-  el("coord").textContent = `(${S.z}, ${S.n})`;
+  const fullCoord = `(${S.z}, ${S.n})`;
+  el("coord").textContent = formatCoordDisplay(S.z, S.n);
+  el("coord").title = `${fullCoord} — click to jump`;
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, S.trail.length - 1));
@@ -69,7 +71,7 @@ export function render() {
   // gallery accent colour derived from its hash (deterministic per node).
   // separate hex slices seed hue / chroma / lightness so each gallery's
   // heatmap has a distinct mood, not just a rotated copy of the same ring.
-  S.accentHue = parseInt(hash.slice(0, 4), 16) % 360;
+  S.accentHue = hashHue(hash);
   S.accentChroma = 0.08 + 0.14 * (parseInt(hash.slice(4, 8), 16) / 0xffff);
   S.accentLightness = 0.55 + 0.23 * (parseInt(hash.slice(8, 12), 16) / 0xffff);
   document.documentElement.style.setProperty(
@@ -124,7 +126,7 @@ export function render() {
   }
 
   el("historyBtn").textContent = `window · last ${S.windowBuf.length}/${WINDOW_MAX}`;
-  el("trailNote").textContent = `trail ${S.trail.length} nodes · universe ${S.universeName || "default"} · ${S.alphabetId}-symbol · gen v${S.gv}`;
+  el("trailNote").textContent = `trail ${S.trail.length} nodes · universe ${formatUniverseLabel(S.universeName)} · ${S.alphabetId}-symbol · gen v${S.gv}`;
   if (el("historyModal").open) renderHistory();
 }
 
@@ -142,7 +144,6 @@ export function renderHistory() {
     const bits = trailEntryBits(e);
     const tier = rarityTier(bits);
     const color = tierColor(tier);
-    const hue = parseInt(e.hash.slice(0, 4), 16) % 360;
     const row = document.createElement("div");
     row.className = "hrow" + (isCurrent ? " current" : "");
     if (!tier.dim) row.classList.add("hrow-rare");
@@ -151,7 +152,7 @@ export function renderHistory() {
       `<span class="coord">(${e.z}, ${e.n})</span>` +
       `<span class="rarity" style="color:${color}" title="${bits} leading zero bits">${tier.dim ? `${bits}b` : tier.name}</span>` +
       `<span class="move">${MOVE_ARROW[e.move]}</span>` +
-      `<span class="hh" style="color:hsl(${hue} 60% 62%)">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
+      `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
     row.title = `gallery (${e.z}, ${e.n}) — ${bits} bits · ${tier.name} — ${e.hash}`;
     row.addEventListener("click", () => {
       S.z = BigInt(e.z);

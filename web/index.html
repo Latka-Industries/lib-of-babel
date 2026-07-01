@@ -294,13 +294,35 @@
       }
       .book-nav .grow { flex: 1; }
       .loading { color: var(--muted); padding: 2rem; text-align: center; }
-      .about-body { padding: 1rem 1.25rem; line-height: 1.6; max-height: 70vh; overflow: auto; }
+      .about-tabs {
+        display: flex; gap: 0; border-bottom: 1px solid var(--line);
+        padding: 0 0.75rem; overflow-x: auto;
+      }
+      .about-tab {
+        font: inherit; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent;
+        padding: 0.65rem 0.85rem; margin-bottom: -1px; cursor: pointer; white-space: nowrap;
+      }
+      .about-tab:hover { color: var(--ink); }
+      .about-tab[aria-selected="true"] {
+        color: var(--accent); border-bottom-color: var(--accent);
+      }
+      .about-panel { display: none; }
+      .about-panel.active { display: block; }
+      .about-body { padding: 1rem 1.25rem; line-height: 1.6; max-height: 58vh; overflow: auto; }
       .about-body p { margin: 0 0 0.85rem; }
       .about-body h4 { margin: 1.1rem 0 0.4rem; font-size: 0.8rem; letter-spacing: 0.08em;
         text-transform: uppercase; color: var(--accent);
         text-decoration: underline; text-underline-offset: 3px; }
+      .about-body h4:first-child { margin-top: 0; }
       .about-body ul { margin: 0 0 0.85rem; padding-left: 1.1rem; }
       .about-body li { margin: 0.2rem 0; }
+      .about-save-rows { display: grid; gap: 0.2rem; }
+      .about-save-row {
+        display: grid; grid-template-columns: 4.25rem auto 1fr;
+        column-gap: 0.35rem; align-items: baseline;
+      }
+      .about-save-label { white-space: nowrap; }
       .about-body kbd {
         background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
         padding: 0 0.35rem; font-size: 0.85em;
@@ -356,94 +378,119 @@
 
     <dialog id="aboutModal">
       <div class="book-head">
-        <h3 style="margin:0">The Library of Babel</h3>
+        <h3>The Library of Babel</h3>
         <button id="closeAbout">close</button>
       </div>
+      <div class="about-tabs" role="tablist" aria-label="About sections">
+        <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview">overview</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1">wander</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1">books</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1">more</button>
+      </div>
       <div class="about-body">
-        <p>
-          An endless library you can walk. It is made of hexagonal galleries — each with
-          <b>four walls of bookshelves</b> (700 books per gallery) and <b>two hallways</b> that
-          open onto the next gallery, plus a <b>staircase</b> up and down.
-        </p>
-        <p>
-          Nothing here is stored. Every gallery and every book is <b>generated on the
-          spot from its coordinates</b> — so the same place always holds exactly the same
-          books, forever, for everyone. The Library is infinite, yet it weighs almost
-          nothing: only your <i>path</i> is remembered.
-        </p>
-        <p>
-          And there isn't just one Library. Name a <b>universe</b> in the header and you
-          step into an entirely separate infinite library — same rooms, wholly different
-          books. Leave it blank for the <b>default universe</b>. There are infinitely
-          many, each one reproducible from its name: a multiverse of Babels.
-        </p>
+        <div class="about-panel active" role="tabpanel" id="aboutPanel-overview" aria-labelledby="aboutTab-overview">
+          <p>
+            An endless library you can walk. It is made of hexagonal galleries — each with
+            <b>four walls of bookshelves</b> (700 books per gallery) and <b>two hallways</b> that
+            open onto the next gallery, plus a <b>staircase</b> up and down.
+          </p>
+          <p>
+            Nothing here is stored. Every gallery and every book is <b>generated on the
+            spot from its coordinates</b> — so the same place always holds exactly the same
+            books, forever, for everyone. The Library is infinite, yet it weighs almost
+            nothing: only your <i>path</i> is remembered.
+          </p>
+          <p>
+            And there isn't just one Library. Name a <b>universe</b> in the header and you
+            step into an entirely separate infinite library — same rooms, wholly different
+            books. Leave it blank for the <b>default universe</b>. There are infinitely
+            many, each one reproducible from its name: a multiverse of Babels.
+          </p>
+          <h4>Inspiration</h4>
+          <p class="dim">
+            <a href="https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf"
+               target="_blank" rel="noopener noreferrer">Jorge Luis Borges, &ldquo;The Library of Babel&rdquo; (1941).</a><br />
+            <a href="https://libraryofbabel.info/" target="_blank" rel="noopener noreferrer">Jonathan Basile, <i>libraryofbabel.info</i></a>
+          </p>
+        </div>
 
-        <h4>How to wander</h4>
-        <ul>
-          <li>Use the <b>minimap</b> (left) — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs too.</li>
-          <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere on the lattice.</li>
-          <li>Each gallery has a <b>sigil</b> — a strange emblem drawn from its hash. Same place, same sigil; click it to download the <b>SVG</b>.</li>
-          <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
-          <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
-          <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
-          <li><b>search text</b> (actions menu) finds where a phrase already lives in the library — paste it, get coordinates, jump straight to that page.</li>
-        </ul>
+        <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
+          <h4>How to wander</h4>
+          <ul>
+            <li>Use the <b>minimap</b> (left) — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs too.</li>
+            <li>Click the <b>gallery&nbsp;(z,&nbsp;n)</b> coordinate to <b>jump</b> anywhere on the lattice.</li>
+            <li>Each gallery has a <b>sigil</b> — a strange emblem drawn from its hash. Same place, same sigil; click it to download the <b>SVG</b>.</li>
+            <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
+            <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
+            <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
+            <li><b>search text</b> (actions menu) finds where a phrase already lives in the library — paste it, get coordinates, jump straight to that page.</li>
+          </ul>
+        </div>
 
-        <h4>Reading a book</h4>
-        <ul>
-          <li>Click any colored spine to open it; arrow keys turn its <b>410 pages</b>.</li>
-          <li><b>color</b> redraws the page as a character-color map — each symbol a square of colour, tinted by the gallery's hash.</li>
-          <li><b>save&hellip;</b> &rarr; <b>borrow book</b> takes the full text home (~1.3&nbsp;MB .txt); <b>book image</b> renders the whole book as one picture you can <b>save&nbsp;png</b>.</li>
-        </ul>
+        <div class="about-panel" role="tabpanel" id="aboutPanel-books" aria-labelledby="aboutTab-books" hidden>
+          <h4>Reading a book</h4>
+          <ul>
+            <li>Click any colored spine to open it; arrow keys turn its <b>410 pages</b>.</li>
+            <li><b>color</b> redraws the page as a character-color map — each symbol a square of colour, tinted by the gallery's hash.</li>
+            <li class="about-save-menu">
+              <div class="about-save-rows">
+                <div class="about-save-row">
+                  <span class="about-save-label"><b>save&hellip;</b></span>
+                  <span>&rarr;</span>
+                  <span><b>borrow book</b> — full text export (~1.3&nbsp;MB .txt)</span>
+                </div>
+                <div class="about-save-row">
+                  <span class="about-save-label"></span>
+                  <span>&rarr;</span>
+                  <span><b>book image</b> — whole book as a PNG you can save</span>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
 
-        <h4>The numbers in the header</h4>
-        <p class="dim">
-          <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
-          fingerprint of this gallery's 700 books — a permalink and proof, identical
-          every time you return (and unique to the current universe and alphabet).
-          <b>rarity</b> is the number of leading zero bits in that hash. Uncommon
-          galleries (8+ bits) are saved to your <b>trophies</b> automatically as you walk.
-          Your last 50 galleries are kept in full; every step's hash is kept forever.
-          The <b>actions&hellip;</b> menu lets you <b>copy link</b>, <b>export</b> your
-          journey, <b>verify</b> one (re-walk an exported file and prove every hash is
-          genuine), <b>prospect</b> for rarity, open your <b>trophies</b>, or start a
-          <b>new walk</b>.
-        </p>
+        <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
+          <h4>The numbers in the header</h4>
+          <p class="dim">
+            <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
+            fingerprint of this gallery's 700 books — a permalink and proof, identical
+            every time you return (and unique to the current universe and alphabet).
+            <b>rarity</b> is the number of leading zero bits in that hash. Uncommon
+            galleries (8+ bits) are saved to your <b>trophies</b> automatically as you walk.
+            Your last 50 galleries are kept in full; every step's hash is kept forever.
+            The <b>actions&hellip;</b> menu lets you <b>copy link</b>, <b>export</b> your
+            journey, <b>verify</b> one (re-walk an exported file and prove every hash is
+            genuine), <b>prospect</b> for rarity, open your <b>trophies</b>, or start a
+            <b>new walk</b>.
+          </p>
 
-        <h4>Search by content</h4>
-        <p class="dim">
-          The famous <i>libraryofbabel.info</i> trick: paste any phrase (up to one
-          full book — ~1.3&nbsp;million characters) and the library tells you the
-          exact gallery, shelf, book, and page(s) where it lives — then opens it.
-          Longer text spans consecutive pages in the same volume. Search is scoped
-          to the universe you&rsquo;re standing in.
-        </p>
+          <h4>Search by content</h4>
+          <p class="dim">
+            The famous <i>libraryofbabel.info</i> trick: paste any phrase (up to one
+            full book — ~1.3&nbsp;million characters) and the library tells you the
+            exact gallery, shelf, book, and page(s) where it lives — then opens it.
+            Longer text spans consecutive pages in the same volume. Search is scoped
+            to the universe you&rsquo;re standing in.
+          </p>
 
-        <h4>Proof of find</h4>
-        <p class="dim">
-          A gallery whose hash starts with many <b>zero bits</b> is exponentially rare —
-          finding one is real proof-of-work, but anyone can verify it instantly by
-          recomputing the hash. Click <b>rarity</b> (or actions &rarr; <b>prospect</b>)
-          to scan random galleries for a rare hash. When you walk into an
-          <b>uncommon</b> gallery (8+ zero bits) or better, it is saved to your
-          <b>trophies</b> automatically — no claiming step. Trophies re-verify against
-          the current build; share a link and whoever opens it can prove the find.
-          Free forever — no token, no payout.
-        </p>
-
-        <h4>Inspiration</h4>
-        <p class="dim">
-          <a href="https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf"
-             target="_blank" rel="noopener noreferrer">Jorge Luis Borges, &ldquo;The Library of Babel&rdquo; (1941).</a><br />
-          <a href="https://libraryofbabel.info/" target="_blank" rel="noopener noreferrer">Jonathan Basile, <i>libraryofbabel.info</i></a>
-        </p>
+          <h4>Proof of find</h4>
+          <p class="dim">
+            A gallery whose hash starts with many <b>zero bits</b> is exponentially rare —
+            finding one is real proof-of-work, but anyone can verify it instantly by
+            recomputing the hash. Click <b>rarity</b> (or actions &rarr; <b>prospect</b>)
+            to scan random galleries for a rare hash. When you walk into an
+            <b>uncommon</b> gallery (8+ zero bits) or better, it is saved to your
+            <b>trophies</b> automatically — no claiming step. Trophies re-verify against
+            the current build; share a link and whoever opens it can prove the find.
+          </p>
+        </div>
       </div>
     </dialog>
 
     <dialog id="historyModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">your window</h3>
+          <h3>your window</h3>
           <small id="historyMeta"></small>
         </div>
         <button id="closeHistory">close</button>
@@ -454,7 +501,7 @@
     <dialog id="verifyModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">verify journey</h3>
+          <h3>verify journey</h3>
           <small id="verifyMeta">drop in an exported journey to re-walk and prove it</small>
         </div>
         <button id="closeVerify">close</button>
@@ -465,7 +512,7 @@
     <dialog id="prospectModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">prospect for rarity</h3>
+          <h3>prospect for rarity</h3>
           <small>Scan random galleries in this universe — uses parallel workers on large digs. Stop anytime.</small>
         </div>
         <button id="closeProspect">close</button>
@@ -495,7 +542,7 @@
     <dialog id="trophiesModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">my trophies</h3>
+          <h3>my trophies</h3>
           <small>Rare finds from your walk (8+ zero bits), saved automatically. Share a link and anyone can prove it.</small>
         </div>
         <button id="closeTrophies">close</button>
@@ -511,7 +558,7 @@
     <dialog id="searchModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">search by content</h3>
+          <h3>search by content</h3>
           <small>Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
         </div>
         <button id="closeSearch">close</button>
@@ -533,7 +580,7 @@
     <dialog id="jumpModal">
       <div class="book-head">
         <div>
-          <h3 style="margin:0">jump to a gallery</h3>
+          <h3>jump to a gallery</h3>
           <small>type any coordinates — the lattice is vast, so leap as far as you like.</small>
         </div>
         <button id="closeJump">close</button>

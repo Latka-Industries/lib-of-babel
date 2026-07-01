@@ -1,6 +1,6 @@
 // Proof-of-find — rarity tiers, trophies, and parallel prospecting.
 
-import { S } from "./state.js";
+import { S, withUniverse } from "./state.js";
 import { kvGet, kvSet } from "./db.js";
 import { permalink } from "./url.js";
 import {
@@ -42,6 +42,16 @@ export function rarityTier(bits) {
 
 export function tierColor(tier) {
   return tier.dim ? "var(--muted)" : `hsl(${tier.hue} 75% 62%)`;
+}
+
+export function formatTierDisplay(bits) {
+  const tier = rarityTier(bits);
+  const color = tierColor(tier);
+  return {
+    tier,
+    color,
+    badgeHtml: `<span class="tier-badge" style="background:${color}">${tier.name}</span>`,
+  };
 }
 
 export function rarityOdds(bits) {
@@ -219,22 +229,20 @@ export function claimFor(z, n, finder = "") {
 }
 
 export function verifyClaim(c) {
-  const saved = get_universe();
   try {
-    set_universe(universe_seed_for(c.universe || ""));
-    const full = node_hash_full_hex(BigInt(c.z), BigInt(c.n), c.alphabet);
-    const bits = leadingZeroBits(full);
-    return {
-      ok: full === c.hash_full && bits === c.bits && c.generator_version === S.gv,
-      full,
-      bits,
-      hashMatch: full === c.hash_full,
-      gvMatch: c.generator_version === S.gv,
-    };
+    return withUniverse(c.universe || "", () => {
+      const full = node_hash_full_hex(BigInt(c.z), BigInt(c.n), c.alphabet);
+      const bits = leadingZeroBits(full);
+      return {
+        ok: full === c.hash_full && bits === c.bits && c.generator_version === S.gv,
+        full,
+        bits,
+        hashMatch: full === c.hash_full,
+        gvMatch: c.generator_version === S.gv,
+      };
+    });
   } catch {
     return { ok: false, full: "", bits: 0, hashMatch: false, gvMatch: false };
-  } finally {
-    set_universe(saved);
   }
 }
 

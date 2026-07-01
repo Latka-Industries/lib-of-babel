@@ -40,6 +40,18 @@ export function escapeHtml(s) {
     .replace(/>/g, "&gt;");
 }
 
+/** Long integer → `1234…789` for compact header display (full value in title). */
+export function truncateMiddle(value, { head = 4, tail = 3, minLen = 10 } = {}) {
+  const s = String(value);
+  if (s.length < minLen) return s;
+  return `${s.slice(0, head)}…${s.slice(-tail)}`;
+}
+
+/** Gallery coordinate label for the header — middle-truncates each axis when long. */
+export function formatCoordDisplay(z, n) {
+  return `(${truncateMiddle(z)}, ${truncateMiddle(n)})`;
+}
+
 /** Lowercase only — punctuation is not auto-corrected. */
 export function normalizeSearchQuery(text) {
   return text.toLowerCase();
@@ -102,7 +114,6 @@ export function padPageText(text, alphabetId = 29) {
   return out;
 }
 
-// copy text to the clipboard; optionally flash a button label as feedback.
 /** Copy text to clipboard; briefly flash `okMsg` on the button. */
 export async function copyText(text, btn, okMsg = "copied") {
   try {
@@ -173,3 +184,82 @@ export function randomCoord() {
 }
 
 export const clampI64 = (v) => (v < I64_MIN ? I64_MIN : v > I64_MAX ? I64_MAX : v);
+
+/** Trigger a file download from a Blob. */
+export function downloadBlob(blob, filename, { revokeDelay = 0 } = {}) {
+  const a = document.createElement("a");
+  const href = URL.createObjectURL(blob);
+  a.href = href;
+  a.download = filename;
+  a.click();
+  if (revokeDelay > 0) setTimeout(() => URL.revokeObjectURL(href), revokeDelay);
+  else URL.revokeObjectURL(href);
+}
+
+/** Blank universe name → display label. */
+export function formatUniverseLabel(name = "") {
+  return name || "default";
+}
+
+/** Deterministic hue 0–359 from a gallery hash prefix. */
+export function hashHue(hex) {
+  return parseInt(hex.slice(0, 4), 16) % 360;
+}
+
+/** Minimap / history accent colour from a hash. */
+export function hashAccentColor(hex) {
+  return `hsl(${hashHue(hex)} 60% 62%)`;
+}
+
+/** Wire `[closeId, modalId]` pairs to close their dialogs. */
+export function wireModalCloses(pairs) {
+  for (const [closeId, modalId] of pairs) {
+    el(closeId).addEventListener("click", () => el(modalId).close());
+  }
+}
+
+/** `<select>` that resets after each choice and dispatches to handlers. */
+export function wireActionMenu(selectId, handlers) {
+  el(selectId).addEventListener("change", (ev) => {
+    const choice = ev.currentTarget.value;
+    ev.currentTarget.selectedIndex = 0;
+    handlers[choice]?.();
+  });
+}
+
+/** Call `fn` on Enter; optional meta/ctrl modifier. */
+export function wireEnter(target, fn, { modKey = false } = {}) {
+  const nodes = (Array.isArray(target) ? target : [target]).map((t) =>
+    typeof t === "string" ? el(t) : t,
+  );
+  for (const node of nodes) {
+    node.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      if (modKey && !(e.metaKey || e.ctrlKey)) return;
+      e.preventDefault();
+      fn(e);
+    });
+  }
+}
+
+/** Open a dialog only if it is not already open. */
+export function openModal(id) {
+  const dlg = el(id);
+  if (!dlg.open) dlg.showModal();
+}
+
+/** Action buttons for find/prospect result panels. */
+export function findActionRow(actions) {
+  const html = actions
+    .map((a) => `<button type="button" data-action="${a.id}">${a.label}</button>`)
+    .join("");
+  return `<div class="find-row find-actions" style="margin-top:.5rem">${html}</div>`;
+}
+
+/** Delegate clicks on `.find-actions` buttons to handler map. */
+export function wireFindActions(box, handlers) {
+  box.querySelector(".find-actions")?.addEventListener("click", (e) => {
+    const id = e.target.closest("[data-action]")?.dataset.action;
+    handlers[id]?.(e);
+  });
+}
