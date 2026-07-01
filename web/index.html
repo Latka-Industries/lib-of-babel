@@ -466,7 +466,7 @@
       <div class="book-head">
         <div>
           <h3 style="margin:0">prospect for rarity</h3>
-          <small>Scan random galleries in this universe for a hash with many leading zero bits — proof-of-work you can prove to anyone.</small>
+          <small>Scan random galleries in this universe — uses parallel workers on large digs. Stop anytime.</small>
         </div>
         <button id="closeProspect">close</button>
       </div>
@@ -478,10 +478,14 @@
               <option value="20000" selected>20,000</option>
               <option value="80000">80,000</option>
               <option value="200000">200,000</option>
+              <option value="500000">500,000</option>
+              <option value="1000000">1,000,000</option>
+              <option value="5000000">5,000,000</option>
             </select>
             galleries
           </label>
           <button id="prospectDig">dig</button>
+          <button id="prospectCancel" type="button" hidden>stop</button>
         </div>
         <div class="find-progress" id="prospectProgress"></div>
         <div class="find-result" id="prospectResult"></div>

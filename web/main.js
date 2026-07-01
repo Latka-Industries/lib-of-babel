@@ -6,7 +6,7 @@
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { el, copyText, leadingZeroBits } from "./js/util.js";
+import { el, copyText, trailEntryBits, escapeHtml } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
   S,
@@ -16,6 +16,7 @@ import {
   recordStep,
   markLastPickedUp,
   setOnRecordStep,
+  syncUniverseToWasm,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
@@ -33,6 +34,8 @@ import {
   rarityOdds,
   autoTrophy,
   backfillTrophiesFromTrail,
+  formatProspectProgress,
+  tierColor,
 } from "./js/find.js";
 import {
   openBook,
@@ -101,7 +104,7 @@ async function boot() {
         z: e.z,
         n: e.n,
         hash: e.hash,
-        bits: e.bits ?? leadingZeroBits(e.hash),
+        bits: trailEntryBits(e),
       }));
     await backfillTrophiesFromTrail(S.trail);
     render();
@@ -151,7 +154,7 @@ function showVerify(r, fileName) {
   const facts =
     r.total != null
       ? `<ul class="verify-facts">
-           <li>universe: <b>${(r.universe || "default") .replace(/[<>&]/g, "")}</b></li>
+           <li>universe: <b>${escapeHtml(r.universe || "default")}</b></li>
            <li>alphabet: <b>${r.alphabet ?? "—"}-symbol</b></li>
            <li>generator: <b>v${r.gv ?? "—"}</b></li>
            <li>steps checked: <b>${r.checked} / ${r.total}</b></li>
@@ -161,19 +164,19 @@ function showVerify(r, fileName) {
     `<div class="verify-verdict ${r.ok ? "verify-ok" : "verify-bad"}">` +
     `<span class="badge">${r.ok ? "✓" : "✕"}</span>` +
     `<span>${r.ok ? "verified" : "rejected"}</span></div>` +
-    `<p class="verify-reason">${String(r.reason).replace(/[<>&]/g, "")}</p>` +
+    `<p class="verify-reason">${escapeHtml(r.reason)}</p>` +
     facts;
   if (!el("verifyModal").open) el("verifyModal").showModal();
 }
 
 // ---- proof-of-find: prospecting + trophies --------------------------------
-function tierColor(tier) {
-  return tier.dim ? "var(--muted)" : `hsl(${tier.hue} 75% 62%)`;
-}
+let prospectAbort = null;
 
 function openProspect() {
   el("prospectProgress").textContent = "";
   el("prospectResult").classList.remove("show");
+  el("prospectCancel").hidden = true;
+  el("prospectDig").disabled = false;
   el("prospectModal").showModal();
 }
 
@@ -201,18 +204,50 @@ function renderProspectResult(best) {
 async function runDig() {
   const samples = Number(el("prospectCount").value);
   const dig = el("prospectDig");
+  const cancel = el("prospectCancel");
+  prospectAbort?.abort();
+  prospectAbort = new AbortController();
+  const { signal } = prospectAbort;
+
   dig.disabled = true;
+  cancel.hidden = false;
   el("prospectResult").classList.remove("show");
-  const { best, scanned } = await prospect({
-    samples,
-    onProgress: (done, total, b) => {
-      el("prospectProgress").textContent =
-        `scanned ${done.toLocaleString()} / ${total.toLocaleString()} · best ${b ? b.bits : 0} bits`;
-    },
-  });
-  el("prospectProgress").textContent = `scanned ${scanned.toLocaleString()} galleries`;
-  renderProspectResult(best);
+  syncUniverseToWasm();
+
+  const t0 = performance.now();
+  let result;
+  try {
+    result = await prospect({
+      samples,
+      signal,
+      onProgress: (done, total, best, meta) => {
+        el("prospectProgress").textContent = formatProspectProgress(
+          done,
+          total,
+          best,
+          { ...meta, t0 },
+        );
+      },
+    });
+  } catch (err) {
+    if (err.name !== "AbortError") throw err;
+    result = { best: null, scanned: 0, cancelled: true };
+  }
+
+  cancel.hidden = true;
   dig.disabled = false;
+  prospectAbort = null;
+
+  if (result.cancelled) {
+    el("prospectProgress").textContent = `stopped at ${result.scanned.toLocaleString()} galleries`;
+  } else {
+    el("prospectProgress").textContent = `scanned ${result.scanned.toLocaleString()} galleries`;
+  }
+  renderProspectResult(result.best);
+}
+
+function cancelDig() {
+  prospectAbort?.abort();
 }
 
 // travel to a trophy that may live in another universe/alphabet: rebuild via
@@ -238,7 +273,7 @@ async function renderTrophyList() {
     const v = verifyClaim(c);
     const tier = rarityTier(c.bits);
     const color = tierColor(tier);
-    const safe = (s) => String(s).replace(/[<>&]/g, "");
+    const safe = escapeHtml;
     const row = document.createElement("div");
     row.className = "trophy";
     row.innerHTML =
@@ -346,6 +381,7 @@ function wireControls() {
   el("rarity").addEventListener("click", openProspect);
   el("closeProspect").addEventListener("click", () => el("prospectModal").close());
   el("prospectDig").addEventListener("click", runDig);
+  el("prospectCancel").addEventListener("click", cancelDig);
   el("closeTrophies").addEventListener("click", () => el("trophiesModal").close());
   el("closeSearch").addEventListener("click", () => el("searchModal").close());
   el("searchFind").addEventListener("click", runSearch);

@@ -13,6 +13,7 @@ mod feistel;
 mod gallery;
 mod page;
 mod prng;
+mod prospect;
 mod search;
 mod universe;
 mod wasm_api;

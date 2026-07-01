@@ -6,6 +6,7 @@ import { alphabetDescription } from "./constants.js";
 import {
   el,
   copyText,
+  escapeHtml,
   normalizeSearchQuery,
   validateSearchQuery,
 } from "./util.js";
@@ -13,13 +14,6 @@ import { locate_page_json, node_hash_hex } from "./wasm.js";
 import { jumpTo } from "./nav.js";
 import { openBook } from "./book.js";
 import { permalink } from "./url.js";
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));
@@ -161,7 +155,7 @@ export function renderSearchResult(result, box) {
   }
 
   clearSearchHighlights();
-  const safe = (s) => String(s).replace(/[<>&]/g, "");
+  const safe = escapeHtml;
   const pageLabel =
     result.page_span > 1
       ? `pages ${result.page}–${result.page_end}`
