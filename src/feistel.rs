@@ -1,9 +1,6 @@
 //! Reversible Feistel PRP over page symbols and address embedding.
 
-use crate::config::{
-    ADDR_SYMBOLS, BOOKS_PER_GALLERY, FEISTEL_ROUNDS, GENERATOR_VERSION, PAGE_CONTENT_SYMBOLS,
-    PAGES_PER_BOOK,
-};
+use crate::config::{ADDR_SYMBOLS, FEISTEL_ROUNDS, GENERATOR_VERSION, PAGE_CONTENT_SYMBOLS};
 use crate::gallery::{book_seed, gallery_seed};
 use crate::prng::{mix2, splitmix64};
 
@@ -68,6 +65,7 @@ pub fn pack_page_address(universe_seed: u64, z: i64, n: i64, book_index: u32, pa
 
 #[cfg(test)]
 pub fn unpack_page_address(packed: &[u8; 32]) -> (u64, i64, i64, u32, u32) {
+    use crate::config::{BOOKS_PER_GALLERY, PAGES_PER_BOOK};
     let universe_seed = u64::from_le_bytes(packed[0..8].try_into().unwrap());
     let z = i64::from_le_bytes(packed[8..16].try_into().unwrap());
     let n = i64::from_le_bytes(packed[16..24].try_into().unwrap());
