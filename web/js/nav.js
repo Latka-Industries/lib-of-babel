@@ -6,6 +6,7 @@ import { render } from "./view.js";
 
 export function resetTrail({ randomCoords = false } = {}) {
   if (randomCoords) [S.z, S.n] = randomCoord();
+  S.titleEmbed = null;
   S.trail = [];
   S.windowBuf = [];
   S.startedAt = new Date().toISOString();
@@ -19,6 +20,7 @@ export function freshWalkHere() {
 }
 
 export function step(move) {
+  S.titleEmbed = null;
   [S.z, S.n] = neighbor(S.z, S.n, move);
   recordStep(move);
   render();

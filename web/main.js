@@ -45,7 +45,7 @@ import {
   renderBookImage,
   saveBookImage,
 } from "./js/book.js";
-import { locateText, renderSearchResult, syncSearchInput, clearSearchHighlights, renderSearchHighlights, syncSearchBackdropScroll } from "./js/search.js";
+import { locateText, locateTitle, renderSearchResult, syncSearchInput, syncSearchKindUI, searchKind, clearSearchHighlights, renderSearchHighlights, syncSearchBackdropScroll } from "./js/search.js";
 
 // ---- restore the session, then render -------------------------------------
 async function boot() {
@@ -291,6 +291,7 @@ function openSearch() {
   el("searchResult").classList.remove("show");
   el("searchInput").value = "";
   clearSearchHighlights();
+  syncSearchKindUI();
   el("searchModal").showModal();
   el("searchInput").focus();
 }
@@ -298,8 +299,10 @@ function openSearch() {
 function runSearch() {
   const text = syncSearchInput();
   if (!text.trim()) return;
-  const result = locateText(text, S.alphabetId);
-  renderSearchResult(result, el("searchResult"));
+  const kind = searchKind();
+  const result =
+    kind === "title" ? locateTitle(text, S.alphabetId) : locateText(text, S.alphabetId);
+  renderSearchResult(result, el("searchResult"), kind);
 }
 
 function selectAboutTab(tabId) {
@@ -353,6 +356,7 @@ function wireControls() {
 
   // click the (z, n) coordinate to jump anywhere on the lattice
   const doJump = () => {
+    S.titleEmbed = null;
     if (jumpTo(el("jumpZ").value, el("jumpN").value)) el("jumpModal").close();
   };
   el("coord").addEventListener("click", () => {
@@ -396,6 +400,12 @@ function wireControls() {
   el("prospectDig").addEventListener("click", runDig);
   el("prospectCancel").addEventListener("click", cancelDig);
   el("searchFind").addEventListener("click", runSearch);
+  el("searchKind").addEventListener("change", () => {
+    el("searchResult").classList.remove("show");
+    clearSearchHighlights();
+    syncSearchKindUI();
+    el("searchInput").focus();
+  });
   el("searchInput").addEventListener("input", () => {
     syncSearchInput();
     const invalid = validateSearchQuery(el("searchInput").value, S.alphabetId);

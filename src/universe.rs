@@ -26,10 +26,10 @@ pub fn universe_seed_for(name: &str) -> u64 {
     if t.is_empty() {
         return 0;
     }
-    if let Some(hex) = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")) {
-        if let Ok(v) = u64::from_str_radix(hex, 16) {
-            return v;
-        }
+    if let Some(hex) = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X"))
+        && let Ok(v) = u64::from_str_radix(hex, 16)
+    {
+        return v;
     }
     let b = blake3::hash(t.as_bytes());
     u64::from_be_bytes(b.as_bytes()[..8].try_into().unwrap())

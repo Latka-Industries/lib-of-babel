@@ -2,9 +2,9 @@
 
 use wasm_bindgen::prelude::*;
 
-use crate::config::{alphabet, CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK};
+use crate::config::{CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK, alphabet};
 use crate::gallery::node_fingerprint;
-use crate::page::{page_symbols, PageAddr, PageRender};
+use crate::page::{PageAddr, PageRender, page_symbols};
 use crate::universe::universe;
 
 fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {

@@ -12,6 +12,7 @@ export const CHARS_PER_LINE = 80;
 export const PAGE_CONTENT_SYMBOLS = LINES_PER_PAGE * CHARS_PER_LINE; // 3200 content chars
 export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newline per line
 export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK; // one full book
+export const TITLE_LEN = 24; // spine title length (mirror src/config.rs)
 
 // i64 bounds, so big coordinate jumps stay in the lattice the WASM core accepts.
 export const I64_MIN = -9223372036854775808n;
