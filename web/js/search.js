@@ -1,8 +1,8 @@
-// Search-by-content: paste a phrase → WASM reverse lookup → coordinates + go there.
+// Search-by-content and search-by-title — WASM reverse lookup → coordinates + go there.
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
 import { S, applyUniverseFromInput } from "./state.js";
-import { alphabetDescription } from "./constants.js";
+import { alphabetDescription, TITLE_LEN } from "./constants.js";
 import {
   el,
   copyText,
@@ -13,7 +13,7 @@ import {
   findActionRow,
   wireFindActions,
 } from "./util.js";
-import { locate_page_json, node_hash_hex } from "./wasm.js";
+import { locate_page_json, locate_title_json, node_hash_hex } from "./wasm.js";
 import { jumpTo } from "./nav.js";
 import { openBook } from "./book.js";
 import { permalink } from "./url.js";
@@ -38,7 +38,44 @@ function formatInvalidMessage(invalid, alphabetId = S.alphabetId) {
   return `invalid character${invalid.length > 1 ? "s" : ""} for this alphabet (${allowed} only): ${shown}${suffix}`;
 }
 
-/** Parse WASM `locate_page_json` response. */
+/** Normalized title embed for the current gallery, if any. */
+export function titleEmbedFlat() {
+  const hit = S.titleEmbed;
+  if (!hit || hit.z !== S.z.toString() || hit.n !== S.n.toString()) return "";
+  return hit.flat;
+}
+
+/** Update search field limits and copy for content vs title mode. */
+export function syncSearchKindUI() {
+  const kind = el("searchKind")?.value || "content";
+  const isTitle = kind === "title";
+  const input = el("searchInput");
+  if (input) {
+    input.maxLength = isTitle ? TITLE_LEN : 1_000_000;
+    input.rows = isTitle ? 2 : 6;
+    input.placeholder = isTitle ? "crimson spine" : "forgive me for i have sinned";
+  }
+  const hint = el("searchHint");
+  if (hint) {
+    hint.textContent = isTitle
+      ? `uses the selected alphabet · up to ${TITLE_LEN} characters (spine title)`
+      : "uses the selected alphabet · up to ~1.3M characters (one book)";
+  }
+  const head = el("searchHead");
+  if (head) head.textContent = isTitle ? "search by title" : "search by content";
+  const meta = el("searchMeta");
+  if (meta) {
+    meta.textContent = isTitle
+      ? "Type a spine title — the library finds the gallery and shelf where it belongs."
+      : "Type a phrase — the library finds where it already exists (space-padded to a full page).";
+  }
+}
+
+export function searchKind() {
+  return el("searchKind")?.value === "title" ? "title" : "content";
+}
+
+/** Parse WASM `locate_page_json` / `locate_title_json` response. */
 export function parseLocateResult(jsonStr) {
   try {
     return JSON.parse(jsonStr);
@@ -121,12 +158,40 @@ export function locateText(text, alphabetId = S.alphabetId) {
   return result;
 }
 
+/**
+ * Reverse lookup for a spine title in the current universe.
+ * @returns {{ ok: boolean, error?: string, invalid?: { i: number, ch: string }[], … }}
+ */
+export function locateTitle(text, alphabetId = S.alphabetId) {
+  syncSearchUniverse();
+  const query = normalizeSearchQuery(text);
+  const invalid = validateSearchQuery(query, alphabetId);
+  if (invalid.length) {
+    renderSearchHighlights(invalid);
+    return {
+      ok: false,
+      error: formatInvalidMessage(invalid, alphabetId),
+      invalid,
+    };
+  }
+  clearSearchHighlights();
+  const result = parseLocateResult(locate_title_json(query, alphabetId));
+  if (!result.ok) {
+    const wasmInvalid = invalidFromResult(result);
+    if (wasmInvalid.length) {
+      renderSearchHighlights(wasmInvalid);
+      result.error = formatInvalidMessage(wasmInvalid, alphabetId);
+    }
+  }
+  return result;
+}
+
 function asBigInt(v) {
   return typeof v === "bigint" ? v : BigInt(v);
 }
 
-/** Permalink for a search hit (includes `q` query param). */
-export function searchPermalink(result, query) {
+/** Permalink for a search hit (content hits include `q`; title hits open book page 1). */
+export function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
   const z = asBigInt(result.z);
   const n = asBigInt(result.n);
@@ -137,14 +202,14 @@ export function searchPermalink(result, query) {
     hash,
     result.alphabet,
     result.book,
-    result.page,
+    kind === "title" ? 1 : result.page,
     S.universeName,
-    query,
+    kind === "content" ? query : null,
   );
 }
 
 /** Render hit coordinates or validation error into the search result panel. */
-export function renderSearchResult(result, box) {
+export function renderSearchResult(result, box, kind = "content") {
   if (!result.ok) {
     const invalid = invalidFromResult(result);
     if (invalid.length) renderSearchHighlights(invalid);
@@ -155,18 +220,23 @@ export function renderSearchResult(result, box) {
 
   clearSearchHighlights();
   const safe = escapeHtml;
-  const pageLabel =
-    result.page_span > 1
-      ? `pages ${result.page}–${result.page_end}`
-      : `page ${result.page}`;
+  const query = syncSearchInput();
   const charLabel = `${Number(result.char_count).toLocaleString()} chars`;
+  const detail =
+    kind === "title"
+      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${result.alphabet}-symbol`
+      : `${
+          result.page_span > 1
+            ? `pages ${result.page}–${result.page_end}`
+            : `page ${result.page}`
+        } · ${charLabel} · alphabet ${result.alphabet}-symbol`;
 
   box.innerHTML =
     `<div class="find-big">gallery (${safe(result.z)}, ${safe(result.n)})</div>` +
     `<div class="find-dim">` +
     `universe <b>${safe(formatUniverseLabel(S.universeName))}</b> · ` +
     `wall ${result.wall} · shelf ${result.shelf} · book ${result.book_on_shelf} · ` +
-    `${pageLabel} · ${charLabel} · alphabet ${result.alphabet}-symbol` +
+    detail +
     `</div>` +
     findActionRow([
       { id: "go", label: "go there" },
@@ -174,27 +244,36 @@ export function renderSearchResult(result, box) {
     ]);
   box.classList.add("show");
 
-  const query = syncSearchInput();
   wireFindActions(box, {
-    go: () => goToSearchResult(result, query),
-    link: (ev) => copyText(searchPermalink(result, query), ev.currentTarget),
+    go: () => goToSearchResult(result, query, kind),
+    link: (ev) => copyText(searchPermalink(result, query, kind), ev.currentTarget),
   });
 }
 
-/** Navigate to a search hit without switching universe; opens book at hit page. */
-export function goToSearchResult(result, query) {
+/** Navigate to a search hit without switching universe. */
+export function goToSearchResult(result, query, kind = "content") {
   syncSearchUniverse();
   if (result.alphabet !== S.alphabetId) {
     S.alphabetId = result.alphabet;
     el("alphabet").value = String(result.alphabet);
   }
+  if (kind === "title") {
+    S.titleEmbed = {
+      flat: query,
+      z: String(result.z),
+      n: String(result.n),
+      book: result.book,
+    };
+  } else {
+    S.titleEmbed = null;
+  }
   jumpTo(String(result.z), String(result.n));
   openBook(
     result.book,
-    null,
-    result.page,
-    query || null,
-    result.page_span || 1,
+    kind === "title" ? query : null,
+    kind === "title" ? 1 : result.page,
+    kind === "content" ? query || null : null,
+    kind === "content" ? result.page_span || 1 : 1,
   );
   el("searchModal").close();
 }

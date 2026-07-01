@@ -33,6 +33,8 @@ export const S = {
   accentHue: 0,
   accentChroma: 0.15,
   accentLightness: 0.66,
+  /** Normalized title string shown on its canonical spine after a title search. */
+  titleEmbed: null, // { flat, z, n, book } | null
 };
 
 // select a universe by name and push its seed into WASM (global there). Must be

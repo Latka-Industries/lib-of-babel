@@ -11,6 +11,8 @@ export {
   search_page_embed_for,
   book_image,
   locate_page_json,
+  locate_title_json,
+  max_title_len,
   generator_version,
   default_alphabet,
   set_universe,

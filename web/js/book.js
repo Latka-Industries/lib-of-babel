@@ -6,6 +6,7 @@ import { el, oklchToHex, flattenSearchQuery, escapeHtml, downloadBlob } from "./
 import { PAGES_PER_BOOK, PAGE_CHARS, ALPHABETS } from "./constants.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
+import { titleEmbedFlat } from "./search.js";
 
 // the page's characters rewrapped into the near-square divisor pair (64×50) so
 // the colour map reads as a block rather than a 2:1 sliver. Looks like colour
@@ -84,7 +85,7 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
 
 function titleForIndex(i) {
   try {
-    return JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId))[i] || null;
+    return JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()))[i] || null;
   } catch {
     return null;
   }

@@ -18,25 +18,25 @@ mod search;
 mod universe;
 mod wasm_api;
 
-pub use color::{book_image, BookImage};
+pub use color::{BookImage, book_image};
 pub use config::{
-    alphabet, BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_SEARCH_CHARS,
+    BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_SEARCH_CHARS, alphabet,
 };
 pub use gallery::{
     book_index_to_shelf, book_seed, gallery_seed, gallery_titles, neighbor, node_fingerprint,
     node_hash_bytes,
 };
-pub use page::{book_text, page_symbols, page_text, PageAddr, PageRender};
+pub use page::{PageAddr, PageRender, book_text, page_symbols, page_text};
 pub use search::{
-    locate_page, search_offset, search_page_segment, search_page_span, text_to_symbols,
-    LocateError, LocateResult, PageLocation,
+    LocateError, LocateResult, PageLocation, TitleLocateResult, locate_page, locate_title,
+    search_offset, search_page_segment, search_page_span, text_to_symbols,
 };
 pub use wasm_api::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{alphabet, BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION};
+    use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, alphabet};
     use crate::feistel::{
         feistel_decrypt, feistel_encrypt, feistel_key, pack_page_address, plaintext_from_address,
         unpack_page_address,
@@ -46,14 +46,20 @@ mod tests {
 
     #[test]
     fn gallery_is_deterministic() {
-        assert_eq!(gallery_titles(3, -7, 29, 0), gallery_titles(3, -7, 29, 0));
-        assert_ne!(gallery_titles(3, -7, 29, 0), gallery_titles(3, -8, 29, 0));
+        assert_eq!(
+            gallery_titles(3, -7, 29, 0, None),
+            gallery_titles(3, -7, 29, 0, None)
+        );
+        assert_ne!(
+            gallery_titles(3, -7, 29, 0, None),
+            gallery_titles(3, -8, 29, 0, None)
+        );
     }
 
     #[test]
     fn gallery_has_700_books() {
         assert_eq!(
-            gallery_titles(0, 0, 29, 0).len(),
+            gallery_titles(0, 0, 29, 0, None).len(),
             BOOKS_PER_GALLERY as usize
         );
         assert_eq!(BOOKS_PER_GALLERY, 700);
@@ -84,7 +90,10 @@ mod tests {
     #[test]
     fn alphabet_is_a_universe_axis() {
         assert_ne!(node_fingerprint(1, 1, 25, 0), node_fingerprint(1, 1, 29, 0));
-        assert_ne!(gallery_titles(1, 1, 25, 0), gallery_titles(1, 1, 29, 0));
+        assert_ne!(
+            gallery_titles(1, 1, 25, 0, None),
+            gallery_titles(1, 1, 29, 0, None)
+        );
         let borges = book_text(0, 0, 0, 25, 0);
         assert!(!borges.contains(['w', 'x', 'y', 'z']));
     }
@@ -92,9 +101,15 @@ mod tests {
     #[test]
     fn universe_is_the_outermost_axis() {
         assert_ne!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 1, 29, 7));
-        assert_ne!(gallery_titles(1, 1, 29, 0), gallery_titles(1, 1, 29, 7));
+        assert_ne!(
+            gallery_titles(1, 1, 29, 0, None),
+            gallery_titles(1, 1, 29, 7, None)
+        );
         assert_ne!(book_text(0, 0, 0, 29, 0), book_text(0, 0, 0, 29, 7));
-        assert_eq!(gallery_titles(1, 1, 29, 7), gallery_titles(1, 1, 29, 7));
+        assert_eq!(
+            gallery_titles(1, 1, 29, 7, None),
+            gallery_titles(1, 1, 29, 7, None)
+        );
     }
 
     #[test]
@@ -201,6 +216,27 @@ mod tests {
         let a = locate_page(phrase, 29, 0).expect("locate");
         let b = locate_page(phrase, 29, 0).expect("locate");
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn title_search_is_deterministic_and_embeds_on_spine() {
+        use crate::config::TITLE_LEN;
+        let title = "crimson spine";
+        let hit = locate_title(title, 29, 0).expect("locate title");
+        assert_eq!(locate_title(title, 29, 0).expect("again"), hit);
+        assert!(hit.char_count <= TITLE_LEN);
+        let loc = hit.location;
+        let titles = gallery_titles(loc.z, loc.n, 29, 0, Some(title));
+        assert_eq!(titles[loc.book_index as usize], title);
+    }
+
+    #[test]
+    fn title_search_rejects_long_phrases() {
+        let long = "a".repeat(25);
+        assert!(matches!(
+            locate_title(&long, 29, 0),
+            Err(LocateError::Message(_))
+        ));
     }
 
     #[test]

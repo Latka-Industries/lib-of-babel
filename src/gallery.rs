@@ -1,7 +1,7 @@
 //! Gallery seeds, fingerprints, titles, and lattice navigation.
 
 use crate::config::{
-    alphabet, BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL,
+    BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL, alphabet,
 };
 use crate::prng::{book_title, mix2, splitmix64};
 
@@ -25,12 +25,28 @@ pub fn book_seed(gallery_seed: u64, book_index: u32) -> u64 {
 }
 
 /// The 700 spine titles for a gallery, in shelf order.
+///
+/// When `title_embed` is set, the canonical book for that normalized title shows
+/// the searched string on its spine (mirrors content-search embed).
 #[must_use]
-pub fn gallery_titles(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> Vec<String> {
+pub fn gallery_titles(
+    z: i64,
+    n: i64,
+    alphabet_id: u32,
+    universe_seed: u64,
+    title_embed: Option<&str>,
+) -> Vec<String> {
     let gs = gallery_seed(z, n, alphabet_id, universe_seed);
     let ab = alphabet(alphabet_id);
     (0..BOOKS_PER_GALLERY)
-        .map(|i| book_title(book_seed(gs, i), ab))
+        .map(|i| {
+            if let Some(flat) = title_embed
+                && crate::search::title_embeds_at(z, n, i, flat, alphabet_id, universe_seed)
+            {
+                return flat.to_string();
+            }
+            book_title(book_seed(gs, i), ab)
+        })
         .collect()
 }
 

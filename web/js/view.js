@@ -11,6 +11,7 @@ import {
 } from "./constants.js";
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
+import { titleEmbedFlat } from "./search.js";
 import { sigilSvg } from "./sigil.js";
 import { rarityTier, tierColor } from "./find.js";
 import { step } from "./nav.js";
@@ -47,7 +48,7 @@ function renderMinimap(curHash, accentHue) {
 }
 
 export function render() {
-  const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId));
+  const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()));
   const hash = node_hash_hex(S.z, S.n, S.alphabetId);
   const fullCoord = `(${S.z}, ${S.n})`;
   el("coord").textContent = formatCoordDisplay(S.z, S.n);

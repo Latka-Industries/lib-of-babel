@@ -1,7 +1,7 @@
 //! Page and book text generation.
 
 use crate::config::{
-    alphabet, CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK, PAGE_CONTENT_SYMBOLS,
+    CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, alphabet,
 };
 use crate::feistel::{feistel_encrypt, feistel_key, plaintext_from_address};
 use crate::search::{search_page_segment, text_to_symbols};
@@ -101,14 +101,14 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
         alpha_len,
     );
     feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
-    if let (Some(full), Some(hit_start)) = (req.search_full, req.search_hit_start_page) {
-        if page >= hit_start {
-            let page_in_span = page - hit_start;
-            if let Some((off, start, len)) = search_page_segment(full, page_in_span) {
-                let slice: String = full.chars().skip(start).take(len).collect();
-                if let Ok(syms) = text_to_symbols(&slice, alphabet_id) {
-                    state[off..off + len].copy_from_slice(&syms);
-                }
+    if let (Some(full), Some(hit_start)) = (req.search_full, req.search_hit_start_page)
+        && page >= hit_start
+    {
+        let page_in_span = page - hit_start;
+        if let Some((off, start, len)) = search_page_segment(full, page_in_span) {
+            let slice: String = full.chars().skip(start).take(len).collect();
+            if let Ok(syms) = text_to_symbols(&slice, alphabet_id) {
+                state[off..off + len].copy_from_slice(&syms);
             }
         }
     }

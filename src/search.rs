@@ -1,10 +1,10 @@
-//! Search-by-content: reverse lookup, validation, and multi-page embed planning.
+//! Search-by-content and search-by-title: reverse lookup, validation, and embed planning.
 
 use core::fmt::Write;
 
 use crate::config::{
-    alphabet, BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGES_PER_BOOK,
-    PAGE_CONTENT_SYMBOLS,
+    BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
+    TITLE_LEN, alphabet,
 };
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
@@ -38,6 +38,14 @@ pub enum LocateError {
     Message(String),
 }
 
+/// Title search hit — one book in one gallery.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TitleLocateResult {
+    pub location: PageLocation,
+    /// Character count after normalization.
+    pub char_count: usize,
+}
+
 fn normalize_search_text(text: &str) -> String {
     text.to_lowercase()
 }
@@ -59,6 +67,39 @@ fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageL
         page: u32::from_le_bytes(bytes[20..24].try_into().unwrap()) % PAGES_PER_BOOK,
         alphabet_id,
     }
+}
+
+/// Coordinates of the book whose spine bears a normalized title string.
+pub fn title_coords_from_query(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:search:title:coords");
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(&universe_seed.to_le_bytes());
+    h.update(&alphabet_id.to_le_bytes());
+    h.update(text.as_bytes());
+    let digest = h.finalize();
+    let bytes = digest.as_bytes();
+    PageLocation {
+        universe_seed,
+        z: i64::from_le_bytes(bytes[0..8].try_into().unwrap()),
+        n: i64::from_le_bytes(bytes[8..16].try_into().unwrap()),
+        book_index: u32::from_le_bytes(bytes[16..20].try_into().unwrap()) % BOOKS_PER_GALLERY,
+        page: 0,
+        alphabet_id,
+    }
+}
+
+/// True when `(z, n, book_index)` is the canonical home for normalized `flat`.
+pub fn title_embeds_at(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    flat: &str,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> bool {
+    let loc = title_coords_from_query(flat, alphabet_id, universe_seed);
+    loc.z == z && loc.n == n && loc.book_index == book_index
 }
 
 /// Deterministic column offset for embedding a phrase on its first page.
@@ -220,9 +261,38 @@ pub fn locate_page(
         )));
     }
     Ok(LocateResult {
-        char_count: flat.len(),
-        page_span,
         location,
+        page_span,
+        char_count: flat.len(),
+    })
+}
+
+/// Reverse lookup: spine title → book coordinates in the given universe.
+///
+/// # Errors
+///
+/// Same alphabet rules as [`locate_page`], with a maximum length of [`TITLE_LEN`]
+/// characters after normalization.
+pub fn locate_title(
+    text: &str,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> Result<TitleLocateResult, LocateError> {
+    let text = normalize_search_text(text);
+    let flat = flatten_search_text(&text, alphabet_id)?;
+    if flat.is_empty() {
+        return Err(LocateError::Message("search text is empty".into()));
+    }
+    let char_count = flat.chars().count();
+    if char_count > TITLE_LEN {
+        return Err(LocateError::Message(format!(
+            "title too long (max {TITLE_LEN} characters)"
+        )));
+    }
+    let location = title_coords_from_query(&flat, alphabet_id, universe_seed);
+    Ok(TitleLocateResult {
+        location,
+        char_count,
     })
 }
 

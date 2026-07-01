@@ -351,7 +351,7 @@
       <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · search · new walk">
         <option value="" selected disabled>actions&hellip;</option>
         <option value="copy">copy link</option>
-        <option value="search">search text</option>
+        <option value="search">search…</option>
         <option value="export">export journey</option>
         <option value="verify">verify journey</option>
         <option value="prospect">prospect rarity</option>
@@ -423,7 +423,7 @@
             <li>Type a <b>universe</b> name (or roll <b>&#9860;</b>) to cross into a parallel library; blank returns to the default.</li>
             <li>The <b>alphabet</b> menu switches you into a different library entirely: new text, new hashes.</li>
             <li><b>copy link</b> (or click the header <b>hash</b>) copies a permalink straight back to this spot.</li>
-            <li><b>search text</b> (actions menu) finds where a phrase already lives in the library — paste it, get coordinates, jump straight to that page.</li>
+            <li><b>search…</b> (actions menu) finds a spine <b>title</b> (up to 24 characters) or page <b>content</b> (up to one book) — paste it, get coordinates, jump straight there.</li>
           </ul>
         </div>
 
@@ -470,7 +470,8 @@
             full book — ~1.3&nbsp;million characters) and the library tells you the
             exact gallery, shelf, book, and page(s) where it lives — then opens it.
             Longer text spans consecutive pages in the same volume. Search is scoped
-            to the universe you&rsquo;re standing in.
+            to the universe you&rsquo;re standing in. Choose <b>title</b> in the search
+            dialog to find a spine title instead (up to 24 characters).
           </p>
 
           <h4>Proof of find</h4>
@@ -558,12 +559,20 @@
     <dialog id="searchModal">
       <div class="book-head">
         <div>
-          <h3>search by content</h3>
-          <small>Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
+          <h3 id="searchHead">search by content</h3>
+          <small id="searchMeta">Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
         </div>
         <button id="closeSearch">close</button>
       </div>
       <div class="find-body">
+        <div class="find-row">
+          <label>search
+            <select id="searchKind" title="search spine titles or page content">
+              <option value="content" selected>content</option>
+              <option value="title">title</option>
+            </select>
+          </label>
+        </div>
         <div class="search-editor" id="searchEditor">
           <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
           <textarea id="searchInput" rows="6" spellcheck="false"
@@ -571,7 +580,7 @@
         </div>
         <div class="find-row">
           <button id="searchFind">find</button>
-          <span class="find-dim">uses the selected alphabet · up to ~1.3M characters (one book)</span>
+          <span id="searchHint" class="find-dim">uses the selected alphabet · up to ~1.3M characters (one book)</span>
         </div>
         <div class="find-result" id="searchResult"></div>
       </div>

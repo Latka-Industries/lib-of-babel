@@ -8,10 +8,10 @@ use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION};
 use crate::gallery::{
     book_index_to_shelf, gallery_titles, neighbor, node_fingerprint, node_hash_bytes,
 };
-use crate::page::{book_text, page_text, PageAddr, PageRender};
+use crate::page::{PageAddr, PageRender, book_text, page_text};
 use crate::search::{
-    json_char_literal, locate_page, normalize_query, search_page_segment, search_page_span,
-    LocateError,
+    LocateError, json_char_literal, locate_page, locate_title, normalize_query,
+    search_page_segment, search_page_span,
 };
 use crate::universe::{self, universe as active_universe};
 
@@ -59,8 +59,14 @@ pub fn universe_seed_for(name: &str) -> u64 {
 #[wasm_bindgen]
 #[must_use]
 /// JSON array of 700 spine titles for gallery `(z, n)`.
-pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
-    let titles = gallery_titles(z, n, alphabet_id, active_universe());
+/// Pass `title_embed` (normalized) to show a title-search hit on its canonical spine.
+pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32, title_embed: &str) -> String {
+    let embed = if title_embed.is_empty() {
+        None
+    } else {
+        Some(title_embed)
+    };
+    let titles = gallery_titles(z, n, alphabet_id, active_universe(), embed);
     let mut s = String::from("[");
     for (i, t) in titles.iter().enumerate() {
         if i > 0 {
@@ -120,11 +126,7 @@ pub fn page_text_for(
     } else {
         Some(search_query)
     };
-    let hit_start = if search_start_page < 0 {
-        None
-    } else {
-        Some(search_start_page as u32)
-    };
+    let hit_start = u32::try_from(search_start_page).ok();
     let mut req = PageRender::new(PageAddr::new(
         z,
         n,
@@ -180,6 +182,56 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
                 loc.page + 1,
                 last_page,
                 res.page_span,
+                res.char_count,
+                loc.alphabet_id,
+                wall + 1,
+                shelf + 1,
+                book_on_shelf + 1,
+            )
+        }
+        Err(LocateError::InvalidChars(list)) => {
+            let invalid_json: String = list
+                .iter()
+                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{invalid_json}]}}"#
+            )
+        }
+        Err(LocateError::Message(e)) => {
+            format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\""))
+        }
+    }
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Max spine-title length (characters).
+pub fn max_title_len() -> u32 {
+    u32::try_from(crate::config::TITLE_LEN).expect("TITLE_LEN fits in u32")
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Reverse lookup: spine title → JSON hit `{ ok, z, n, book, … }` or validation error.
+pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
+    match locate_title(text, alphabet_id, active_universe()) {
+        Ok(res) => {
+            let loc = res.location;
+            let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
+            format!(
+                concat!(
+                    "{{\"ok\":true,",
+                    "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
+                    "\"book\":{},\"page\":1,\"page_end\":1,\"page_span\":1,",
+                    "\"char_count\":{},\"alphabet\":{},",
+                    "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
+                ),
+                loc.universe_seed,
+                loc.z,
+                loc.n,
+                loc.book_index,
                 res.char_count,
                 loc.alphabet_id,
                 wall + 1,
