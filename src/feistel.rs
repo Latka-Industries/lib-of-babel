@@ -4,6 +4,7 @@ use crate::config::{ADDR_SYMBOLS, FEISTEL_ROUNDS, GENERATOR_VERSION, PAGE_CONTEN
 use crate::gallery::{book_seed, gallery_seed};
 use crate::prng::{mix2, splitmix64};
 
+/// Per-alphabet Feistel base key (version + alphabet id).
 #[inline]
 pub fn feistel_key(alphabet_id: u32) -> u64 {
     mix2(
@@ -26,6 +27,7 @@ fn feistel_f(right: u8, round: u32, pos: usize, base_key: u64, alpha_len: u8) ->
     (splitmix64(x) % alpha_len as u64) as u8
 }
 
+/// Apply the Feistel PRP in place over one page's symbol array.
 pub fn feistel_encrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
     let half = PAGE_CONTENT_SYMBOLS / 2;
     let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
@@ -53,6 +55,7 @@ pub fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, al
     }
 }
 
+/// Pack `(universe, z, n, book, page)` into 32 bytes for address embedding.
 pub fn pack_page_address(
     universe_seed: u64,
     z: i64,

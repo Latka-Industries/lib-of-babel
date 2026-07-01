@@ -34,6 +34,7 @@ pub const ADDR_SYMBOLS: usize = 32 * 2;
 /// Max searchable content in one book (410 pages × 3200 symbols).
 pub const MAX_SEARCH_CHARS: usize = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK as usize;
 
+/// Symbol table for an alphabet id: `25` = Borges (`a–v`), anything else = Basile (`a–z`).
 #[inline]
 #[must_use]
 pub fn alphabet(alphabet_id: u32) -> &'static [u8] {

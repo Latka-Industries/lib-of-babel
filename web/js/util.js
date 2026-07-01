@@ -9,6 +9,7 @@ import {
   PAGE_CONTENT_SYMBOLS,
 } from "./constants.js";
 
+/** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
 /** Lowercase only — punctuation is not auto-corrected. */
@@ -46,7 +47,8 @@ export function flattenSearchQuery(text, alphabetId = 29) {
   return out.trim();
 }
 
-// Space-pad to a full page (phrase at start) — mirrors locate_page in WASM.
+// Space-pad to a full page (phrase at start) — used by notable-text find (THI-76).
+/** Pad a phrase to one page width with spaces (not used by main search embed). */
 export function padPageText(text, alphabetId = 29) {
   const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
   const symbols = [];
@@ -73,6 +75,7 @@ export function padPageText(text, alphabetId = 29) {
 }
 
 // copy text to the clipboard; optionally flash a button label as feedback.
+/** Copy text to clipboard; briefly flash `okMsg` on the button. */
 export async function copyText(text, btn, okMsg = "copied") {
   try {
     await navigator.clipboard.writeText(text);
@@ -86,6 +89,7 @@ export async function copyText(text, btn, okMsg = "copied") {
 }
 
 // deterministic hue from a string (spine title) — stable per book
+/** Deterministic hue 0–360 from a string (sigil / spine accents). */
 export function hueFromString(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -118,6 +122,7 @@ export function oklchToHex(L, C, H) {
 }
 
 // neighbor math (kept in JS to avoid BigInt/JSON round-trips through wasm)
+/** Lattice neighbor for move `mv`: 0=left, 1=right, 2=up, 3=down. */
 export function neighbor(z, n, mv) {
   switch (mv) {
     case 0:
@@ -131,6 +136,7 @@ export function neighbor(z, n, mv) {
   }
 }
 
+/** Random `(z, n)` within safe i64 range for a new walk. */
 export function randomCoord() {
   const buf = new BigInt64Array(2);
   crypto.getRandomValues(buf);

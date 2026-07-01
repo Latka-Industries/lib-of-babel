@@ -4,7 +4,7 @@
 // at (universe, z, n, alphabet) and count the zeros. Claims are self-verifying;
 // trophies live in IndexedDB and share as ordinary permalinks.
 //
-// (The "notable-text" find category waits on THI-80's reversible page mapping.)
+// (The "notable-text" find category waits on a distinct needle-in-haystack generator — see THI-76.)
 
 import { S } from "./state.js";
 import { kvGet, kvSet } from "./db.js";

@@ -63,6 +63,7 @@ impl BookImage {
 
 #[wasm_bindgen]
 #[must_use]
+/// Render a whole book as an RGBA image (gallery palette keyed by fingerprint).
 pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImage {
     let ab = alphabet(alphabet_id);
     let len = ab.len();
