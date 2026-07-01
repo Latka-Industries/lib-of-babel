@@ -41,6 +41,7 @@ import {
   renderBookImage,
   saveBookImage,
 } from "./js/book.js";
+import { locateText, renderSearchResult } from "./js/search.js";
 
 // ---- restore the session, then render -------------------------------------
 async function boot() {
@@ -257,6 +258,20 @@ async function openTrophies() {
   el("trophiesModal").showModal();
 }
 
+function openSearch() {
+  el("searchResult").classList.remove("show");
+  el("searchInput").value = "";
+  el("searchModal").showModal();
+  el("searchInput").focus();
+}
+
+function runSearch() {
+  const text = el("searchInput").value;
+  if (!text.trim()) return;
+  const result = locateText(text, S.alphabetId);
+  renderSearchResult(result, el("searchResult"));
+}
+
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
   document
@@ -314,6 +329,7 @@ function wireControls() {
     const choice = ev.currentTarget.value;
     ev.currentTarget.selectedIndex = 0; // reset to the "actions…" label
     if (choice === "copy") copyText(currentUrl());
+    else if (choice === "search") openSearch();
     else if (choice === "export") exportJourney();
     else if (choice === "verify") el("verifyFile").click();
     else if (choice === "prospect") openProspect();
@@ -326,6 +342,14 @@ function wireControls() {
   el("closeProspect").addEventListener("click", () => el("prospectModal").close());
   el("prospectDig").addEventListener("click", runDig);
   el("closeTrophies").addEventListener("click", () => el("trophiesModal").close());
+  el("closeSearch").addEventListener("click", () => el("searchModal").close());
+  el("searchFind").addEventListener("click", runSearch);
+  el("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      runSearch();
+    }
+  });
   el("finderHandle").addEventListener("change", (ev) => setFinder(ev.target.value));
   el("claimCurrent").addEventListener("click", async (ev) => {
     await setFinder(el("finderHandle").value);
