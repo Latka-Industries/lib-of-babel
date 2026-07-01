@@ -11,7 +11,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use wasm_bindgen::prelude::*;
 
 /// Bump only with intent — this is the schema for all generated content.
-pub const GENERATOR_VERSION: u32 = 1;
+pub const GENERATOR_VERSION: u32 = 6;
 
 /// The selected universe — the outermost axis of the multiverse. A single
 /// deployment hosts infinitely many distinct infinite libraries; `0` (the
@@ -65,8 +65,8 @@ const TITLE_LEN: usize = 24;
 const PAGE_CONTENT_SYMBOLS: usize =
     (LINES_PER_PAGE * CHARS_PER_LINE) as usize;
 const FEISTEL_ROUNDS: u32 = 12;
-/// Limbs for base-`alpha_len` expansion of a packed page address (~4660 bits).
-const LIMBS: usize = 73;
+/// Two base-`alpha_len` digits per packed address byte (32 bytes → 64 symbols).
+const ADDR_SYMBOLS: usize = 32 * 2;
 
 /// SplitMix64 — small, fast, deterministic. Used as both mixer and PRNG step.
 #[inline]
@@ -221,82 +221,194 @@ fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_
     }
 }
 
-#[derive(Clone, Copy)]
-struct Limbs([u64; LIMBS]);
-
-impl Limbs {
-    fn zero() -> Self {
-        Self([0; LIMBS])
-    }
-
-    fn mul_add_small(&mut self, mul: u64, add: u64) {
-        let mut carry = add as u128;
-        for limb in self.0.iter_mut() {
-            let v = carry + (*limb as u128) * (mul as u128);
-            *limb = v as u64;
-            carry = v >> 64;
-        }
-    }
-
-    fn div_mod_small(&mut self, div: u64) -> u64 {
-        let mut rem: u128 = 0;
-        for limb in self.0.iter_mut().rev() {
-            let v = (rem << 64) | (*limb as u128);
-            *limb = (v / div as u128) as u64;
-            rem = v % div as u128;
-        }
-        rem as u64
-    }
+fn pack_page_address(universe_seed: u64, z: i64, n: i64, book_index: u32, page: u32) -> [u8; 32] {
+    let mut p = [0u8; 32];
+    p[0..8].copy_from_slice(&universe_seed.to_le_bytes());
+    p[8..16].copy_from_slice(&z.to_le_bytes());
+    p[16..24].copy_from_slice(&n.to_le_bytes());
+    p[24..28].copy_from_slice(&book_index.to_le_bytes());
+    p[28..32].copy_from_slice(&page.to_le_bytes());
+    p
 }
 
-fn encode_coords_to_limbs(
-    universe_seed: u64,
-    z: i64,
-    n: i64,
-    book_index: u32,
-    page: u32,
-) -> Limbs {
-    let mut inner = Limbs::zero();
-    inner.0[0] = n as u64;
-    inner.0[1] = z as u64;
-    inner.0[2] = universe_seed;
-    let mut l = inner;
-    l.mul_add_small(BOOKS_PER_GALLERY as u64, book_index as u64 % BOOKS_PER_GALLERY as u64);
-    l.mul_add_small(PAGES_PER_BOOK as u64, page as u64 % PAGES_PER_BOOK as u64);
-    l
-}
-
-fn decode_limbs_to_coords(mut l: Limbs) -> (u64, i64, i64, u32, u32) {
-    let page = (l.div_mod_small(PAGES_PER_BOOK as u64) as u32) % PAGES_PER_BOOK;
-    let book_index = (l.div_mod_small(BOOKS_PER_GALLERY as u64) as u32) % BOOKS_PER_GALLERY;
-    let n = l.0[0] as i64;
-    let z = l.0[1] as i64;
-    let universe_seed = l.0[2];
+fn unpack_page_address(packed: &[u8; 32]) -> (u64, i64, i64, u32, u32) {
+    let universe_seed = u64::from_le_bytes(packed[0..8].try_into().unwrap());
+    let z = i64::from_le_bytes(packed[8..16].try_into().unwrap());
+    let n = i64::from_le_bytes(packed[16..24].try_into().unwrap());
+    let book_index =
+        u32::from_le_bytes(packed[24..28].try_into().unwrap()) % BOOKS_PER_GALLERY;
+    let page = u32::from_le_bytes(packed[28..32].try_into().unwrap()) % PAGES_PER_BOOK;
     (universe_seed, z, n, book_index, page)
 }
 
-fn digits_from_address(
+fn embed_packed(state: &mut [u8; PAGE_CONTENT_SYMBOLS], packed: &[u8; 32], alpha_len: u8) {
+    for (i, &b) in packed.iter().enumerate() {
+        state[2 * i] = b % alpha_len;
+        state[2 * i + 1] = b / alpha_len;
+    }
+}
+
+fn address_from_plaintext(
+    state: &[u8; PAGE_CONTENT_SYMBOLS],
+    alpha_len: u8,
+) -> (u64, i64, i64, u32, u32) {
+    let mut packed = [0u8; 32];
+    for (i, byte) in packed.iter_mut().enumerate() {
+        *byte = (state[2 * i] as u16 + (state[2 * i + 1] as u16) * (alpha_len as u16)) as u8;
+    }
+    unpack_page_address(&packed)
+}
+
+/// Pre-Feistel plaintext: embedded address + book-seed-keyed fill for the rest.
+fn plaintext_from_address(
     universe_seed: u64,
     z: i64,
     n: i64,
     book_index: u32,
     page: u32,
+    alphabet_id: u32,
     alpha_len: u8,
 ) -> [u8; PAGE_CONTENT_SYMBOLS] {
-    let mut nlimb = encode_coords_to_limbs(universe_seed, z, n, book_index, page);
-    let mut digits = [0u8; PAGE_CONTENT_SYMBOLS];
-    for d in digits.iter_mut().rev() {
-        *d = nlimb.div_mod_small(alpha_len as u64) as u8;
+    let mut state = [0u8; PAGE_CONTENT_SYMBOLS];
+    let packed = pack_page_address(universe_seed, z, n, book_index, page);
+    embed_packed(&mut state, &packed, alpha_len);
+
+    let gs = gallery_seed(z, n, alphabet_id, universe_seed);
+    let bs = book_seed(gs, book_index);
+
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:page:fill");
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(&packed);
+    h.update(&bs.to_le_bytes());
+    h.update(&page.to_le_bytes());
+    let mut xof = h.finalize_xof();
+    let mut buf = [0u8; 32];
+    for i in ADDR_SYMBOLS..PAGE_CONTENT_SYMBOLS {
+        let off = (i - ADDR_SYMBOLS) % 32;
+        if off == 0 {
+            xof.fill(&mut buf);
+        }
+        state[i] = buf[off] % alpha_len;
     }
-    digits
+    state
 }
 
-fn address_from_digits(digits: &[u8; PAGE_CONTENT_SYMBOLS], alpha_len: u8) -> Limbs {
-    let mut n = Limbs::zero();
-    for &d in digits {
-        n.mul_add_small(alpha_len as u64, d as u64);
+/// Max searchable content in one book (410 pages × 3200 symbols).
+pub const MAX_SEARCH_CHARS: usize = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK as usize;
+
+/// Result of a reverse lookup — the canonical address where a search phrase lives.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PageLocation {
+    pub universe_seed: u64,
+    pub z: i64,
+    pub n: i64,
+    pub book_index: u32,
+    pub page: u32,
+    pub alphabet_id: u32,
+}
+
+/// Search hit — may span consecutive pages in one book.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LocateResult {
+    pub location: PageLocation,
+    /// How many consecutive pages the text occupies (1 for a single page).
+    pub page_span: u32,
+    pub char_count: usize,
+}
+
+/// Deterministic shelf address for a search phrase within one universe.
+fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:search:coords");
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(&universe_seed.to_le_bytes());
+    h.update(&alphabet_id.to_le_bytes());
+    h.update(text.as_bytes());
+    let digest = h.finalize();
+    let bytes = digest.as_bytes();
+    PageLocation {
+        universe_seed,
+        z: i64::from_le_bytes(bytes[0..8].try_into().unwrap()),
+        n: i64::from_le_bytes(bytes[8..16].try_into().unwrap()),
+        book_index: u32::from_le_bytes(bytes[16..20].try_into().unwrap()) % BOOKS_PER_GALLERY,
+        page: u32::from_le_bytes(bytes[20..24].try_into().unwrap()) % PAGES_PER_BOOK,
+        alphabet_id,
     }
-    n
+}
+
+/// Where the phrase sits on its page — deterministic per phrase, not always at the start.
+fn search_offset(text: &str, phrase_len: usize) -> usize {
+    debug_assert!(phrase_len <= PAGE_CONTENT_SYMBOLS);
+    if phrase_len >= PAGE_CONTENT_SYMBOLS {
+        return 0;
+    }
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:search:offset");
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(text.as_bytes());
+    let b = h.finalize();
+    let max_off = PAGE_CONTENT_SYMBOLS - phrase_len;
+    (u64::from_le_bytes(b.as_bytes()[0..8].try_into().unwrap()) as usize) % (max_off + 1)
+}
+
+fn search_start_offset(full_len: usize, full: &str) -> usize {
+    if full_len >= PAGE_CONTENT_SYMBOLS {
+        0
+    } else {
+        search_offset(full, full_len)
+    }
+}
+
+/// How many consecutive pages a flat search phrase occupies.
+pub fn search_page_span(full: &str) -> u32 {
+    let total = full.chars().count();
+    if total == 0 {
+        return 0;
+    }
+    let start_off = search_start_offset(total, full);
+    let mut pos = 0usize;
+    let mut pages = 0u32;
+    while pos < total {
+        let len = if pages == 0 {
+            (PAGE_CONTENT_SYMBOLS - start_off).min(total - pos)
+        } else {
+            PAGE_CONTENT_SYMBOLS.min(total - pos)
+        };
+        if len == 0 {
+            break;
+        }
+        pos += len;
+        pages += 1;
+    }
+    pages.max(1)
+}
+
+/// One contiguous slice of a multi-page search hit: `(offset_on_page, char_start, char_len)`.
+pub fn search_page_segment(full: &str, page_in_span: u32) -> Option<(usize, usize, usize)> {
+    let total = full.chars().count();
+    if total == 0 {
+        return None;
+    }
+    let start_off = search_start_offset(total, full);
+    let mut pos = 0usize;
+    for p in 0..=page_in_span {
+        if pos >= total {
+            return None;
+        }
+        let (off, len) = if p == 0 {
+            let l = (PAGE_CONTENT_SYMBOLS - start_off).min(total - pos);
+            (start_off, l)
+        } else {
+            let l = PAGE_CONTENT_SYMBOLS.min(total - pos);
+            (0, l)
+        };
+        if p == page_in_span {
+            return Some((off, pos, len));
+        }
+        pos += len;
+    }
+    None
 }
 
 fn page_symbols(
@@ -306,11 +418,24 @@ fn page_symbols(
     page: u32,
     alphabet_id: u32,
     universe_seed: u64,
+    search_full: Option<&str>,
+    search_hit_start_page: Option<u32>,
 ) -> [u8; PAGE_CONTENT_SYMBOLS] {
-    let ab = alphabet(alphabet_id);
-    let alpha_len = ab.len() as u8;
-    let mut state = digits_from_address(universe_seed, z, n, book_index, page, alpha_len);
+    let alpha_len = alphabet(alphabet_id).len() as u8;
+    let mut state =
+        plaintext_from_address(universe_seed, z, n, book_index, page, alphabet_id, alpha_len);
     feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
+    if let (Some(full), Some(hit_start)) = (search_full, search_hit_start_page) {
+        if page >= hit_start {
+            let page_in_span = page - hit_start;
+            if let Some((off, start, len)) = search_page_segment(full, page_in_span) {
+                let slice: String = full.chars().skip(start).take(len).collect();
+                if let Ok(syms) = text_to_symbols(&slice, alphabet_id) {
+                    state[off..off + len].copy_from_slice(&syms);
+                }
+            }
+        }
+    }
     state
 }
 
@@ -326,7 +451,8 @@ fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[u8]) -> Stri
     out
 }
 
-/// One page of content at `(z, n, book_index, page)` — reversible Feistel mapping.
+/// One page of content at `(z, n, book_index, page)`.
+/// Pass the full flat `search_query` and `search_hit_start_page` when rendering a search hit.
 pub fn page_text(
     z: i64,
     n: i64,
@@ -334,9 +460,23 @@ pub fn page_text(
     page: u32,
     alphabet_id: u32,
     universe_seed: u64,
+    search_query: Option<&str>,
+    search_hit_start_page: Option<u32>,
 ) -> String {
     let ab = alphabet(alphabet_id);
-    let state = page_symbols(z, n, book_index, page, alphabet_id, universe_seed);
+    let normalized_query = search_query
+        .filter(|q| !q.is_empty())
+        .map(normalize_search_text);
+    let state = page_symbols(
+        z,
+        n,
+        book_index,
+        page,
+        alphabet_id,
+        universe_seed,
+        normalized_query.as_deref(),
+        search_hit_start_page,
+    );
     symbols_to_page_text(&state, ab)
 }
 
@@ -347,7 +487,8 @@ pub fn book_text(z: i64, n: i64, book_index: u32, alphabet_id: u32, universe_see
         (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
     );
     for page in 0..PAGES_PER_BOOK {
-        let state = page_symbols(z, n, book_index, page, alphabet_id, universe_seed);
+        let state = page_symbols(z, n, book_index, page, alphabet_id, universe_seed, None, None);
+        // book_text never embeds search hits
         out.push_str(&symbols_to_page_text(&state, ab));
     }
     out
@@ -370,43 +511,86 @@ pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> 
     Ok(out)
 }
 
-/// Result of a reverse lookup — the canonical address where this page text lives.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PageLocation {
-    pub universe_seed: u64,
-    pub z: i64,
-    pub n: i64,
-    pub book_index: u32,
-    pub page: u32,
-    pub alphabet_id: u32,
+/// Lowercase search phrases — the library alphabets are lowercase-only.
+fn normalize_search_text(text: &str) -> String {
+    text.to_lowercase()
 }
 
-/// Reverse lookup: padded page text → unique coordinates. Shorter strings are
-/// space-padded to a full page (Borges-style: the phrase is at the start).
-pub fn locate_page(text: &str, alphabet_id: u32) -> Result<PageLocation, String> {
+#[derive(Debug, PartialEq, Clone)]
+pub enum LocateError {
+    InvalidChars(Vec<(usize, char)>),
+    Message(String),
+}
+
+fn json_char_literal(c: char) -> String {
+    let mut s = String::from("\"");
+    match c {
+        '\\' => s.push_str("\\\\"),
+        '"' => s.push_str("\\\""),
+        '\n' => s.push_str("\\n"),
+        '\r' => s.push_str("\\r"),
+        '\t' => s.push_str("\\t"),
+        c if c.is_ascii() && !c.is_control() => s.push(c),
+        c => s.push_str(&format!("\\u{:04x}", c as u32)),
+    }
+    s.push('"');
+    s
+}
+
+/// Flatten search text (strip newlines, validate alphabet). Returns every invalid char.
+fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateError> {
     let ab = alphabet(alphabet_id);
-    let alpha_len = ab.len() as u8;
-    let space_idx = (alpha_len - 3) as u8; // alphabets end with " ,."
-    let mut symbols = text_to_symbols(text, alphabet_id)?;
-    if symbols.len() > PAGE_CONTENT_SYMBOLS {
-        return Err(format!(
-            "text too long (max {PAGE_CONTENT_SYMBOLS} content characters)"
-        ));
+    let mut out = String::new();
+    let mut invalid = Vec::new();
+    for (i, ch) in text.chars().enumerate() {
+        if ch == '\n' || ch == '\r' {
+            continue;
+        }
+        let b = ch as u8;
+        if !ab.contains(&b) {
+            invalid.push((i, ch));
+            continue;
+        }
+        if ch == ' ' && out.ends_with(' ') {
+            continue;
+        }
+        out.push(ch);
     }
-    while symbols.len() < PAGE_CONTENT_SYMBOLS {
-        symbols.push(space_idx);
+    if !invalid.is_empty() {
+        return Err(LocateError::InvalidChars(invalid));
     }
-    let mut state: [u8; PAGE_CONTENT_SYMBOLS] = symbols.try_into().map_err(|_| "internal")?;
-    feistel_decrypt(&mut state, feistel_key(alphabet_id), alpha_len);
-    let (universe_seed, z, n, book_index, page) =
-        decode_limbs_to_coords(address_from_digits(&state, alpha_len));
-    Ok(PageLocation {
-        universe_seed,
-        z,
-        n,
-        book_index,
-        page,
-        alphabet_id,
+    Ok(out.trim().to_string())
+}
+
+
+/// Reverse lookup: phrase → coordinates in the given universe (may span pages).
+pub fn locate_page(
+    text: &str,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> Result<LocateResult, LocateError> {
+    let text = normalize_search_text(text);
+    let flat = flatten_search_text(&text, alphabet_id)?;
+    if flat.is_empty() {
+        return Err(LocateError::Message("search text is empty".into()));
+    }
+    if flat.len() > MAX_SEARCH_CHARS {
+        return Err(LocateError::Message(format!(
+            "text too long (max {MAX_SEARCH_CHARS} characters — one book)"
+        )));
+    }
+    let page_span = search_page_span(&flat);
+    let location = coords_from_phrase(&flat, alphabet_id, universe_seed);
+    if location.page + page_span > PAGES_PER_BOOK {
+        let room = PAGES_PER_BOOK - location.page;
+        return Err(LocateError::Message(format!(
+            "text needs {page_span} pages but only {room} remain in this book — try a shorter phrase"
+        )));
+    }
+    Ok(LocateResult {
+        char_count: flat.len(),
+        page_span,
+        location,
     })
 }
 
@@ -470,11 +654,17 @@ pub fn get_universe() -> u64 {
 
 /// Map a memorable universe name to a stable seed. Empty/whitespace → `0` (the
 /// default universe), so the canonical library needs no `&u=` in its links.
+/// Names starting with `0x` are parsed as a literal seed (for search permalinks).
 #[wasm_bindgen]
 pub fn universe_seed_for(name: &str) -> u64 {
     let t = name.trim();
     if t.is_empty() {
         return 0;
+    }
+    if let Some(hex) = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")) {
+        if let Ok(v) = u64::from_str_radix(hex, 16) {
+            return v;
+        }
     }
     let b = blake3::hash(t.as_bytes());
     u64::from_be_bytes(b.as_bytes()[..8].try_into().unwrap())
@@ -523,18 +713,70 @@ pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> Strin
     book_text(z, n, book_index, alphabet_id, universe())
 }
 
-/// Reverse lookup: find where `text` already exists (space-padded to a full page).
+/// One page of text; `page` is **0-indexed** (0..409). Pass the full search phrase
+/// and the 0-indexed start page of the hit (`search_start_page` = -1 when not searching).
+#[wasm_bindgen]
+pub fn page_text_for(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+    alphabet_id: u32,
+    search_query: &str,
+    search_start_page: i32,
+) -> String {
+    let q = if search_query.is_empty() {
+        None
+    } else {
+        Some(search_query)
+    };
+    let hit_start = if search_start_page < 0 {
+        None
+    } else {
+        Some(search_start_page as u32)
+    };
+    page_text(
+        z,
+        n,
+        book_index,
+        page,
+        alphabet_id,
+        universe(),
+        q,
+        hit_start,
+    )
+}
+
+/// How many consecutive pages a search phrase spans after flattening.
+#[wasm_bindgen]
+pub fn search_page_span_for(text: &str) -> u32 {
+    search_page_span(&normalize_search_text(text))
+}
+
+/// The substring embedded on one page of a multi-page search hit (`page_in_span` is 0-based).
+#[wasm_bindgen]
+pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
+    let flat = normalize_search_text(text);
+    search_page_segment(&flat, page_in_span)
+        .map(|(_, start, len)| flat.chars().skip(start).take(len).collect())
+        .unwrap_or_default()
+}
+
+/// Reverse lookup: find where `text` lives (Basile-style embed at a deterministic offset).
 /// Returns JSON `{ok, ...}` or `{ok:false, error}`.
 #[wasm_bindgen]
 pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
-    match locate_page(text, alphabet_id) {
-        Ok(loc) => {
+    match locate_page(text, alphabet_id, universe()) {
+        Ok(res) => {
+            let loc = res.location;
             let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
+            let last_page = loc.page + res.page_span;
             format!(
                 concat!(
                     "{{\"ok\":true,",
-                    "\"universe_seed\":{},\"z\":{},\"n\":{},",
-                    "\"book\":{},\"page\":{},\"alphabet\":{},",
+                    "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
+                    "\"book\":{},\"page\":{},\"page_end\":{},\"page_span\":{},",
+                    "\"char_count\":{},\"alphabet\":{},",
                     "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
                 ),
                 loc.universe_seed,
@@ -542,13 +784,29 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
                 loc.n,
                 loc.book_index,
                 loc.page + 1,
+                last_page,
+                res.page_span,
+                res.char_count,
                 loc.alphabet_id,
                 wall + 1,
                 shelf + 1,
                 book_on_shelf + 1,
             )
         }
-        Err(e) => format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\"")),
+        Err(LocateError::InvalidChars(list)) => {
+            let invalid_json: String = list
+                .iter()
+                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{}]}}"#,
+                invalid_json
+            )
+        }
+        Err(LocateError::Message(e)) => {
+            format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\""))
+        }
     }
 }
 
@@ -651,7 +909,7 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let mut pixels = vec![0u8; total * 4];
     let mut px_idx = 0;
     for page in 0..PAGES_PER_BOOK {
-        let state = page_symbols(z, n, book_index, page, alphabet_id, universe());
+        let state = page_symbols(z, n, book_index, page, alphabet_id, universe(), None, None);
         for &sym in state.iter() {
             let idx = sym as usize;
             let rgb = if idx == space_idx {
@@ -750,6 +1008,7 @@ mod tests {
         assert_eq!(universe_seed_for("borges"), universe_seed_for("  borges  "));
         assert_ne!(universe_seed_for("borges"), universe_seed_for("babel"));
         assert_ne!(universe_seed_for("borges"), 0);
+        assert_eq!(universe_seed_for("0xdeadbeefcafebabe"), 0xDEAD_BEEF_CAFE_BABE);
     }
 
     #[test]
@@ -782,16 +1041,15 @@ mod tests {
     }
 
     #[test]
-    fn coord_codec_round_trips() {
+    fn address_pack_round_trips() {
         let cases = [
             (0_u64, 12_i64, -5_i64, 333_u32, 200_u32),
             (7_u64, -3_i64, 42_i64, 17_u32, 99_u32),
             (0_u64, 0_i64, 0_i64, 0_u32, 0_u32),
         ];
         for (uni, z, n, book, page) in cases {
-            let l = encode_coords_to_limbs(uni, z, n, book, page);
-            let (u2, z2, n2, b2, p2) = decode_limbs_to_coords(l);
-            assert_eq!((u2, z2, n2, b2, p2), (uni, z, n, book, page), "coords");
+            let packed = pack_page_address(uni, z, n, book, page);
+            assert_eq!(unpack_page_address(&packed), (uni, z, n, book, page));
         }
     }
 
@@ -799,7 +1057,7 @@ mod tests {
     fn feistel_round_trips() {
         let alpha_len = 29;
         let key = feistel_key(29);
-        let mut state = digits_from_address(7, -3, 42, 17, 99, alpha_len);
+        let mut state = plaintext_from_address(7, -3, 42, 17, 99, 29, alpha_len);
         let orig = state;
         feistel_encrypt(&mut state, key, alpha_len);
         assert_ne!(state, orig);
@@ -808,31 +1066,122 @@ mod tests {
     }
 
     #[test]
-    fn page_locate_round_trips() {
-        let (z, n, book, page) = (12_i64, -5_i64, 333_u32, 200_u32);
-        let alpha = 29;
-        let uni = 0_u64;
-        let generated = page_text(z, n, book, page, alpha, uni);
-        let loc = locate_page(&generated, alpha).expect("locate");
-        assert_eq!(loc.z, z);
-        assert_eq!(loc.n, n);
-        assert_eq!(loc.book_index, book);
-        assert_eq!(loc.page, page);
-        assert_eq!(loc.universe_seed, uni);
-        assert_eq!(loc.alphabet_id, alpha);
+    fn books_in_gallery_differ_substantially() {
+        let flat = |s: &str| s.chars().filter(|c| *c != '\n').collect::<String>();
+        let a = flat(&page_text(0, 0, 0, 0, 29, 0, None, None));
+        let b = flat(&page_text(0, 0, 1, 0, 29, 0, None, None));
+        let diff = a.chars().zip(b.chars()).filter(|(x, y)| x != y).count();
+        assert!(diff > 1000, "only {diff} chars differ between book 0 and 1");
     }
 
     #[test]
-    fn locate_finds_padded_phrase() {
+    fn search_rejects_hyphens_and_quotes() {
+        assert!(matches!(
+            locate_page("twenty-nine", 29, 0),
+            Err(LocateError::InvalidChars(_))
+        ));
+        assert!(locate_page("twenty nine", 29, 0).is_ok());
+        assert!(matches!(
+            locate_page("don't", 29, 0),
+            Err(LocateError::InvalidChars(_))
+        ));
+    }
+
+    #[test]
+    fn search_normalizes_case() {
+        let a = locate_page("Hello World", 29, 0).expect("locate");
+        let b = locate_page("hello world", 29, 0).expect("locate");
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn locate_is_deterministic() {
         let phrase = "forgive me for i have sinned";
-        let loc = locate_page(phrase, 29).expect("locate phrase");
-        let page = page_text(loc.z, loc.n, loc.book_index, loc.page, 29, loc.universe_seed);
-        let loc2 = locate_page(&page, 29).expect("re-locate");
-        assert_eq!(loc, loc2);
+        let a = locate_page(phrase, 29, 0).expect("locate");
+        let b = locate_page(phrase, 29, 0).expect("locate");
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn search_is_scoped_to_universe() {
+        let phrase = "hello world";
+        let a = locate_page(phrase, 29, 0).expect("locate");
+        let b = locate_page(phrase, 29, 7).expect("locate");
+        assert_eq!(a.location.universe_seed, 0);
+        assert_eq!(b.location.universe_seed, 7);
+        assert_ne!(
+            (
+                a.location.z,
+                a.location.n,
+                a.location.book_index,
+                a.location.page
+            ),
+            (
+                b.location.z,
+                b.location.n,
+                b.location.book_index,
+                b.location.page
+            )
+        );
+    }
+
+    #[test]
+    fn search_spans_consecutive_pages() {
+        let phrase: String = "a".repeat(4000);
+        let res = locate_page(&phrase, 29, 0).expect("locate");
+        assert_eq!(res.page_span, 2);
+        assert_eq!(res.char_count, 4000);
+        let loc = res.location;
+        let hit = Some(loc.page);
+        let p0 = page_text(
+            loc.z,
+            loc.n,
+            loc.book_index,
+            loc.page,
+            29,
+            loc.universe_seed,
+            Some(&phrase),
+            hit,
+        );
+        let p1 = page_text(
+            loc.z,
+            loc.n,
+            loc.book_index,
+            loc.page + 1,
+            29,
+            loc.universe_seed,
+            Some(&phrase),
+            hit,
+        );
+        let flat0: String = p0.chars().filter(|c| *c != '\n').collect();
+        let flat1: String = p1.chars().filter(|c| *c != '\n').collect();
+        assert_eq!(&flat0[..3200], &phrase[..3200]);
+        assert_eq!(&flat1[..800], &phrase[3200..]);
+        let concat = format!("{flat0}{flat1}");
+        assert_eq!(&concat[..4000], phrase.as_str());
+    }
+
+    #[test]
+    fn search_embeds_phrase_on_page() {
+        let phrase = "sit on a pan otis";
+        let loc = locate_page(phrase, 29, 0).expect("locate").location;
+        let page = page_text(
+            loc.z,
+            loc.n,
+            loc.book_index,
+            loc.page,
+            29,
+            loc.universe_seed,
+            Some(phrase),
+            Some(loc.page),
+        );
+        let flat: String = page.chars().filter(|c| *c != '\n').collect();
+        let off = search_offset(phrase, phrase.len());
+        assert_eq!(&flat[off..off + phrase.len()], phrase);
     }
 
     #[test]
     fn generator_version_is_frozen_in_tests() {
-        assert_eq!(GENERATOR_VERSION, 1);
+        assert_eq!(GENERATOR_VERSION, 6);
     }
 }

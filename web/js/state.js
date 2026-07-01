@@ -17,7 +17,8 @@ export const S = {
   windowBuf: [], // last <=50 visited {z,n,hash}
   startedAt: new Date().toISOString(),
   saveTimer: null,
-  currentBook: null, // { index, title, text, page }
+  currentBook: null, // { index, title, text, page, searchHighlight?, searchStartPage?, searchPageSpan? }
+  lastPickedUp: null, // { z, n, universe, alphabet, bookIndex } — last closed book in this gallery
   viewMode: "text", // "text" | "color" — how the open page is shown
   // current gallery's palette, derived from its hash (set in render). hue spaces
   // the letters; chroma + lightness give each gallery its own mood in OKLCH.
@@ -38,7 +39,44 @@ export function applyUniverse(name) {
 export function applyUniverseSeed(seed) {
   const s = typeof seed === "bigint" ? seed : BigInt(seed);
   S.universeName = s === 0n ? "" : `0x${s.toString(16)}`;
-  set_universe(Number(s));
+  set_universe(s);
+}
+
+/** Push the active universe name into WASM (no coordinate jump). */
+export function syncUniverseToWasm() {
+  set_universe(universe_seed_for(S.universeName));
+}
+
+export function markLastPickedUp(bookIndex) {
+  S.lastPickedUp = {
+    z: S.z.toString(),
+    n: S.n.toString(),
+    universe: S.universeName,
+    alphabet: S.alphabetId,
+    bookIndex,
+  };
+}
+
+export function isLastPickedUp(bookIndex) {
+  const p = S.lastPickedUp;
+  if (!p) return false;
+  return (
+    p.z === S.z.toString() &&
+    p.n === S.n.toString() &&
+    p.universe === S.universeName &&
+    p.alphabet === S.alphabetId &&
+    p.bookIndex === bookIndex
+  );
+}
+
+/** Apply the header universe input if it differs; always re-sync WASM before search. */
+export function applyUniverseFromInput(raw) {
+  const next = (raw ?? S.universeName).trim();
+  if (next !== S.universeName) {
+    applyUniverse(next);
+  } else {
+    syncUniverseToWasm();
+  }
 }
 
 // a short, pronounceable-ish random universe name (memorable + shareable)

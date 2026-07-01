@@ -1,8 +1,76 @@
 // Stateless helpers: DOM, clipboard, colour, and lattice math. No app state.
 
-import { I64_MIN, I64_MAX } from "./constants.js";
+import {
+  I64_MIN,
+  I64_MAX,
+  ALPHABETS,
+  LINES_PER_PAGE,
+  CHARS_PER_LINE,
+  PAGE_CONTENT_SYMBOLS,
+} from "./constants.js";
 
 export const el = (id) => document.getElementById(id);
+
+/** Lowercase only — punctuation is not auto-corrected. */
+export function normalizeSearchQuery(text) {
+  return text.toLowerCase();
+}
+
+/** Find characters outside the active alphabet. Returns `{ i, ch }` (string index). */
+export function validateSearchQuery(text, alphabetId = 29) {
+  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+  const invalid = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "\n" || ch === "\r") continue;
+    if (!alpha.includes(ch)) invalid.push({ i, ch });
+  }
+  return invalid;
+}
+
+/** Flatten search text for chunking — must match Rust flatten_search_text. */
+export function flattenSearchQuery(text, alphabetId = 29) {
+  const invalid = validateSearchQuery(text, alphabetId);
+  if (invalid.length) {
+    throw new Error(
+      `invalid character${invalid.length > 1 ? "s" : ""} for this alphabet`,
+    );
+  }
+  let out = "";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "\n" || ch === "\r") continue;
+    if (ch === " " && out.endsWith(" ")) continue;
+    out += ch;
+  }
+  return out.trim();
+}
+
+// Space-pad to a full page (phrase at start) — mirrors locate_page in WASM.
+export function padPageText(text, alphabetId = 29) {
+  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+  const symbols = [];
+  for (const ch of text) {
+    if (ch === "\n" || ch === "\r") continue;
+    if (!alpha.includes(ch)) {
+      throw new Error(`invalid character '${ch}' for this alphabet`);
+    }
+    symbols.push(ch);
+  }
+  if (symbols.length > PAGE_CONTENT_SYMBOLS) {
+    throw new Error(`text too long (max ${PAGE_CONTENT_SYMBOLS} characters)`);
+  }
+  while (symbols.length < PAGE_CONTENT_SYMBOLS) symbols.push(" ");
+
+  let out = "";
+  for (let row = 0; row < LINES_PER_PAGE; row++) {
+    for (let col = 0; col < CHARS_PER_LINE; col++) {
+      out += symbols[row * CHARS_PER_LINE + col];
+    }
+    out += "\n";
+  }
+  return out;
+}
 
 // copy text to the clipboard; optionally flash a button label as feedback.
 export async function copyText(text, btn, okMsg = "copied") {
