@@ -1,13 +1,10 @@
 # lib-of-babel
 
 **A living, walkable Library of Babel.** Start in a random hexagonal gallery, read the
-books on its shelves, choose a hallway or a staircase, and walk — forever. Every gallery
+books on its shelves, choose a hallway or a staircase, and walk forever. Every gallery
 is generated deterministically from its coordinate, so the Library is infinite yet stores
 almost nothing. Your **journey** is the only thing that is real enough to keep: the path
 you walked and a cryptographic fingerprint of what each gallery held.
-
-> The Library is eternal and complete; the librarian is mortal. What "lives" here is not
-> the space — it is the traversal.
 
 ![A grid of per-gallery sigils — generative emblems drawn deterministically from each gallery's hash](assets/sigils.svg)
 
