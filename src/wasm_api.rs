@@ -17,41 +17,48 @@ use crate::universe::{self, universe as active_universe};
 
 #[wasm_bindgen]
 #[must_use]
+/// Frozen schema version — must match on journey verify and export.
 pub fn generator_version() -> u32 {
     GENERATOR_VERSION
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// Books per gallery (700).
 pub fn books_per_gallery() -> u32 {
     BOOKS_PER_GALLERY
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// Default alphabet id when none is specified (29 = Basile).
 pub fn default_alphabet() -> u32 {
     DEFAULT_ALPHABET
 }
 
 #[wasm_bindgen]
+/// Set the active universe seed for all subsequent generator calls.
 pub fn set_universe(universe_seed: u64) {
     universe::set_universe(universe_seed);
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// Read the active universe seed.
 pub fn get_universe() -> u64 {
     universe::get_universe()
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// Map a universe name (or `0x` hex) to a stable seed. Blank → `0`.
 pub fn universe_seed_for(name: &str) -> u64 {
     universe::universe_seed_for(name)
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// JSON array of 700 spine titles for gallery `(z, n)`.
 pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
     let titles = gallery_titles(z, n, alphabet_id, active_universe());
     let mut s = String::from("[");
@@ -69,6 +76,7 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
+/// 16-hex-digit prefix of the gallery BLAKE3 fingerprint (header hash).
 pub fn node_hash_hex(z: i64, n: i64, alphabet_id: u32) -> String {
     format!(
         "{:016x}",
@@ -78,6 +86,7 @@ pub fn node_hash_hex(z: i64, n: i64, alphabet_id: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
+/// Full 256-bit gallery fingerprint as 64 hex digits.
 pub fn node_hash_full_hex(z: i64, n: i64, alphabet_id: u32) -> String {
     let b = node_hash_bytes(z, n, alphabet_id, active_universe());
     let mut s = String::with_capacity(64);
@@ -89,12 +98,14 @@ pub fn node_hash_full_hex(z: i64, n: i64, alphabet_id: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
+/// Full text of one book (410 pages). Expensive — only call when downloading.
 pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> String {
     book_text(z, n, book_index, alphabet_id, active_universe())
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// One formatted page. Pass `search_start_page = -1` for no search embed.
 pub fn page_text_for(
     z: i64,
     n: i64,
@@ -130,12 +141,14 @@ pub fn page_text_for(
 
 #[wasm_bindgen]
 #[must_use]
+/// How many consecutive pages a normalized search phrase occupies.
 pub fn search_page_span_for(text: &str) -> u32 {
     search_page_span(&normalize_query(text))
 }
 
 #[wasm_bindgen]
 #[must_use]
+/// Text slice embedded on page `page_in_span` of a multi-page search hit.
 pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
     let flat = normalize_query(text);
     search_page_segment(&flat, page_in_span)
@@ -145,6 +158,7 @@ pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
+/// Reverse lookup: phrase → JSON hit `{ ok, z, n, book, page, … }` or validation error.
 pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
     match locate_page(text, alphabet_id, active_universe()) {
         Ok(res) => {
@@ -191,6 +205,7 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
+/// Neighbor coordinate as JSON `[z, n]` for move `mv` (0–3).
 pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
     let (nz, nn) = neighbor(z, n, mv);
     format!("[{nz},{nn}]")

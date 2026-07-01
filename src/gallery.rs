@@ -60,6 +60,7 @@ pub fn node_fingerprint(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) ->
     u64::from_be_bytes(prefix)
 }
 
+/// Map flat book index to `(wall, shelf, book_on_shelf)` — all zero-based.
 #[inline]
 #[must_use]
 pub fn book_index_to_shelf(book_index: u32) -> (u32, u32, u32) {

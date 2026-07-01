@@ -22,17 +22,20 @@ pub fn mix2(a: u64, b: u64) -> u64 {
 pub struct Prng(u64);
 
 impl Prng {
+    /// Seed the stream (mixed with a fixed constant).
     #[inline]
     pub fn new(seed: u64) -> Self {
         Prng(seed ^ 0xDEAD_BEEF_CAFE_F00D)
     }
 
+    /// Next `u64` in the deterministic stream.
     #[inline]
     pub fn next_u64(&mut self) -> u64 {
         self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
         splitmix64(self.0)
     }
 
+    /// Draw one symbol index from `alphabet`.
     #[inline]
     pub fn next_symbol(&mut self, alphabet: &[u8]) -> u8 {
         alphabet[(self.next_u64() % alphabet.len() as u64) as usize]

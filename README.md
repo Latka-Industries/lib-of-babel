@@ -72,11 +72,20 @@ is never stored because it is always regenerable.
 ```text
 lib-of-babel/
 ├── src/                 Rust → WASM generator core (deterministic, reversible-by-design)
-│   └── lib.rs           gallery seed, 700 book ids, lazy book text, node hash
+│   ├── lib.rs           crate root, re-exports, integration tests
+│   ├── config.rs        frozen dimensions, alphabets, GENERATOR_VERSION
+│   ├── prng.rs          SplitMix64 mixer + deterministic title stream
+│   ├── universe.rs      active universe seed (WASM global state)
+│   ├── gallery.rs       gallery/book seeds, titles, BLAKE3 fingerprint, lattice moves
+│   ├── feistel.rs       reversible page PRP + address embedding
+│   ├── page.rs          lazy page/book text generation + search embed
+│   ├── search.rs        reverse lookup, validation, multi-page span planning
+│   ├── color.rs         whole-book RGBA preview image
+│   └── wasm_api.rs      wasm-bindgen JSON/string exports for the frontend
 ├── web/                 static frontend: gallery + minimap + sigil, book reader, history, permalinks, export, verifier
 │   ├── index.html       layout + styles
 │   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · find
+│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · find · search
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -84,6 +93,41 @@ lib-of-babel/
 The core is a **reversible mapping** between coordinate space and page content:
 a Feistel permutation over each page's 3200 symbols, so **search-by-content**
 (`text → coordinates`) is the inverse of reading (`coordinates → text`).
+
+### WASM API (frontend ↔ core)
+
+| Export | Purpose |
+| --- | --- |
+| `generator_version()` | Schema stamp — must match on verify/export |
+| `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis |
+| `gallery_titles_json(z, n, a)` | 700 spine titles for a gallery |
+| `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 fingerprint |
+| `page_text_for(…, search_query, search_start_page)` | One page; pass `-1` for no search embed |
+| `locate_page_json(text, a)` | Reverse lookup → JSON hit or validation errors |
+| `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
+| `book_text_for` / `book_image` | Full book text or RGBA colour map |
+| `neighbor_json(z, n, mv)` | Lattice step (0=left, 1=right, 2=up, 3=down) |
+
+## Search-by-content (`generator_version` 6)
+
+Paste a phrase in the **Search** modal → the core finds where it *already lives* in the
+**current universe** (not a random gallery elsewhere).
+
+**How it works:**
+
+1. **Validate** — only characters in the active alphabet are allowed (Borges `a–v` or Basile `a–z`, plus space, comma, period). Invalid characters are highlighted in red; there is no auto-sanitize.
+2. **Hash → address** — the normalized flat phrase is BLAKE3-hashed with universe + alphabet + version to get `(z, n, book, page)`.
+3. **Embed** — the phrase is written into the generated page text at a deterministic offset (Basile-style: real surrounding text, not a padded overlay). Phrases longer than one page span consecutive pages contiguously: page 0 from the computed offset, continuation pages from column 0.
+4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page. Universe is **not** switched — the search is scoped to where you are wandering.
+
+**Limits:** up to one full book (~1.3M characters); must fit in the remaining pages of the resolved book. Multi-page hits show `page … page_end` in the result panel.
+
+```text
+user phrase  ──validate──▶  flat text
+flat text    ──BLAKE3──▶   (z, n, book, page)     [universe-scoped]
+flat text    ──span──▶     page 0 offset + page 1…N from col 0
+page render  ──Feistel──▶  readable text with phrase embedded
+```
 
 ## Run it locally (dev)
 
@@ -105,9 +149,12 @@ Other tasks:
 - `mise run serve` — just serve `web/` (after a build); keeps running until you stop it
 - `mise run test` — host unit tests (`cargo test`)
 - `mise run check` — fmt + clippy + tests
+- `cargo doc --open` — Rust API docs (host build; WASM-only items are still documented)
 
 The trail lives in the browser's IndexedDB (per-device), so it survives reloads. **export**
 downloads it as JSON; **new walk** clears it and drops you somewhere random.
+
+**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet id: 25 or 29), `book`, `page`, and `q` (search phrase for deep-linking a find).
 
 ## Roadmap (mirrored as Linear issues)
 
@@ -127,7 +174,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. ✅ **Proof-of-find** — rarity = leading-zero bits of a gallery's BLAKE3 hash (proof-of-work). Prospect random galleries for rare hashes, claim self-verifying **trophies** (kept in IndexedDB), and share a permalink that proves the find to anyone. Free; no chain, no payout.
-12. ✅ **Reverse lookup** — search-by-content via a reversible Feistel page mapping (`generator_version` 1). Paste a phrase → exact coordinates + deep-link to that page.
+12. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed (`generator_version` 6). Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**

@@ -9,15 +9,22 @@ use crate::search::{search_page_segment, text_to_symbols};
 /// Gallery coordinate + page identity for text generation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PageAddr {
+    /// Staircase floor (vertical axis).
     pub z: i64,
+    /// Hallway position (horizontal axis).
     pub n: i64,
+    /// Flat book index `0..BOOKS_PER_GALLERY`.
     pub book_index: u32,
+    /// Zero-based page within the book.
     pub page: u32,
+    /// `25` (Borges) or `29` (Basile).
     pub alphabet_id: u32,
+    /// Active multiverse seed.
     pub universe_seed: u64,
 }
 
 impl PageAddr {
+    /// Build an address for one page in one book.
     #[must_use]
     pub fn new(
         z: i64,
@@ -40,12 +47,16 @@ impl PageAddr {
 
 /// Page render request — address plus optional search embed.
 pub struct PageRender<'a> {
+    /// Where to render.
     pub addr: PageAddr,
+    /// Full normalized search phrase (may span pages).
     pub search_full: Option<&'a str>,
+    /// First page of the search hit within the book.
     pub search_hit_start_page: Option<u32>,
 }
 
 impl<'a> PageRender<'a> {
+    /// Ordinary page render with no search overlay.
     #[must_use]
     pub fn new(addr: PageAddr) -> Self {
         Self {
@@ -55,6 +66,7 @@ impl<'a> PageRender<'a> {
         }
     }
 
+    /// Attach a multi-page search embed starting at `hit_start_page`.
     #[must_use]
     pub fn with_search(mut self, full: &'a str, hit_start_page: u32) -> Self {
         self.search_full = Some(full);
@@ -67,6 +79,7 @@ fn normalize_search_text(text: &str) -> String {
     text.to_lowercase()
 }
 
+/// Raw symbol indices for one page (post-Feistel, with optional search embed).
 #[must_use]
 pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
     let PageAddr {

@@ -4,15 +4,18 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 static UNIVERSE: AtomicU64 = AtomicU64::new(0);
 
+/// Current universe seed used by WASM exports (default `0`).
 #[inline]
 pub fn universe() -> u64 {
     UNIVERSE.load(Ordering::Relaxed)
 }
 
+/// Set the active universe for subsequent generator calls.
 pub fn set_universe(universe_seed: u64) {
     UNIVERSE.store(universe_seed, Ordering::Relaxed);
 }
 
+/// Alias for [`universe`] — matches the WASM export name.
 pub fn get_universe() -> u64 {
     universe()
 }

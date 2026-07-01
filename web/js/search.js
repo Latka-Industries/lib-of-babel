@@ -41,6 +41,7 @@ function formatInvalidMessage(invalid, alphabetId = S.alphabetId) {
   return `invalid character${invalid.length > 1 ? "s" : ""} for this alphabet (${allowed} only): ${shown}${suffix}`;
 }
 
+/** Parse WASM `locate_page_json` response. */
 export function parseLocateResult(jsonStr) {
   try {
     return JSON.parse(jsonStr);
@@ -53,6 +54,7 @@ function syncSearchUniverse() {
   applyUniverseFromInput(el("universe")?.value);
 }
 
+/** Keep the search backdrop overlay scrolled in sync with the textarea. */
 export function syncSearchBackdropScroll() {
   const input = el("searchInput");
   const backdrop = el("searchBackdrop");
@@ -81,6 +83,7 @@ export function renderSearchHighlights(invalid) {
   syncSearchBackdropScroll();
 }
 
+/** Remove invalid-character highlights from the search field. */
 export function clearSearchHighlights() {
   renderSearchHighlights([]);
 }
@@ -93,6 +96,10 @@ export function syncSearchInput() {
   return normalized;
 }
 
+/**
+ * Reverse lookup in the current universe. Validates locally first, then calls WASM.
+ * @returns {{ ok: boolean, error?: string, invalid?: { i: number, ch: string }[], … }}
+ */
 export function locateText(text, alphabetId = S.alphabetId) {
   syncSearchUniverse();
   const query = normalizeSearchQuery(text);
@@ -125,6 +132,7 @@ function currentUniverseLabel() {
   return S.universeName || "default";
 }
 
+/** Permalink for a search hit (includes `q` query param). */
 export function searchPermalink(result, query) {
   syncSearchUniverse();
   const z = asBigInt(result.z);
@@ -142,6 +150,7 @@ export function searchPermalink(result, query) {
   );
 }
 
+/** Render hit coordinates or validation error into the search result panel. */
 export function renderSearchResult(result, box) {
   if (!result.ok) {
     const invalid = invalidFromResult(result);
@@ -178,6 +187,7 @@ export function renderSearchResult(result, box) {
     copyText(searchPermalink(result, query), ev.currentTarget, "copied!");
 }
 
+/** Navigate to a search hit without switching universe; opens book at hit page. */
 export function goToSearchResult(result, query) {
   syncSearchUniverse();
   if (result.alphabet !== S.alphabetId) {

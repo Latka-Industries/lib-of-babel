@@ -21,14 +21,20 @@ pub struct PageLocation {
 /// Search hit — may span consecutive pages in one book.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LocateResult {
+    /// First page of the embedded phrase.
     pub location: PageLocation,
+    /// Number of consecutive pages occupied.
     pub page_span: u32,
+    /// Character count after normalization.
     pub char_count: usize,
 }
 
+/// Errors returned by [`locate_page`].
 #[derive(Debug, PartialEq, Clone)]
 pub enum LocateError {
+    /// One or more characters outside the selected alphabet (index + char).
     InvalidChars(Vec<(usize, char)>),
+    /// Empty phrase, over capacity, or insufficient pages remaining in the book.
     Message(String),
 }
 
@@ -55,6 +61,9 @@ fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageL
     }
 }
 
+/// Deterministic column offset for embedding a phrase on its first page.
+///
+/// Returns `0` when `phrase_len >= PAGE_CONTENT_SYMBOLS` (phrase starts at column 0).
 #[must_use]
 pub fn search_offset(text: &str, phrase_len: usize) -> usize {
     debug_assert!(phrase_len <= PAGE_CONTENT_SYMBOLS);
@@ -217,10 +226,12 @@ pub fn locate_page(
     })
 }
 
+/// Lowercase a search query (matches frontend + embed path).
 pub fn normalize_query(text: &str) -> String {
     normalize_search_text(text)
 }
 
+/// Escape a character as a JSON string literal (for `invalid` arrays in WASM JSON).
 pub fn json_char_literal(c: char) -> String {
     let mut s = String::from("\"");
     match c {
