@@ -6,6 +6,14 @@
 import { WINDOW_MAX } from "./constants.js";
 import { kvSet } from "./db.js";
 import { node_hash_hex, set_universe, universe_seed_for } from "./wasm.js";
+import { leadingZeroBits } from "./util.js";
+
+/** Called after each recorded step — wired at boot to auto-capture rare finds. */
+let onRecordStep = null;
+
+export function setOnRecordStep(fn) {
+  onRecordStep = fn;
+}
 
 export const S = {
   z: 0n,
@@ -13,8 +21,8 @@ export const S = {
   gv: 0,
   alphabetId: 29, // symbol count; 25 = Borges, 29 = Basile. An axis of the universe.
   universeName: "", // "" = default/canonical universe (seed 0)
-  trail: [], // [{ z:string, n:string, move:number|null, hash:string }]
-  windowBuf: [], // last <=50 visited {z,n,hash}
+  trail: [], // [{ z:string, n:string, move:number|null|"jump", hash:string, bits:number }]
+  windowBuf: [], // last <=50 visited {z,n,hash,bits}
   startedAt: new Date().toISOString(),
   saveTimer: null,
   currentBook: null, // { index, title, text, page, searchHighlight?, searchStartPage?, searchPageSpan? }
@@ -106,9 +114,12 @@ export async function persist() {
 
 export function recordStep(move) {
   const hash = node_hash_hex(S.z, S.n, S.alphabetId);
-  S.trail.push({ z: S.z.toString(), n: S.n.toString(), move, hash });
-  S.windowBuf.push({ z: S.z.toString(), n: S.n.toString(), hash });
+  const bits = leadingZeroBits(hash);
+  const entry = { z: S.z.toString(), n: S.n.toString(), move, hash, bits };
+  S.trail.push(entry);
+  S.windowBuf.push({ z: entry.z, n: entry.n, hash, bits });
   if (S.windowBuf.length > WINDOW_MAX) S.windowBuf.shift(); // forget beyond 50
   scheduleSave();
-  return hash;
+  onRecordStep?.(S.z, S.n, bits);
+  return { hash, bits };
 }

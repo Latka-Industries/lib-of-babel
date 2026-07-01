@@ -6,7 +6,7 @@
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { el, copyText } from "./js/util.js";
+import { el, copyText, leadingZeroBits } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
   S,
@@ -15,6 +15,7 @@ import {
   persist,
   recordStep,
   markLastPickedUp,
+  setOnRecordStep,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
@@ -22,8 +23,6 @@ import { step, jumpTo, exportJourney, newWalk } from "./js/nav.js";
 import { verifyJourney } from "./js/verify.js";
 import {
   prospect,
-  claimFor,
-  addTrophy,
   getTrophies,
   removeTrophy,
   verifyClaim,
@@ -32,6 +31,8 @@ import {
   setFinder,
   rarityTier,
   rarityOdds,
+  autoTrophy,
+  backfillTrophiesFromTrail,
 } from "./js/find.js";
 import {
   openBook,
@@ -49,6 +50,7 @@ import { validateSearchQuery } from "./js/util.js";
 async function boot() {
   await init();
   S.gv = generator_version();
+  setOnRecordStep((z, n, bits) => autoTrophy(z, n, bits));
 
   const saved = await kvGet("journey");
   const savedOk =
@@ -95,7 +97,13 @@ async function boot() {
     S.startedAt = saved.started_at || S.startedAt;
     S.windowBuf = S.trail
       .slice(-WINDOW_MAX)
-      .map((e) => ({ z: e.z, n: e.n, hash: e.hash }));
+      .map((e) => ({
+        z: e.z,
+        n: e.n,
+        hash: e.hash,
+        bits: e.bits ?? leadingZeroBits(e.hash),
+      }));
+    await backfillTrophiesFromTrail(S.trail);
     render();
   } else {
     await newWalk();
@@ -182,17 +190,11 @@ function renderProspectResult(best) {
     `<div class="find-big" style="color:${color}">${best.bits} leading zero bits</div>` +
     `<div class="find-dim">gallery (${best.z}, ${best.n}) · hash ${best.hash} · ${rarityOdds(best.bits)}</div>` +
     `<div class="find-row" style="margin-top:.5rem">` +
-    `<button id="prospectGo">travel here</button>` +
-    `<button id="prospectClaim">claim trophy</button></div>`;
+    `<button id="prospectGo">travel here</button></div>`;
   box.classList.add("show");
   el("prospectGo").onclick = () => {
     jumpTo(best.z, best.n);
     el("prospectModal").close();
-  };
-  el("prospectClaim").onclick = async (e) => {
-    const finder = await getFinder();
-    const { added } = await addTrophy(claimFor(best.z, best.n, finder));
-    e.currentTarget.textContent = added ? "claimed!" : "already yours";
   };
 }
 
@@ -228,7 +230,7 @@ async function renderTrophyList() {
   const box = el("trophyList");
   if (!list.length) {
     box.innerHTML =
-      `<div class="trophy-empty">No trophies yet. Open <b>prospect rarity</b>, dig for a rare gallery, then claim it.</div>`;
+      `<div class="trophy-empty">No trophies yet. Walk into galleries with <b>8+</b> leading zero bits (uncommon or better) — they are saved automatically.</div>`;
     return;
   }
   box.innerHTML = "";
@@ -361,13 +363,6 @@ function wireControls() {
     }
   });
   el("finderHandle").addEventListener("change", (ev) => setFinder(ev.target.value));
-  el("claimCurrent").addEventListener("click", async (ev) => {
-    await setFinder(el("finderHandle").value);
-    const { added } = await addTrophy(claimFor(S.z, S.n, el("finderHandle").value.trim()));
-    ev.currentTarget.textContent = added ? "claimed!" : "already claimed";
-    setTimeout(() => (ev.currentTarget.textContent = "claim this gallery"), 1200);
-    renderTrophyList();
-  });
 
   // verify journey: read an exported file, re-walk it in WASM, prove the hashes
   el("verifyFile").addEventListener("change", async (ev) => {
