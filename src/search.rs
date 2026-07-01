@@ -1,8 +1,10 @@
 //! Search-by-content: reverse lookup, validation, and multi-page embed planning.
 
+use core::fmt::Write;
+
 use crate::config::{
-    alphabet, BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS,
-    PAGES_PER_BOOK,
+    alphabet, BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGES_PER_BOOK,
+    PAGE_CONTENT_SYMBOLS,
 };
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
@@ -53,6 +55,7 @@ fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageL
     }
 }
 
+#[must_use]
 pub fn search_offset(text: &str, phrase_len: usize) -> usize {
     debug_assert!(phrase_len <= PAGE_CONTENT_SYMBOLS);
     if phrase_len >= PAGE_CONTENT_SYMBOLS {
@@ -64,7 +67,10 @@ pub fn search_offset(text: &str, phrase_len: usize) -> usize {
     h.update(text.as_bytes());
     let b = h.finalize();
     let max_off = PAGE_CONTENT_SYMBOLS - phrase_len;
-    (u64::from_le_bytes(b.as_bytes()[0..8].try_into().unwrap()) as usize) % (max_off + 1)
+    let digest = b.as_bytes();
+    let mut prefix = [0u8; 8];
+    prefix.copy_from_slice(&digest[0..8]);
+    (u64::from_le_bytes(prefix) as usize) % (max_off + 1)
 }
 
 fn search_start_offset(full_len: usize, full: &str) -> usize {
@@ -76,6 +82,7 @@ fn search_start_offset(full_len: usize, full: &str) -> usize {
 }
 
 /// How many consecutive pages a flat search phrase occupies.
+#[must_use]
 pub fn search_page_span(full: &str) -> u32 {
     let total = full.chars().count();
     if total == 0 {
@@ -100,6 +107,7 @@ pub fn search_page_span(full: &str) -> u32 {
 }
 
 /// One contiguous slice of a multi-page search hit: `(offset_on_page, char_start, char_len)`.
+#[must_use]
 pub fn search_page_segment(full: &str, page_in_span: u32) -> Option<(usize, usize, usize)> {
     let total = full.chars().count();
     if total == 0 {
@@ -126,6 +134,11 @@ pub fn search_page_segment(full: &str, page_in_span: u32) -> Option<(usize, usiz
     None
 }
 
+/// Decode user text into alphabet symbol indices (newlines stripped).
+///
+/// # Errors
+///
+/// Returns an error if any character is outside the selected alphabet.
 pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> {
     let ab = alphabet(alphabet_id);
     let mut out = Vec::with_capacity(PAGE_CONTENT_SYMBOLS);
@@ -167,6 +180,13 @@ fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateErr
 }
 
 /// Reverse lookup: phrase → coordinates in the given universe (may span pages).
+///
+/// # Errors
+///
+/// Returns [`LocateError::InvalidChars`] when the phrase contains characters
+/// outside the selected alphabet. Returns [`LocateError::Message`] when the
+/// phrase is empty, exceeds one book's capacity, or would run past the last page
+/// of the resolved book.
 pub fn locate_page(
     text: &str,
     alphabet_id: u32,
@@ -210,7 +230,9 @@ pub fn json_char_literal(c: char) -> String {
         '\r' => s.push_str("\\r"),
         '\t' => s.push_str("\\t"),
         c if c.is_ascii() && !c.is_control() => s.push(c),
-        c => s.push_str(&format!("\\u{:04x}", c as u32)),
+        c => {
+            let _ = write!(s, "\\u{:04x}", c as u32);
+        }
     }
     s.push('"');
     s

@@ -35,6 +35,7 @@ pub const ADDR_SYMBOLS: usize = 32 * 2;
 pub const MAX_SEARCH_CHARS: usize = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK as usize;
 
 #[inline]
+#[must_use]
 pub fn alphabet(alphabet_id: u32) -> &'static [u8] {
     match alphabet_id {
         25 => ALPHABET_BORGES,

@@ -53,7 +53,13 @@ pub fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, al
     }
 }
 
-pub fn pack_page_address(universe_seed: u64, z: i64, n: i64, book_index: u32, page: u32) -> [u8; 32] {
+pub fn pack_page_address(
+    universe_seed: u64,
+    z: i64,
+    n: i64,
+    book_index: u32,
+    page: u32,
+) -> [u8; 32] {
     let mut p = [0u8; 32];
     p[0..8].copy_from_slice(&universe_seed.to_le_bytes());
     p[8..16].copy_from_slice(&z.to_le_bytes());
@@ -69,8 +75,7 @@ pub fn unpack_page_address(packed: &[u8; 32]) -> (u64, i64, i64, u32, u32) {
     let universe_seed = u64::from_le_bytes(packed[0..8].try_into().unwrap());
     let z = i64::from_le_bytes(packed[8..16].try_into().unwrap());
     let n = i64::from_le_bytes(packed[16..24].try_into().unwrap());
-    let book_index =
-        u32::from_le_bytes(packed[24..28].try_into().unwrap()) % BOOKS_PER_GALLERY;
+    let book_index = u32::from_le_bytes(packed[24..28].try_into().unwrap()) % BOOKS_PER_GALLERY;
     let page = u32::from_le_bytes(packed[28..32].try_into().unwrap()) % PAGES_PER_BOOK;
     (universe_seed, z, n, book_index, page)
 }
@@ -107,12 +112,12 @@ pub fn plaintext_from_address(
     h.update(&page.to_le_bytes());
     let mut xof = h.finalize_xof();
     let mut buf = [0u8; 32];
-    for i in ADDR_SYMBOLS..PAGE_CONTENT_SYMBOLS {
+    for (i, slot) in state.iter_mut().enumerate().skip(ADDR_SYMBOLS) {
         let off = (i - ADDR_SYMBOLS) % 32;
         if off == 0 {
             xof.fill(&mut buf);
         }
-        state[i] = buf[off] % alpha_len;
+        *slot = buf[off] % alpha_len;
     }
     state
 }

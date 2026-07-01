@@ -1,24 +1,31 @@
 //! Gallery seeds, fingerprints, titles, and lattice navigation.
 
-use crate::config::{alphabet, BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL};
+use crate::config::{
+    alphabet, BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL,
+};
 use crate::prng::{book_title, mix2, splitmix64};
 
 /// Seed for the gallery at coordinate `(z, n)` within an alphabet + universe.
 #[inline]
-pub fn gallery_seed(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> u64 {
-    let s = mix2(z as u64, n as u64);
-    let v = splitmix64(s ^ (GENERATOR_VERSION as u64).wrapping_mul(0xA5A5_5A5A_F0F0_0F0F));
-    let a = splitmix64(v ^ (alphabet_id as u64).wrapping_mul(0x9E37_79B1_85EB_CA87));
-    splitmix64(a ^ universe_seed.wrapping_mul(0xC2B2_AE3D_27D4_EB4F))
+#[must_use]
+pub fn gallery_seed(z_coord: i64, n_coord: i64, alphabet_id: u32, universe_seed: u64) -> u64 {
+    let coord_mix = mix2(z_coord as u64, n_coord as u64);
+    let version_mix =
+        splitmix64(coord_mix ^ (GENERATOR_VERSION as u64).wrapping_mul(0xA5A5_5A5A_F0F0_0F0F));
+    let alphabet_mix =
+        splitmix64(version_mix ^ (alphabet_id as u64).wrapping_mul(0x9E37_79B1_85EB_CA87));
+    splitmix64(alphabet_mix ^ universe_seed.wrapping_mul(0xC2B2_AE3D_27D4_EB4F))
 }
 
 /// Seed for one book, addressed within a gallery by its flat shelf index.
 #[inline]
+#[must_use]
 pub fn book_seed(gallery_seed: u64, book_index: u32) -> u64 {
     mix2(gallery_seed, book_index as u64)
 }
 
 /// The 700 spine titles for a gallery, in shelf order.
+#[must_use]
 pub fn gallery_titles(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> Vec<String> {
     let gs = gallery_seed(z, n, alphabet_id, universe_seed);
     let ab = alphabet(alphabet_id);
@@ -28,6 +35,7 @@ pub fn gallery_titles(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> V
 }
 
 /// BLAKE3 (256-bit) fingerprint over the canonical 700 book identities.
+#[must_use]
 pub fn node_hash_bytes(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> [u8; 32] {
     let gs = gallery_seed(z, n, alphabet_id, universe_seed);
     let mut h = blake3::Hasher::new();
@@ -44,12 +52,16 @@ pub fn node_hash_bytes(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> 
 }
 
 /// 64-bit prefix of the full fingerprint — compact header hash and palette seed.
+#[must_use]
 pub fn node_fingerprint(z: i64, n: i64, alphabet_id: u32, universe_seed: u64) -> u64 {
-    let b = node_hash_bytes(z, n, alphabet_id, universe_seed);
-    u64::from_be_bytes(b[..8].try_into().unwrap())
+    let hash = node_hash_bytes(z, n, alphabet_id, universe_seed);
+    let mut prefix = [0u8; 8];
+    prefix.copy_from_slice(&hash[0..8]);
+    u64::from_be_bytes(prefix)
 }
 
 #[inline]
+#[must_use]
 pub fn book_index_to_shelf(book_index: u32) -> (u32, u32, u32) {
     let per_wall = SHELVES_PER_WALL * BOOKS_PER_SHELF;
     let wall = book_index / per_wall;
@@ -60,6 +72,7 @@ pub fn book_index_to_shelf(book_index: u32) -> (u32, u32, u32) {
 }
 
 /// Returns the neighbor coordinate for a move: 0=left, 1=right, 2=up, 3=down.
+#[must_use]
 pub fn neighbor(z: i64, n: i64, mv: u8) -> (i64, i64) {
     match mv {
         0 => (z, n - 1),

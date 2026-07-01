@@ -1,8 +1,8 @@
-//! SplitMix64 mixer and deterministic symbol stream.
+//! `SplitMix64` mixer and deterministic symbol stream.
 
 use crate::config::TITLE_LEN;
 
-/// SplitMix64 — small, fast, deterministic. Used as both mixer and PRNG step.
+/// `SplitMix64` — small, fast, deterministic. Used as both mixer and PRNG step.
 #[inline]
 pub fn splitmix64(mut x: u64) -> u64 {
     x = x.wrapping_add(0x9E37_79B9_7F4A_7C15);

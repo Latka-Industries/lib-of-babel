@@ -25,7 +25,7 @@ pub use gallery::{
     book_index_to_shelf, book_seed, gallery_seed, gallery_titles, neighbor, node_fingerprint,
     node_hash_bytes,
 };
-pub use page::{book_text, page_text, page_symbols};
+pub use page::{book_text, page_symbols, page_text, PageAddr, PageRender};
 pub use search::{
     locate_page, search_offset, search_page_segment, search_page_span, text_to_symbols,
     LocateError, LocateResult, PageLocation,
@@ -40,6 +40,7 @@ mod tests {
         feistel_decrypt, feistel_encrypt, feistel_key, pack_page_address, plaintext_from_address,
         unpack_page_address,
     };
+    use crate::page::{PageAddr, PageRender};
     use crate::search::LocateError;
 
     #[test]
@@ -50,7 +51,10 @@ mod tests {
 
     #[test]
     fn gallery_has_700_books() {
-        assert_eq!(gallery_titles(0, 0, 29, 0).len(), BOOKS_PER_GALLERY as usize);
+        assert_eq!(
+            gallery_titles(0, 0, 29, 0).len(),
+            BOOKS_PER_GALLERY as usize
+        );
         assert_eq!(BOOKS_PER_GALLERY, 700);
     }
 
@@ -101,7 +105,10 @@ mod tests {
         assert_eq!(universe_seed_for("borges"), universe_seed_for("  borges  "));
         assert_ne!(universe_seed_for("borges"), universe_seed_for("babel"));
         assert_ne!(universe_seed_for("borges"), 0);
-        assert_eq!(universe_seed_for("0xdeadbeefcafebabe"), 0xDEAD_BEEF_CAFE_BABE);
+        assert_eq!(
+            universe_seed_for("0xdeadbeefcafebabe"),
+            0xDEAD_BEEF_CAFE_BABE
+        );
     }
 
     #[test]
@@ -157,8 +164,12 @@ mod tests {
     #[test]
     fn books_in_gallery_differ_substantially() {
         let flat = |s: &str| s.chars().filter(|c| *c != '\n').collect::<String>();
-        let a = flat(&page_text(0, 0, 0, 0, 29, 0, None, None));
-        let b = flat(&page_text(0, 0, 1, 0, 29, 0, None, None));
+        let a = flat(&page_text(&PageRender::new(PageAddr::new(
+            0, 0, 0, 0, 29, 0,
+        ))));
+        let b = flat(&page_text(&PageRender::new(PageAddr::new(
+            0, 0, 1, 0, 29, 0,
+        ))));
         let diff = a.chars().zip(b.chars()).filter(|(x, y)| x != y).count();
         assert!(diff > 1000, "only {diff} chars differ between book 0 and 1");
     }
@@ -221,26 +232,27 @@ mod tests {
         assert_eq!(res.page_span, 2);
         assert_eq!(res.char_count, 4000);
         let loc = res.location;
-        let hit = Some(loc.page);
         let p0 = page_text(
-            loc.z,
-            loc.n,
-            loc.book_index,
-            loc.page,
-            29,
-            loc.universe_seed,
-            Some(&phrase),
-            hit,
+            &PageRender::new(PageAddr::new(
+                loc.z,
+                loc.n,
+                loc.book_index,
+                loc.page,
+                29,
+                loc.universe_seed,
+            ))
+            .with_search(&phrase, loc.page),
         );
         let p1 = page_text(
-            loc.z,
-            loc.n,
-            loc.book_index,
-            loc.page + 1,
-            29,
-            loc.universe_seed,
-            Some(&phrase),
-            hit,
+            &PageRender::new(PageAddr::new(
+                loc.z,
+                loc.n,
+                loc.book_index,
+                loc.page + 1,
+                29,
+                loc.universe_seed,
+            ))
+            .with_search(&phrase, loc.page),
         );
         let flat0: String = p0.chars().filter(|c| *c != '\n').collect();
         let flat1: String = p1.chars().filter(|c| *c != '\n').collect();
@@ -255,14 +267,15 @@ mod tests {
         let phrase = "sit on a pan otis";
         let loc = locate_page(phrase, 29, 0).expect("locate").location;
         let page = page_text(
-            loc.z,
-            loc.n,
-            loc.book_index,
-            loc.page,
-            29,
-            loc.universe_seed,
-            Some(phrase),
-            Some(loc.page),
+            &PageRender::new(PageAddr::new(
+                loc.z,
+                loc.n,
+                loc.book_index,
+                loc.page,
+                29,
+                loc.universe_seed,
+            ))
+            .with_search(phrase, loc.page),
         );
         let flat: String = page.chars().filter(|c| *c != '\n').collect();
         let off = search_offset(phrase, phrase.len());

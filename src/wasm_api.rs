@@ -1,12 +1,14 @@
 //! WASM exports — JSON strings and thin wrappers over the pure generator core.
 
+use core::fmt::Write;
+
 use wasm_bindgen::prelude::*;
 
 use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION};
 use crate::gallery::{
     book_index_to_shelf, gallery_titles, neighbor, node_fingerprint, node_hash_bytes,
 };
-use crate::page::{book_text, page_text};
+use crate::page::{book_text, page_text, PageAddr, PageRender};
 use crate::search::{
     json_char_literal, locate_page, normalize_query, search_page_segment, search_page_span,
     LocateError,
@@ -14,16 +16,19 @@ use crate::search::{
 use crate::universe::{self, universe as active_universe};
 
 #[wasm_bindgen]
+#[must_use]
 pub fn generator_version() -> u32 {
     GENERATOR_VERSION
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn books_per_gallery() -> u32 {
     BOOKS_PER_GALLERY
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn default_alphabet() -> u32 {
     DEFAULT_ALPHABET
 }
@@ -34,16 +39,19 @@ pub fn set_universe(universe_seed: u64) {
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn get_universe() -> u64 {
     universe::get_universe()
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn universe_seed_for(name: &str) -> u64 {
     universe::universe_seed_for(name)
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
     let titles = gallery_titles(z, n, alphabet_id, active_universe());
     let mut s = String::from("[");
@@ -60,26 +68,33 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32) -> String {
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn node_hash_hex(z: i64, n: i64, alphabet_id: u32) -> String {
-    format!("{:016x}", node_fingerprint(z, n, alphabet_id, active_universe()))
+    format!(
+        "{:016x}",
+        node_fingerprint(z, n, alphabet_id, active_universe())
+    )
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn node_hash_full_hex(z: i64, n: i64, alphabet_id: u32) -> String {
     let b = node_hash_bytes(z, n, alphabet_id, active_universe());
     let mut s = String::with_capacity(64);
     for byte in b {
-        s.push_str(&format!("{byte:02x}"));
+        let _ = write!(s, "{byte:02x}");
     }
     s
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> String {
     book_text(z, n, book_index, alphabet_id, active_universe())
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn page_text_for(
     z: i64,
     n: i64,
@@ -99,24 +114,28 @@ pub fn page_text_for(
     } else {
         Some(search_start_page as u32)
     };
-    page_text(
+    let mut req = PageRender::new(PageAddr::new(
         z,
         n,
         book_index,
         page,
         alphabet_id,
         active_universe(),
-        q,
-        hit_start,
-    )
+    ));
+    if let (Some(full), Some(start)) = (q, hit_start) {
+        req = req.with_search(full, start);
+    }
+    page_text(&req)
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn search_page_span_for(text: &str) -> u32 {
     search_page_span(&normalize_query(text))
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
     let flat = normalize_query(text);
     search_page_segment(&flat, page_in_span)
@@ -125,6 +144,7 @@ pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
     match locate_page(text, alphabet_id, active_universe()) {
         Ok(res) => {
@@ -160,8 +180,7 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
                 .collect::<Vec<_>>()
                 .join(",");
             format!(
-                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{}]}}"#,
-                invalid_json
+                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{invalid_json}]}}"#
             )
         }
         Err(LocateError::Message(e)) => {
@@ -171,7 +190,8 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
     let (nz, nn) = neighbor(z, n, mv);
-    format!("[{},{}]", nz, nn)
+    format!("[{nz},{nn}]")
 }
