@@ -1,7 +1,7 @@
 // Rendering: the gallery walls, the hexagon minimap, and the history window.
 
 import { S, isLastPickedUp } from "./state.js";
-import { el, copyText, hueFromString, neighbor, leadingZeroBits, trailEntryBits, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel } from "./util.js";
+import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -13,7 +13,6 @@ import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
 import { titleEmbedFlat } from "./search.js";
 import { sigilSvg } from "./sigil.js";
-import { rarityTier, tierColor } from "./find.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 
@@ -33,8 +32,7 @@ function renderMinimap(curHash, accentHue) {
     <svg viewBox="0 0 220 222" width="100%">
       <polygon points="${hex}" fill="rgba(255,255,255,0.025)"
         stroke="${accent}" stroke-width="1.5"/>
-      <text x="110" y="105" text-anchor="middle" font-size="9" fill="#6f6a5e">(${S.z}, ${S.n})</text>
-      <text x="110" y="119" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
+      <text x="110" y="112" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
       <g id="mm-2" class="mm-exit"><text x="110" y="15" text-anchor="middle" font-size="11" fill="${up.color}">▲ ${up.h.slice(0, 6)}</text></g>
       <g id="mm-3" class="mm-exit"><text x="110" y="213" text-anchor="middle" font-size="11" fill="${down.color}">▼ ${down.h.slice(0, 6)}</text></g>
       <g id="mm-0" class="mm-exit"><text x="3" y="114" text-anchor="start" font-size="11" fill="${left.color}">◁ ${left.h.slice(0, 6)}</text></g>
@@ -56,16 +54,6 @@ export function render() {
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, S.trail.length - 1));
-
-  // rarity = leading zero bits of the hash (proof-of-find). Colour by tier.
-  const bits = leadingZeroBits(hash);
-  const tier = rarityTier(bits);
-  const rarityEl = el("rarity");
-  rarityEl.textContent = `${bits} bits · ${tier.name}`;
-  rarityEl.style.setProperty(
-    "--tier",
-    tier.dim ? "var(--muted)" : `hsl(${tier.hue} 75% 62%)`,
-  );
 
   syncUrl();
 
@@ -142,19 +130,14 @@ export function renderHistory() {
   for (let i = win.length - 1; i >= 0; i--) {
     const e = win[i];
     const isCurrent = i === win.length - 1;
-    const bits = trailEntryBits(e);
-    const tier = rarityTier(bits);
-    const color = tierColor(tier);
     const row = document.createElement("div");
     row.className = "hrow" + (isCurrent ? " current" : "");
-    if (!tier.dim) row.classList.add("hrow-rare");
     row.innerHTML =
       `<span class="step">${startIdx + i}</span>` +
       `<span class="coord">(${e.z}, ${e.n})</span>` +
-      `<span class="rarity" style="color:${color}" title="${bits} leading zero bits">${tier.dim ? `${bits}b` : tier.name}</span>` +
-      `<span class="move">${MOVE_ARROW[e.move]}</span>` +
+      `<span class="move">${MOVE_ARROW[e.move] ?? e.move}</span>` +
       `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
-    row.title = `gallery (${e.z}, ${e.n}) — ${bits} bits · ${tier.name} — ${e.hash}`;
+    row.title = `gallery (${e.z}, ${e.n}) — ${e.hash}`;
     row.addEventListener("click", () => {
       S.z = BigInt(e.z);
       S.n = BigInt(e.n);

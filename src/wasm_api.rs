@@ -263,9 +263,3 @@ pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
     format!("[{nz},{nn}]")
 }
 
-#[wasm_bindgen]
-#[must_use]
-/// Scan random galleries for leading-zero rarity; JSON `{ best, scanned }`.
-pub fn prospect_batch_json(samples: u32, seed: u64, start_index: u64, alphabet_id: u32) -> String {
-    crate::prospect::prospect_batch_json(samples, seed, start_index, alphabet_id, active_universe())
-}
