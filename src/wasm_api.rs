@@ -208,6 +208,10 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
 #[wasm_bindgen]
 #[must_use]
 /// Max spine-title length (characters).
+///
+/// # Panics
+///
+/// Panics if [`crate::config::TITLE_LEN`] exceeds `u32::MAX`.
 pub fn max_title_len() -> u32 {
     u32::try_from(crate::config::TITLE_LEN).expect("TITLE_LEN fits in u32")
 }
@@ -261,11 +265,4 @@ pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
 pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
     let (nz, nn) = neighbor(z, n, mv);
     format!("[{nz},{nn}]")
-}
-
-#[wasm_bindgen]
-#[must_use]
-/// Scan random galleries for leading-zero rarity; JSON `{ best, scanned }`.
-pub fn prospect_batch_json(samples: u32, seed: u64, start_index: u64, alphabet_id: u32) -> String {
-    crate::prospect::prospect_batch_json(samples, seed, start_index, alphabet_id, active_universe())
 }

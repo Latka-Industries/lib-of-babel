@@ -6,7 +6,7 @@
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { el, copyText, trailEntryBits, escapeHtml, downloadBlob, wireModalCloses, wireActionMenu, wireEnter, openModal, formatUniverseLabel, findActionRow, wireFindActions, validateSearchQuery } from "./js/util.js";
+import { el, copyText, escapeHtml, downloadBlob, wireModalCloses, wireActionMenu, wireEnter, openModal, formatUniverseLabel, validateSearchQuery } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
   S,
@@ -14,28 +14,11 @@ import {
   randomUniverseName,
   persist,
   markLastPickedUp,
-  setOnRecordStep,
-  syncUniverseToWasm,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
 import { step, jumpTo, exportJourney, newWalk, freshWalkHere, resetTrail } from "./js/nav.js";
 import { verifyJourney } from "./js/verify.js";
-import {
-  prospect,
-  getTrophies,
-  removeTrophy,
-  verifyClaim,
-  claimPermalink,
-  getFinder,
-  setFinder,
-  rarityOdds,
-  autoTrophy,
-  backfillTrophiesFromTrail,
-  formatProspectProgress,
-  formatTierDisplay,
-  TROPHY_MIN_BITS,
-} from "./js/find.js";
 import {
   openBook,
   renderBookPage,
@@ -51,7 +34,6 @@ import { locateText, locateTitle, renderSearchResult, syncSearchInput, syncSearc
 async function boot() {
   await init();
   S.gv = generator_version();
-  setOnRecordStep((z, n, bits) => autoTrophy(z, n, bits));
 
   const saved = await kvGet("journey");
   const savedOk =
@@ -93,15 +75,11 @@ async function boot() {
     S.n = BigInt(saved.current.n);
     S.trail = saved.trail;
     S.startedAt = saved.started_at || S.startedAt;
-    S.windowBuf = S.trail
-      .slice(-WINDOW_MAX)
-      .map((e) => ({
-        z: e.z,
-        n: e.n,
-        hash: e.hash,
-        bits: trailEntryBits(e),
-      }));
-    await backfillTrophiesFromTrail(S.trail);
+    S.windowBuf = S.trail.slice(-WINDOW_MAX).map((e) => ({
+      z: e.z,
+      n: e.n,
+      hash: e.hash,
+    }));
     render();
   } else {
     await newWalk();
@@ -152,139 +130,6 @@ function showVerify(r, fileName) {
     `<p class="verify-reason">${escapeHtml(r.reason)}</p>` +
     facts;
   openModal("verifyModal");
-}
-
-// ---- proof-of-find: prospecting + trophies --------------------------------
-let prospectAbort = null;
-
-function openProspect() {
-  el("prospectProgress").textContent = "";
-  el("prospectResult").classList.remove("show");
-  el("prospectCancel").hidden = true;
-  el("prospectDig").disabled = false;
-  el("prospectModal").showModal();
-}
-
-function renderProspectResult(best) {
-  const box = el("prospectResult");
-  if (!best) {
-    box.classList.remove("show");
-    return;
-  }
-  const { color, badgeHtml } = formatTierDisplay(best.bits);
-  box.innerHTML =
-    badgeHtml +
-    `<div class="find-big" style="color:${color}">${best.bits} leading zero bits</div>` +
-    `<div class="find-dim">gallery (${best.z}, ${best.n}) · hash ${best.hash} · ${rarityOdds(best.bits)}</div>` +
-    findActionRow([{ id: "go", label: "travel here" }]);
-  box.classList.add("show");
-  wireFindActions(box, {
-    go: () => {
-      jumpTo(best.z, best.n);
-      el("prospectModal").close();
-    },
-  });
-}
-
-async function runDig() {
-  const samples = Number(el("prospectCount").value);
-  const dig = el("prospectDig");
-  const cancel = el("prospectCancel");
-  prospectAbort?.abort();
-  prospectAbort = new AbortController();
-  const { signal } = prospectAbort;
-
-  dig.disabled = true;
-  cancel.hidden = false;
-  el("prospectResult").classList.remove("show");
-  syncUniverseToWasm();
-
-  const t0 = performance.now();
-  let result;
-  try {
-    result = await prospect({
-      samples,
-      signal,
-      onProgress: (done, total, best, meta) => {
-        el("prospectProgress").textContent = formatProspectProgress(
-          done,
-          total,
-          best,
-          { ...meta, t0 },
-        );
-      },
-    });
-  } catch (err) {
-    if (err.name !== "AbortError") throw err;
-    result = { best: null, scanned: 0, cancelled: true };
-  }
-
-  cancel.hidden = true;
-  dig.disabled = false;
-  prospectAbort = null;
-
-  if (result.cancelled) {
-    el("prospectProgress").textContent = `stopped at ${result.scanned.toLocaleString()} galleries`;
-  } else {
-    el("prospectProgress").textContent = `scanned ${result.scanned.toLocaleString()} galleries`;
-  }
-  renderProspectResult(result.best);
-}
-
-function cancelDig() {
-  prospectAbort?.abort();
-}
-
-// travel to a trophy that may live in another universe/alphabet: rebuild via
-// its permalink so boot restores the right library, then reload.
-function travelToClaim(c) {
-  const url = claimPermalink(c);
-  location.hash = url.slice(url.indexOf("#"));
-  location.reload();
-}
-
-async function renderTrophyList() {
-  const list = (await getTrophies())
-    .slice()
-    .sort((a, b) => b.bits - a.bits || b.found_at.localeCompare(a.found_at));
-  const box = el("trophyList");
-  if (!list.length) {
-    box.innerHTML =
-      `<div class="trophy-empty">No trophies yet. Walk into galleries with <b>${TROPHY_MIN_BITS}+</b> leading zero bits (uncommon or better) — they are saved automatically.</div>`;
-    return;
-  }
-  box.innerHTML = "";
-  for (const c of list) {
-    const v = verifyClaim(c);
-    const { color, badgeHtml } = formatTierDisplay(c.bits);
-    const safe = escapeHtml;
-    const row = document.createElement("div");
-    row.className = "trophy";
-    row.innerHTML =
-      badgeHtml +
-      `<b style="color:${color}">${c.bits} bits</b>` +
-      `<span class="coord">(${c.z}, ${c.n})</span>` +
-      `<small>${safe(formatUniverseLabel(c.universe))} · ${c.alphabet}-sym${c.finder ? ` · ${safe(c.finder)}` : ""}</small>` +
-      `<span class="grow"></span>` +
-      `<span class="${v.ok ? "ok" : "bad"}">${v.ok ? "✓ verified" : "✕ unverified"}</span>` +
-      `<button data-act="go">go</button>` +
-      `<button data-act="link">link</button>` +
-      `<button data-act="del">remove</button>`;
-    row.querySelector('[data-act="go"]').onclick = () => travelToClaim(c);
-    row.querySelector('[data-act="link"]').onclick = (e) =>
-      copyText(claimPermalink(c), e.currentTarget, "copied");
-    row.querySelector('[data-act="del"]').onclick = async () => {
-      await removeTrophy(c);
-      renderTrophyList();
-    };
-    box.appendChild(row);
-  }
-}
-
-async function openTrophies() {
-  el("finderHandle").value = await getFinder();
-  await renderTrophyList();
-  el("trophiesModal").showModal();
 }
 
 function openSearch() {
@@ -346,8 +191,6 @@ function wireControls() {
     ["closeAbout", "aboutModal"],
     ["closeJump", "jumpModal"],
     ["closeHistory", "historyModal"],
-    ["closeProspect", "prospectModal"],
-    ["closeTrophies", "trophiesModal"],
     ["closeSearch", "searchModal"],
     ["closeVerify", "verifyModal"],
     ["closeBook", "bookModal"],
@@ -390,15 +233,9 @@ function wireControls() {
     search: openSearch,
     export: exportJourney,
     verify: () => el("verifyFile").click(),
-    prospect: openProspect,
-    trophies: openTrophies,
     reset: newWalk,
   });
 
-  // proof-of-find: rarity badge opens the prospector; modals + claiming
-  el("rarity").addEventListener("click", openProspect);
-  el("prospectDig").addEventListener("click", runDig);
-  el("prospectCancel").addEventListener("click", cancelDig);
   el("searchFind").addEventListener("click", runSearch);
   el("searchKind").addEventListener("change", () => {
     el("searchResult").classList.remove("show");
@@ -414,7 +251,6 @@ function wireControls() {
   });
   el("searchInput").addEventListener("scroll", syncSearchBackdropScroll);
   wireEnter("searchInput", runSearch, { modKey: true });
-  el("finderHandle").addEventListener("change", (ev) => setFinder(ev.target.value));
 
   // verify journey: read an exported file, re-walk it in WASM, prove the hashes
   el("verifyFile").addEventListener("change", async (ev) => {
@@ -500,7 +336,7 @@ function wireControls() {
         turnPage(-1);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        turnPage(1);
+        turnPage(+1);
       }
       return;
     }
@@ -511,7 +347,7 @@ function wireControls() {
         stepAboutTab(-1);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        stepAboutTab(1);
+        stepAboutTab(+1);
       }
       return;
     }

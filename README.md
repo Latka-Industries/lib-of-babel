@@ -82,7 +82,7 @@ lib-of-babel/
 ├── web/                 static frontend: gallery + minimap + sigil, book reader, history, permalinks, export, verifier
 │   ├── index.html       layout + styles
 │   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · find · search
+│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · search
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -183,10 +183,9 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
-11. ✅ **Proof-of-find** — rarity = leading-zero bits of a gallery's BLAKE3 hash (proof-of-work). Prospect random galleries for rare hashes, claim self-verifying **trophies** (kept in IndexedDB), and share a permalink that proves the find to anyone. Free; no chain, no payout.
-12. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed (`generator_version` 6). Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
-13. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
-14. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
+11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed (`generator_version` 6). Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
+12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
+13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**
 
