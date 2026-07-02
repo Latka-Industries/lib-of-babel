@@ -208,6 +208,10 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
 #[wasm_bindgen]
 #[must_use]
 /// Max spine-title length (characters).
+///
+/// # Panics
+///
+/// Panics if [`crate::config::TITLE_LEN`] exceeds `u32::MAX`.
 pub fn max_title_len() -> u32 {
     u32::try_from(crate::config::TITLE_LEN).expect("TITLE_LEN fits in u32")
 }
