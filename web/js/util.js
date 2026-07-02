@@ -12,26 +12,6 @@ import {
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
-/** Count leading zero bits of a lowercase hex string (gallery hash prefix). */
-export function leadingZeroBits(hex) {
-  let bits = 0;
-  for (const ch of hex) {
-    const v = parseInt(ch, 16);
-    if (v === 0) {
-      bits += 4;
-      continue;
-    }
-    bits += v < 2 ? 3 : v < 4 ? 2 : v < 8 ? 1 : 0;
-    break;
-  }
-  return bits;
-}
-
-/** Bits for a trail entry — stored value or derived from hash prefix. */
-export function trailEntryBits(entry) {
-  return entry.bits ?? leadingZeroBits(entry.hash);
-}
-
 /** Escape text for safe HTML insertion. */
 export function escapeHtml(s) {
   return String(s)
@@ -248,7 +228,7 @@ export function openModal(id) {
   if (!dlg.open) dlg.showModal();
 }
 
-/** Action buttons for find/prospect result panels. */
+/** Action buttons for search result panels. */
 export function findActionRow(actions) {
   const html = actions
     .map((a) => `<button type="button" data-action="${a.id}">${a.label}</button>`)
