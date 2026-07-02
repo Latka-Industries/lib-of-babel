@@ -262,4 +262,3 @@ pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
     let (nz, nn) = neighbor(z, n, mv);
     format!("[{nz},{nn}]")
 }
-
