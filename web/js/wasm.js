@@ -18,5 +18,4 @@ export {
   set_universe,
   get_universe,
   universe_seed_for,
-  prospect_batch_json,
 } from "../pkg/lib_of_babel.js";
