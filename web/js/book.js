@@ -2,7 +2,14 @@
 // taking it home (full text, or the whole-book colour image from WASM).
 
 import { S } from "./state.js";
-import { el, oklchToHex, flattenSearchQuery, escapeHtml, downloadBlob } from "./util.js";
+import {
+  el,
+  oklchToHex,
+  flattenSearchQuery,
+  escapeHtml,
+  downloadBlob,
+  validateSearchQuery,
+} from "./util.js";
 import { PAGES_PER_BOOK, PAGE_CHARS, ALPHABETS } from "./constants.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
@@ -131,6 +138,24 @@ export function openBook(
   el("bookTitle").textContent = S.currentBook.title;
   if (!el("bookModal").open) el("bookModal").showModal();
   renderBookPage();
+}
+
+/**
+ * Re-open the current book under the live lens/universe.
+ * @param {"keep"|"clear"} highlightMode keep only if still valid for the alphabet
+ */
+export function reopenCurrentBook(highlightMode = "clear") {
+  if (!S.currentBook) return;
+  const b = S.currentBook;
+  let highlight = null;
+  let span = 1;
+  if (highlightMode === "keep" && b.searchHighlight) {
+    if (validateSearchQuery(b.searchHighlight, S.alphabetId).length === 0) {
+      highlight = b.searchHighlight;
+      span = b.searchPageSpan || 1;
+    }
+  }
+  openBook(b.index, null, b.page + 1, highlight, span);
 }
 
 export function renderBookPage() {

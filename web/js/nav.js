@@ -1,6 +1,6 @@
 // Movement across the lattice, big jumps, journey export, and a fresh walk.
 
-import { S, recordStep, persist } from "./state.js";
+import { S, recordStep, persist, journeySnapshot } from "./state.js";
 import { neighbor, randomCoord, clampI64, downloadBlob } from "./util.js";
 import { render } from "./view.js";
 
@@ -8,15 +8,8 @@ export function resetTrail({ randomCoords = false } = {}) {
   if (randomCoords) [S.z, S.n] = randomCoord();
   S.titleEmbed = null;
   S.trail = [];
-  S.windowBuf = [];
   S.startedAt = new Date().toISOString();
   recordStep(null);
-}
-
-export function freshWalkHere() {
-  resetTrail();
-  persist();
-  render();
 }
 
 export function step(move) {
@@ -45,22 +38,9 @@ export function jumpTo(zStr, nStr) {
 
 export function exportJourney() {
   downloadBlob(
-    new Blob(
-      [
-        JSON.stringify(
-          {
-            generator_version: S.gv,
-            universe: S.universeName,
-            alphabet: S.alphabetId,
-            started_at: S.startedAt,
-            trail: S.trail,
-          },
-          null,
-          2,
-        ),
-      ],
-      { type: "application/json" },
-    ),
+    new Blob([JSON.stringify(journeySnapshot(), null, 2)], {
+      type: "application/json",
+    }),
     `babel-journey-${Date.now()}.json`,
   );
 }

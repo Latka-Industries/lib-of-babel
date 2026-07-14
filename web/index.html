@@ -251,23 +251,27 @@
       }
       .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
       .hrow {
-        display: grid; grid-template-columns: 2.6rem 1fr 1.4rem auto 2rem;
-        align-items: center; gap: 0.6rem;
+        display: grid;
+        grid-template-columns: 2.6rem minmax(5rem, 1.2fr) 1.4rem minmax(4rem, 0.9fr) 2.4rem auto 2rem;
+        align-items: center; gap: 0.45rem;
         padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line);
         font-size: 12px; cursor: pointer; border-radius: 6px;
       }
       .hrow .copy {
         padding: 0.1rem 0.35rem; font-size: 11px; line-height: 1.4;
-        opacity: 0.55;
+        opacity: 0.75;
       }
-      .hrow:hover .copy { opacity: 1; }
+      .hrow:hover .copy, .hrow .copy:focus { opacity: 1; }
       .hrow:last-child { border-bottom: none; }
       .hrow:hover { background: rgba(255,255,255,0.04); }
       .hrow.current { background: rgba(255,255,255,0.05); }
       .hrow .step { color: var(--muted); text-align: right; }
       .hrow .coord { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .hrow .move { text-align: center; color: var(--muted); }
-      .hrow .hh { font-variant-ligatures: none; }
+      .hrow .uni, .hrow .alpha {
+        color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .hrow .hh { font-variant-ligatures: none; white-space: nowrap; }
       .hrow .you { color: var(--accent); }
       dialog {
         background: var(--panel); color: var(--ink);
@@ -395,7 +399,7 @@
         <div id="walls" class="walls"><div class="loading">summoning the wasm…</div></div>
       </div>
       <div class="footer">
-        <button id="historyBtn" class="history-btn">window · last 0/50</button>
+        <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
         <span id="trailNote" class="dim"></span>
       </div>
     </main>
@@ -430,7 +434,8 @@
           <ul>
             <li>
               <b>Universe</b> — parallel infinite libraries. Name one in the header (blank =
-              default). Same room numbers, wholly different books. Travelling resets your walk.
+              default). Same room numbers, wholly different books. Your wanderings keep
+              going across universes.
             </li>
             <li>
               <b>Room</b> — <b>gallery (z,&nbsp;n)</b> plus its <b>hash</b> and <b>sigil</b>.
@@ -458,11 +463,11 @@
             <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
             <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
             <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
-            <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. This starts a fresh walk in that library.</li>
+            <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
             <li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay. Try flipping it while a book is open.</li>
             <li><b>actions&hellip;</b> &rarr; <b>copy link</b> (or click the header <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
             <li><b>actions&hellip;</b> &rarr; <b>search&hellip;</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
-            <li><b>window &middot; last 50</b> (footer) revisits recent galleries; <b>export journey</b> saves the full path as JSON.</li>
+            <li><b>wanderings</b> (footer, last <span data-window-max>500</span>) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
           </ul>
         </div>
 
@@ -496,10 +501,10 @@
             <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is the room's
             <b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
             universe. It does <b>not</b> change when you switch alphabet; the lens only
-            rewrites what the shelves say. Your last 50 galleries sit in the history window;
-            every step's room hash is kept in the full trail (plus which lens you were
-            using). <b>actions&hellip;</b> also offers <b>verify journey</b> and
-            <b>new walk</b>.
+            rewrites what the shelves say. <b>Wanderings</b> keeps your last
+            <span data-window-max>500</span> steps (universe + alphabet lens frozen per visit);
+            every step's room hash lives in the full trail. <b>actions&hellip;</b> also
+            offers <b>verify journey</b> and <b>new walk</b>.
           </p>
 
           <h4>Search by content</h4>
@@ -528,7 +533,7 @@
     <dialog id="historyModal">
       <div class="book-head">
         <div>
-          <h3>your window</h3>
+          <h3>wanderings</h3>
           <small id="historyMeta"></small>
         </div>
         <button id="closeHistory">close</button>

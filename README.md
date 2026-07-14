@@ -34,7 +34,7 @@ Canonical dimensions we honor:
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
 | **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
 | **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
-| **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
+| **History** | Bounded **wanderings** (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. |
 | **Alphabet** | View lens (Borges 25 / Basile 29): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. |
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
@@ -173,7 +173,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 1. ✅ **Generator core (Rust→WASM)** — `(z,n)` → gallery seed → 700 book spines; lazy book text; node hash; frozen `generator_version`.
 2. ✅ **The walk** — 4 walls / shelves / color-coded spines, four move controls, keyboard nav, random start.
 3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
-4. ✅ **History + export** — 50-node window popup (newest-first, click to revisit), append-on-step trail in IndexedDB, JSON export.
+4. ✅ **Wanderings + export** — last-500 popup (newest-first; universe + alphabet columns), append-on-step trail in IndexedDB, JSON export.
 5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
 6. ✅ **Alphabets** — selectable Borges 25 / Basile 29; carried in permalinks (`&a=`) and exports.
 
