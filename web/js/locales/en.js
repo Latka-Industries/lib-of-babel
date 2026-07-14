@@ -154,6 +154,28 @@ label, not a page of text.
     "uses the current alphabet lens · up to ~1.3M characters (one book)",
   "search.hintTitle":
     "uses the current alphabet lens · up to {n} characters (spine title)",
+  "search.go": "go there",
+  "search.result.gallery": "gallery ({z}, {n})",
+  "search.result.coords":
+    "universe {universe} · wall {wall} · shelf {shelf} · book {book} · {detail}",
+  "search.result.page": "page {n}",
+  "search.result.pages": "pages {start}–{end}",
+  "search.result.chars": "{n} chars",
+  "search.result.detailContent": "{pages} · {chars} · alphabet {alphabet}",
+  "search.result.detailTitle": "title {query} · {chars} · alphabet {alphabet}",
+  "search.error.invalid":
+    "invalid character for this alphabet ({alphabet} only): {shown}",
+  "search.error.invalidPlural":
+    "invalid characters for this alphabet ({alphabet} only): {shown}",
+  "search.error.invalidGeneric": "invalid characters for this alphabet",
+  "search.error.moreKinds": " (+{n} more kinds)",
+  "search.error.empty": "search text is empty",
+  "search.error.tooLong": "text too long (max {n} characters — one book)",
+  "search.error.titleTooLong": "title too long (max {n} characters)",
+  "search.error.pageRoom":
+    "text needs {need} pages but only {room} remain in this book — try a shorter phrase",
+  "search.error.badResponse": "invalid response from generator",
+  "search.error.unknown": "search failed",
 
   "jump.title": "jump to a gallery",
   "jump.subtitle":

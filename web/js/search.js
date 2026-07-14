@@ -2,8 +2,8 @@
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
 import { S, applyUniverseFromInput, syncLensControls } from "./state.js";
-import { alphabetDescription, TITLE_LEN, formatAlphabetSymbolLabel } from "./constants.js";
-import { t } from "./i18n.js";
+import { TITLE_LEN, formatAlphabetSymbolLabel } from "./constants.js";
+import { t, getLocale } from "./i18n.js";
 import {
   el,
   copyText,
@@ -32,11 +32,38 @@ function formatInvalidMessage(invalid, alphabetId = S.alphabetId) {
       unique.push(ch);
     }
   }
-  const shown = unique.slice(0, 8).map((ch) => `"${ch}"`).join(", ");
-  const suffix =
-    unique.length > 8 ? ` (+${unique.length - 8} more kinds)` : "";
-  const allowed = alphabetDescription(alphabetId);
-  return `invalid character${invalid.length > 1 ? "s" : ""} for this alphabet (${allowed} only): ${shown}${suffix}`;
+  let shown = unique.slice(0, 8).map((ch) => `"${ch}"`).join(", ");
+  if (unique.length > 8) {
+    shown += t("search.error.moreKinds", { n: unique.length - 8 });
+  }
+  const key =
+    invalid.length > 1 ? "search.error.invalidPlural" : "search.error.invalid";
+  return t(key, {
+    alphabet: formatAlphabetSymbolLabel(alphabetId, t),
+    shown,
+  });
+}
+
+/** Map English WASM / client locate errors into the active UI locale. */
+function localizeLocateError(error) {
+  if (!error) return t("search.error.unknown");
+  if (error === "search text is empty") return t("search.error.empty");
+  if (error === "invalid characters for this alphabet") {
+    return t("search.error.invalidGeneric");
+  }
+  if (error === "invalid response from generator") {
+    return t("search.error.badResponse");
+  }
+  let m = /^text too long \(max (\d+) characters — one book\)$/.exec(error);
+  if (m) return t("search.error.tooLong", { n: m[1] });
+  m = /^title too long \(max (\d+) characters\)$/.exec(error);
+  if (m) return t("search.error.titleTooLong", { n: m[1] });
+  m =
+    /^text needs (\d+) pages but only (\d+) remain in this book — try a shorter phrase$/.exec(
+      error,
+    );
+  if (m) return t("search.error.pageRoom", { need: m[1], room: m[2] });
+  return error;
 }
 
 /** Normalized title embed for the current gallery, if any. */
@@ -81,7 +108,7 @@ export function parseLocateResult(jsonStr) {
   try {
     return JSON.parse(jsonStr);
   } catch {
-    return { ok: false, error: "invalid response from generator" };
+    return { ok: false, error: t("search.error.badResponse") };
   }
 }
 
@@ -150,6 +177,8 @@ function locateWith(jsonFn, text, alphabetId = S.alphabetId) {
     if (wasmInvalid.length) {
       renderSearchHighlights(wasmInvalid);
       result.error = formatInvalidMessage(wasmInvalid, alphabetId);
+    } else if (result.error) {
+      result.error = localizeLocateError(result.error);
     }
   }
   return result;
@@ -192,7 +221,10 @@ export function renderSearchResult(result, box, kind = "content") {
   if (!result.ok) {
     const invalid = invalidFromResult(result);
     if (invalid.length) renderSearchHighlights(invalid);
-    box.innerHTML = `<p class="find-dim search-error">${escapeHtml(result.error)}</p>`;
+    const msg = invalid.length
+      ? result.error
+      : localizeLocateError(result.error);
+    box.innerHTML = `<p class="find-dim search-error">${escapeHtml(msg)}</p>`;
     box.classList.add("show");
     return;
   }
@@ -200,26 +232,46 @@ export function renderSearchResult(result, box, kind = "content") {
   clearSearchHighlights();
   const safe = escapeHtml;
   const query = syncSearchInput();
-  const charLabel = `${Number(result.char_count).toLocaleString()} chars`;
+  const charLabel = t("search.result.chars", {
+    n: Number(result.char_count).toLocaleString(getLocale()),
+  });
+  const alphabet = formatAlphabetSymbolLabel(result.alphabet, t);
+  const pages =
+    result.page_span > 1
+      ? t("search.result.pages", {
+          start: result.page,
+          end: result.page_end,
+        })
+      : t("search.result.page", { n: result.page });
   const detail =
     kind === "title"
-      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet, t)}`
-      : `${
-          result.page_span > 1
-            ? `pages ${result.page}–${result.page_end}`
-            : `page ${result.page}`
-        } · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet, t)}`;
+      ? t("search.result.detailTitle", {
+          query: `<b>${safe(query)}</b>`,
+          chars: charLabel,
+          alphabet,
+        })
+      : t("search.result.detailContent", {
+          pages,
+          chars: charLabel,
+          alphabet,
+        });
 
   box.innerHTML =
-    `<div class="find-big">gallery (${safe(result.z)}, ${safe(result.n)})</div>` +
+    `<div class="find-big">${safe(
+      t("search.result.gallery", { z: result.z, n: result.n }),
+    )}</div>` +
     `<div class="find-dim">` +
-    `universe <b>${safe(formatUniverseLabel(S.universeName))}</b> · ` +
-    `wall ${result.wall} · shelf ${result.shelf} · book ${result.book_on_shelf} · ` +
-    detail +
+    t("search.result.coords", {
+      universe: `<b>${safe(formatUniverseLabel(S.universeName))}</b>`,
+      wall: result.wall,
+      shelf: result.shelf,
+      book: result.book_on_shelf,
+      detail,
+    }) +
     `</div>` +
     findActionRow([
-      { id: "go", label: "go there" },
-      { id: "link", label: "copy link" },
+      { id: "go", label: t("search.go") },
+      { id: "link", label: t("actions.copy") },
     ]);
   box.classList.add("show");
 
