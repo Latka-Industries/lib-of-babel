@@ -23,9 +23,21 @@ import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
 import { titleEmbedFlat } from "./search.js";
 import { sigilSvg } from "./sigil.js";
+import { setAccentFavicon } from "./favicon.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 import { t } from "./i18n.js";
+
+/** Spine glyphs for the live `--book-h` — dense type, generous so titles aren’t over-cut. */
+function spineCharBudget() {
+  const h =
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--book-h"),
+    ) || 52;
+  const fontPx = Math.min(8, Math.max(6.5, h * 0.088));
+  // Generous vs exact glyph height — prefer more title over empty spine.
+  return Math.max(10, Math.min(22, Math.round((h - 2) / (fontPx * 0.78))));
+}
 
 // Hexagon minimap: current gallery in the middle, the hash awaiting down each
 // of the four exits (two hallways + stairs up/down). Click an exit to walk it.
@@ -78,12 +90,19 @@ export function render() {
     "--accent",
     `hsl(${S.accentHue} 70% 58%)`,
   );
+  setAccentFavicon(S.accentHue);
 
   el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
   renderMinimap(hash, S.accentHue);
 
   const wallsEl = el("walls");
   wallsEl.innerHTML = "";
+  const spineHint = el("spineHint");
+  if (spineHint) {
+    spineHint.hidden = true;
+    spineHint.textContent = "";
+  }
+  const spineBudget = spineCharBudget();
   let idx = 0;
   for (let w = 0; w < WALLS; w++) {
     const wall = document.createElement("div");
@@ -106,17 +125,32 @@ export function render() {
         book.title = title;
         book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
         // Spine stub: letters/digits from any script (not ASCII a–z only — Greek/Cyrillic
-        // titles would otherwise render blank).
+        // titles would otherwise render blank). Cap to what `--book-h` can show.
         book.textContent = [...title]
           .filter((ch) => /\p{L}|\p{N}/u.test(ch))
-          .slice(0, 6)
+          .slice(0, spineBudget)
           .join("")
           .toLocaleUpperCase();
         book.addEventListener("mouseenter", () => {
-          h.textContent = t("book.wallBook", { n: wallNum, book: bookIndex + 1 });
+          const label = t("book.wallBook", {
+            n: wallNum,
+            book: bookIndex + 1,
+            title,
+          });
+          h.textContent = label;
+          const hint = el("spineHint");
+          if (hint) {
+            hint.textContent = label;
+            hint.hidden = false;
+          }
         });
         book.addEventListener("mouseleave", () => {
           h.textContent = h.dataset.wallLabel;
+          const hint = el("spineHint");
+          if (hint) {
+            hint.textContent = "";
+            hint.hidden = true;
+          }
         });
         book.addEventListener("click", () => openBook(bookIndex, title));
         shelf.appendChild(book);

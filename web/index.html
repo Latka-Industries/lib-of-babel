@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <!-- SVG link is swapped to a data-URI with the gallery accent after boot; files stay as cold fallbacks. -->
+    <link id="faviconSvg" rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
     <title>lib-of-babel</title>
     <style>
@@ -30,36 +31,104 @@
       }
       :root {
         color-scheme: dark;
-        --bg: #0b0b0d;
-        --panel: #141318;
+        /* Flat fills (inputs/chrome). Page atmosphere is layered on body. */
+        --bg: #100e14;
+        --bg-deep: #07060a;
+        --panel: #16141c;
         --ink: #d8d4c8;
         --muted: #6f6a5e;
         --accent: #c9a227;
         /* Links: same gold family, lifted so they don’t collide with UI accents. */
         --accent-link: color-mix(in oklab, var(--accent) 68%, white);
         --accent-link-hover: color-mix(in oklab, var(--accent) 42%, white);
-        --line: #2a2832;
+        --line: #2c2934;
         --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
         --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+        --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
+        /* Page: corner accent washes. Dialogs: flat accent tint (no corners). */
+        --atmosphere-page: 14%;
+        --atmosphere-dialog: 8%;
+        /*
+          Book spine height grows with viewport but stays one-screen when possible:
+          10 shelf rows (2 wall rows × 5) share leftover height after header/footer/
+          wall titles/gaps (~17rem). Cap keeps tall monitors from forcing scroll.
+         */
+        --book-h: clamp(48px, calc((100dvh - 17rem) / 10 - 0.4rem), 86px);
+        /* Spine thickness: thinner on narrow viewports, a bit wider when tall+wide. */
+        --book-w: clamp(12px, min(calc(var(--book-h) * 0.32), 1.55vw), 28px);
+        /* Content column widens on large screens; stays fluid (wraps) when small. */
+        --page-max: min(1760px, 96vw);
+        --atmosphere-corners-page:
+          radial-gradient(
+            circle at 0% 0%,
+            color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 100% 0%,
+            color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 0% 100%,
+            color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 100% 100%,
+            color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+            transparent 40%
+          );
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         font: 14px/1.5 var(--font);
-        background: var(--bg);
         color: var(--ink);
+        min-height: 100vh;
+        background-color: var(--bg-deep);
+        background-image:
+          var(--atmosphere-corners-page),
+          radial-gradient(
+            circle at 50% 50%,
+            var(--bg-deep) 0%,
+            var(--bg-deep) 28%,
+            transparent 58%
+          ),
+          var(--noise);
+        background-size: auto, auto, auto, auto, auto, 180px 180px;
+        background-attachment: fixed;
+      }
+      /* Even vignette — center reading lane, edges only (not top-weighted). */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          circle at 50% 50%,
+          transparent 30%,
+          rgba(0, 0, 0, 0.42) 100%
+        );
+      }
+      header,
+      main,
+      .footer {
+        position: relative;
+        z-index: 1;
       }
       header {
         position: sticky; top: 0; z-index: 5;
         padding: 0.75rem 0;
-        background: rgba(11,11,13,0.92);
+        background: color-mix(in oklab, var(--bg-deep) 55%, transparent);
         border-bottom: 1px solid var(--line);
-        backdrop-filter: blur(6px);
+        backdrop-filter: blur(8px);
       }
       .header-bar {
         display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
         gap: 0.5rem 1rem;
-        width: 100%; max-width: 1320px; margin: 0 auto;
+        width: 100%; max-width: var(--page-max); margin: 0 auto;
         padding: 0 1rem; box-sizing: border-box;
       }
       .header-left, .header-right {
@@ -197,7 +266,7 @@
         padding: 0.35rem 0.5rem; cursor: pointer; line-height: 1;
       }
       .dice:hover { border-color: var(--accent); }
-      main { padding: 1rem; max-width: 1320px; margin: 0 auto; }
+      main { padding: 1rem; max-width: var(--page-max); margin: 0 auto; }
       .stage { display: flex; gap: 1rem; align-items: flex-start; }
       .minimap-wrap {
         flex: 0 0 210px; position: sticky; top: 6.5rem;
@@ -220,32 +289,85 @@
       #minimap text { font-family: var(--font); }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      @media (max-width: 720px) { .stage { flex-direction: column; } .minimap-wrap { position: static; width: 100%; flex-basis: auto; } }
+      /* Below this, 2×2 walls crush spines — stack every wall full-width. */
+      @media (max-width: 960px) {
+        .walls { grid-template-columns: 1fr; }
+        .shelf { gap: 1px; }
+        /* Outline-only hover — lift clips less among dense thin spines. */
+        .book:hover { transform: none; }
+      }
+      /* Lightweight hover readout (avoids sticky headers / :has() style thrash). */
+      .spine-hint {
+        position: fixed;
+        left: 50%;
+        bottom: 0.65rem;
+        transform: translateX(-50%);
+        z-index: 40;
+        max-width: min(92vw, 42rem);
+        padding: 0.4rem 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: color-mix(in oklab, var(--panel) 88%, var(--accent));
+        color: var(--ink);
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      }
+      .spine-hint[hidden] { display: none; }
+      @media (max-width: 720px) {
+        .stage { flex-direction: column; }
+        .minimap-wrap { position: static; width: 100%; flex-basis: auto; }
+      }
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
-        min-width: 0; /* let grid columns shrink; shelves scroll internally */
+        min-width: 0; /* let grid columns shrink */
+        overflow: visible; /* don’t clip spine hover lift / outline */
       }
-      .wall h2 { font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; }
-      .shelf {
-        display: flex; gap: 2px; padding: 4px 3px; border-bottom: 1px solid var(--line);
-        /* horizontal padding so edge-book outlines (last-picked / hover) aren't clipped */
+      .wall h2 {
+        font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem;
+        letter-spacing: 0.06em; text-transform: uppercase;
+        line-height: 1.35;
+        /* Allow a second line for hover titles on narrow walls (was single-line …). */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         overflow: hidden;
+        word-break: break-word;
+      }
+      .shelf {
+        display: flex; gap: 2px;
+        /* top pad for translateY hover; side pad for edge outlines */
+        padding: 6px 3px 4px; border-bottom: 1px solid var(--line);
+        overflow: visible;
+        position: relative;
+        z-index: 0;
       }
       .shelf:last-child { border-bottom: none; }
       .book {
-        flex: 1 1 0; min-width: 9px; max-width: 22px; height: 52px;
+        flex: 1 1 0;
+        /* 0 so 35 spines can shrink into a stacked/narrow wall (9px×35 was overflowing). */
+        min-width: 0;
+        max-width: var(--book-w);
+        height: var(--book-h);
         border-radius: 2px; cursor: pointer;
         border: 1px solid rgba(0, 0, 0, 0.55);
         background: linear-gradient(180deg, #3a3550, #211f2c);
         display: flex; align-items: center; justify-content: center;
         writing-mode: vertical-rl; text-orientation: mixed;
-        font-size: 8px; line-height: 1; letter-spacing: 1px;
+        /* Dense type: fit longer spine titles; budget in view.js matches this. */
+        font-size: clamp(6.5px, calc(var(--book-h) * 0.088), 8px);
+        line-height: 1; letter-spacing: 0.02em;
         color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);
-        overflow: hidden; padding: 3px 0; transition: transform 0.06s;
+        overflow: hidden; padding: 2px 0; transition: transform 0.06s;
         position: relative;
       }
-      .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
+      .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 4; }
       .book.last-picked-up {
         outline: 2px solid #e05555;
         outline-offset: 1px;
@@ -293,15 +415,22 @@
       .hrow .hh { font-variant-ligatures: none; white-space: nowrap; }
       .hrow .you { color: var(--accent); }
       dialog {
-        background: var(--panel); color: var(--ink);
+        color: var(--ink);
         border: 1px solid var(--line); border-radius: 10px;
         max-width: 760px; width: 92vw; padding: 0;
+        background: color-mix(
+          in oklab,
+          var(--panel) calc(100% - var(--atmosphere-dialog)),
+          var(--accent)
+        );
       }
       #aboutModal {
         max-width: min(1040px, 96vw);
         width: 96vw;
       }
-      dialog::backdrop { background: rgba(0,0,0,0.6); }
+      dialog::backdrop {
+        background: color-mix(in oklab, rgba(0, 0, 0, 0.7) 94%, var(--accent));
+      }
       .book-head { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:1rem;}
       .book-head h3 { margin: 0; font-size: 0.95rem; }
       .book-head small { color: var(--muted); }
@@ -318,13 +447,13 @@
       }
       .page-canvas {
         display: block; max-width: 100%; max-height: 56vh; height: auto;
-        margin: 0 auto; image-rendering: pixelated; background: #0b0b0d;
+        margin: 0 auto; image-rendering: pixelated; background: var(--bg-deep);
       }
       .page-canvas[hidden] { display: none; }
       #imageModal { width: min(94vw, 1200px); }
       .image-wrap {
         padding: 0.8rem 1rem 1rem; max-height: 78vh; overflow: auto;
-        display: flex; justify-content: center; background: #0b0b0d;
+        display: flex; justify-content: center; background: var(--bg-deep);
       }
       #bookImageCanvas {
         max-width: 100%; height: auto; image-rendering: pixelated;
@@ -343,8 +472,8 @@
       .book-nav .grow { flex: 1; }
       .loading { color: var(--muted); padding: 2rem; text-align: center; }
       .about-tabs {
-        display: flex; gap: 0; border-bottom: 1px solid var(--line);
-        padding: 0 0.75rem; overflow-x: auto;
+        display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line);
+        padding: 0 0.75rem; overflow: hidden;
       }
       .about-tab {
         font: inherit; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
@@ -562,6 +691,7 @@
         <span id="trailNote" class="dim"></span>
       </div>
     </main>
+    <div id="spineHint" class="spine-hint" hidden></div>
 
     <dialog id="aboutModal">
       <div class="book-head">

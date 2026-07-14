@@ -193,7 +193,7 @@ Handig als je een rug kent, geen pagina.
   "book.pageInd": "pagina {page} / {total}",
   "book.pagePlaceholder": "pagina",
   "book.wall": "Wand {n}",
-  "book.wallBook": "Wand {n} · boek {book}",
+  "book.wallBook": "Wand {n} · boek {book} · {title}",
 
   "image.save": "png opslaan",
   "image.saveTitle": "sla deze kleurenkaart van het hele boek op als PNG",
