@@ -25,6 +25,7 @@ import { titleEmbedFlat } from "./search.js";
 import { sigilSvg } from "./sigil.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
+import { t } from "./i18n.js";
 
 // Hexagon minimap: current gallery in the middle, the hash awaiting down each
 // of the four exits (two hallways + stairs up/down). Click an exit to walk it.
@@ -89,8 +90,8 @@ export function render() {
     wall.className = "wall";
     const h = document.createElement("h2");
     const wallNum = w + 1;
-    h.textContent = `Wall ${wallNum}`;
-    h.dataset.wallLabel = `Wall ${wallNum}`;
+    h.textContent = t("book.wall", { n: wallNum });
+    h.dataset.wallLabel = h.textContent;
     wall.appendChild(h);
     for (let s = 0; s < SHELVES_PER_WALL; s++) {
       const shelf = document.createElement("div");
@@ -102,16 +103,14 @@ export function render() {
         const book = document.createElement("div");
         book.className = "book";
         if (isLastPickedUp(bookIndex)) book.classList.add("last-picked-up");
-        book.title = isLastPickedUp(bookIndex)
-          ? `${title} · last picked up`
-          : title;
+        book.title = title;
         book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
         book.textContent = title
           .replace(/[^a-z]/gi, "")
           .slice(0, 6)
           .toUpperCase();
         book.addEventListener("mouseenter", () => {
-          h.textContent = `Wall ${wallNum} · book ${bookIndex + 1}`;
+          h.textContent = t("book.wallBook", { n: wallNum, book: bookIndex + 1 });
         });
         book.addEventListener("mouseleave", () => {
           h.textContent = h.dataset.wallLabel;
@@ -125,10 +124,16 @@ export function render() {
   }
 
   const win = historyWindow();
-  el("historyBtn").textContent = `wanderings · ${win.length}/${WINDOW_MAX}`;
-  el("trailNote").textContent =
-    `trail ${S.trail.length} nodes · universe ${formatUniverseLabel(S.universeName)} · ` +
-    `${formatAlphabetSymbolLabel(S.alphabetId)} · gen v${S.gv}`;
+  el("historyBtn").textContent = t("footer.wanderings", {
+    n: win.length,
+    max: WINDOW_MAX,
+  });
+  el("trailNote").textContent = t("footer.trail", {
+    nodes: S.trail.length,
+    universe: formatUniverseLabel(S.universeName),
+    alphabet: formatAlphabetSymbolLabel(S.alphabetId, t),
+    gv: S.gv,
+  });
   if (el("historyModal").open) renderHistory();
 }
 
@@ -136,8 +141,10 @@ export function render() {
 // Each row uses the step's frozen universe/alphabet — never the live header values.
 export function renderHistory() {
   const win = historyWindow(); // {z,n,move,hash,alphabet,universe}; oldest→newest
-  el("historyMeta").textContent =
-    `${win.length} of ${S.trail.length} steps · newest first`;
+  el("historyMeta").textContent = t("history.meta", {
+    shown: win.length,
+    total: S.trail.length,
+  });
   const startIdx = S.trail.length - win.length;
   const list = el("historyList");
   list.innerHTML = "";
@@ -156,7 +163,7 @@ export function renderHistory() {
       `<span class="move">${MOVE_ARROW[e.move] ?? e.move}</span>` +
       `<span class="uni" title="universe at visit">${uniLabel}</span>` +
       `<span class="alpha" title="alphabet lens at visit">${alphaLabel}</span>` +
-      `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
+      `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ` <span class="you">${t("common.you")}</span>` : ""}</span>`;
     row.title =
       `gallery (${e.z}, ${e.n}) · ${uniLabel}` +
       (alpha !== null ? ` · ${formatAlphabetSymbolLabel(alpha)}` : "") +
@@ -173,7 +180,7 @@ export function renderHistory() {
     const copyBtn = document.createElement("button");
     copyBtn.className = "copy";
     copyBtn.type = "button";
-    copyBtn.textContent = "link";
+    copyBtn.textContent = t("common.link");
     copyBtn.title = "copy a shareable link to this gallery";
     copyBtn.addEventListener("click", (ev) => {
       ev.preventDefault();

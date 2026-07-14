@@ -3,6 +3,7 @@
 
 import { S, applyUniverseFromInput, syncLensControls } from "./state.js";
 import { alphabetDescription, TITLE_LEN, formatAlphabetSymbolLabel } from "./constants.js";
+import { t } from "./i18n.js";
 import {
   el,
   copyText,
@@ -53,21 +54,21 @@ export function syncSearchKindUI() {
   if (input) {
     input.maxLength = isTitle ? TITLE_LEN : 1_000_000;
     input.rows = isTitle ? 2 : 6;
-    input.placeholder = isTitle ? "crimson spine" : "forgive me for i have sinned";
+    input.placeholder = isTitle
+      ? t("search.placeholderTitle")
+      : t("search.placeholderContent");
   }
   const hint = el("searchHint");
   if (hint) {
     hint.textContent = isTitle
-      ? `uses the current alphabet lens · up to ${TITLE_LEN} characters (spine title)`
-      : "uses the current alphabet lens · up to ~1.3M characters (one book)";
+      ? t("search.hintTitle", { n: TITLE_LEN })
+      : t("search.hintContent");
   }
   const head = el("searchHead");
-  if (head) head.textContent = isTitle ? "search by title" : "search by content";
+  if (head) head.textContent = isTitle ? t("search.headTitle") : t("search.headContent");
   const meta = el("searchMeta");
   if (meta) {
-    meta.textContent = isTitle
-      ? "Type a spine title — the library finds the gallery and shelf where it belongs."
-      : "Type a phrase — the library finds where it already exists (space-padded to a full page).";
+    meta.textContent = isTitle ? t("search.metaTitle") : t("search.metaContent");
   }
 }
 
@@ -202,12 +203,12 @@ export function renderSearchResult(result, box, kind = "content") {
   const charLabel = `${Number(result.char_count).toLocaleString()} chars`;
   const detail =
     kind === "title"
-      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet)}`
+      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet, t)}`
       : `${
           result.page_span > 1
             ? `pages ${result.page}–${result.page_end}`
             : `page ${result.page}`
-        } · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet)}`;
+        } · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet, t)}`;
 
   box.innerHTML =
     `<div class="find-big">gallery (${safe(result.z)}, ${safe(result.n)})</div>` +

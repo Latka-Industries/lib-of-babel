@@ -9,7 +9,12 @@ import {
   TOTAL_BOOKS,
   WINDOW_MAX,
   formatAlphabetSymbolLabel,
+  alphabetShortLabel,
+  listAlphabets,
+  isTrailPunct,
+  fillAlphabetSelect,
 } from "./js/constants.js";
+import { t, setLocaleFromAlphabet } from "./js/i18n.js";
 import {
   el,
   copyText,
@@ -136,8 +141,11 @@ function showVerify(r, fileName) {
   el("verifyMeta").textContent = fileName
     ? fileName
     : "re-walked in WASM against this build";
+  const multiAlpha = (r.alphabets?.length ?? 0) > 1;
   const alphabetList = formatVerifyList(r.alphabets, (a) =>
-    escapeHtml(formatAlphabetSymbolLabel(a)),
+    escapeHtml(
+      multiAlpha ? alphabetShortLabel(a) : formatAlphabetSymbolLabel(a, t),
+    ),
   );
   const universeList = formatVerifyList(r.universes, (u) =>
     escapeHtml(formatUniverseLabel(u)),
@@ -201,6 +209,50 @@ function stepAboutTab(dir) {
   next.focus();
 }
 
+function renderAboutAlphabets() {
+  const host = el("aboutAlphabetList");
+  if (!host) return;
+  host.innerHTML = listAlphabets()
+    .map(({ id, native, symbols }) => {
+      const glyphs = symbols
+        .map((ch) => {
+          const punct = isTrailPunct(ch);
+          // Space / comma / period: same tile style, literal glyphs (nbsp so space is visible).
+          const shown = ch === " " ? "&nbsp;" : escapeHtml(ch);
+          const title = ch === " " ? "" : escapeHtml(`“${ch}”`);
+          return `<span class="alpha-glyph${punct ? " punct" : ""}"${title ? ` title="${title}"` : ""}>${shown}</span>`;
+        })
+        .join("");
+      const meta = t("about.alphabet.meta", { n: symbols.length, id });
+      return (
+        `<section class="alpha-lens">` +
+        `<div class="alpha-lens-head">` +
+        `<strong>${escapeHtml(native)}</strong>` +
+        `<span class="alpha-lens-meta">${meta}</span>` +
+        `</div>` +
+        `<div class="alpha-glyphs" aria-label="${escapeHtml(native)}">${glyphs}</div>` +
+        `</section>`
+      );
+    })
+    .join("");
+}
+
+function refreshLocaleChrome() {
+  setLocaleFromAlphabet(S.alphabetId, { max: WINDOW_MAX });
+  fillAlphabetSelect(el("alphabet"), S.alphabetId, t);
+  syncLensControls();
+  renderAboutAlphabets();
+  document.querySelectorAll("[data-window-max]").forEach((node) => {
+    node.textContent = String(WINDOW_MAX);
+  });
+  syncSearchKindUI();
+  const viewBtn = el("viewToggle");
+  if (viewBtn) {
+    viewBtn.textContent =
+      S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
+  }
+}
+
 function wireAboutTabs() {
   document.querySelectorAll(".about-tab").forEach((tab) => {
     tab.addEventListener("click", () => selectAboutTab(tab.id));
@@ -209,6 +261,7 @@ function wireAboutTabs() {
 
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
+  refreshLocaleChrome();
   wireAboutTabs();
   el("aboutBtn").addEventListener("click", () => {
     selectAboutTab("aboutTab-overview");
@@ -298,19 +351,19 @@ function wireControls() {
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
   );
   el("copyBookLink").addEventListener("click", (ev) =>
-    copyText(currentUrl(), ev.currentTarget, "copied!"),
+    copyText(currentUrl(), ev.currentTarget, t("common.copied")),
   );
 
   // Shared path after alphabet/universe change: freeze past steps, persist, redraw.
   function afterLensChange(reopenHighlight) {
-    syncLensControls();
+    refreshLocaleChrome();
     persist();
     render();
     reopenCurrentBook(reopenHighlight);
   }
 
   // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
-  syncLensControls();
+  // UI locale follows German / Dutch (and English for everything else, for now).
   el("alphabet").addEventListener("change", (ev) => {
     freezeTrailLenses();
     S.alphabetId = Number(ev.target.value);
@@ -352,7 +405,8 @@ function wireControls() {
   });
   el("viewToggle").addEventListener("click", (ev) => {
     S.viewMode = S.viewMode === "color" ? "text" : "color";
-    ev.currentTarget.textContent = S.viewMode === "color" ? "text" : "color";
+    ev.currentTarget.textContent =
+      S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
     renderBookPage();
   });
   el("saveImage").addEventListener("click", saveBookImage);
@@ -397,6 +451,6 @@ function wireControls() {
 
 boot().catch((err) => {
   document.getElementById("walls").innerHTML =
-    `<div class="loading">failed to load: ${err}</div>`;
+    `<div class="loading">${t("loading.failed", { err })}</div>`;
   console.error(err);
 });

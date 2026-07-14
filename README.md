@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges' **25** (22 letters `a–v` + space, comma, period) or Basile-style **29** (`a–z` + space, comma, period); default 29. Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation, the same room under different library laws.
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets (Romance, Germanic, Uralic, Turkic, Hellenic — see in-app **alphabets** tab). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation.
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -35,7 +35,7 @@ Canonical dimensions we honor:
 | **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
 | **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
 | **Wanderings** | Bounded trail view (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. Click a step to restore that gallery and its lens. |
-| **Alphabet** | View lens (Borges 25 / Basile 29): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. |
+| **Alphabet** | View lens (Borges / Basile / European language presets): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. Symbols are Unicode `char`s. |
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
@@ -116,7 +116,7 @@ Paste a phrase in the **Search** modal ( **content** selected) → the core find
 
 **How it works:**
 
-1. **Validate** — only characters in the active alphabet are allowed (Borges `a–v` or Basile `a–z`, plus space, comma, period). Invalid characters are highlighted in red; there is no auto-sanitize.
+1. **Validate** — only characters in the active alphabet are allowed (Borges / Basile / Spanish lenses, plus space, comma, period). Invalid characters are highlighted in red; there is no auto-sanitize.
 2. **Hash → address** — the normalized flat phrase is BLAKE3-hashed with universe + alphabet + version to get `(z, n, book, page)`.
 3. **Embed** — the phrase is written into the generated page text at a deterministic offset (Basile-style: real surrounding text, not a padded overlay). Phrases longer than one page span consecutive pages contiguously: page 0 from the computed offset, continuation pages from column 0.
 4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page + `q=` for the phrase.
@@ -163,7 +163,7 @@ Other tasks:
 The trail lives in the browser's IndexedDB (per-device), so it survives reloads. **export**
 downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
-**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet id: 25 or 29), `book`, `page`, and `q` (search phrase when opened via content search).
+**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet registry id), `book`, `page`, and `q` (search phrase when opened via content search).
 
 Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wander, books, more).
 
@@ -176,7 +176,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
 4. ✅ **Wanderings + export** — last-500 popup (newest-first; universe + alphabet columns), append-on-step trail in IndexedDB, JSON export.
 5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
-6. ✅ **Alphabets** — selectable Borges 25 / Basile 29; carried in permalinks (`&a=`) and exports.
+6. ✅ **Alphabets** — Borges / Basile plus European language lenses; carried in permalinks (`&a=`) and exports.
 
 **v2 — the multiverse:**
 
@@ -187,7 +187,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
 13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. Not translation.
-14. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
+14. 🚧 **Custom / multi-language alphabets** — char-based core + European / Turkic / Hellenic presets in progress; optional punct-mode axis later; custom picker next.
 
 **Later:**
 
