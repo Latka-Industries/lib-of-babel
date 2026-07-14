@@ -1,0 +1,112 @@
+/* Fonts, design tokens, page shell */
+
+@font-face {
+  font-family: "Overpass Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/OverpassMono-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Literata";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Literata-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Literata";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/Literata-SemiBold.woff2") format("woff2");
+}
+:root {
+  color-scheme: dark;
+  /* Flat fills (inputs/chrome). Page atmosphere is layered on body. */
+  --bg: #100e14;
+  --bg-deep: #07060a;
+  --panel: #16141c;
+  --ink: #d8d4c8;
+  --muted: #6f6a5e;
+  --accent: #c9a227;
+  /* Links: same gold family, lifted so they don’t collide with UI accents. */
+  --accent-link: color-mix(in oklab, var(--accent) 68%, white);
+  --accent-link-hover: color-mix(in oklab, var(--accent) 42%, white);
+  --line: #2c2934;
+  --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
+  /* Page: corner accent washes. Dialogs: flat accent tint (no corners). */
+  --atmosphere-page: 14%;
+  --atmosphere-dialog: 8%;
+  /*
+    Book spine height grows with viewport but stays one-screen when possible:
+    10 shelf rows (2 wall rows × 5) share leftover height after header/footer/
+    wall titles/gaps (~17rem). Cap keeps tall monitors from forcing scroll.
+   */
+  --book-h: clamp(48px, calc((100dvh - 17rem) / 10 - 0.4rem), 86px);
+  /* Spine thickness: a touch wider on desktop so shelves read less crushed. */
+  --book-w: clamp(12px, min(calc(var(--book-h) * 0.34), 1.75vw), 34px);
+  /* Content column widens on large screens; stays fluid (wraps) when small. */
+  --page-max: min(1760px, 96vw);
+  --atmosphere-corners-page:
+    radial-gradient(
+      circle at 0% 0%,
+      color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      color-mix(in oklab, var(--accent) var(--atmosphere-page), transparent) 0%,
+      transparent 40%
+    );
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.5 var(--font);
+  color: var(--ink);
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  background-image:
+    var(--atmosphere-corners-page),
+    radial-gradient(
+      circle at 50% 50%,
+      var(--bg-deep) 0%,
+      var(--bg-deep) 28%,
+      transparent 58%
+    ),
+    var(--noise);
+  background-size: auto, auto, auto, auto, auto, 180px 180px;
+  background-attachment: fixed;
+}
+/* Even vignette — center reading lane, edges only (not top-weighted). */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+}
+header,
+main,
+.footer {
+  position: relative;
+  z-index: 1;
+}
