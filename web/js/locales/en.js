@@ -194,7 +194,7 @@ label, not a page of text.
   "book.pageInd": "page {page} / {total}",
   "book.pagePlaceholder": "page",
   "book.wall": "Wall {n}",
-  "book.wallBook": "Wall {n} · book {book}",
+  "book.wallBook": "Wall {n} · book {book} · {title}",
 
   "image.save": "save png",
   "image.saveTitle": "save this whole-book color map as a PNG",
