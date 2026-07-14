@@ -188,4 +188,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.group.Uralic": "Uralisch",
   "alphabet.group.Turkic": "Turkisch",
   "alphabet.group.Hellenic": "Hellenisch",
+  "alphabet.group.Slavic": "Slawisch",
+  "alphabet.group.Baltic": "Baltisch",
+  "alphabet.group.Albanian": "Albanisch",
 };

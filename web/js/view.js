@@ -105,10 +105,13 @@ export function render() {
         if (isLastPickedUp(bookIndex)) book.classList.add("last-picked-up");
         book.title = title;
         book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
-        book.textContent = title
-          .replace(/[^a-z]/gi, "")
+        // Spine stub: letters/digits from any script (not ASCII a–z only — Greek/Cyrillic
+        // titles would otherwise render blank).
+        book.textContent = [...title]
+          .filter((ch) => /\p{L}|\p{N}/u.test(ch))
           .slice(0, 6)
-          .toUpperCase();
+          .join("")
+          .toLocaleUpperCase();
         book.addEventListener("mouseenter", () => {
           h.textContent = t("book.wallBook", { n: wallNum, book: bookIndex + 1 });
         });

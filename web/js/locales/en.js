@@ -64,7 +64,7 @@ going across universes.</li>
 The hash names the room itself (not the text on the shelves). Same universe +
 same coordinates → same fingerprint, forever.</li>
 <li><b>Alphabet lens</b> — Borges, Basile, Basile++ / Basile#, or a language set
-(see the <b>alphabets</b> tab: Romance, Germanic, Uralic, Turkic, Hellenic, …).
+(see the <b>alphabets</b> tab: Romance through Slavic/Baltic/Cyrillic, Hellenic, …).
 Flip it and every spine and page rewrites under the <b>same</b> hash and sigil.
 Your trail stays put.
 <i>Not translation.</i> The same room, different tongue. The site chrome
@@ -184,4 +184,7 @@ label, not a page of text.
   "alphabet.group.Uralic": "Uralic",
   "alphabet.group.Turkic": "Turkic",
   "alphabet.group.Hellenic": "Hellenic",
+  "alphabet.group.Slavic": "Slavic",
+  "alphabet.group.Baltic": "Baltic",
+  "alphabet.group.Albanian": "Albanian",
 };

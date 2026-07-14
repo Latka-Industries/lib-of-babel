@@ -182,4 +182,7 @@ Handig als je een rug kent, geen pagina.
   "alphabet.group.Uralic": "Oeraals",
   "alphabet.group.Turkic": "Turkse talen",
   "alphabet.group.Hellenic": "Helleens",
+  "alphabet.group.Slavic": "Slavisch",
+  "alphabet.group.Baltic": "Baltisch",
+  "alphabet.group.Albanian": "Albanees",
 };
