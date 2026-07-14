@@ -1,5 +1,5 @@
 // Per-gallery sigil — a deterministic radial emblem drawn from the gallery hash.
-// Pure function of (hash, accent hue): same coordinate + universe + alphabet →
+// Pure function of (hash, accent hue): same room (coordinate + universe) →
 // same hash → same sigil, every time, for everyone. A "face" for each of the
 // infinitely many galleries.
 

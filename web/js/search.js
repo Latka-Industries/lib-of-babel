@@ -1,8 +1,8 @@
 // Search-by-content and search-by-title — WASM reverse lookup → coordinates + go there.
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
-import { S, applyUniverseFromInput } from "./state.js";
-import { alphabetDescription, TITLE_LEN } from "./constants.js";
+import { S, applyUniverseFromInput, syncLensControls } from "./state.js";
+import { alphabetDescription, TITLE_LEN, formatAlphabetSymbolLabel } from "./constants.js";
 import {
   el,
   copyText,
@@ -58,8 +58,8 @@ export function syncSearchKindUI() {
   const hint = el("searchHint");
   if (hint) {
     hint.textContent = isTitle
-      ? `uses the selected alphabet · up to ${TITLE_LEN} characters (spine title)`
-      : "uses the selected alphabet · up to ~1.3M characters (one book)";
+      ? `uses the current alphabet lens · up to ${TITLE_LEN} characters (spine title)`
+      : "uses the current alphabet lens · up to ~1.3M characters (one book)";
   }
   const head = el("searchHead");
   if (head) head.textContent = isTitle ? "search by title" : "search by content";
@@ -130,11 +130,7 @@ export function syncSearchInput() {
   return normalized;
 }
 
-/**
- * Reverse lookup in the current universe. Validates locally first, then calls WASM.
- * @returns {{ ok: boolean, error?: string, invalid?: { i: number, ch: string }[], … }}
- */
-export function locateText(text, alphabetId = S.alphabetId) {
+function locateWith(jsonFn, text, alphabetId = S.alphabetId) {
   syncSearchUniverse();
   const query = normalizeSearchQuery(text);
   const invalid = validateSearchQuery(query, alphabetId);
@@ -147,7 +143,7 @@ export function locateText(text, alphabetId = S.alphabetId) {
     };
   }
   clearSearchHighlights();
-  const result = parseLocateResult(locate_page_json(query, alphabetId));
+  const result = parseLocateResult(jsonFn(query, alphabetId));
   if (!result.ok) {
     const wasmInvalid = invalidFromResult(result);
     if (wasmInvalid.length) {
@@ -158,32 +154,14 @@ export function locateText(text, alphabetId = S.alphabetId) {
   return result;
 }
 
-/**
- * Reverse lookup for a spine title in the current universe.
- * @returns {{ ok: boolean, error?: string, invalid?: { i: number, ch: string }[], … }}
- */
+/** Reverse lookup (content) in the current universe. */
+export function locateText(text, alphabetId = S.alphabetId) {
+  return locateWith(locate_page_json, text, alphabetId);
+}
+
+/** Reverse lookup (spine title) in the current universe. */
 export function locateTitle(text, alphabetId = S.alphabetId) {
-  syncSearchUniverse();
-  const query = normalizeSearchQuery(text);
-  const invalid = validateSearchQuery(query, alphabetId);
-  if (invalid.length) {
-    renderSearchHighlights(invalid);
-    return {
-      ok: false,
-      error: formatInvalidMessage(invalid, alphabetId),
-      invalid,
-    };
-  }
-  clearSearchHighlights();
-  const result = parseLocateResult(locate_title_json(query, alphabetId));
-  if (!result.ok) {
-    const wasmInvalid = invalidFromResult(result);
-    if (wasmInvalid.length) {
-      renderSearchHighlights(wasmInvalid);
-      result.error = formatInvalidMessage(wasmInvalid, alphabetId);
-    }
-  }
-  return result;
+  return locateWith(locate_title_json, text, alphabetId);
 }
 
 function asBigInt(v) {
@@ -195,7 +173,7 @@ export function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
   const z = asBigInt(result.z);
   const n = asBigInt(result.n);
-  const hash = node_hash_hex(z, n, result.alphabet);
+  const hash = node_hash_hex(z, n);
   return permalink(
     z,
     n,
@@ -224,12 +202,12 @@ export function renderSearchResult(result, box, kind = "content") {
   const charLabel = `${Number(result.char_count).toLocaleString()} chars`;
   const detail =
     kind === "title"
-      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${result.alphabet}-symbol`
+      ? `title <b>${safe(query)}</b> · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet)}`
       : `${
           result.page_span > 1
             ? `pages ${result.page}–${result.page_end}`
             : `page ${result.page}`
-        } · ${charLabel} · alphabet ${result.alphabet}-symbol`;
+        } · ${charLabel} · alphabet ${formatAlphabetSymbolLabel(result.alphabet)}`;
 
   box.innerHTML =
     `<div class="find-big">gallery (${safe(result.z)}, ${safe(result.n)})</div>` +
@@ -255,7 +233,7 @@ export function goToSearchResult(result, query, kind = "content") {
   syncSearchUniverse();
   if (result.alphabet !== S.alphabetId) {
     S.alphabetId = result.alphabet;
-    el("alphabet").value = String(result.alphabet);
+    syncLensControls();
   }
   if (kind === "title") {
     S.titleEmbed = {

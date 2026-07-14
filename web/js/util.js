@@ -94,17 +94,71 @@ export function padPageText(text, alphabetId = 29) {
   return out;
 }
 
-/** Copy text to clipboard; briefly flash `okMsg` on the button. */
-export async function copyText(text, btn, okMsg = "copied") {
+/** Fallback when `navigator.clipboard` is missing or blocked (file://, some dialogs). */
+function copyViaExecCommand(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;left:-9999px;top:0";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  let ok = false;
   try {
-    await navigator.clipboard.writeText(text);
+    ok = document.execCommand("copy");
   } catch {
-    return; // clipboard blocked (e.g. insecure context) — fail quietly
+    ok = false;
   }
-  if (!btn) return;
+  document.body.removeChild(ta);
+  return ok;
+}
+
+/**
+ * Copy text to clipboard; briefly flash feedback on the button.
+ *
+ * Plain HTTP (e.g. http://latkastation:8777 over Tailscale) is not a secure
+ * context: clipboard.writeText is unavailable, and execCommand("copy") often
+ * returns true without putting anything on the system clipboard. In that case
+ * we always surface a prompt instead of pretending ✓ worked.
+ */
+export async function copyText(text, btn, okMsg = "copied") {
+  const value = String(text ?? "");
+  if (!value) {
+    if (btn) {
+      const prev = btn.textContent;
+      btn.textContent = "failed";
+      setTimeout(() => (btn.textContent = prev), 1200);
+    }
+    return false;
+  }
+
+  const secure = Boolean(window.isSecureContext);
+  let ok = false;
+  let viaPrompt = false;
+
+  if (secure && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      ok = true;
+    } catch {
+      ok = false;
+    }
+  }
+
+  // Only trust execCommand on secure contexts — elsewhere it's a false ✓.
+  if (!ok && secure) ok = copyViaExecCommand(value);
+
+  if (!ok) {
+    window.prompt("Copy this link (Ctrl/Cmd+C, then Enter):", value);
+    ok = true;
+    viaPrompt = true;
+  }
+
+  if (!btn) return ok;
   const prev = btn.textContent;
-  btn.textContent = okMsg;
-  setTimeout(() => (btn.textContent = prev), 1000);
+  btn.textContent = viaPrompt ? "shown" : okMsg;
+  setTimeout(() => (btn.textContent = prev), viaPrompt ? 1800 : 1200);
+  return ok;
 }
 
 // deterministic hue from a string (spine title) — stable per book
@@ -179,6 +233,12 @@ export function downloadBlob(blob, filename, { revokeDelay = 0 } = {}) {
 /** Blank universe name → display label. */
 export function formatUniverseLabel(name = "") {
   return name || "default";
+}
+
+/** Join verify-fact values as bold chips, or an em dash when empty. */
+export function formatVerifyList(values, formatFn) {
+  if (!Array.isArray(values) || !values.length) return "<b>—</b>";
+  return values.map((v) => `<b>${formatFn(v)}</b>`).join(", ");
 }
 
 /** Deterministic hue 0–359 from a gallery hash prefix. */

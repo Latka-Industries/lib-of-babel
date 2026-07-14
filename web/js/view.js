@@ -1,6 +1,14 @@
-// Rendering: the gallery walls, the hexagon minimap, and the history window.
+// Rendering: the gallery walls, the hexagon minimap, and wanderings.
 
-import { S, isLastPickedUp } from "./state.js";
+import {
+  S,
+  isLastPickedUp,
+  historyWindow,
+  applyUniverse,
+  stepUniverse,
+  stepAlphabet,
+  syncLensControls,
+} from "./state.js";
 import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel } from "./util.js";
 import {
   WALLS,
@@ -8,6 +16,8 @@ import {
   BOOKS_PER_SHELF,
   WINDOW_MAX,
   MOVE_ARROW,
+  alphabetShortLabel,
+  formatAlphabetSymbolLabel,
 } from "./constants.js";
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
@@ -22,7 +32,7 @@ function renderMinimap(curHash, accentHue) {
   const accent = `hsl(${accentHue} 70% 58%)`;
   const exit = (mv) => {
     const [nz, nn] = neighbor(S.z, S.n, mv);
-    const h = node_hash_hex(nz, nn, S.alphabetId);
+    const h = node_hash_hex(nz, nn);
     return { h, color: hashAccentColor(h) };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
@@ -47,7 +57,7 @@ function renderMinimap(curHash, accentHue) {
 
 export function render() {
   const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()));
-  const hash = node_hash_hex(S.z, S.n, S.alphabetId);
+  const hash = node_hash_hex(S.z, S.n);
   const fullCoord = `(${S.z}, ${S.n})`;
   el("coord").textContent = formatCoordDisplay(S.z, S.n);
   el("coord").title = `${fullCoord} — click to jump`;
@@ -114,31 +124,47 @@ export function render() {
     wallsEl.appendChild(wall);
   }
 
-  el("historyBtn").textContent = `window · last ${S.windowBuf.length}/${WINDOW_MAX}`;
-  el("trailNote").textContent = `trail ${S.trail.length} nodes · universe ${formatUniverseLabel(S.universeName)} · ${S.alphabetId}-symbol · gen v${S.gv}`;
+  const win = historyWindow();
+  el("historyBtn").textContent = `wanderings · ${win.length}/${WINDOW_MAX}`;
+  el("trailNote").textContent =
+    `trail ${S.trail.length} nodes · universe ${formatUniverseLabel(S.universeName)} · ` +
+    `${formatAlphabetSymbolLabel(S.alphabetId)} · gen v${S.gv}`;
   if (el("historyModal").open) renderHistory();
 }
 
-// last-50 window, newest first, vertically — click a row to jump back to it.
+// Bounded wanderings, newest first — click a row to jump back to that visit.
+// Each row uses the step's frozen universe/alphabet — never the live header values.
 export function renderHistory() {
-  const win = S.trail.slice(-WINDOW_MAX); // {z,n,move,hash}; oldest→newest
+  const win = historyWindow(); // {z,n,move,hash,alphabet,universe}; oldest→newest
   el("historyMeta").textContent =
-    `${win.length} galleries (of ${S.trail.length} walked) · newest first`;
-  const startIdx = S.trail.length - win.length; // global step number offset
+    `${win.length} of ${S.trail.length} steps · newest first`;
+  const startIdx = S.trail.length - win.length;
   const list = el("historyList");
   list.innerHTML = "";
   for (let i = win.length - 1; i >= 0; i--) {
     const e = win[i];
     const isCurrent = i === win.length - 1;
+    const alpha = stepAlphabet(e, null);
+    const uni = stepUniverse(e, null);
+    const uniLabel = uni === null ? "—" : formatUniverseLabel(uni);
+    const alphaLabel = alpha === null ? "—" : alphabetShortLabel(alpha);
     const row = document.createElement("div");
     row.className = "hrow" + (isCurrent ? " current" : "");
     row.innerHTML =
       `<span class="step">${startIdx + i}</span>` +
       `<span class="coord">(${e.z}, ${e.n})</span>` +
       `<span class="move">${MOVE_ARROW[e.move] ?? e.move}</span>` +
+      `<span class="uni" title="universe at visit">${uniLabel}</span>` +
+      `<span class="alpha" title="alphabet lens at visit">${alphaLabel}</span>` +
       `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ' <span class="you">you</span>' : ""}</span>`;
-    row.title = `gallery (${e.z}, ${e.n}) — ${e.hash}`;
+    row.title =
+      `gallery (${e.z}, ${e.n}) · ${uniLabel}` +
+      (alpha !== null ? ` · ${formatAlphabetSymbolLabel(alpha)}` : "") +
+      ` — ${e.hash}`;
     row.addEventListener("click", () => {
+      if (uni !== null) applyUniverse(uni);
+      if (alpha !== null) S.alphabetId = alpha;
+      syncLensControls();
       S.z = BigInt(e.z);
       S.n = BigInt(e.n);
       el("historyModal").close();
@@ -146,11 +172,22 @@ export function renderHistory() {
     });
     const copyBtn = document.createElement("button");
     copyBtn.className = "copy";
+    copyBtn.type = "button";
     copyBtn.textContent = "link";
     copyBtn.title = "copy a shareable link to this gallery";
     copyBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
       ev.stopPropagation();
-      copyText(permalink(e.z, e.n, e.hash), copyBtn, "✓");
+      const url = permalink(
+        e.z,
+        e.n,
+        e.hash || "",
+        alpha ?? S.alphabetId,
+        null,
+        null,
+        uni ?? S.universeName,
+      );
+      void copyText(url, copyBtn, "✓");
     });
     row.appendChild(copyBtn);
     list.appendChild(row);
