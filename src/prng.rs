@@ -35,19 +35,19 @@ impl Prng {
         splitmix64(self.0)
     }
 
-    /// Draw one symbol index from `alphabet`.
+    /// Draw one symbol from `alphabet`.
     #[inline]
-    pub fn next_symbol(&mut self, alphabet: &[u8]) -> u8 {
+    pub fn next_symbol(&mut self, alphabet: &[char]) -> char {
         alphabet[(self.next_u64() % alphabet.len() as u64) as usize]
     }
 }
 
 /// Deterministic spine title for a book seed (drawn from the given alphabet).
-pub fn book_title(book_seed: u64, alphabet: &[u8]) -> String {
+pub fn book_title(book_seed: u64, alphabet: &[char]) -> String {
     let mut p = Prng::new(book_seed);
-    let mut bytes = Vec::with_capacity(TITLE_LEN);
+    let mut out = String::with_capacity(TITLE_LEN * 2);
     for _ in 0..TITLE_LEN {
-        bytes.push(p.next_symbol(alphabet));
+        out.push(p.next_symbol(alphabet));
     }
-    String::from_utf8(bytes).unwrap().trim().to_string()
+    out.trim().to_string()
 }

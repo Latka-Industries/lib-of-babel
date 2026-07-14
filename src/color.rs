@@ -1,4 +1,10 @@
 //! Whole-book colour map rendered as an RGBA image.
+//!
+//! Palette policy (keep in sync with `web/js/util.js` → `buildAlphabetPalette`):
+//! - **Letters** (`char::is_alphabetic`) share a hue wheel seeded by the room accent.
+//! - Hue step is at least ~10°; overflow wraps onto further rings (lower chroma).
+//! - **Punct / digits / symbols** sit on a short muted arc opposite the accent.
+//! - **Space** is a fixed near-black (not on the wheel).
 
 use wasm_bindgen::prelude::*;
 
@@ -6,6 +12,12 @@ use crate::config::{CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK, alphabet};
 use crate::gallery::node_fingerprint;
 use crate::page::{PageAddr, PageRender, page_symbols};
 use crate::universe::universe;
+
+/// Floor for letter–letter hue separation (degrees).
+const MIN_LETTER_HUE_STEP: f64 = 10.0;
+/// Arc width for the punct/digit stratum (degrees).
+const PUNCT_ARC_DEG: f64 = 52.0;
+const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
 
 fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {
     let hue_rad = hue_deg * std::f64::consts::PI / 180.0;
@@ -30,6 +42,61 @@ fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {
         out[i] = (gamma.clamp(0.0, 1.0) * 255.0).round() as u8;
     }
     out
+}
+
+/// Build per-glyph RGB colours for an alphabet lens at a gallery accent.
+fn build_glyph_palette(
+    ab: &[char],
+    accent_hue: f64,
+    accent_chroma: f64,
+    accent_light: f64,
+) -> Vec<[u8; 3]> {
+    let len = ab.len();
+    let mut palette = vec![SPACE_RGB; len];
+    let mut letters = Vec::with_capacity(len);
+    let mut puncts = Vec::with_capacity(8);
+
+    for (i, &ch) in ab.iter().enumerate() {
+        if ch == ' ' {
+            palette[i] = SPACE_RGB;
+        } else if ch.is_alphabetic() {
+            letters.push(i);
+        } else {
+            puncts.push(i);
+        }
+    }
+
+    let n = letters.len().max(1);
+    let per_ring = (360.0 / MIN_LETTER_HUE_STEP).floor() as usize; // 36
+    let equal_space = n <= per_ring;
+    let step = if equal_space {
+        360.0 / n as f64
+    } else {
+        MIN_LETTER_HUE_STEP
+    };
+
+    for (k, &idx) in letters.iter().enumerate() {
+        let ring = if equal_space { 0 } else { k / per_ring };
+        let pos = if equal_space { k } else { k % per_ring };
+        let hue = (pos as f64 * step + accent_hue).rem_euclid(360.0);
+        let chroma = accent_chroma * (1.0 - 0.2 * ring.min(3) as f64);
+        let light = (accent_light + 0.05 * ring as f64).clamp(0.35, 0.85);
+        palette[idx] = oklch_to_srgb(light, chroma, hue);
+    }
+
+    let pn = puncts.len();
+    if pn > 0 {
+        let base = (accent_hue + 168.0).rem_euclid(360.0);
+        let pstep = PUNCT_ARC_DEG / pn as f64;
+        let light = (accent_light * 0.78).clamp(0.35, 0.75);
+        let chroma = accent_chroma * 0.4;
+        for (k, &idx) in puncts.iter().enumerate() {
+            let hue = (base + k as f64 * pstep).rem_euclid(360.0);
+            palette[idx] = oklch_to_srgb(light, chroma, hue);
+        }
+    }
+
+    palette
 }
 
 /// One RGBA image of a whole book, ready for `ctx.putImageData`.
@@ -73,17 +140,7 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
-    let step = 360.0 / len as f64;
-    let palette: Vec<[u8; 3]> = (0..len)
-        .map(|i| {
-            oklch_to_srgb(
-                accent_light,
-                accent_chroma,
-                (i as f64 * step + accent_hue) % 360.0,
-            )
-        })
-        .collect();
-    const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
+    let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
 
     let total = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
     let mut grid_side = (total as f64).sqrt() as usize;
@@ -125,5 +182,36 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
         width,
         height,
         pixels,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{ALPHABET_BASILE_HASH_ID, ALPHABET_BASILE_ID, alphabet};
+
+    #[test]
+    fn basile_hash_keeps_letters_off_the_punct_arc() {
+        let ab = alphabet(ALPHABET_BASILE_HASH_ID);
+        let palette = build_glyph_palette(ab, 40.0, 0.15, 0.66);
+        let a_idx = ab.iter().position(|&c| c == 'a').unwrap();
+        let at_idx = ab.iter().position(|&c| c == '@').unwrap();
+        // Letter and punct must not share the same RGB (different strata).
+        assert_ne!(palette[a_idx], palette[at_idx]);
+        let space_idx = ab.len() - 3;
+        assert_eq!(palette[space_idx], SPACE_RGB);
+    }
+
+    #[test]
+    fn modest_alphabets_still_equal_space_the_letter_wheel() {
+        let ab = alphabet(ALPHABET_BASILE_ID);
+        let letters: Vec<_> = ab
+            .iter()
+            .enumerate()
+            .filter(|(_, ch)| ch.is_alphabetic())
+            .map(|(i, _)| i)
+            .collect();
+        assert!(letters.len() <= 36);
+        let _ = build_glyph_palette(ab, 10.0, 0.12, 0.6);
     }
 }

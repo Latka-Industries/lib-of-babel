@@ -17,7 +17,7 @@ pub struct PageAddr {
     pub book_index: u32,
     /// Zero-based page within the book.
     pub page: u32,
-    /// `25` (Borges) or `29` (Basile).
+    /// Alphabet lens id (see `config::alphabet_def`).
     pub alphabet_id: u32,
     /// Active multiverse seed.
     pub universe_seed: u64,
@@ -90,7 +90,12 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
         alphabet_id,
         universe_seed,
     } = req.addr;
-    let alpha_len = alphabet(alphabet_id).len() as u8;
+    let alpha_len_usize = alphabet(alphabet_id).len();
+    debug_assert!(
+        alpha_len_usize > 0 && alpha_len_usize <= u8::MAX as usize,
+        "alphabet must fit Feistel u8 modulus"
+    );
+    let alpha_len = alpha_len_usize as u8;
     let mut state = plaintext_from_address(universe_seed, z, n, book_index, page, alpha_len);
     feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
     if let (Some(full), Some(hit_start)) = (req.search_full, req.search_hit_start_page)
@@ -107,12 +112,12 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
     state
 }
 
-fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[u8]) -> String {
+fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[char]) -> String {
     let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize);
     for row in 0..LINES_PER_PAGE {
         for col in 0..CHARS_PER_LINE {
             let idx = (row * CHARS_PER_LINE + col) as usize;
-            out.push(ab[symbols[idx] as usize] as char);
+            out.push(ab[symbols[idx] as usize]);
         }
         out.push('\n');
     }

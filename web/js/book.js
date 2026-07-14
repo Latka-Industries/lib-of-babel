@@ -4,13 +4,15 @@
 import { S } from "./state.js";
 import {
   el,
-  oklchToHex,
+  buildAlphabetPalette,
+  SPACE_CELL_HEX,
   flattenSearchQuery,
   escapeHtml,
   downloadBlob,
   validateSearchQuery,
 } from "./util.js";
-import { PAGES_PER_BOOK, PAGE_CHARS, ALPHABETS } from "./constants.js";
+import { PAGES_PER_BOOK, PAGE_CHARS, alphabetString } from "./constants.js";
+import { t } from "./i18n.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
 import { titleEmbedFlat } from "./search.js";
@@ -61,22 +63,20 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
   cv.width = cols * cell;
   cv.height = rows * cell;
   const ctx = cv.getContext("2d");
-  const alpha = ALPHABETS[S.alphabetId] || ALPHABETS[29];
-  const step = 360 / alpha.length;
-  const palette = new Array(alpha.length);
-  for (let i = 0; i < alpha.length; i++) {
-    palette[i] = oklchToHex(
-      S.accentLightness,
-      S.accentChroma,
-      (i * step + S.accentHue) % 360,
-    );
-  }
+  const alpha = [...alphabetString(S.alphabetId)];
+  const palette = buildAlphabetPalette(
+    alpha,
+    S.accentHue,
+    S.accentChroma,
+    S.accentLightness,
+  );
+  const glyphIndex = new Map(alpha.map((ch, i) => [ch, i]));
   for (let k = 0; k < chars.length; k++) {
     const ch = chars[k];
-    const i = alpha.indexOf(ch);
+    const i = glyphIndex.has(ch) ? glyphIndex.get(ch) : -1;
     const x = (k % cols) * cell;
     const y = Math.floor(k / cols) * cell;
-    ctx.fillStyle = ch === " " || i < 0 ? "#15131a" : palette[i];
+    ctx.fillStyle = ch === " " || i < 0 ? SPACE_CELL_HEX : palette[i];
     ctx.fillRect(x, y, cell, cell);
     if (
       highlightLen > 0 &&
@@ -178,7 +178,10 @@ export function renderBookPage() {
         ? ` · search match (${S.currentBook.searchStartPage + 1}–${S.currentBook.searchStartPage + S.currentBook.searchPageSpan})`
         : " · search match"
       : "");
-  el("pageInd").textContent = `page ${p + 1} / ${PAGES_PER_BOOK}`;
+  el("pageInd").textContent = t("book.pageInd", {
+    page: p + 1,
+    total: PAGES_PER_BOOK,
+  });
 
   const pageText = pageTextForBook(
     S.currentBook.index,

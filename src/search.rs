@@ -196,8 +196,7 @@ pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> 
         if ch == '\n' || ch == '\r' {
             continue;
         }
-        let b = ch as u8;
-        match ab.iter().position(|&c| c == b) {
+        match ab.iter().position(|&c| c == ch) {
             Some(i) => out.push(i as u8),
             None => return Err(format!("invalid character '{ch}' for this alphabet")),
         }
@@ -213,8 +212,7 @@ fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateErr
         if ch == '\n' || ch == '\r' {
             continue;
         }
-        let b = ch as u8;
-        if !ab.contains(&b) {
+        if !ab.contains(&ch) {
             invalid.push((i, ch));
             continue;
         }
@@ -247,7 +245,8 @@ pub fn locate_page(
     if flat.is_empty() {
         return Err(LocateError::Message("search text is empty".into()));
     }
-    if flat.len() > MAX_SEARCH_CHARS {
+    let char_count = flat.chars().count();
+    if char_count > MAX_SEARCH_CHARS {
         return Err(LocateError::Message(format!(
             "text too long (max {MAX_SEARCH_CHARS} characters — one book)"
         )));
@@ -263,7 +262,7 @@ pub fn locate_page(
     Ok(LocateResult {
         location,
         page_span,
-        char_count: flat.len(),
+        char_count,
     })
 }
 
@@ -301,20 +300,33 @@ pub fn normalize_query(text: &str) -> String {
     normalize_search_text(text)
 }
 
-/// Escape a character as a JSON string literal (for `invalid` arrays in WASM JSON).
-pub fn json_char_literal(c: char) -> String {
-    let mut s = String::from("\"");
-    match c {
-        '\\' => s.push_str("\\\\"),
-        '"' => s.push_str("\\\""),
-        '\n' => s.push_str("\\n"),
-        '\r' => s.push_str("\\r"),
-        '\t' => s.push_str("\\t"),
-        c if c.is_ascii() && !c.is_control() => s.push(c),
-        c => {
-            let _ = write!(s, "\\u{:04x}", c as u32);
+/// Append `s` as a JSON string literal (quotes + escapes).
+pub fn push_json_string(out: &mut String, s: &str) {
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {
+                let _ = write!(out, "\\u{:04x}", c as u32);
+            }
+            c => out.push(c),
         }
     }
-    s.push('"');
-    s
+    out.push('"');
+}
+
+/// Escape a string as a JSON string literal.
+pub fn json_string_literal(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    push_json_string(&mut out, s);
+    out
+}
+
+/// Escape a character as a JSON string literal (for `invalid` arrays in WASM JSON).
+pub fn json_char_literal(c: char) -> String {
+    json_string_literal(&c.to_string())
 }
