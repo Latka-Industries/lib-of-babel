@@ -308,3 +308,23 @@ export function goToSearchResult(result, query, kind = "content") {
   );
   el("searchModal").close();
 }
+
+/** Open the search dialog empty and focused. */
+export function openSearch() {
+  el("searchResult").classList.remove("show");
+  el("searchInput").value = "";
+  clearSearchHighlights();
+  syncSearchKindUI();
+  el("searchModal").showModal();
+  el("searchInput").focus();
+}
+
+/** Run the current search field against title or content. */
+export function runSearch() {
+  const text = syncSearchInput();
+  if (!text.trim()) return;
+  const kind = searchKind();
+  const result =
+    kind === "title" ? locateTitle(text, S.alphabetId) : locateText(text, S.alphabetId);
+  renderSearchResult(result, el("searchResult"), kind);
+}
