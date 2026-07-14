@@ -29,7 +29,7 @@ export function permalink(
 
 // the link to wherever we are right now (gallery, or gallery + open book/page)
 export function currentUrl() {
-  const hash = node_hash_hex(S.z, S.n, S.alphabetId);
+  const hash = node_hash_hex(S.z, S.n);
   if (S.currentBook && el("bookModal").open) {
     return permalink(
       S.z,

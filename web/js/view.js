@@ -22,7 +22,7 @@ function renderMinimap(curHash, accentHue) {
   const accent = `hsl(${accentHue} 70% 58%)`;
   const exit = (mv) => {
     const [nz, nn] = neighbor(S.z, S.n, mv);
-    const h = node_hash_hex(nz, nn, S.alphabetId);
+    const h = node_hash_hex(nz, nn);
     return { h, color: hashAccentColor(h) };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
@@ -47,7 +47,7 @@ function renderMinimap(curHash, accentHue) {
 
 export function render() {
   const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()));
-  const hash = node_hash_hex(S.z, S.n, S.alphabetId);
+  const hash = node_hash_hex(S.z, S.n);
   const fullCoord = `(${S.z}, ${S.n})`;
   el("coord").textContent = formatCoordDisplay(S.z, S.n);
   el("coord").title = `${fullCoord} — click to jump`;

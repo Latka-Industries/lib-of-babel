@@ -58,8 +58,8 @@ export function syncSearchKindUI() {
   const hint = el("searchHint");
   if (hint) {
     hint.textContent = isTitle
-      ? `uses the selected alphabet · up to ${TITLE_LEN} characters (spine title)`
-      : "uses the selected alphabet · up to ~1.3M characters (one book)";
+      ? `uses the current alphabet lens · up to ${TITLE_LEN} characters (spine title)`
+      : "uses the current alphabet lens · up to ~1.3M characters (one book)";
   }
   const head = el("searchHead");
   if (head) head.textContent = isTitle ? "search by title" : "search by content";
@@ -195,7 +195,7 @@ export function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
   const z = asBigInt(result.z);
   const n = asBigInt(result.n);
-  const hash = node_hash_hex(z, n, result.alphabet);
+  const hash = node_hash_hex(z, n);
   return permalink(
     z,
     n,

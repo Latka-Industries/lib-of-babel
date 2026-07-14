@@ -1,7 +1,7 @@
-// Journey verifier — re-walk an exported path in WASM and prove every hash.
+// Journey verifier — re-walk an exported path in WASM and prove every room hash.
 //
-// Because content is a pure function of (universe, z, n, alphabet), anyone can
-// re-derive a gallery's BLAKE3 fingerprint and confirm a journey is genuine:
+// Room identity is a pure function of (universe, z, n). Alphabet is a view lens
+// recorded on the journey (and optionally per step) but does not enter the hash:
 //   - generator_version must match this build (the frozen content contract),
 //   - every step's hash must equal node_hash_hex recomputed at its coordinate,
 //   - hallway/stair moves must actually connect consecutive coordinates.
@@ -39,9 +39,12 @@ export function verifyJourney(j) {
     };
   }
 
-  const alphabet = Number(j.alphabet);
-  if (!Number.isFinite(alphabet)) {
-    return { ...base, ok: false, reason: "missing or invalid alphabet" };
+  // Alphabet documents the lens(es) used; room hashes ignore it.
+  if (j.alphabet !== undefined && j.alphabet !== null) {
+    const alphabet = Number(j.alphabet);
+    if (!Number.isFinite(alphabet)) {
+      return { ...base, ok: false, reason: "missing or invalid alphabet" };
+    }
   }
 
   // recompute under the file's universe, then always restore the live one so
@@ -73,7 +76,7 @@ export function verifyJourney(j) {
           }
         }
 
-        const h = node_hash_hex(z, n, alphabet);
+        const h = node_hash_hex(z, n);
         if (h !== e.hash) {
           return {
             ...base,

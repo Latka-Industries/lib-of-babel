@@ -1,7 +1,8 @@
 //! Library dimensions, alphabets, and version — the frozen generator contract.
 
 /// Bump only with intent — this is the schema for all generated content.
-pub const GENERATOR_VERSION: u32 = 6;
+/// v7: room identity is alphabet-independent (alphabet is a content lens).
+pub const GENERATOR_VERSION: u32 = 7;
 
 const ALPHABET_BORGES: &[u8] = b"abcdefghijklmnopqrstuv ,.";
 const ALPHABET_BASILE: &[u8] = b"abcdefghijklmnopqrstuvwxyz ,.";

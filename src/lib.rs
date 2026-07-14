@@ -1,10 +1,11 @@
 //! lib-of-babel — deterministic generator core for a walkable Library of Babel.
 //!
-//! Every gallery is a pure function of its `(z, n)` coordinate. Nothing is stored:
-//! the same coordinate always yields the same 700 books and the same fingerprint.
+//! Every gallery is a pure function of its `(universe, z, n)` coordinate. Nothing
+//! is stored: the same room always yields the same fingerprint. Alphabet is a
+//! **lens** — it rewrites spines and pages without changing the room hash.
 //!
-//! NOTE: `GENERATOR_VERSION` freezes the contract. Changing the alphabet, PRNG,
-//! seeding order, fingerprint, or dimensions below invalidates every previously
+//! NOTE: `GENERATOR_VERSION` freezes the contract. Changing the PRNG, seeding
+//! order, fingerprint, or dimensions below invalidates every previously
 //! exported path/hash, so bump the version deliberately.
 
 mod color;
@@ -66,15 +67,15 @@ mod tests {
 
     #[test]
     fn fingerprint_is_stable() {
-        assert_eq!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 1, 29, 0));
-        assert_ne!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 2, 29, 0));
+        assert_eq!(node_fingerprint(1, 1, 0), node_fingerprint(1, 1, 0));
+        assert_ne!(node_fingerprint(1, 1, 0), node_fingerprint(1, 2, 0));
     }
 
     #[test]
     fn fingerprint_is_blake3_and_full_hash_is_256_bit() {
-        let full = node_hash_bytes(1, 1, 29, 0);
+        let full = node_hash_bytes(1, 1, 0);
         let prefix = u64::from_be_bytes(full[..8].try_into().unwrap());
-        assert_eq!(node_fingerprint(1, 1, 29, 0), prefix);
+        assert_eq!(node_fingerprint(1, 1, 0), prefix);
         assert_eq!(full.len(), 32);
         assert!(full.iter().any(|&b| b != 0));
     }
@@ -87,19 +88,30 @@ mod tests {
     }
 
     #[test]
-    fn alphabet_is_a_universe_axis() {
-        assert_ne!(node_fingerprint(1, 1, 25, 0), node_fingerprint(1, 1, 29, 0));
+    fn alphabet_is_a_lens_not_a_room_axis() {
+        // Room identity ignores alphabet; content under each lens diverges.
+        let room = node_hash_bytes(1, 1, 0);
+        assert_eq!(
+            node_fingerprint(1, 1, 0),
+            u64::from_be_bytes(room[..8].try_into().unwrap())
+        );
+        assert_eq!(gallery_seed(1, 1, 0), gallery_seed(1, 1, 0));
         assert_ne!(
             gallery_titles(1, 1, 25, 0, None),
             gallery_titles(1, 1, 29, 0, None)
         );
+        assert_ne!(book_text(0, 0, 0, 25, 0), book_text(0, 0, 0, 29, 0));
         let borges = book_text(0, 0, 0, 25, 0);
         assert!(!borges.contains(['w', 'x', 'y', 'z']));
+        // Same book index, two lenses → different pages under one room seed.
+        let page_b25 = page_text(&PageRender::new(PageAddr::new(0, 0, 0, 0, 25, 0)));
+        let page_b29 = page_text(&PageRender::new(PageAddr::new(0, 0, 0, 0, 29, 0)));
+        assert_ne!(page_b25, page_b29);
     }
 
     #[test]
     fn universe_is_the_outermost_axis() {
-        assert_ne!(node_fingerprint(1, 1, 29, 0), node_fingerprint(1, 1, 29, 7));
+        assert_ne!(node_fingerprint(1, 1, 0), node_fingerprint(1, 1, 7));
         assert_ne!(
             gallery_titles(1, 1, 29, 0, None),
             gallery_titles(1, 1, 29, 7, None)
@@ -168,7 +180,7 @@ mod tests {
     fn feistel_round_trips() {
         let alpha_len = 29;
         let key = feistel_key(29);
-        let mut state = plaintext_from_address(7, -3, 42, 17, 99, 29, alpha_len);
+        let mut state = plaintext_from_address(7, -3, 42, 17, 99, alpha_len);
         let orig = state;
         feistel_encrypt(&mut state, key, alpha_len);
         assert_ne!(state, orig);
@@ -320,6 +332,6 @@ mod tests {
 
     #[test]
     fn generator_version_is_frozen_in_tests() {
-        assert_eq!(GENERATOR_VERSION, 6);
+        assert_eq!(GENERATOR_VERSION, 7);
     }
 }
