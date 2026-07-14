@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets (Romance, Germanic, Uralic, Turkic, Hellenic — see in-app **alphabets** tab). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation.
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic, Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL lenses (Arabic / Hebrew / Persian) are parked.
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -35,7 +35,8 @@ Canonical dimensions we honor:
 | **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
 | **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
 | **Wanderings** | Bounded trail view (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. Click a step to restore that gallery and its lens. |
-| **Alphabet** | View lens (Borges / Basile / European language presets): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. Symbols are Unicode `char`s. |
+| **Alphabet** | View lens (Borges / Basile / language presets; see About): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. German / Dutch lenses also switch site chrome locale. Symbols are Unicode `char`s. |
+| **Colour map** | Page + whole-book views map glyphs to OKLCH colours: letters on an accent-seeded hue wheel (min ~10° step), punct/digits on a muted opposite arc, space near-black. |
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
@@ -80,9 +81,9 @@ lib-of-babel/
 │   ├── color.rs         whole-book RGBA preview image
 │   └── wasm_api.rs      wasm-bindgen JSON/string exports for the frontend
 ├── web/                 static frontend: gallery + minimap + sigil, book reader, wanderings, permalinks, export, verifier
-│   ├── index.html       layout + styles
+│   ├── index.html       layout + styles (gallery atmosphere, fluid shelves)
 │   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · search
+│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · search · i18n · favicon · locales/
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -116,7 +117,7 @@ Paste a phrase in the **Search** modal ( **content** selected) → the core find
 
 **How it works:**
 
-1. **Validate** — only characters in the active alphabet are allowed (Borges / Basile / Spanish lenses, plus space, comma, period). Invalid characters are highlighted in red; there is no auto-sanitize.
+1. **Validate** — only characters in the active alphabet are allowed (letters + trailing space/comma/period; extras depend on the lens). Invalid characters are highlighted in red; there is no auto-sanitize. Search result chrome follows the UI locale when a pack is active (e.g. German).
 2. **Hash → address** — the normalized flat phrase is BLAKE3-hashed with universe + alphabet + version to get `(z, n, book, page)`.
 3. **Embed** — the phrase is written into the generated page text at a deterministic offset (Basile-style: real surrounding text, not a padded overlay). Phrases longer than one page span consecutive pages contiguously: page 0 from the computed offset, continuation pages from column 0.
 4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page + `q=` for the phrase.
@@ -165,7 +166,9 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 **Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet registry id), `book`, `page`, and `q` (search phrase when opened via content search).
 
-Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wander, books, more).
+Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Literata is used for About prose.
+
+Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack in one column so spines stay readable. Page chrome picks up a faint gallery-accent atmosphere; the SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
 ## Roadmap (mirrored as Linear issues)
 
@@ -176,7 +179,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
 4. ✅ **Wanderings + export** — last-500 popup (newest-first; universe + alphabet columns), append-on-step trail in IndexedDB, JSON export.
 5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
-6. ✅ **Alphabets** — Borges / Basile plus European language lenses; carried in permalinks (`&a=`) and exports.
+6. ✅ **Alphabets (base)** — Borges / Basile plus early European language lenses; carried in permalinks (`&a=`) and exports.
 
 **v2 — the multiverse:**
 
@@ -187,7 +190,15 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
 13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. Not translation.
-14. 🚧 **Custom / multi-language alphabets** — char-based core + European / Turkic / Hellenic presets in progress; optional punct-mode axis later; custom picker next.
+14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active. ([THI-86](https://linear.app/thicclatka/issue/THI-86))
+15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
+
+**Next:**
+
+16. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+17. 🚧 **Mobile / extreme-narrow UX** — rethink stacked-width discovery (hover does not apply) and book-reader dialogs on small screens ([THI-120](https://linear.app/thicclatka/issue/THI-120)).
+18. 🚧 **RTL alphabet lenses** — Arabic / Hebrew / Persian (and similar) when the reader can host right-to-left text cleanly.
+19. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry.
 
 **Later:**
 
