@@ -45,8 +45,11 @@ export const en = {
   "about.tabsLabel": "About sections",
   "about.alphabets.h": "Alphabet lenses",
   "about.alphabets.intro":
-    "Each preset is a <b>symbol law</b> for spines and pages — not a separate universe. Same room hash and sigil; a new sort of translation. Search and titles only accept symbols from the active lens. The header menu switches among these sets.",
+    "Each preset is a <b>symbol law</b> for spines and pages — not a separate universe. Same room hash and sigil; <i>not translation</i>. Search and titles only accept symbols from the active lens. Browse by family below. An <b>interface · …</b> mark means menus and labels switch to that language too. <b>Sources</b> under each family blurb link to overview articles.",
+  "about.alphabets.indexLabel": "Family",
+  "about.alphabets.refs": "Sources",
   "about.alphabet.meta": "{n} glyphs · &amp;a={id}",
+  "about.alphabet.uiPack": "interface · {name}",
 
   "about.overview": `
 <p>An endless library you can walk. Each hexagonal gallery has
@@ -63,12 +66,9 @@ going across universes.</li>
 <li><b>Room</b> — <b>gallery (z,&nbsp;n)</b> plus its <b>hash</b> and <b>sigil</b>.
 The hash names the room itself (not the text on the shelves). Same universe +
 same coordinates → same fingerprint, forever.</li>
-<li><b>Alphabet lens</b> — Borges, Basile, Basile++ / Basile#, or a language set
-(see the <b>alphabets</b> tab: Romance through Slavic/Baltic/Cyrillic, Hellenic, …).
-Flip it and every spine and page rewrites under the <b>same</b> hash and sigil.
-Your trail stays put.
-<i>Not translation.</i> The same room, different tongue. The site chrome
-speaks that tongue when a language pack exists (German, Dutch, …).</li>
+<li><b>Alphabet lens</b> — switches the symbol set for spines and pages under the
+<b>same</b> hash and sigil; your trail stays. See the <b>alphabets</b> tab
+for each preset (and which ones also change the site language).</li>
 </ul>
 <h4>Inspiration</h4>
 <p class="dim">
@@ -85,7 +85,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
 <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
-<li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay. Language lenses also switch the site language when a pack exists.</li>
+<li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.</li>
 <li><b>actions…</b> → <b>copy link</b> (or click the header <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
 <li><b>actions…</b> → <b>search…</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
 <li><b>wanderings</b> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
@@ -187,4 +187,117 @@ label, not a page of text.
   "alphabet.group.Slavic": "Slavic",
   "alphabet.group.Baltic": "Baltic",
   "alphabet.group.Albanian": "Albanian",
+  "alphabet.group.Celtic": "Celtic",
+  "alphabet.group.Basque": "Basque",
+  "alphabet.group.Maltese": "Maltese",
+  "alphabet.group.Caucasian": "Caucasian",
+
+  "alphabet.blurb.Latin base":
+    "The project’s starting alphabets: Borges’s restricted Latin set from the 1941 story (a–v), Basile’s web library a–z, then Basile++ / Basile# adding digits and punctuation.",
+  "alphabet.blurb.Romance":
+    "From Vulgar Latin in the former Roman west, regional vernaculars became Spanish, Portuguese, French, Italian, Romanian, and Catalan. Accents and a few extra letters were added as print and schooling fixed spelling to local sounds (nasals, palatals, stress).",
+  "alphabet.blurb.Germanic":
+    "Early Germanic languages used runes; Latin letters arrived with Christian literacy. Later print and schooling fixed German, Dutch, and Scandinavian Latin orthographies — including umlaut vowels, æ/ø/å, and Icelandic þ/ð for dental fricatives.",
+  "alphabet.blurb.Uralic":
+    "A non-Indo-European root family: Finnic languages around the Baltic, Hungarian carried west with the Magyars. All three here use modern Latin orthographies; Finnish and Estonian remained closely related, while Hungarian branched early and has a larger vowel inventory.",
+  "alphabet.blurb.Turkic":
+    "Ottoman Turkish used Arabic script for centuries. In 1928 the Republic adopted a Latin alphabet designed to match Turkish vowels (including dotted/dotless i) more directly than Arabic spelling had.",
+  "alphabet.blurb.Hellenic":
+    "Greek letters continue from antiquity. This lens is monotonic modern Greek (official from 1982): one accent mark instead of the older polytonic system, with the same α–ω inventory plus final sigma.",
+  "alphabet.blurb.Slavic":
+    "After Christianization, Slavic literacy followed two church traditions: Glagolitic/Cyrillic in much of the Orthodox east and south; Latin in the Catholic west and Adriatic. The lenses here follow that historical script split.",
+  "alphabet.blurb.Baltic":
+    "Latvian and Lithuanian are Baltic Indo-European languages. Both took Latin letters after Christianization; modern spellings, with many vowel and consonant diacritics, settled mainly in the nineteenth–twentieth centuries.",
+  "alphabet.blurb.Albanian":
+    "Written attestation is late (15th c. onward). Several alphabet proposals were in use until the 1908 Congress of Manastir adopted a Latin standard, including ç and ë for sounds not covered by plain a–z.",
+  "alphabet.blurb.Celtic":
+    "Insular Celtic languages used Latin letters through monastery and print after earlier Ogham. Modern Welsh and Irish spelling reforms kept Latin type; this shelf uses those standard orthographies (circumflexes in Welsh, fada vowels in Irish).",
+  "alphabet.blurb.Basque":
+    "Spoken in the western Pyrenees since before Roman times; a language isolate with no proven relatives. Written mainly in Latin from the early modern period; twentieth-century standardization fixed ñ and ç in the school orthography.",
+  "alphabet.blurb.Maltese":
+    "Developed from medieval Siculo-Arabic on Malta, later in contact with Italian and English. It is Semitic in structure but uses a Latin alphabet (standardized 1924), with extra letters for consonants English a–z does not write.",
+  "alphabet.blurb.Caucasian":
+    "Armenian letters are traditionally ascribed to Mesrop Mashtots (c. 405) for vernacular scripture; Georgian Mkhedruli comes from medieval Georgian literary tradition. Both are independent left-to-right alphabets, not Latin or Cyrillic.",
+
+  // Per-lens blurbs (stable registry ids).
+  "alphabet.lensBlurb.25":
+    "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
+  "alphabet.lensBlurb.29":
+    "From Basile’s libraryofbabel.info: English a–z plus space, comma, and period.",
+  "alphabet.lensBlurb.48":
+    "Basile’s a–z plus digits and common punctuation, so titles and pages can include numerals and sentence marks.",
+  "alphabet.lensBlurb.60":
+    "Basile++ plus symbols used in URLs and code (@, #, &, brackets, and similar).",
+  "alphabet.lensBlurb.35":
+    "Castilian spelling was systematized around Nebrija (1492). ñ writes the palatal nasal /ɲ/ (as in año), historically from Latin nn.",
+  "alphabet.lensBlurb.41":
+    "Portuguese orthography grew with Atlantic expansion and later spelling reforms. ã/õ mark nasal vowels; cedilla ç marks /s/ before a/o/u.",
+  "alphabet.lensBlurb.45":
+    "French accents were fixed through print and Académie spelling norms. They mark vowel quality, historical s (â/ê), and open vs closed e; œ and ç come from Latin and older scribal conventions.",
+  "alphabet.lensBlurb.32":
+    "Italian stayed close to the Latin letter inventory. Accents mainly mark which syllable is stressed when that would otherwise be ambiguous.",
+  "alphabet.lensBlurb.36":
+    "Romanian returned to Latin letters in the 19th century after a long period of Cyrillic for church and state. ă/â/î/ș/ț mark central vowels and the consonants /ʃ/ and /ts/.",
+  "alphabet.lensBlurb.62":
+    "Catalan’s nineteenth-century literary revival fixed a modern Latin norm. The middot in l·l marks a double /l/ (geminate), distinct from single l or Spanish ll.",
+  "alphabet.lensBlurb.33":
+    "German ä/ö/ü mark fronted vowels from historical umlaut (i-mutation). ß (Eszett) comes from a long-s + z ligature and writes /s/ after long vowels and diphthongs.",
+  "alphabet.lensBlurb.34":
+    "Dutch standardized through the Statenbijbel and later spelling laws. This lens adds accented vowels é/ë/ï/ö/ü used for stress or vowel quality in loanwords and a few native forms.",
+  "alphabet.lensBlurb.37":
+    "Danish and Bokmål Norwegian share æ/ø/å for front and rounded vowels that plain a/o/a did not cover once Latin replaced runes in Scandinavia.",
+  "alphabet.lensBlurb.38":
+    "Swedish uses ä/ö/å for the same broad Nordic vowel needs as Danish/Norwegian, but with ä/ö instead of æ/ø — a spelling split settled in early modern print.",
+  "alphabet.lensBlurb.49":
+    "Icelandic keeps þ and ð for the voiceless and voiced dental fricatives (/θ/, /ð/) inherited from Old Norse; most other Nordic languages replaced those letters.",
+  "alphabet.lensBlurb.40":
+    "Finnish literacy spreads from Reformation primers (Agricola). ä/ö mark front vowels; doubled letters mark length, which is contrastive in Finnish.",
+  "alphabet.lensBlurb.43":
+    "Estonian orthography was modernized in the 19th century alongside Finnish. õ writes a mid back unrounded vowel (/ɤ/) that Finnish does not use the same way.",
+  "alphabet.lensBlurb.44":
+    "Hungarian took Latin letters in the Middle Ages. ő/ű mark long front rounded vowels; digraphs such as sz/cs/ty write consonants single Latin letters could not cover cleanly.",
+  "alphabet.lensBlurb.39":
+    "The 1928 reform replaced Ottoman Arabic script with Latin letters chosen to match Turkish vowel harmony — including dotted i and dotless ı as separate phonemes.",
+  "alphabet.lensBlurb.46":
+    "The Greek alphabet is continuous from antiquity. The 1982 monotonic reform reduced accent marks to a single tonos while keeping α–ω and final sigma (ς).",
+  "alphabet.lensBlurb.47":
+    "Polish kept Latin under western church literacy. ą/ę mark historical nasal vowels; ł is /w/; ć/ń/ś/ź/ż write palatal or postalveolar consonants.",
+  "alphabet.lensBlurb.52":
+    "Czech háček letters (č/ř/š/ž and kin) go back to Jan Hus’s reforms, adding marks so Latin could write Slavic palatals and ř without digraph clutter.",
+  "alphabet.lensBlurb.57":
+    "Slovak spelling was standardized in the nineteenth century beside Czech. ô writes the diphthong /ʊɔ/; ľ writes palatal /ʎ/.",
+  "alphabet.lensBlurb.42":
+    "Gaj’s nineteenth-century Latin (“Gajica”) gives Croatian and Serbian Latin one letter (or digraph) per sound, including č/ć/đ/š/ž for the affricates and fricatives.",
+  "alphabet.lensBlurb.53":
+    "Slovenian used Latin under Habsburg schooling. č/š/ž write the postalveolar consonants shared with neighboring South Slavic Latin orthographies.",
+  "alphabet.lensBlurb.54":
+    "Russian Cyrillic descends from Church Slavonic. Peter’s civil-script reform and later updates produced the modern set, including ё and the hard/soft signs.",
+  "alphabet.lensBlurb.55":
+    "Ukrainian Cyrillic marks sounds that differ from Russian spelling: ї /ji/, є /je/, and ґ /g/ (distinct from г /ɦ/).",
+  "alphabet.lensBlurb.58":
+    "Belarusian Cyrillic was standardized in the twentieth century. ў writes a short /w/-like vowel (as in воўк), absent from Russian orthography.",
+  "alphabet.lensBlurb.56":
+    "Bulgarian was an early literary center for Cyrillic. Modern spelling uses ъ as a full vowel and no longer includes several older Slavic letters.",
+  "alphabet.lensBlurb.59":
+    "Macedonian standard Cyrillic was codified after WWII. ѓ/ќ (and similar letters) write palatal stops that neighboring standards spell differently.",
+  "alphabet.lensBlurb.61":
+    "Vuk Karadžić’s Serbian Cyrillic is mapped one-to-one with Latin Gajica — the same phonemic inventory in the other historical script.",
+  "alphabet.lensBlurb.50":
+    "Latvian’s modern Latin orthography solidified around 1908–1922. Macrons (ā/ē/ī/ū) mark long vowels; ģ/ķ/ļ/ņ mark palatals.",
+  "alphabet.lensBlurb.51":
+    "Lithuanian has used Latin print for centuries. ą/ę/į/ų reflect historical nasal vowels; ė and ū/ų help mark vowel quality and length still contrastive in the language.",
+  "alphabet.lensBlurb.31":
+    "The 1908 Congress of Manastir adopted today’s Latin standard for Albanian. ç and ë write /tʃ/ and the mid central vowel /ə/.",
+  "alphabet.lensBlurb.64":
+    "Welsh has a continuous Latin literary tradition from the Middle Ages. Circumflexes (â/ê/î/ô/û/ŵ/ŷ) mark long vowels, including on w and y when they function as vowels.",
+  "alphabet.lensBlurb.65":
+    "Irish moved from Ogham and later Gaelic type to a simplified Latin orthography. The fada (á/é/í/ó/ú) marks long vowels.",
+  "alphabet.lensBlurb.63":
+    "Basque has been written in Latin letters since the late Middle Ages. ñ writes /ɲ/; ç appears in established spellings such as Frantses borrowings and some names.",
+  "alphabet.lensBlurb.66":
+    "Maltese standardized a Latin alphabet in the 1920s. ċ/ġ/ż write affricates and /z/; ħ writes a voiceless pharyngeal fricative from its Arabic-derived consonant set.",
+  "alphabet.lensBlurb.67":
+    "Mesrop Mashtots is traditionally credited with creating Armenian letters c. 405 so scripture and liturgy could be written in Armenian rather than only Greek or Syriac.",
+  "alphabet.lensBlurb.68":
+    "Mkhedruli is the modern Georgian letter forms used for ordinary writing. The alphabet is indigenous to Georgian, developed separately from Latin and Cyrillic.",
 };

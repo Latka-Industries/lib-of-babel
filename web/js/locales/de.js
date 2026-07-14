@@ -49,8 +49,11 @@ export const de = {
   "about.tabsLabel": "Abschnitte",
   "about.alphabets.h": "Alphabet-Linsen",
   "about.alphabets.intro":
-    "Jeder Satz ist ein <b>Symbolgesetz</b> für Rücken und Seiten — kein eigenes Universum. Gleicher Raum-Hash und Siegel; eine neue Art von Übersetzung. Suche und Titel akzeptieren nur Symbole der aktiven Linse. Das Menü in der Kopfzeile wechselt zwischen diesen Sätzen.",
+    "Jeder Satz ist ein <b>Symbolgesetz</b> für Rücken und Seiten — kein eigenes Universum. Gleicher Raum-Hash und Siegel; <i>keine Übersetzung</i>. Suche und Titel akzeptieren nur Symbole der aktiven Linse. Unten nach Familie stöbern. Ein Hinweis <b>Oberfläche · …</b> heißt: Menüs und Beschriftungen wechseln mit. <b>Quellen</b> unter dem Familien-Blurb verweisen auf Überblickstexte.",
+  "about.alphabets.indexLabel": "Familie",
+  "about.alphabets.refs": "Quellen",
   "about.alphabet.meta": "{n} Glyphen · &amp;a={id}",
+  "about.alphabet.uiPack": "Oberfläche · {name}",
 
   "about.overview": `
 <p>Eine endlose Bibliothek zum Durchwandern. Jede sechseckige Galerie hat
@@ -67,12 +70,9 @@ Standard). Dieselben Raumnummern, völlig andere Bücher. Ihre Wanderungen gehen
 <li><b>Raum</b> — <b>Galerie (z,&nbsp;n)</b> plus <b>Hash</b> und <b>Siegel</b>.
 Der Hash benennt den Raum selbst (nicht den Text in den Regalen). Gleiches Universum +
 gleiche Koordinaten → immer derselbe Fingerabdruck.</li>
-<li><b>Alphabet-Linse</b> — Borges, Basile, Basile++ / Basile# oder ein Sprachsatz
-(siehe <b>Alphabete</b>: Romanisch bis Slawisch/Baltisch/Kyrillisch, Hellenisch, …).
-Umschalten schreibt jedes Rückenschild und jede Seite unter dem <b>gleichen</b>
-Hash und Siegel um. Ihre Spur bleibt.
-<i>Keine Übersetzung.</i> Derselbe Raum, andere Zunge. Die Oberfläche spricht
-diese Zunge, wenn ein Sprachpaket existiert (Deutsch, Niederländisch, …).</li>
+<li><b>Alphabet-Linse</b> — wechselt den Zeichensatz für Rücken und Seiten unter
+dem <b>gleichen</b> Hash und Siegel; Ihre Spur bleibt. Im Tab <b>Alphabete</b>
+stehen die Presets (inkl. welche auch die Oberflächen-Sprache wechseln).</li>
 </ul>
 <h4>Inspiration</h4>
 <p class="dim">
@@ -89,7 +89,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Klicken Sie auf <b>Galerie&nbsp;(z,&nbsp;n)</b>, um irgendwohin zu <b>springen</b>.</li>
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
 <li>Geben Sie einen <b>Universum</b>-Namen ein oder würfeln Sie mit <b>&#9860;</b>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
-<li>Das <b>Alphabet</b>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben. Sprachlinsen wechseln auch die Oberflächensprache, wenn ein Paket vorhanden ist.</li>
+<li>Das <b>Alphabet</b>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.</li>
 <li><b>Aktionen…</b> → <b>Link kopieren</b> (oder Kopfzeilen-<b>Hash</b>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
 <li><b>Aktionen…</b> → <b>Suchen…</b> — <b>Inhalt</b> oder <b>Titel</b>, Koordinaten finden, hinspringen (siehe <b>Mehr</b>).</li>
 <li><b>Wanderungen</b> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <b>Reise exportieren</b> speichert den gesamten Weg als JSON.</li>
@@ -191,4 +191,117 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.group.Slavic": "Slawisch",
   "alphabet.group.Baltic": "Baltisch",
   "alphabet.group.Albanian": "Albanisch",
+  "alphabet.group.Celtic": "Keltisch",
+  "alphabet.group.Basque": "Baskisch",
+  "alphabet.group.Maltese": "Maltesisch",
+  "alphabet.group.Caucasian": "Kaukasisch",
+
+  "alphabet.blurb.Latin base":
+    "Die Ausgangsalphabete des Projekts: Borges’ eingeschränkter lateinischer Satz aus der Erzählung von 1941 (a–v), Basiles Web-Bibliothek a–z, dann Basile++ / Basile# mit Ziffern und Satzzeichen.",
+  "alphabet.blurb.Romance":
+    "Aus dem Vulgärlatein des früheren römischen Westens wurden regionale Volkssprachen zu Spanisch, Portugiesisch, Französisch, Italienisch, Rumänisch und Katalanisch. Akzente und wenige Zusatzbuchstaben kamen mit Druck und Schule, um lokale Laute (Nasale, Palatale, Wortakzent) zu schreiben.",
+  "alphabet.blurb.Germanic":
+    "Frühgermanische Sprachen nutzten Runen; lateinische Buchstaben kamen mit christlicher Schriftlichkeit. Späterer Druck und Schule fixierten deutsche, niederländische und skandinavische lateinische Orthographien — samt Umlautvokalen, æ/ø/å und isländischem þ/ð für Dentalfrikative.",
+  "alphabet.blurb.Uralic":
+    "Eine nicht-indogermanische Wurzelfamilie: finnische Sprachen an der Ostsee, Ungarisch westwärts mit den Magyaren. Alle drei hier nutzen moderne lateinische Orthographien; Finnisch und Estnisch blieben eng verwandt, während Ungarisch früh abzweigte und ein größeres Vokalinventar hat.",
+  "alphabet.blurb.Turkic":
+    "Osmanisches Türkisch nutzte jahrhundertelang arabische Schrift. 1928 übernahm die Republik ein lateinisches Alphabet, das türkische Vokale (einschließlich punktiertem/punktlosem i) direkter abbildet als die arabische Schreibung.",
+  "alphabet.blurb.Hellenic":
+    "Griechische Buchstaben seit der Antike. Diese Linse ist monotonisches Neugriechisch (amtlich ab 1982): ein Akzentzeichen statt des älteren polytonischen Systems, gleiches α–ω-Inventar plus Schluss-Sigma.",
+  "alphabet.blurb.Slavic":
+    "Nach der Christianisierung folgte die slawische Schriftlichkeit zwei Kirchtraditionen: Glagolitisch/Kyrillisch im weitgehend orthodoxen Osten und Süden; Latein im katholischen Westen und an der Adria. Die Linsen hier folgen dieser historischen Schriftteilung.",
+  "alphabet.blurb.Baltic":
+    "Lettisch und Litauisch sind baltische indogermanische Sprachen. Beide übernahmen lateinische Buchstaben nach der Christianisierung; moderne Schreibungen mit vielen Vokal- und Konsonantendiakritika festigten sich vor allem im 19./20. Jahrhundert.",
+  "alphabet.blurb.Albanian":
+    "Schriftliche Bezeugung ist spät (ab dem 15. Jh.). Mehrere Alphabetvorschläge waren in Gebrauch, bis der Kongress von Manastir 1908 einen lateinischen Standard annahm, inklusive ç und ë für Laute außerhalb von a–z.",
+  "alphabet.blurb.Celtic":
+    "Inselkeltische Sprachen nutzten nach früherem Ogham lateinische Buchstaben durch Kloster und Druck. Moderne walisische und irische Rechtschreibreformen behielten Latein; dieses Regal folgt diesen Standardorthographien (Zirkumflexe im Walisischen, Fada-Vokale im Irischen).",
+  "alphabet.blurb.Basque":
+    "In den Westpyrenäen seit vorromischer Zeit gesprochen; Isolat ohne gesicherte Verwandte. Schrift vor allem lateinisch seit der Frühen Neuzeit; die Standardisierung im 20. Jahrhundert fixierte ñ und ç in der Schulorthographie.",
+  "alphabet.blurb.Maltese":
+    "Aus mittelalterlichem Sizilianisch-Arabisch auf Malta, später in Kontakt mit Italienisch und Englisch. Semitisch im Bau, aber mit lateinischem Alphabet (standardisiert 1924) und Zusatzbuchstaben für Konsonanten, die englisches a–z nicht schreibt.",
+  "alphabet.blurb.Caucasian":
+    "Armenische Buchstaben werden traditionell Mesrop Maschtoz (um 405) für volkssprachliche Schrift zugeschrieben; georgisches Mchedruli stammt aus der mittelalterlichen georgischen Literatursprache. Beides sind eigenständige Links-nach-rechts-Alphabete, weder Latein noch Kyrillisch.",
+
+  "alphabet.lensBlurb.25":
+    "Aus Borges’ Erzählung von 1941: zweiundzwanzig Buchstaben (a–v) sowie Leerzeichen, Komma und Punkt — das Alphabet, das die Fiktion der Bibliothek zuweist.",
+  "alphabet.lensBlurb.29":
+    "Aus Basiles libraryofbabel.info: englisches a–z sowie Leerzeichen, Komma und Punkt.",
+  "alphabet.lensBlurb.48":
+    "Basiles a–z plus Ziffern und gängige Satzzeichen, damit Titel und Seiten Ziffern und Satzzeichen enthalten können.",
+  "alphabet.lensBlurb.60":
+    "Basile++ plus Symbole aus URLs und Code (@, #, &, Klammern und Ähnliches).",
+  "alphabet.lensBlurb.35":
+    "Kastilische Schreibung wurde um Nebrija (1492) systematisiert. ñ schreibt den palatalen Nasal /ɲ/ (wie in año), historisch aus lateinischem nn.",
+  "alphabet.lensBlurb.41":
+    "Portugiesische Orthographie wuchs mit der atlantischen Expansion und späteren Rechtschreibreformen. ã/õ markieren Nasalvokale; Cedille ç markiert /s/ vor a/o/u.",
+  "alphabet.lensBlurb.45":
+    "Französische Akzente wurden durch Druck und Académie-Normen festgelegt. Sie markieren Vokalqualität, historisches s (â/ê) und offenes vs. geschlossenes e; œ und ç stammen aus dem Lateinischen und älteren Schreibkonventionen.",
+  "alphabet.lensBlurb.32":
+    "Italienisch blieb nah am lateinischen Buchstabenbestand. Akzente markieren vor allem die betonte Silbe, wenn das sonst unklar wäre.",
+  "alphabet.lensBlurb.36":
+    "Rumänisch kehrte im 19. Jahrhundert zu lateinischen Buchstaben zurück nach langer kyrillischer Nutzung in Kirche und Staat. ă/â/î/ș/ț markieren Zentralvokale sowie die Konsonanten /ʃ/ und /ts/.",
+  "alphabet.lensBlurb.62":
+    "Katalaniens literarische Erneuerung im 19. Jahrhundert fixierte eine moderne lateinische Norm. Der Punkt in l·l markiert doppeltes /l/ (geminat), unterschieden von einfachem l oder spanischem ll.",
+  "alphabet.lensBlurb.33":
+    "Deutsche ä/ö/ü markieren vorderzungenige Vokale aus historischem Umlaut (i-Umlaut). ß (Eszett) stammt aus einer Ligatur aus langem s + z und schreibt /s/ nach langen Vokalen und Diphthongen.",
+  "alphabet.lensBlurb.34":
+    "Niederländisch standardisierte sich über die Statenbijbel und spätere Rechtschreibgesetze. Diese Linse ergänzt akzentuierte Vokale é/ë/ï/ö/ü für Betonung oder Vokalqualität in Lehnwörtern und einigen nativen Formen.",
+  "alphabet.lensBlurb.37":
+    "Dänisch und Bokmål-Norwegisch teilen æ/ø/å für vordere und gerundete Vokale, die bloßes a/o nicht abdeckte, nachdem Latein in Skandinavien die Runen ablöste.",
+  "alphabet.lensBlurb.38":
+    "Schwedisch nutzt ä/ö/å für dieselben nordischen Vokalbedürfnisse wie Dänisch/Norwegisch, aber mit ä/ö statt æ/ø — eine Schreibspaltung der Frühen Neuzeit.",
+  "alphabet.lensBlurb.49":
+    "Isländisch behält þ und ð für die stimmlosen und stimmhaften Dentalfrikative (/θ/, /ð/) aus dem Altnordischen; die meisten anderen nordischen Sprachen ersetzten diese Buchstaben.",
+  "alphabet.lensBlurb.40":
+    "Finnische Schriftlichkeit verbreitete sich mit reformatorischen Fibeln (Agricola). ä/ö markieren Vorderzungenvokale; verdoppelte Buchstaben markieren Länge, die im Finnischen bedeutungsunterscheidend ist.",
+  "alphabet.lensBlurb.43":
+    "Estnische Orthographie wurde im 19. Jahrhundert neben dem Finnischen modernisiert. õ schreibt einen mittleren hinteren ungerundeten Vokal (/ɤ/), den Finnisch so nicht verwendet.",
+  "alphabet.lensBlurb.44":
+    "Ungarisch übernahm im Mittelalter lateinische Buchstaben. ő/ű markieren lange vordere gerundete Vokale; Digraphen wie sz/cs/ty schreiben Konsonanten, die einzelne lateinische Buchstaben nicht sauber abdeckten.",
+  "alphabet.lensBlurb.39":
+    "Die Reform von 1928 ersetzte osmanisch-arabische Schrift durch lateinische Buchstaben, gewählt passend zur türkischen Vokalharmonie — inklusive punktiertem i und punktlosem ı als getrennte Phoneme.",
+  "alphabet.lensBlurb.46":
+    "Das griechische Alphabet besteht seit der Antike fort. Die monotonische Reform von 1982 reduzierte die Akzente auf einen einzigen Tonos und behielt α–ω sowie Schluss-Sigma (ς).",
+  "alphabet.lensBlurb.47":
+    "Polnisch behielt Latein unter westlicher kirchlicher Schriftlichkeit. ą/ę markieren historische Nasalvokale; ł ist /w/; ć/ń/ś/ź/ż schreiben palatale oder postalveolare Konsonanten.",
+  "alphabet.lensBlurb.52":
+    "Tschechische Háček-Buchstaben (č/ř/š/ž und Verwandte) gehen auf Jan Hus zurück — Zusatzzeichen, damit Latein slawische Palatale und ř ohne Digraphen-Wust schreiben konnte.",
+  "alphabet.lensBlurb.57":
+    "Slowakische Schreibung wurde im 19. Jahrhundert neben dem Tschechischen standardisiert. ô schreibt den Diphthong /ʊɔ/; ľ schreibt palatales /ʎ/.",
+  "alphabet.lensBlurb.42":
+    "Gajs lateinische Schrift des 19. Jahrhunderts („Gajica“) gibt kroatischem und serbischem Latein einen Buchstaben (oder Digraphen) pro Laut, inklusive č/ć/đ/š/ž für Affrikaten und Frikative.",
+  "alphabet.lensBlurb.53":
+    "Slowenisch nutzte Latein unter habsburgischer Schule. č/š/ž schreiben die postalveolaren Konsonanten, die mit benachbarten südslawischen Lateinorthographien geteilt werden.",
+  "alphabet.lensBlurb.54":
+    "Russisches Kyrillisch stammt vom Kirchenslawischen. Peters Zivilschrift und spätere Anpassungen ergaben den modernen Satz, inklusive ё sowie hartem und weichem Zeichen.",
+  "alphabet.lensBlurb.55":
+    "Ukrainisches Kyrillisch markiert Laute, die von der russischen Schreibung abweichen: ї /ji/, є /je/ und ґ /g/ (unterscheidet sich von г /ɦ/).",
+  "alphabet.lensBlurb.58":
+    "Belarussisches Kyrillisch wurde im 20. Jahrhundert standardisiert. ў schreibt einen kurzen /w/-ähnlichen Vokal (wie in воўк), den die russische Orthographie nicht hat.",
+  "alphabet.lensBlurb.56":
+    "Bulgarisch war ein frühes literarisches Zentrum für Kyrillisch. Die moderne Schreibung nutzt ъ als Vollvokal und enthält mehrere ältere slawische Buchstaben nicht mehr.",
+  "alphabet.lensBlurb.59":
+    "Mazedonisches Standard-Kyrillisch wurde nach dem Zweiten Weltkrieg kodifiziert. ѓ/ќ (und ähnliche Buchstaben) schreiben palatale Verschlusslaute, die Nachbarstandards anders schreiben.",
+  "alphabet.lensBlurb.61":
+    "Vuk Karadžićs serbisches Kyrillisch ist eins zu eins der lateinischen Gajica zugeordnet — dasselbe phonemische Inventar in der anderen historischen Schrift.",
+  "alphabet.lensBlurb.50":
+    "Lettische moderne lateinische Orthographie festigte sich um 1908–1922. Makra (ā/ē/ī/ū) markieren lange Vokale; ģ/ķ/ļ/ņ markieren Palatale.",
+  "alphabet.lensBlurb.51":
+    "Litauisch nutzt seit Jahrhunderten lateinischen Druck. ą/ę/į/ų spiegeln historische Nasalvokale; ė und ū/ų helfen, Vokalqualität und -länge zu markieren, die in der Sprache noch bedeutungsunterscheidend sind.",
+  "alphabet.lensBlurb.31":
+    "Der Kongress von Manastir 1908 nahm den heutigen lateinischen Standard für Albanisch an. ç und ë schreiben /tʃ/ und den mittleren Zentralvokal /ə/.",
+  "alphabet.lensBlurb.64":
+    "Walisisch hat eine durchgehende lateinische Literatursprache seit dem Mittelalter. Zirkumflexe (â/ê/î/ô/û/ŵ/ŷ) markieren lange Vokale, auch auf w und y, wenn sie als Vokale fungieren.",
+  "alphabet.lensBlurb.65":
+    "Irisch ging von Ogham und späterer gälischer Schrift zu einer vereinfachten lateinischen Orthographie. Der Fada (á/é/í/ó/ú) markiert lange Vokale.",
+  "alphabet.lensBlurb.63":
+    "Baskisch wird seit dem späten Mittelalter in lateinischen Buchstaben geschrieben. ñ schreibt /ɲ/; ç erscheint in etablierten Schreibungen wie französischen Entlehnungen und manchen Namen.",
+  "alphabet.lensBlurb.66":
+    "Maltesisch standardisierte in den 1920ern ein lateinisches Alphabet. ċ/ġ/ż schreiben Affrikaten und /z/; ħ schreibt einen stimmlosen pharyngalen Frikativ aus seinem arabischstämmigen Konsonantensatz.",
+  "alphabet.lensBlurb.67":
+    "Mesrop Maschtoz wird traditionell die Schaffung armenischer Buchstaben um 405 zugeschrieben, damit Schrift und Liturgie auf Armenisch statt nur auf Griechisch oder Syrisch möglich wurden.",
+  "alphabet.lensBlurb.68":
+    "Mchedruli sind die modernen georgischen Buchstabenformen für den Alltag. Das Alphabet ist der georgischen Sprache eigen und entstand unabhängig von Latein und Kyrillisch.",
 };
+
