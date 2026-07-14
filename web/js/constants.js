@@ -5,7 +5,8 @@ export const SHELVES_PER_WALL = 5;
 export const BOOKS_PER_SHELF = 35;
 export const TOTAL_BOOKS = WALLS * SHELVES_PER_WALL * BOOKS_PER_SHELF; // 700
 
-export const WINDOW_MAX = 50; // forget rendered nodes beyond this; trail keeps hashes
+/** Wanderings popup: last N trail steps. Full trail is unbounded (IndexedDB). */
+export const WINDOW_MAX = 500;
 export const PAGES_PER_BOOK = 410;
 export const LINES_PER_PAGE = 40;
 export const CHARS_PER_LINE = 80;
@@ -29,14 +30,32 @@ export const ALPHABETS = {
   29: "abcdefghijklmnopqrstuvwxyz ,.",
 };
 
+/** Letter run for an alphabet id (punctuation stripped), e.g. "abcdefghijklmnopqrstuv". */
+export function alphabetLetters(alphabetId = 29) {
+  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+  return alpha.replace(/[, .]/g, "");
+}
+
 /** Human-readable allowed set, e.g. "a–v, space, comma, period". */
 export function alphabetDescription(alphabetId = 29) {
   const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
-  const letters = alpha.replace(/[, .]/g, "");
+  const letters = alphabetLetters(alphabetId);
   const parts = [];
   if (letters.length) parts.push(`${letters[0]}–${letters[letters.length - 1]}`);
   if (alpha.includes(" ")) parts.push("space");
   if (alpha.includes(",")) parts.push("comma");
   if (alpha.includes(".")) parts.push("period");
   return parts.join(", ");
+}
+
+/** Compact lens label for wanderings rows, e.g. "a–z". */
+export function alphabetShortLabel(alphabetId = 29) {
+  const letters = alphabetLetters(alphabetId);
+  if (!letters.length) return String(alphabetId);
+  return `${letters[0]}–${letters[letters.length - 1]}`;
+}
+
+/** Verify / trail note style, e.g. "29-symbol". */
+export function formatAlphabetSymbolLabel(alphabetId = 29) {
+  return `${alphabetId}-symbol`;
 }

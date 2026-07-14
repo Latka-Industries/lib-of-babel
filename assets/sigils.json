@@ -1,31 +1,199 @@
 {
-  "note": "Real galleries in the default universe (alphabet 29). hash is the 16-hex/64-bit BLAKE3 prefix (header + permalink token); hash_full is the complete 256-bit BLAKE3 node hash; hue = parseInt(hash[0:4],16) % 360, matching the live app. The permalink fragment opens that exact gallery. Redraw the sheet with: node scripts/make-sigil-sheet.mjs",
+  "note": "Real galleries in the default universe. hash is the 16-hex/64-bit BLAKE3 room prefix (header + permalink token); hash_full is the complete 256-bit room hash; hue = parseInt(hash[0:4],16) % 360, matching the live app. Alphabet in permalinks is a view lens only. Redraw the sheet with: node scripts/make-sigil-sheet.mjs",
   "alphabet": 29,
   "universe": "",
   "tiles": [
-    { "z": -818371, "n": -289750, "hash": "a1c332d3a76b7eb5", "hash_full": "a1c332d3a76b7eb5c2714cecaf4fe570ffd167fb7bbc9a0a9e8a97a98f9cfe35", "hue": 11,  "permalink": "#z=-818371&n=-289750&h=a1c332d3a76b7eb5&a=29" },
-    { "z": 659343,  "n": -305293, "hash": "2020cd0c79a303fe", "hash_full": "2020cd0c79a303fe835de9334e0d8fa2adf774d9308e3d2f37c055e17c3e913f", "hue": 304, "permalink": "#z=659343&n=-305293&h=2020cd0c79a303fe&a=29" },
-    { "z": -871495, "n": 690591,  "hash": "5862b4bedb7750a1", "hash_full": "5862b4bedb7750a1a0d8a68a0b10ec6cadd1574d6f9eb50f7a12589da72c192d", "hue": 306, "permalink": "#z=-871495&n=690591&h=5862b4bedb7750a1&a=29" },
-    { "z": -825983, "n": 290564,  "hash": "5913c61710082455", "hash_full": "5913c617100824558058fa731638205709af1560f5c0e4e087c7e73ed2b7e2b4", "hue": 123, "permalink": "#z=-825983&n=290564&h=5913c61710082455&a=29" },
-    { "z": 695570,  "n": -263886, "hash": "807449f1f185a2a8", "hash_full": "807449f1f185a2a84410d539b320574d25db36e3231f9ba72a4e29e9619f09c6", "hue": 124, "permalink": "#z=695570&n=-263886&h=807449f1f185a2a8&a=29" },
-    { "z": -919459, "n": 493252,  "hash": "739f48cf65f3e61f", "hash_full": "739f48cf65f3e61f482d468e619cebaec9c7082b1c4c726c1f2e482323f0fba6", "hue": 79,  "permalink": "#z=-919459&n=493252&h=739f48cf65f3e61f&a=29" },
-    { "z": 359518,  "n": 283479,  "hash": "0ff45fdb378da138", "hash_full": "0ff45fdb378da138e1a1363a9a9f305c63af6a709789ef9b857752282690cf17", "hue": 124, "permalink": "#z=359518&n=283479&h=0ff45fdb378da138&a=29" },
-    { "z": -89379,  "n": 196116,  "hash": "30d7d977b44c1cff", "hash_full": "30d7d977b44c1cff73dc676ed20a666a82caa5c5a1e6841ea03bc28c41e68041", "hue": 263, "permalink": "#z=-89379&n=196116&h=30d7d977b44c1cff&a=29" },
-    { "z": 190923,  "n": 244819,  "hash": "8bb150c7a8f92946", "hash_full": "8bb150c7a8f92946d150e5431861e68ebd0f20861051453327e5092725303fcf", "hue": 121, "permalink": "#z=190923&n=244819&h=8bb150c7a8f92946&a=29" },
-    { "z": 395855,  "n": 139448,  "hash": "1b12055c2ecb569b", "hash_full": "1b12055c2ecb569bb40e4520790dad24886e454438060032c7d481c2de480003", "hue": 90,  "permalink": "#z=395855&n=139448&h=1b12055c2ecb569b&a=29" },
-    { "z": -532529, "n": 237896,  "hash": "8247e54bd75d63d9", "hash_full": "8247e54bd75d63d92cceb78c34a529803eb0795f218c44c2bc1205cc4d268e64", "hue": 231, "permalink": "#z=-532529&n=237896&h=8247e54bd75d63d9&a=29" },
-    { "z": -194339, "n": -766595, "hash": "e6a76563b4edce3e", "hash_full": "e6a76563b4edce3ef73d59c4ff8257f9cab9bf74d8e9f647a34af61aad629a29", "hue": 7,   "permalink": "#z=-194339&n=-766595&h=e6a76563b4edce3e&a=29" },
-    { "z": 428263,  "n": 441172,  "hash": "4952feb441b9bb41", "hash_full": "4952feb441b9bb4138015eaf31455b51486d1447243bff25436b68ed21736a68", "hue": 50,  "permalink": "#z=428263&n=441172&h=4952feb441b9bb41&a=29" },
-    { "z": -196568, "n": -403706, "hash": "9314708984f2d579", "hash_full": "9314708984f2d5793c528b7ad2b1e3caea276c2558275fc8dc2fdf88f55821bf", "hue": 212, "permalink": "#z=-196568&n=-403706&h=9314708984f2d579&a=29" },
-    { "z": 523674,  "n": 510405,  "hash": "2abd247492f11b12", "hash_full": "2abd247492f11b121bfc9adf11c06cf1eb4ae74ed38ebe4d1355ea3044ad0560", "hue": 141, "permalink": "#z=523674&n=510405&h=2abd247492f11b12&a=29" },
-    { "z": -490181, "n": 725362,  "hash": "23a8b36ea89dc03c", "hash_full": "23a8b36ea89dc03ca3428e664f80a327d3cc60a818e94c1a5c60b5dae8f11424", "hue": 128, "permalink": "#z=-490181&n=725362&h=23a8b36ea89dc03c&a=29" },
-    { "z": -663036, "n": -766728, "hash": "581ca3a2c86c253a", "hash_full": "581ca3a2c86c253af88b2f66d79d5a8758d6a661a857a6bd04e9bbb17f4a398d", "hue": 236, "permalink": "#z=-663036&n=-766728&h=581ca3a2c86c253a&a=29" },
-    { "z": -155866, "n": -180872, "hash": "71b1618f3420c9f5", "hash_full": "71b1618f3420c9f5137ba106f7cd01f24e84f3fd9c1fab4f9676ad2918a81368", "hue": 305, "permalink": "#z=-155866&n=-180872&h=71b1618f3420c9f5&a=29" },
-    { "z": 164803,  "n": 398823,  "hash": "98009a126b7e0f54", "hash_full": "98009a126b7e0f5434fde502cd16e57947afd205c728e49c1e09b72a2c745c84", "hue": 32,  "permalink": "#z=164803&n=398823&h=98009a126b7e0f54&a=29" },
-    { "z": -336142, "n": -361100, "hash": "97574aa92fa76bf8", "hash_full": "97574aa92fa76bf8636b60c4ca7e15e00c1829d3f597f2115c44ba6036db0481", "hue": 223, "permalink": "#z=-336142&n=-361100&h=97574aa92fa76bf8&a=29" },
-    { "z": -95230,  "n": 204396,  "hash": "e87898518b4ec635", "hash_full": "e87898518b4ec63572c17f00584d97b296de2ccd41273b79164dee9c6ad157cc", "hue": 112, "permalink": "#z=-95230&n=204396&h=e87898518b4ec635&a=29" },
-    { "z": 767900,  "n": -275269, "hash": "0a02c560792253a2", "hash_full": "0a02c560792253a22e3aa660eb3a83a23f3336ab4db914572ed94344d08884a1", "hue": 42,  "permalink": "#z=767900&n=-275269&h=0a02c560792253a2&a=29" },
-    { "z": -653085, "n": 647311,  "hash": "6e8d49a67cdf5457", "hash_full": "6e8d49a67cdf5457b63819508ac235cdae5b6bce3ef9f3a951c5a9f9107d675b", "hue": 221, "permalink": "#z=-653085&n=647311&h=6e8d49a67cdf5457&a=29" },
-    { "z": 114679,  "n": 661788,  "hash": "2cdc0b7371f5f406", "hash_full": "2cdc0b7371f5f40636b0b67b6c9948423427d0cbdbb10652df24c4dfd331be3f", "hue": 324, "permalink": "#z=114679&n=661788&h=2cdc0b7371f5f406&a=29" }
+    {
+      "z": -818371,
+      "n": -289750,
+      "hash": "ae6426217e1803f8",
+      "hash_full": "ae6426217e1803f8ce82a18cadc36a1511173c607c34a23cf27a8cd33a770734",
+      "hue": 4,
+      "permalink": "#z=-818371&n=-289750&h=ae6426217e1803f8&a=29"
+    },
+    {
+      "z": 659343,
+      "n": -305293,
+      "hash": "2075ef514a0ea169",
+      "hash_full": "2075ef514a0ea1697a43c7e58c1a287f8d490e631d21efadc8756f7211ee5153",
+      "hue": 29,
+      "permalink": "#z=659343&n=-305293&h=2075ef514a0ea169&a=29"
+    },
+    {
+      "z": -871495,
+      "n": 690591,
+      "hash": "de814f57e20f7648",
+      "hash_full": "de814f57e20f764870e06cdec0b29f04ce1bf62df65eab0e3dbc76bd985b5497",
+      "hue": 81,
+      "permalink": "#z=-871495&n=690591&h=de814f57e20f7648&a=29"
+    },
+    {
+      "z": -825983,
+      "n": 290564,
+      "hash": "f20e5656f713fa57",
+      "hash_full": "f20e5656f713fa570c7fdc2123ecbf1d5dee7ea3f4b309565fb7fb82ab6c4e74",
+      "hue": 46,
+      "permalink": "#z=-825983&n=290564&h=f20e5656f713fa57&a=29"
+    },
+    {
+      "z": 695570,
+      "n": -263886,
+      "hash": "b30628de881f57c1",
+      "hash_full": "b30628de881f57c1aaa07c369de4928189fe132e4a877653587e8ed69ccd183e",
+      "hue": 110,
+      "permalink": "#z=695570&n=-263886&h=b30628de881f57c1&a=29"
+    },
+    {
+      "z": -919459,
+      "n": 493252,
+      "hash": "a2b22dec6cc2830b",
+      "hash_full": "a2b22dec6cc2830b1beff9827b0be4e9d697a4f3baf75a9a5ee52c4c6bab323b",
+      "hue": 250,
+      "permalink": "#z=-919459&n=493252&h=a2b22dec6cc2830b&a=29"
+    },
+    {
+      "z": 359518,
+      "n": 283479,
+      "hash": "6d5745b622d48fea",
+      "hash_full": "6d5745b622d48fea0cb6dfb295f02c5767e4aa5ac50906915a2007d22a20edb2",
+      "hue": 271,
+      "permalink": "#z=359518&n=283479&h=6d5745b622d48fea&a=29"
+    },
+    {
+      "z": -89379,
+      "n": 196116,
+      "hash": "a445fe859510fdae",
+      "hash_full": "a445fe859510fdae823bfcb0395368441e2979f863c28f4e58719997b49f4eb5",
+      "hue": 293,
+      "permalink": "#z=-89379&n=196116&h=a445fe859510fdae&a=29"
+    },
+    {
+      "z": 190923,
+      "n": 244819,
+      "hash": "724dabbdd95387fc",
+      "hash_full": "724dabbdd95387fc38c512f0ddb1d641e513513a0353174755f16e98f822fdbc",
+      "hue": 101,
+      "permalink": "#z=190923&n=244819&h=724dabbdd95387fc&a=29"
+    },
+    {
+      "z": 395855,
+      "n": 139448,
+      "hash": "f2148c39539651f8",
+      "hash_full": "f2148c39539651f86052e213d16f7ca36562f5c7d85c7f364ac7c3b4ca6dbf65",
+      "hue": 52,
+      "permalink": "#z=395855&n=139448&h=f2148c39539651f8&a=29"
+    },
+    {
+      "z": -532529,
+      "n": 237896,
+      "hash": "f8f64693f10cb14f",
+      "hash_full": "f8f64693f10cb14f202db2702e254f13c04c68e7de4f310e28498160f3115070",
+      "hue": 14,
+      "permalink": "#z=-532529&n=237896&h=f8f64693f10cb14f&a=29"
+    },
+    {
+      "z": -194339,
+      "n": -766595,
+      "hash": "243f0537d083ce07",
+      "hash_full": "243f0537d083ce073688f374c3f16d2c3bd4ecdb18ca5fd855002e8c8d688461",
+      "hue": 279,
+      "permalink": "#z=-194339&n=-766595&h=243f0537d083ce07&a=29"
+    },
+    {
+      "z": 428263,
+      "n": 441172,
+      "hash": "0550b5a6f771f476",
+      "hash_full": "0550b5a6f771f47610afa9f131c7f11a5b825dcaf9deaae9ed591b2ab0086767",
+      "hue": 280,
+      "permalink": "#z=428263&n=441172&h=0550b5a6f771f476&a=29"
+    },
+    {
+      "z": -196568,
+      "n": -403706,
+      "hash": "4eadfb5f89329e95",
+      "hash_full": "4eadfb5f89329e95ac6f486d7c132d589ad0c504f549347011c6397aeb86946e",
+      "hue": 341,
+      "permalink": "#z=-196568&n=-403706&h=4eadfb5f89329e95&a=29"
+    },
+    {
+      "z": 523674,
+      "n": 510405,
+      "hash": "2fd461cf7c4e2b84",
+      "hash_full": "2fd461cf7c4e2b84f300e91a53cfb65ac880794638a9b3527f504db1c79fae2f",
+      "hue": 4,
+      "permalink": "#z=523674&n=510405&h=2fd461cf7c4e2b84&a=29"
+    },
+    {
+      "z": -490181,
+      "n": 725362,
+      "hash": "c448b4e6671ec7c3",
+      "hash_full": "c448b4e6671ec7c325558a745845ccd6a53e0c09fa75ffb3f7b3bca718a7dc5b",
+      "hue": 208,
+      "permalink": "#z=-490181&n=725362&h=c448b4e6671ec7c3&a=29"
+    },
+    {
+      "z": -663036,
+      "n": -766728,
+      "hash": "de24fae5ac9e1711",
+      "hash_full": "de24fae5ac9e1711ed30dd8c12261b666a26bab5865c6b481e3777c98efbcff5",
+      "hue": 348,
+      "permalink": "#z=-663036&n=-766728&h=de24fae5ac9e1711&a=29"
+    },
+    {
+      "z": -155866,
+      "n": -180872,
+      "hash": "8f59932a0dab4588",
+      "hash_full": "8f59932a0dab4588bf3c9cdb338f68d7efb0b19637e0f0c8ecdb104c50df9be4",
+      "hue": 337,
+      "permalink": "#z=-155866&n=-180872&h=8f59932a0dab4588&a=29"
+    },
+    {
+      "z": 164803,
+      "n": 398823,
+      "hash": "3e85551c4a40d929",
+      "hash_full": "3e85551c4a40d929d804195dd20cb000975080f9eeaec3cfbd155f028075f60b",
+      "hue": 165,
+      "permalink": "#z=164803&n=398823&h=3e85551c4a40d929&a=29"
+    },
+    {
+      "z": -336142,
+      "n": -361100,
+      "hash": "7c4b4d53389927da",
+      "hash_full": "7c4b4d53389927da12b24936b2468c2b005f59b2690ee2507bd70369b37dacee",
+      "hue": 139,
+      "permalink": "#z=-336142&n=-361100&h=7c4b4d53389927da&a=29"
+    },
+    {
+      "z": -95230,
+      "n": 204396,
+      "hash": "c5ad0eaa53b49bfe",
+      "hash_full": "c5ad0eaa53b49bfe809c8d02fb65cf78a0b31a4e6b62689dd23e06b550d4276c",
+      "hue": 205,
+      "permalink": "#z=-95230&n=204396&h=c5ad0eaa53b49bfe&a=29"
+    },
+    {
+      "z": 767900,
+      "n": -275269,
+      "hash": "97bf6b3b562f0581",
+      "hash_full": "97bf6b3b562f05817eda49d7086ba67e8363fb8c9f90f980feab06995c84c72b",
+      "hue": 327,
+      "permalink": "#z=767900&n=-275269&h=97bf6b3b562f0581&a=29"
+    },
+    {
+      "z": -653085,
+      "n": 647311,
+      "hash": "15c47bb156c55191",
+      "hash_full": "15c47bb156c55191f1d0f52982aee5208072349c2851b7ceaf6d0a69a36ac989",
+      "hue": 172,
+      "permalink": "#z=-653085&n=647311&h=15c47bb156c55191&a=29"
+    },
+    {
+      "z": 114679,
+      "n": 661788,
+      "hash": "14314c2a83d67bf2",
+      "hash_full": "14314c2a83d67bf2114395a3ade0116c4262ce00a9391bac4fbee0af96c5b345",
+      "hue": 129,
+      "permalink": "#z=114679&n=661788&h=14314c2a83d67bf2&a=29"
+    }
   ]
 }

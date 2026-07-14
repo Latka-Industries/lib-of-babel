@@ -69,7 +69,7 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let len = ab.len();
     let space_idx = len - 3;
 
-    let fp = node_fingerprint(z, n, alphabet_id, universe());
+    let fp = node_fingerprint(z, n, universe());
     let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);

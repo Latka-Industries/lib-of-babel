@@ -91,15 +91,7 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
         universe_seed,
     } = req.addr;
     let alpha_len = alphabet(alphabet_id).len() as u8;
-    let mut state = plaintext_from_address(
-        universe_seed,
-        z,
-        n,
-        book_index,
-        page,
-        alphabet_id,
-        alpha_len,
-    );
+    let mut state = plaintext_from_address(universe_seed, z, n, book_index, page, alpha_len);
     feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
     if let (Some(full), Some(hit_start)) = (req.search_full, req.search_hit_start_page)
         && page >= hit_start

@@ -82,19 +82,17 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32, title_embed: &str) 
 
 #[wasm_bindgen]
 #[must_use]
-/// 16-hex-digit prefix of the gallery BLAKE3 fingerprint (header hash).
-pub fn node_hash_hex(z: i64, n: i64, alphabet_id: u32) -> String {
-    format!(
-        "{:016x}",
-        node_fingerprint(z, n, alphabet_id, active_universe())
-    )
+/// 16-hex-digit prefix of the **room** BLAKE3 fingerprint (header hash).
+/// Stable across alphabet lenses; only `(universe, z, n)` matter.
+pub fn node_hash_hex(z: i64, n: i64) -> String {
+    format!("{:016x}", node_fingerprint(z, n, active_universe()))
 }
 
 #[wasm_bindgen]
 #[must_use]
-/// Full 256-bit gallery fingerprint as 64 hex digits.
-pub fn node_hash_full_hex(z: i64, n: i64, alphabet_id: u32) -> String {
-    let b = node_hash_bytes(z, n, alphabet_id, active_universe());
+/// Full 256-bit room fingerprint as 64 hex digits.
+pub fn node_hash_full_hex(z: i64, n: i64) -> String {
+    let b = node_hash_bytes(z, n, active_universe());
     let mut s = String::with_capacity(64);
     for byte in b {
         let _ = write!(s, "{byte:02x}");

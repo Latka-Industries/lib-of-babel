@@ -8,7 +8,7 @@ you walked and a cryptographic fingerprint of what each gallery held.
 
 ![A grid of per-gallery sigils — generative emblems drawn deterministically from each gallery's hash](assets/sigils.svg)
 
-<sub>Each gallery has a **sigil**: a strange star-polygon emblem derived from its hash. Same coordinate + universe + alphabet → same sigil, forever. The 24 above are **real galleries** in the default universe — their coordinates, hashes, and permalinks are recorded in [`assets/sigils.json`](assets/sigils.json) (redraw with `node scripts/make-sigil-sheet.mjs`).</sub>
+<sub>Each gallery has a **sigil**: a strange star-polygon emblem derived from its room hash. Same coordinate + universe → same sigil, forever (alphabet is a lens and does not change it). The 24 above are **real galleries** in the default universe — their coordinates, hashes, and permalinks are recorded in [`assets/sigils.json`](assets/sigils.json) (redraw with `node scripts/make-sigil-sheet.mjs`).</sub>
 
 ---
 
@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable** — Borges' **25** (22 letters `a–v` + space, comma, period) or Basile-style **29** (`a–z` + space, comma, period); default 29. The alphabet is **an axis of the universe** (folded into the seed), so each choice is a *distinct* library with its own text and fingerprints.
+- alphabet: **selectable lens** — Borges' **25** (22 letters `a–v` + space, comma, period) or Basile-style **29** (`a–z` + space, comma, period); default 29. Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation, the same room under different library laws.
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -32,10 +32,10 @@ Canonical dimensions we honor:
 | --- | --- |
 | **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, staircase = `z ± 1`. Four moves per gallery. |
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
-| **Determinism** | Content is a pure function of address. `(universe, z, n, alphabet) → gallery_seed → 700 book_seeds → text`. Nothing is stored. |
-| **Hashing** | `node_hash` = **BLAKE3-256** over the canonical book identities (+ universe, version, alphabet, coordinate). The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. A permalink / integrity proof, **not** a dedup key. |
-| **History** | Bounded **50-node window** (history popup, newest-first) + append-on-step trail so the full path survives. |
-| **Alphabet** | Selectable (Borges 25 / Basile 29), folded into the gallery seed so each is a separate library. Carried in permalinks (`&a=`) and exports. |
+| **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
+| **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
+| **History** | Bounded **wanderings** (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. |
+| **Alphabet** | View lens (Borges 25 / Basile 29): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. |
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
@@ -44,11 +44,11 @@ Canonical dimensions we honor:
 ## The generation chain (never store text)
 
 ```text
-(universe, z, n, alphabet)    ──hash──▶  gallery_seed
+(universe, z, n)              ──hash──▶  gallery_seed   (room identity)
 gallery_seed + wall/shelf/i   ──hash──▶  book_seed
-book_seed + page              ──Feistel──▶  one page (3200 symbols; invertible)
+book_seed + page + alphabet   ──Feistel──▶  one page (3200 symbols; invertible)
 410 pages                     ──join──▶  the full book
-700 book identities           ─BLAKE3─▶  node_hash  (the gallery's 256-bit fingerprint)
+700 book-slot seeds           ─BLAKE3─▶  node_hash  (room fingerprint; alphabet-free)
 ```
 
 Visit `(z, n)` today, next year, or from another machine → identical seed → identical
@@ -173,9 +173,9 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 1. ✅ **Generator core (Rust→WASM)** — `(z,n)` → gallery seed → 700 book spines; lazy book text; node hash; frozen `generator_version`.
 2. ✅ **The walk** — 4 walls / shelves / color-coded spines, four move controls, keyboard nav, random start.
 3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
-4. ✅ **History + export** — 50-node window popup (newest-first, click to revisit), append-on-step trail in IndexedDB, JSON export.
+4. ✅ **Wanderings + export** — last-500 popup (newest-first; universe + alphabet columns), append-on-step trail in IndexedDB, JSON export.
 5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
-6. ✅ **Alphabets** — selectable Borges 25 / Basile 29, folded into the seed; carried in permalinks (`&a=`) and exports.
+6. ✅ **Alphabets** — selectable Borges 25 / Basile 29; carried in permalinks (`&a=`) and exports.
 
 **v2 — the multiverse:**
 
@@ -183,9 +183,10 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
 9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
-11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed (`generator_version` 6). Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
+11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
-13. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
+13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. Not translation.
+14. **Custom / multi-language alphabets** — European, then non-Latin & complex scripts.
 
 **Later:**
 
