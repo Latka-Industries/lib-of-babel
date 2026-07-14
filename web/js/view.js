@@ -27,6 +27,7 @@ import { setAccentFavicon } from "./favicon.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 import { t } from "./i18n.js";
+import { accentHsl } from "./theme.js";
 
 /** Spine glyphs for the live `--book-h` — dense type, generous so titles aren’t over-cut. */
 function spineCharBudget() {
@@ -42,7 +43,7 @@ function spineCharBudget() {
 // Hexagon minimap: current gallery in the middle, the hash awaiting down each
 // of the four exits (two hallways + stairs up/down). Click an exit to walk it.
 function renderMinimap(curHash, accentHue) {
-  const accent = `hsl(${accentHue} 70% 58%)`;
+  const accent = accentHsl(accentHue);
   const exit = (mv) => {
     const [nz, nn] = neighbor(S.z, S.n, mv);
     const h = node_hash_hex(nz, nn);
@@ -50,10 +51,13 @@ function renderMinimap(curHash, accentHue) {
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
   const hex = "110,30 179,70 179,150 110,190 41,150 41,70";
+  const fill =
+    getComputedStyle(document.documentElement).getPropertyValue("--mm-fill").trim() ||
+    "transparent";
 
   el("minimap").innerHTML = `
     <svg viewBox="0 0 220 222" width="100%">
-      <polygon points="${hex}" fill="rgba(255,255,255,0.025)"
+      <polygon points="${hex}" fill="${fill}"
         stroke="${accent}" stroke-width="1.5"/>
       <text x="110" y="112" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
       <g id="mm-2" class="mm-exit"><text x="110" y="15" text-anchor="middle" font-size="11" fill="${up.color}">▲ ${up.h.slice(0, 6)}</text></g>
@@ -86,10 +90,7 @@ export function render() {
   S.accentHue = hashHue(hash);
   S.accentChroma = 0.08 + 0.14 * (parseInt(hash.slice(4, 8), 16) / 0xffff);
   S.accentLightness = 0.55 + 0.23 * (parseInt(hash.slice(8, 12), 16) / 0xffff);
-  document.documentElement.style.setProperty(
-    "--accent",
-    `hsl(${S.accentHue} 70% 58%)`,
-  );
+  document.documentElement.style.setProperty("--accent", accentHsl(S.accentHue));
   setAccentFavicon(S.accentHue);
 
   el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
