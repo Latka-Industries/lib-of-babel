@@ -16,6 +16,8 @@ export const de = {
     "Alphabet-Linse — gleicher Raum-Hash, andere Rücken und Seiten (keine Übersetzung)",
   "header.actionsTitle":
     "Link kopieren · exportieren · prüfen · suchen · neuer Gang",
+  "header.themeToLight": "Zum Hellmodus wechseln",
+  "header.themeToDark": "Zum Dunkelmodus wechseln",
   "actions.placeholder": "Aktionen…",
   "actions.copy": "Link kopieren",
   "actions.search": "Suchen…",

@@ -1,24 +1,17 @@
 /* Header, controls, footer */
 
 /* Shared panel field chrome (buttons, selects, text inputs). */
-:is(
-  button,
-  .alphabet,
-  .save-menu,
-  .actions-menu,
-  .universe,
-  .dice
-) {
+:is(button, .alphabet, .save-menu, .actions-menu, .universe) {
   font: inherit;
   color: var(--ink);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 6px;
 }
-:is(button, .alphabet, .save-menu, .actions-menu, .dice) {
+:is(button, .alphabet, .save-menu, .actions-menu) {
   cursor: pointer;
 }
-:is(button, .alphabet, .save-menu, .actions-menu, .universe, .dice):hover,
+:is(button, .alphabet, .save-menu, .actions-menu, .universe):hover,
 :is(.universe, .alphabet, .save-menu, .actions-menu):focus {
   border-color: var(--accent);
 }
@@ -66,7 +59,7 @@ header h1 { font-size: 1rem; letter-spacing: 0.18em; margin: 0; font-weight: 600
 .coord:hover { color: var(--accent); text-decoration: underline; }
 
 button { padding: 0.35rem 0.7rem; }
-.alphabet, .save-menu, .actions-menu, .universe, .dice {
+.alphabet, .save-menu, .actions-menu, .universe, .dice, .theme-toggle {
   padding: 0.35rem 0.5rem;
 }
 .universe-wrap {
@@ -76,7 +69,12 @@ button { padding: 0.35rem 0.7rem; }
   width: min(9.5rem, 100%); min-width: 0;
 }
 .universe::placeholder { color: var(--muted); }
-.dice { line-height: 1; }
+/* Compact icon controls (random universe + theme). */
+.dice, .theme-toggle {
+  line-height: 1;
+  min-width: 2.1rem;
+  padding-inline: 0.45rem;
+}
 
 .footer {
   margin-top: 1rem; display: flex; align-items: center;
