@@ -43,7 +43,7 @@ async function boot() {
   // being refreshed (coords + universe already match the saved trail).
   const link = parsePermalink();
 
-  // alphabet is an axis of the universe: permalink wins, else saved, else default
+  // alphabet is a view lens: permalink wins, else saved, else default
   S.alphabetId =
     link && link.a != null
       ? link.a
@@ -273,12 +273,22 @@ function wireControls() {
     copyText(currentUrl(), ev.currentTarget, "copied!"),
   );
 
-  // switching alphabet steps into a different library (same coordinate, new
-  // text + new hash), so it starts a fresh walk there.
+  // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
   el("alphabet").value = String(S.alphabetId);
   el("alphabet").addEventListener("change", (ev) => {
     S.alphabetId = Number(ev.target.value);
-    freshWalkHere();
+    persist();
+    render();
+    if (S.currentBook) {
+      const b = S.currentBook;
+      // Drop search highlight if it isn't valid under the new lens.
+      const highlight =
+        b.searchHighlight &&
+        validateSearchQuery(b.searchHighlight, S.alphabetId).length === 0
+          ? b.searchHighlight
+          : null;
+      openBook(b.index, null, b.page + 1, highlight, b.searchPageSpan || 1);
+    }
   });
 
   // entering / naming a universe steps into a wholly different parallel library

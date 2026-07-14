@@ -7,6 +7,13 @@
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
     <title>lib-of-babel</title>
     <style>
+      @font-face {
+        font-family: "Overpass Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/OverpassMono-Regular.woff2") format("woff2");
+      }
       :root {
         color-scheme: dark;
         --bg: #0b0b0d;
@@ -15,11 +22,12 @@
         --muted: #6f6a5e;
         --accent: #c9a227;
         --line: #2a2832;
+        --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+        font: 14px/1.5 var(--font);
         background: var(--bg);
         color: var(--ink);
       }
@@ -191,7 +199,7 @@
       }
       .sigil:hover { transform: scale(1.04); filter: drop-shadow(0 0 14px var(--accent)); }
       .sigil svg { display: block; }
-      #minimap text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      #minimap text { font-family: var(--font); }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
       @media (max-width: 720px) { .stage { flex-direction: column; } .minimap-wrap { position: static; width: 100%; flex-basis: auto; } }
@@ -360,7 +368,7 @@
               title="universe — name a parallel library (blank = the default). Enter to travel." />
             <button id="universeRandom" class="dice" title="jump to a random universe">&#9860;</button>
           </span>
-          <select id="alphabet" class="alphabet" title="alphabet — switching steps into a different library (new text + new hash)">
+          <select id="alphabet" class="alphabet" title="alphabet lens — same room hash, different spines and pages (not translation)">
             <option value="29">a&ndash;z &middot; 29</option>
             <option value="25">a&ndash;v &middot; 25</option>
           </select>
@@ -414,17 +422,27 @@
             gallery, plus a <b>staircase</b> up and down — four moves from anywhere.
           </p>
           <p>
-            Nothing is stored. Every gallery and book is <b>generated on the spot from its
-            coordinates</b>, so the same address always holds the same books, forever, for
-            everyone. The Library is infinite yet weighs almost nothing: only your
+            Nothing is stored. Every gallery is <b>generated on the spot</b> from its
+            address, so the Library is infinite yet weighs almost nothing: only your
             <i>path</i> is remembered in the browser.
           </p>
-          <p>
-            Name a <b>universe</b> in the header to step into a parallel infinite library —
-            same rooms, wholly different books. Blank is the <b>default universe</b>. Pick an
-            <b>alphabet</b> (Borges 25 or Basile 29) and you enter yet another distinct
-            library: new text, new hashes, new titles.
-          </p>
+          <h4>Three things in the address</h4>
+          <ul>
+            <li>
+              <b>Universe</b> — parallel infinite libraries. Name one in the header (blank =
+              default). Same room numbers, wholly different books. Travelling resets your walk.
+            </li>
+            <li>
+              <b>Room</b> — <b>gallery (z,&nbsp;n)</b> plus its <b>hash</b> and <b>sigil</b>.
+              The hash names the room itself (not the text on the shelves). Same universe +
+              same coordinates → same fingerprint, forever.
+            </li>
+            <li>
+              <b>Alphabet lens</b> — Borges 25 or Basile 29. Flip it and every spine and page
+              rewrites under the <b>same</b> hash and sigil. Your trail stays put.
+              <i>Not translation.</i> The same room, different tongue.
+            </li>
+          </ul>
           <h4>Inspiration</h4>
           <p class="dim">
             <a href="https://en.wikipedia.org/wiki/The_Library_of_Babel"
@@ -439,10 +457,10 @@
             <li><b>LIB&middot;OF&middot;BABEL</b> (header) opens this guide anytime.</li>
             <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
             <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
-            <li>Each gallery has a <b>sigil</b> — an emblem from its hash. Same place, same sigil; click to download the <b>SVG</b>.</li>
-            <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default.</li>
-            <li>The <b>alphabet</b> menu switches libraries entirely — new spines, text, and fingerprints.</li>
-            <li><b>actions&hellip;</b> &rarr; <b>copy link</b> (or click the header <b>hash</b>) for a permalink to this spot.</li>
+            <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
+            <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. This starts a fresh walk in that library.</li>
+            <li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay. Try flipping it while a book is open.</li>
+            <li><b>actions&hellip;</b> &rarr; <b>copy link</b> (or click the header <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
             <li><b>actions&hellip;</b> &rarr; <b>search&hellip;</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
             <li><b>window &middot; last 50</b> (footer) revisits recent galleries; <b>export journey</b> saves the full path as JSON.</li>
           </ul>
@@ -475,12 +493,13 @@
         <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
           <h4>The numbers in the header</h4>
           <p class="dim">
-            <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is a <b>BLAKE3</b>
-            fingerprint of this gallery's 700 books — a permalink and proof, identical
-            every time you return (and unique to the current universe and alphabet).
-            Your last 50 galleries are kept in the history window; every step's hash is
-            kept in the full trail. <b>actions&hellip;</b> also offers
-            <b>verify journey</b> and <b>new walk</b>.
+            <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is the room's
+            <b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
+            universe. It does <b>not</b> change when you switch alphabet; the lens only
+            rewrites what the shelves say. Your last 50 galleries sit in the history window;
+            every step's room hash is kept in the full trail (plus which lens you were
+            using). <b>actions&hellip;</b> also offers <b>verify journey</b> and
+            <b>new walk</b>.
           </p>
 
           <h4>Search by content</h4>
@@ -489,16 +508,17 @@
             <b>content</b>. Paste any phrase (up to one full book — ~1.3&nbsp;million
             characters) and the library returns the gallery, shelf, book, and page(s) where
             it already lives — then opens it. Long phrases span consecutive pages in the
-            same volume. Search uses the alphabet selected in the header and stays in the
+            same volume. Search uses the <b>current alphabet lens</b> and stays in the
             universe you are standing in. Invalid characters are highlighted in red.
           </p>
 
           <h4>Search by title</h4>
           <p class="dim">
             Same search dialog — choose <b>title</b> instead of <b>content</b>. Type a spine
-            title (up to <b>24 characters</b>, same alphabet rules). The library finds the
-            gallery and shelf where that title belongs, embeds it on the canonical spine,
-            and jumps you there. Useful when you remember a spine label, not a page of text.
+            title (up to <b>24 characters</b>, same lens rules). The library finds the
+            gallery and shelf where that title belongs under the active alphabet, embeds it
+            on the canonical spine, and jumps you there. Useful when you remember a spine
+            label, not a page of text.
           </p>
 
         </div>
@@ -551,7 +571,7 @@
         </div>
         <div class="find-row">
           <button id="searchFind">find</button>
-          <span id="searchHint" class="find-dim">uses the selected alphabet · up to ~1.3M characters (one book)</span>
+          <span id="searchHint" class="find-dim">uses the current alphabet lens · up to ~1.3M characters (one book)</span>
         </div>
         <div class="find-result" id="searchResult"></div>
       </div>

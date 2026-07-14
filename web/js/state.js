@@ -11,7 +11,7 @@ export const S = {
   z: 0n,
   n: 0n,
   gv: 0,
-  alphabetId: 29, // symbol count; 25 = Borges, 29 = Basile. An axis of the universe.
+  alphabetId: 29, // view lens; 25 = Borges, 29 = Basile. Room hash ignores this.
   universeName: "", // "" = default/canonical universe (seed 0)
   trail: [], // [{ z, n, move, hash }]
   windowBuf: [], // last <=50 visited { z, n, hash }
@@ -73,11 +73,11 @@ export function markLastPickedUp(bookIndex) {
 export function isLastPickedUp(bookIndex) {
   const p = S.lastPickedUp;
   if (!p) return false;
+  // Same room slot — highlight survives alphabet lens switches.
   return (
     p.z === S.z.toString() &&
     p.n === S.n.toString() &&
     p.universe === S.universeName &&
-    p.alphabet === S.alphabetId &&
     p.bookIndex === bookIndex
   );
 }
@@ -118,8 +118,14 @@ export async function persist() {
 }
 
 export function recordStep(move) {
-  const hash = node_hash_hex(S.z, S.n, S.alphabetId);
-  const entry = { z: S.z.toString(), n: S.n.toString(), move, hash };
+  const hash = node_hash_hex(S.z, S.n);
+  const entry = {
+    z: S.z.toString(),
+    n: S.n.toString(),
+    move,
+    hash,
+    alphabet: S.alphabetId, // lens at time of visit (room hash is lens-independent)
+  };
   S.trail.push(entry);
   S.windowBuf.push({ z: entry.z, n: entry.n, hash });
   if (S.windowBuf.length > WINDOW_MAX) S.windowBuf.shift(); // forget beyond 50

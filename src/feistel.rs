@@ -90,21 +90,22 @@ fn embed_packed(state: &mut [u8; PAGE_CONTENT_SYMBOLS], packed: &[u8; 32], alpha
     }
 }
 
-/// Pre-Feistel plaintext: embedded address + book-seed-keyed fill for the rest.
+/// Pre-Feistel plaintext: embedded address + room book-seed fill for the rest.
+///
+/// Alphabet enters later via `alpha_len` (symbol modulus) and the Feistel key.
 pub fn plaintext_from_address(
     universe_seed: u64,
     z: i64,
     n: i64,
     book_index: u32,
     page: u32,
-    alphabet_id: u32,
     alpha_len: u8,
 ) -> [u8; PAGE_CONTENT_SYMBOLS] {
     let mut state = [0u8; PAGE_CONTENT_SYMBOLS];
     let packed = pack_page_address(universe_seed, z, n, book_index, page);
     embed_packed(&mut state, &packed, alpha_len);
 
-    let gs = gallery_seed(z, n, alphabet_id, universe_seed);
+    let gs = gallery_seed(z, n, universe_seed);
     let bs = book_seed(gs, book_index);
 
     let mut h = blake3::Hasher::new();

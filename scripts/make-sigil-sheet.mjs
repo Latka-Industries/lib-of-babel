@@ -2,8 +2,8 @@
 // gallery sigils for the README. The manifest is the source of truth: each tile
 // carries the true node hash + hue (and a permalink) for an actual gallery.
 //
-// To refresh the manifest's hashes, recompute node_hash_hex(z, n, alphabet) for
-// each tile in the browser (the WASM core), then re-run this to redraw the sheet:
+// To refresh the manifest's hashes, recompute node_hash_hex(z, n) for each tile
+// (room hash; alphabet-independent), then re-run this to redraw the sheet:
 //   node scripts/make-sigil-sheet.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
