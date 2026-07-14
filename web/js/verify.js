@@ -7,12 +7,14 @@
 //   - hallway/stair moves must actually connect consecutive coordinates.
 // Editing a hash, a coordinate, or a move is therefore detectable.
 
-import { neighbor, formatUniverseLabel } from "./util.js";
+import { neighbor, formatUniverseLabel, formatVerifyList, escapeHtml, el, openModal } from "./util.js";
 import { withUniverse, stepUniverse } from "./state.js";
 import {
   node_hash_hex,
   generator_version,
 } from "./wasm.js";
+import { alphabetShortLabel, formatAlphabetSymbolLabel } from "./constants.js";
+import { t } from "./i18n.js";
 
 /**
  * Collect unique values from journey root + each trail step.
@@ -127,4 +129,36 @@ export function verifyJourney(j) {
   } catch {
     return { ...base, ok: false, reason: "verification failed" };
   }
+}
+
+/** Render a verifyJourney result into #verifyModal. */
+export function showVerify(r, fileName) {
+  el("verifyMeta").textContent = fileName
+    ? fileName
+    : "re-walked in WASM against this build";
+  const multiAlpha = (r.alphabets?.length ?? 0) > 1;
+  const alphabetList = formatVerifyList(r.alphabets, (a) =>
+    escapeHtml(
+      multiAlpha ? alphabetShortLabel(a) : formatAlphabetSymbolLabel(a, t),
+    ),
+  );
+  const universeList = formatVerifyList(r.universes, (u) =>
+    escapeHtml(formatUniverseLabel(u)),
+  );
+  const facts =
+    r.total != null
+      ? `<ul class="verify-facts">
+           <li>universe(s): ${universeList}</li>
+           <li>alphabet(s): ${alphabetList}</li>
+           <li>generator: <b>v${r.gv ?? "—"}</b></li>
+           <li>steps checked: <b>${r.checked} / ${r.total}</b></li>
+         </ul>`
+      : "";
+  el("verifyBody").innerHTML =
+    `<div class="verify-verdict ${r.ok ? "verify-ok" : "verify-bad"}">` +
+    `<span class="badge">${r.ok ? "✓" : "✕"}</span>` +
+    `<span>${r.ok ? "verified" : "rejected"}</span></div>` +
+    `<p class="verify-reason">${escapeHtml(r.reason)}</p>` +
+    facts;
+  openModal("verifyModal");
 }

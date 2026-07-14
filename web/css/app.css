@@ -1,0 +1,5 @@
+/* lib-of-babel — stylesheet entry */
+@import url("./base.css");
+@import url("./chrome.css");
+@import url("./gallery.css");
+@import url("./dialogs.css");
