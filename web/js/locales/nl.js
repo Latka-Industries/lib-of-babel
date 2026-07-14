@@ -45,8 +45,11 @@ export const nl = {
   "about.tabsLabel": "Gidssecties",
   "about.alphabets.h": "Alfabetlenzen",
   "about.alphabets.intro":
-    "Elke set is een <b>symbolenwet</b> voor rugtitels en pagina’s — geen apart universum. Dezelfde kamer-hash en zegel; een nieuwe soort vertaling. Zoeken en titels accepteren alleen symbolen van de actieve lens. Het menu in de kop wisselt tussen deze sets.",
+    "Elke set is een <b>symbolenwet</b> voor rugtitels en pagina’s — geen apart universum. Dezelfde kamer-hash en zegel; <i>geen vertaling</i>. Zoeken en titels accepteren alleen symbolen van de actieve lens. Blader hieronder per familie. Een markering <b>interface · …</b> betekent dat menu’s en labels mee wisselen. <b>Bronnen</b> onder elke familieblurb linken naar overzichtsartikelen.",
+  "about.alphabets.indexLabel": "Familie",
+  "about.alphabets.refs": "Bronnen",
   "about.alphabet.meta": "{n} glyphs · &amp;a={id}",
+  "about.alphabet.uiPack": "interface · {name}",
 
   "about.overview": `
 <p>Een eindeloze bibliotheek om door te lopen. Elke zeshoekige galerij heeft
@@ -63,11 +66,9 @@ door over universums.</li>
 <li><b>Kamer</b> — <b>galerij (z,&nbsp;n)</b> plus <b>hash</b> en <b>zegel</b>.
 De hash noemt de kamer zelf (niet de tekst op de planken). Zelfde universum +
 zelfde coördinaten → altijd dezelfde vingerafdruk.</li>
-<li><b>Alfabetlens</b> — Borges, Basile, Basile++ / Basile# of een taalset
-(zie <b>alfabetten</b>: Romaans t/m Slavisch/Baltisch/Cyrillisch, Helleens, …).
-Wisselen herschrijft elke rug en pagina onder dezelfde hash en zegel. Je spoor blijft.
-<i>Geen vertaling.</i> Dezelfde kamer, andere tong. De interface spreekt die tong
-wanneer er een taalpakket bestaat (Duits, Nederlands, …).</li>
+<li><b>Alfabetlens</b> — wisselt de symbolenset voor ruggen en pagina’s onder
+dezelfde hash en zegel; je spoor blijft. Zie het tabblad <b>alfabetten</b>
+voor elk preset (en welke ook de sitetaal wisselen).</li>
 </ul>
 <h4>Inspiratie</h4>
 <p class="dim">
@@ -84,7 +85,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>Klik <b>galerij&nbsp;(z,&nbsp;n)</b> om ergens te <b>springen</b>.</li>
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
 <li>Typ een <b>universum</b>naam of gooi <b>&#9860;</b>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
-<li>Het <b>alfabet</b>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven. Taallenzen wisselen ook de interface als er een pakket is.</li>
+<li>Het <b>alfabet</b>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.</li>
 <li><b>acties…</b> → <b>link kopiëren</b> (of kop-<b>hash</b>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
 <li><b>acties…</b> → <b>zoeken…</b> — kies <b>inhoud</b> of <b>titel</b>, vind coördinaten, spring ernaartoe (zie <b>meer</b>).</li>
 <li><b>dwaaltochten</b> (voet, laatste {max}) — recente stappen met universum + alfabet; <b>tocht exporteren</b> bewaart het hele pad als JSON.</li>
@@ -185,4 +186,117 @@ Handig als je een rug kent, geen pagina.
   "alphabet.group.Slavic": "Slavisch",
   "alphabet.group.Baltic": "Baltisch",
   "alphabet.group.Albanian": "Albanees",
+  "alphabet.group.Celtic": "Keltisch",
+  "alphabet.group.Basque": "Baskisch",
+  "alphabet.group.Maltese": "Maltees",
+  "alphabet.group.Caucasian": "Kaukasisch",
+
+  "alphabet.blurb.Latin base":
+    "De startalfabetten van het project: Borges’ beperkte Latijnse set uit het verhaal van 1941 (a–v), Basiles web-bibliotheek a–z, daarna Basile++ / Basile# met cijfers en leestekens.",
+  "alphabet.blurb.Romance":
+    "Uit het Volkslatijn van het vroegere Romeinse westen werden regionale volkstaalvormen Spaans, Portugees, Frans, Italiaans, Roemeens en Catalaans. Accenten en enkele extra letters kwamen bij drukpers en school om lokale klanken (nasalen, palatalen, klemtoon) te schrijven.",
+  "alphabet.blurb.Germanic":
+    "Vroege Germaanse talen gebruikten runen; Latijnse letters kwamen met christelijke geletterdheid. Latere druk en schooling fixeerden Duitse, Nederlandse en Scandinavische Latijnse orthografieën — inclusief umlautklinkers, æ/ø/å en IJslandse þ/ð voor dentale fricatieven.",
+  "alphabet.blurb.Uralic":
+    "Een niet-Indo-Europese wortelfamilie: Finseltalen rond de Oostzee, Hongaars westwaarts met de Magyaren. Alle drie hier gebruiken moderne Latijnse orthografieën; Fins en Estisch bleven nauw verwant, terwijl Hongaars vroeg vertakte en een grotere klinkervoorrad heeft.",
+  "alphabet.blurb.Turkic":
+    "Ottomaans Turks gebruikte eeuwenlang Arabisch schrift. In 1928 nam de Republiek een Latijns alfabet aan dat Turkse klinkers (inclusief gepunte/ongepuite i) directer volgt dan Arabische spelling deed.",
+  "alphabet.blurb.Hellenic":
+    "Griekse letters lopen door vanaf de oudheid. Deze lens is monotoon modern Grieks (officieel vanaf 1982): één accentteken in plaats van het oudere polytonische systeem, met dezelfde α–ω-voorraad plus eind-sigma.",
+  "alphabet.blurb.Slavic":
+    "Na kerstening volgde Slavische geletterdheid twee kerktradities: Glagolitisch/Cyrillisch in veel van het orthodoxe oosten en zuiden; Latijn in het katholieke westen en langs de Adriatische kust. De lenzen hier volgen die historische schriftsplitsing.",
+  "alphabet.blurb.Baltic":
+    "Lets en Litouws zijn Baltische Indo-Europese talen. Beide namen Latijnse letters over na kerstening; moderne spellingen met veel klinker- en medeklinkerdiakritische tekens vestigden zich vooral in de 19e–20e eeuw.",
+  "alphabet.blurb.Albanian":
+    "Schriftelijke attestatie is laat (vanaf de 15e eeuw). Er waren meerdere alfabetvoorstellen in gebruik tot het Congres van Manastir (1908) een Latijnse standaard aannam, inclusief ç en ë voor klanken buiten gewoon a–z.",
+  "alphabet.blurb.Celtic":
+    "Eiland-Keltische talen gebruikten na eerder Ogham Latijnse letters via klooster en druk. Moderne Welshe en Ierse spellingshervormingen hielden Latijn; deze plank volgt die standaardorthografieën (circumflexen in Welsh, fada-klinkers in Iers).",
+  "alphabet.blurb.Basque":
+    "Gesproken in de westelijke Pyreneeën sinds vóór Romeinse tijd; een taalisolaat zonder bewezen verwanten. Schrift vooral Latijn vanaf de vroegmoderne tijd; twintigste-eeuwse standaardisatie vastigde ñ en ç in de schoolorthografie.",
+  "alphabet.blurb.Maltese":
+    "Ontwikkeld uit middeleeuws Siciliaans-Arabisch op Malta, later in contact met Italiaans en Engels. Semitisch van bouw, maar met een Latijns alfabet (gestandaardiseerd 1924) en extra letters voor medeklinkers die Engels a–z niet schrijft.",
+  "alphabet.blurb.Caucasian":
+    "Armeense letters worden traditioneel aan Mesrop Masjtots (c. 405) toegeschreven voor volkstaalschrift; Georgisch Mkhedruli komt uit de middeleeuwse Georgische literaire traditie. Beide zijn zelfstandige links-naar-rechts-alfabetten, noch Latijn noch Cyrillisch.",
+
+  "alphabet.lensBlurb.25":
+    "Uit Borges’ verhaal uit 1941: tweeëntwintig letters (a–v) plus spatie, komma en punt — het alfabet dat de fictie aan de Bibliotheek toekent.",
+  "alphabet.lensBlurb.29":
+    "Uit Basiles libraryofbabel.info: Engels a–z plus spatie, komma en punt.",
+  "alphabet.lensBlurb.48":
+    "Basiles a–z plus cijfers en gangbare leestekens, zodat titels en pagina’s cijfers en zin-tekens kunnen bevatten.",
+  "alphabet.lensBlurb.60":
+    "Basile++ plus symbolen uit URL’s en code (@, #, &, haken en vergelijkbare).",
+  "alphabet.lensBlurb.35":
+    "Castiliaanse spelling werd rond Nebrija (1492) gesystematiseerd. ñ schrijft de palatale nasaal /ɲ/ (zoals in año), historisch uit Latijn nn.",
+  "alphabet.lensBlurb.41":
+    "Portugese orthografie groeide met de Atlantische expansie en latere spellingshervormingen. ã/õ markeren nasale klinkers; cedille ç markeert /s/ voor a/o/u.",
+  "alphabet.lensBlurb.45":
+    "Franse accenten werden vastgelegd via drukpers en Académie-spellingnormen. Ze markeren klinker kwaliteit, historische s (â/ê) en open vs. gesloten e; œ en ç komen uit het Latijn en oudere schrijfconventies.",
+  "alphabet.lensBlurb.32":
+    "Italiaans bleef dicht bij de Latijnse lettervoorraad. Accenten markeren vooral welke lettergreep beklemtoond is wanneer dat anders onduidelijk zou zijn.",
+  "alphabet.lensBlurb.36":
+    "Roemeens keerde in de 19e eeuw terug naar Latijnse letters na een lange periode van Cyrillisch voor kerk en staat. ă/â/î/ș/ț markeren centrale klinkers en de medeklinkers /ʃ/ en /ts/.",
+  "alphabet.lensBlurb.62":
+    "De Catalaanse literaire opleving in de 19e eeuw vastigde een moderne Latijnse norm. De middot in l·l markeert dubbele /l/ (geminaat), onderscheiden van enkele l of Spaanse ll.",
+  "alphabet.lensBlurb.33":
+    "Duitse ä/ö/ü markeren voorwaartse klinkers uit historische umlaut (i-mutatie). ß (Eszett) komt uit een ligatuur van lange-s + z en schrijft /s/ na lange klinkers en diftongen.",
+  "alphabet.lensBlurb.34":
+    "Nederlands standaardiseerde via de Statenbijbel en latere spellingswetten. Deze lens voegt geaccentueerde klinkers é/ë/ï/ö/ü toe voor klemtoon of klinker kwaliteit in leenwoorden en enkele inheemse vormen.",
+  "alphabet.lensBlurb.37":
+    "Deens en Bokmål-Noors delen æ/ø/å voor voorwaartse en geronde klinkers die gewoon a/o niet dekte nadat Latijn in Scandinavië de runen verving.",
+  "alphabet.lensBlurb.38":
+    "Zweeds gebruikt ä/ö/å voor dezelfde brede Noordse klinkerbehoeften als Deens/Noors, maar met ä/ö in plaats van æ/ø — een spellingssplitsing uit de vroegmoderne druk.",
+  "alphabet.lensBlurb.49":
+    "IJslands bewaart þ en ð voor de stemloze en stemhebbende dentale fricatieven (/θ/, /ð/) uit het Oudnoors; de meeste andere Noordse talen vervingen die letters.",
+  "alphabet.lensBlurb.40":
+    "Finse geletterdheid verspreidde zich via reformatieprimers (Agricola). ä/ö markeren voorklinkers; verdubbelde letters markeren lengte, die in het Fins contrastief is.",
+  "alphabet.lensBlurb.43":
+    "Estische orthografie werd in de 19e eeuw gemoderniseerd naast het Fins. õ schrijft een mid-achter ongegronde klinker (/ɤ/) die Fins zo niet gebruikt.",
+  "alphabet.lensBlurb.44":
+    "Hongaars nam in de middeleeuwen Latijnse letters over. ő/ű markeren lange voorwaartse geronde klinkers; digrafen zoals sz/cs/ty schrijven medeklinkers die enkele Latijnse letters niet netjes dekten.",
+  "alphabet.lensBlurb.39":
+    "De hervorming van 1928 verving Ottomaans-Arabisch schrift door Latijnse letters gekozen bij Turkse klinkerharmonie — inclusief gepunte i en ongepuite ı als aparte fonemen.",
+  "alphabet.lensBlurb.46":
+    "Het Griekse alfabet loopt door vanaf de oudheid. De monotonische hervorming van 1982 bracht accenten terug tot één tonos en hield α–ω plus eind-sigma (ς).",
+  "alphabet.lensBlurb.47":
+    "Pools hield Latijn onder westerse kerkelijke geletterdheid. ą/ę markeren historische nasale klinkers; ł is /w/; ć/ń/ś/ź/ż schrijven palatale of postalveolaire medeklinkers.",
+  "alphabet.lensBlurb.52":
+    "Tsjechische háček-letters (č/ř/š/ž en verwanten) gaan terug op Jan Hus — tekens zodat Latijn Slavische palatalen en ř kon schrijven zonder digraaf-gedoe.",
+  "alphabet.lensBlurb.57":
+    "Slowaakse spelling werd in de 19e eeuw gestandaardiseerd naast Tsjechisch. ô schrijft de diftong /ʊɔ/; ľ schrijft palataal /ʎ/.",
+  "alphabet.lensBlurb.42":
+    "Gajs negentiende-eeuwse Latijn (“Gajica”) geeft Kroatisch en Servisch Latijn één letter (of digraaf) per klank, inclusief č/ć/đ/š/ž voor affricaten en fricatieven.",
+  "alphabet.lensBlurb.53":
+    "Sloveens gebruikte Latijn onder Habsburgs onderwijs. č/š/ž schrijven de postalveolaire medeklinkers gedeeld met naburige Zuid-Slavische Latijnse orthografieën.",
+  "alphabet.lensBlurb.54":
+    "Russisch Cyrillisch stamt van Kerkslavisch. Peters civiel schrift en latere updates gaven de moderne set, inclusief ё en de harde/zachte tekens.",
+  "alphabet.lensBlurb.55":
+    "Oekraïens Cyrillisch markeert klanken die van Russische spelling verschillen: ї /ji/, є /je/ en ґ /g/ (onderscheiden van г /ɦ/).",
+  "alphabet.lensBlurb.58":
+    "Wit-Russisch Cyrillisch werd in de twintigste eeuw gestandaardiseerd. ў schrijft een korte /w/-achtige klinker (zoals in воўк), die Russische orthografie niet heeft.",
+  "alphabet.lensBlurb.56":
+    "Bulgaars was een vroeg literair centrum voor Cyrillisch. Moderne spelling gebruikt ъ als volle klinker en bevat enkele oudere Slavische letters niet meer.",
+  "alphabet.lensBlurb.59":
+    "Macedonisch standaard-Cyrillisch werd na WO II gecodificeerd. ѓ/ќ (en soortgelijke letters) schrijven palatale plosieven die buurstandaarden anders spellen.",
+  "alphabet.lensBlurb.61":
+    "Vuk Karadžićs Servische Cyrillisch is één-op-één gekoppeld aan Latijnse Gajica — dezelfde fonemische voorraad in het andere historische schrift.",
+  "alphabet.lensBlurb.50":
+    "Letse moderne Latijnse orthografie verhardt rond 1908–1922. Macra (ā/ē/ī/ū) markeren lange klinkers; ģ/ķ/ļ/ņ markeren palatalen.",
+  "alphabet.lensBlurb.51":
+    "Litouws gebruikt al eeuwen Latijnse druk. ą/ę/į/ų weerspiegelen historische nasale klinkers; ė en ū/ų helpen klinker kwaliteit en lengte te markeren die in de taal nog contrastief zijn.",
+  "alphabet.lensBlurb.31":
+    "Het Congres van Manastir (1908) nam de huidige Latijnse standaard voor Albanees aan. ç en ë schrijven /tʃ/ en de mid-centrale klinker /ə/.",
+  "alphabet.lensBlurb.64":
+    "Welsh heeft een doorlopende Latijnse literaire traditie vanaf de middeleeuwen. Circumflexen (â/ê/î/ô/û/ŵ/ŷ) markeren lange klinkers, ook op w en y wanneer die als klinkers fungeren.",
+  "alphabet.lensBlurb.65":
+    "Iers ging van Ogham en later Gaelisch lettertype naar een vereenvoudigde Latijnse orthografie. De fada (á/é/í/ó/ú) markeert lange klinkers.",
+  "alphabet.lensBlurb.63":
+    "Baskisch wordt sinds de late middeleeuwen in Latijnse letters geschreven. ñ schrijft /ɲ/; ç komt voor in gevestigde spellingen zoals Franse ontleningen en sommige namen.",
+  "alphabet.lensBlurb.66":
+    "Maltees standaardiseerde in de jaren 1920 een Latijns alfabet. ċ/ġ/ż schrijven affricaten en /z/; ħ schrijft een stemloze faryngale fricatief uit zijn Arabisch-afgeleide medeklinkerset.",
+  "alphabet.lensBlurb.67":
+    "Mesrop Masjtots krijgt traditioneel de creatie van Armeense letters c. 405 toegeschreven zodat schrift en liturgie in het Armeens konden, niet alleen in Grieks of Syrisch.",
+  "alphabet.lensBlurb.68":
+    "Mkhedruli zijn de moderne Georgische lettervormen voor gewoon schrift. Het alfabet is inheems aan het Georgisch en ontstond los van Latijn en Cyrillisch.",
 };
+
