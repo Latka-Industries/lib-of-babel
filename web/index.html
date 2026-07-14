@@ -293,19 +293,32 @@
       @media (max-width: 960px) {
         .walls { grid-template-columns: 1fr; }
         .shelf { gap: 1px; }
-        /* Sticky wall label so hover titles stay on-screen while scrolling shelves. */
-        .wall h2 {
-          position: sticky;
-          top: 3.6rem; /* under sticky page header */
-          z-index: 6;
-          margin: 0 0 0.5rem;
-          padding: 0.35rem 0.15rem;
-          background: color-mix(in oklab, var(--panel) 92%, var(--accent));
-          border-bottom: 1px solid var(--line);
-        }
         /* Outline-only hover — lift clips less among dense thin spines. */
         .book:hover { transform: none; }
       }
+      /* Lightweight hover readout (avoids sticky headers / :has() style thrash). */
+      .spine-hint {
+        position: fixed;
+        left: 50%;
+        bottom: 0.65rem;
+        transform: translateX(-50%);
+        z-index: 40;
+        max-width: min(92vw, 42rem);
+        padding: 0.4rem 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: color-mix(in oklab, var(--panel) 88%, var(--accent));
+        color: var(--ink);
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      }
+      .spine-hint[hidden] { display: none; }
       @media (max-width: 720px) {
         .stage { flex-direction: column; }
         .minimap-wrap { position: static; width: 100%; flex-basis: auto; }
@@ -336,8 +349,6 @@
         z-index: 0;
       }
       .shelf:last-child { border-bottom: none; }
-      .shelf:has(.book:hover),
-      .shelf:has(.book.last-picked-up) { z-index: 3; }
       .book {
         flex: 1 1 0;
         /* 0 so 35 spines can shrink into a stacked/narrow wall (9px×35 was overflowing). */
@@ -680,6 +691,7 @@
         <span id="trailNote" class="dim"></span>
       </div>
     </main>
+    <div id="spineHint" class="spine-hint" hidden></div>
 
     <dialog id="aboutModal">
       <div class="book-head">
