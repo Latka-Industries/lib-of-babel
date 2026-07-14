@@ -97,6 +97,11 @@ export function render() {
 
   const wallsEl = el("walls");
   wallsEl.innerHTML = "";
+  const spineHint = el("spineHint");
+  if (spineHint) {
+    spineHint.hidden = true;
+    spineHint.textContent = "";
+  }
   const spineBudget = spineCharBudget();
   let idx = 0;
   for (let w = 0; w < WALLS; w++) {
@@ -127,14 +132,25 @@ export function render() {
           .join("")
           .toLocaleUpperCase();
         book.addEventListener("mouseenter", () => {
-          h.textContent = t("book.wallBook", {
+          const label = t("book.wallBook", {
             n: wallNum,
             book: bookIndex + 1,
             title,
           });
+          h.textContent = label;
+          const hint = el("spineHint");
+          if (hint) {
+            hint.textContent = label;
+            hint.hidden = false;
+          }
         });
         book.addEventListener("mouseleave", () => {
           h.textContent = h.dataset.wallLabel;
+          const hint = el("spineHint");
+          if (hint) {
+            hint.textContent = "";
+            hint.hidden = true;
+          }
         });
         book.addEventListener("click", () => openBook(bookIndex, title));
         shelf.appendChild(book);
