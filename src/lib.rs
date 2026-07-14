@@ -66,6 +66,33 @@ mod tests {
     }
 
     #[test]
+    fn gallery_titles_json_escapes_quotes() {
+        use crate::search::json_string_literal;
+        assert_eq!(json_string_literal(r#"a"b\c"#), r#""a\"b\\c""#);
+        assert_eq!(json_string_literal("line\nbreak"), r#""line\nbreak""#);
+
+        let titles = gallery_titles(0, 0, 48, 0, None);
+        assert!(
+            titles.iter().any(|t| t.contains('"')),
+            "Basile++ spines should include double quotes"
+        );
+        let json = gallery_titles_json(0, 0, 48, "");
+        assert!(json.starts_with('[') && json.ends_with(']'));
+        for t in &titles {
+            if t.contains('"') || t.contains('\\') {
+                assert!(
+                    !json.contains(&format!("\"{t}\"")),
+                    "unescaped title leaked into JSON: {t}"
+                );
+                assert!(
+                    json.contains(&json_string_literal(t)),
+                    "escaped form missing for {t}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn fingerprint_is_stable() {
         assert_eq!(node_fingerprint(1, 1, 0), node_fingerprint(1, 1, 0));
         assert_ne!(node_fingerprint(1, 1, 0), node_fingerprint(1, 2, 0));
@@ -82,9 +109,108 @@ mod tests {
 
     #[test]
     fn alphabet_sizes_are_correct() {
-        assert_eq!(alphabet(25).len(), 25);
-        assert_eq!(alphabet(29).len(), 29);
+        use crate::config::{
+            ALPHABET_BASILE_HASH_ID, ALPHABET_BASILE_ID, ALPHABET_BASILE_PLUS_ID,
+            ALPHABET_BORGES_ID, ALPHABET_DANISH_NORWEGIAN_ID, ALPHABET_DUTCH_ID,
+            ALPHABET_ESTONIAN_ID, ALPHABET_FINNISH_ID, ALPHABET_FRENCH_ID, ALPHABET_GERMAN_ID,
+            ALPHABET_GREEK_ID, ALPHABET_HUNGARIAN_ID, ALPHABET_ITALIAN_ID, ALPHABET_PORTUGUESE_ID,
+            ALPHABET_REGISTRY, ALPHABET_ROMANIAN_ID, ALPHABET_SPANISH_ID, ALPHABET_SWEDISH_ID,
+            ALPHABET_TURKISH_ID, alphabet_def,
+        };
+        // id → glyph count (diverges when another lens already owns that size).
+        let expected_lens: &[(u32, usize)] = &[
+            (ALPHABET_BORGES_ID, 25),
+            (ALPHABET_BASILE_ID, 29),
+            (ALPHABET_BASILE_PLUS_ID, 48),
+            (ALPHABET_BASILE_HASH_ID, 60),
+            (ALPHABET_ITALIAN_ID, 35),
+            (ALPHABET_GERMAN_ID, 33),
+            (ALPHABET_DUTCH_ID, 34),
+            (ALPHABET_DANISH_NORWEGIAN_ID, 32),
+            (ALPHABET_SWEDISH_ID, 32),
+            (ALPHABET_TURKISH_ID, 32),
+            (ALPHABET_FINNISH_ID, 32),
+            (ALPHABET_SPANISH_ID, 35),
+            (ALPHABET_ROMANIAN_ID, 34),
+            (ALPHABET_PORTUGUESE_ID, 41),
+            (ALPHABET_ESTONIAN_ID, 33),
+            (ALPHABET_HUNGARIAN_ID, 38),
+            (ALPHABET_FRENCH_ID, 45),
+            (ALPHABET_GREEK_ID, 35),
+        ];
+        for &(id, len) in expected_lens {
+            assert_eq!(alphabet(id).len(), len, "alphabet {id}");
+        }
         assert_eq!(alphabet(999), alphabet(DEFAULT_ALPHABET));
+
+        // (id, english name, must_contain, must_not_contain)
+        let probes: &[(u32, &str, &[char], &[char])] = &[
+            (ALPHABET_BASILE_PLUS_ID, "Basile++", &['?', '0'], &['@']),
+            (ALPHABET_BASILE_HASH_ID, "Basile#", &['@', '='], &[]),
+            (
+                ALPHABET_DANISH_NORWEGIAN_ID,
+                "Danish/Norwegian",
+                &['æ', 'ø'],
+                &['ä'],
+            ),
+            (ALPHABET_SWEDISH_ID, "Swedish", &['ä', 'å'], &['æ']),
+            (ALPHABET_TURKISH_ID, "Turkish", &['ı', 'ş'], &['q']),
+            (ALPHABET_FINNISH_ID, "Finnish", &['å'], &[]),
+            (ALPHABET_ESTONIAN_ID, "Estonian", &['õ'], &[]),
+            (ALPHABET_HUNGARIAN_ID, "Hungarian", &['ő'], &[]),
+            (ALPHABET_GREEK_ID, "Greek", &['ω', 'ς', 'ά'], &['a']),
+            (ALPHABET_SPANISH_ID, "Spanish", &['ñ'], &[]),
+            (ALPHABET_GERMAN_ID, "German", &['ß'], &[]),
+            (ALPHABET_FRENCH_ID, "French", &['œ'], &[]),
+        ];
+        for &(id, name, yes, no) in probes {
+            assert_eq!(alphabet_def(id).name, name);
+            let ab = alphabet(id);
+            for &ch in yes {
+                assert!(ab.contains(&ch), "{name} missing {ch:?}");
+            }
+            for &ch in no {
+                assert!(!ab.contains(&ch), "{name} should not contain {ch:?}");
+            }
+        }
+
+        let mut ids = std::collections::BTreeSet::new();
+        for def in ALPHABET_REGISTRY {
+            assert!(ids.insert(def.id), "duplicate alphabet id {}", def.id);
+            let n = def.symbols.len();
+            assert_eq!(&def.symbols[n - 3..], &[' ', ',', '.']);
+            let id_matches_len = expected_lens
+                .iter()
+                .find(|&&(id, _)| id == def.id)
+                .is_some_and(|&(_, len)| len == def.id as usize);
+            if id_matches_len {
+                assert_eq!(
+                    def.id as usize, n,
+                    "{} id should match glyph count",
+                    def.name
+                );
+            } else {
+                assert_ne!(
+                    def.id as usize, n,
+                    "{} should keep a non-colliding id ≠ glyph count",
+                    def.name
+                );
+            }
+        }
+        assert_eq!(ids.len(), expected_lens.len());
+
+        // JS registry must mention every Rust lens id (parity smoke — full glyph
+        // tables stay dual across the WASM boundary).
+        let js = std::fs::read_to_string("web/js/constants.js").expect("web/js/constants.js");
+        for def in ALPHABET_REGISTRY {
+            let needle = format!("id: {}", def.id);
+            assert!(
+                js.contains(&needle),
+                "web/js/constants.js missing lens id {} ({})",
+                def.id,
+                def.name
+            );
+        }
     }
 
     #[test]
@@ -95,7 +221,6 @@ mod tests {
             node_fingerprint(1, 1, 0),
             u64::from_be_bytes(room[..8].try_into().unwrap())
         );
-        assert_eq!(gallery_seed(1, 1, 0), gallery_seed(1, 1, 0));
         assert_ne!(
             gallery_titles(1, 1, 25, 0, None),
             gallery_titles(1, 1, 29, 0, None)
@@ -107,6 +232,27 @@ mod tests {
         let page_b25 = page_text(&PageRender::new(PageAddr::new(0, 0, 0, 0, 25, 0)));
         let page_b29 = page_text(&PageRender::new(PageAddr::new(0, 0, 0, 0, 29, 0)));
         assert_ne!(page_b25, page_b29);
+        // Spanish lens: room hash unchanged; accented glyphs appear; spines rewrite.
+        use crate::config::ALPHABET_SPANISH_ID;
+        assert_eq!(room, node_hash_bytes(1, 1, 0));
+        assert_ne!(
+            gallery_titles(1, 1, 29, 0, None),
+            gallery_titles(1, 1, ALPHABET_SPANISH_ID, 0, None)
+        );
+        let spanish = book_text(0, 0, 0, ALPHABET_SPANISH_ID, 0);
+        assert!(
+            spanish.contains('ñ')
+                || spanish.contains('á')
+                || spanish.contains('é')
+                || spanish.contains('í')
+                || spanish.contains('ó')
+                || spanish.contains('ú'),
+            "spanish book should use accented symbols"
+        );
+        assert!(
+            !spanish.contains('ü'),
+            "typical spanish lens omits diaeresis ü"
+        );
     }
 
     #[test]

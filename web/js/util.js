@@ -3,7 +3,8 @@
 import {
   I64_MIN,
   I64_MAX,
-  ALPHABETS,
+  alphabetString,
+  DEFAULT_ALPHABET_ID,
   LINES_PER_PAGE,
   CHARS_PER_LINE,
   PAGE_CONTENT_SYMBOLS,
@@ -37,20 +38,20 @@ export function normalizeSearchQuery(text) {
   return text.toLowerCase();
 }
 
-/** Find characters outside the active alphabet. Returns `{ i, ch }` (string index). */
-export function validateSearchQuery(text, alphabetId = 29) {
-  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+/** Find characters outside the active alphabet. Returns `{ i, ch }` (UTF-16 string index). */
+export function validateSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  const allowed = new Set([...alphabetString(alphabetId)]);
   const invalid = [];
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === "\n" || ch === "\r") continue;
-    if (!alpha.includes(ch)) invalid.push({ i, ch });
+  for (let i = 0; i < text.length; ) {
+    const ch = String.fromCodePoint(text.codePointAt(i));
+    if (ch !== "\n" && ch !== "\r" && !allowed.has(ch)) invalid.push({ i, ch });
+    i += ch.length;
   }
   return invalid;
 }
 
 /** Flatten search text for chunking — must match Rust flatten_search_text. */
-export function flattenSearchQuery(text, alphabetId = 29) {
+export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   const invalid = validateSearchQuery(text, alphabetId);
   if (invalid.length) {
     throw new Error(
@@ -69,12 +70,12 @@ export function flattenSearchQuery(text, alphabetId = 29) {
 
 // Space-pad to a full page (phrase at start) — used by notable-text find (THI-76).
 /** Pad a phrase to one page width with spaces (not used by main search embed). */
-export function padPageText(text, alphabetId = 29) {
-  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+export function padPageText(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  const allowed = new Set([...alphabetString(alphabetId)]);
   const symbols = [];
   for (const ch of text) {
     if (ch === "\n" || ch === "\r") continue;
-    if (!alpha.includes(ch)) {
+    if (!allowed.has(ch)) {
       throw new Error(`invalid character '${ch}' for this alphabet`);
     }
     symbols.push(ch);
