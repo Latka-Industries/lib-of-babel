@@ -13,6 +13,13 @@ import {
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
+/** Local mise serve / forced `?dev=1` — layout debug chrome only. */
+export function isDevMode() {
+  const host = location.hostname;
+  if (host === "localhost" || host === "127.0.0.1" || host === "[::1]") return true;
+  return new URLSearchParams(location.search).has("dev");
+}
+
 /**
  * Set footer dim text + hover tip (text lives in .dim-clip so the tip isn’t clipped).
  */

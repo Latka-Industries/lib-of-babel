@@ -29,6 +29,7 @@ import {
   formatVerifyList,
   validateSearchQuery,
   setFooterDim,
+  isDevMode,
 } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
@@ -661,11 +662,12 @@ function wireControls() {
     }
   });
 
-  // Live viewport + spine / one shelf-row size (track÷5 when 5×35 grid).
+  // Touch layout swaps need a re-render (hover listeners). Viewport px footer is
+  // dev-only (localhost / ?dev=1) — production keeps trail note only.
   let lastTouch = galleryTouch();
   const measureFooter = () => {
     const node = el("viewportSize");
-    if (!node) return;
+    if (!node || node.hidden) return;
     const book = document.querySelector(".book");
     const track = document.querySelector(".shelf-track");
     const px = (n) => Math.round(n);
@@ -679,7 +681,6 @@ function wireControls() {
         : "spine —";
     let shelfBit = "";
     if (trackBox && trackBox.width > 0) {
-      // Touch = one scroll row; desktop grid = 5 shelf rows in the track.
       const rowH = touch ? trackBox.height : trackBox.height / 5;
       shelfBit = ` · shelf ~${px(trackBox.width)}×${px(rowH)}`;
     }
@@ -689,20 +690,23 @@ function wireControls() {
       `${window.innerWidth}×${window.innerHeight}px · ${mode} · ${spine}${shelfBit}`,
     );
   };
-  const syncViewportSize = () => {
+  const syncGalleryLayout = () => {
     const touch = galleryTouch();
     if (touch !== lastTouch) {
       lastTouch = touch;
       render();
-      requestAnimationFrame(measureFooter);
+      if (isDevMode()) requestAnimationFrame(measureFooter);
       return;
     }
-    measureFooter();
+    if (isDevMode()) measureFooter();
   };
-  measureFooter();
-  window.addEventListener("resize", syncViewportSize);
+  if (isDevMode()) {
+    el("viewportSize").hidden = false;
+    measureFooter();
+  }
+  window.addEventListener("resize", syncGalleryLayout);
   for (const q of ["(hover: none)", "(pointer: coarse)", "(max-width: 960px)"]) {
-    window.matchMedia(q).addEventListener("change", syncViewportSize);
+    window.matchMedia(q).addEventListener("change", syncGalleryLayout);
   }
 }
 
