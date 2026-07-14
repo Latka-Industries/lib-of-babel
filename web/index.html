@@ -289,7 +289,14 @@
       #minimap text { font-family: var(--font); }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      @media (max-width: 720px) { .stage { flex-direction: column; } .minimap-wrap { position: static; width: 100%; flex-basis: auto; } }
+      /* Below this, 2×2 walls crush spines — stack every wall full-width. */
+      @media (max-width: 960px) {
+        .walls { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 720px) {
+        .stage { flex-direction: column; }
+        .minimap-wrap { position: static; width: 100%; flex-basis: auto; }
+      }
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
