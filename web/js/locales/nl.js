@@ -64,7 +64,7 @@ door over universums.</li>
 De hash noemt de kamer zelf (niet de tekst op de planken). Zelfde universum +
 zelfde coördinaten → altijd dezelfde vingerafdruk.</li>
 <li><b>Alfabetlens</b> — Borges, Basile, Basile++ / Basile# of een taalset
-(zie <b>alfabetten</b>: Romaans, Germaans, Oeraals, Turkse talen, Helleens, …).
+(zie <b>alfabetten</b>: Romaans t/m Slavisch/Baltisch/Cyrillisch, Helleens, …).
 Wisselen herschrijft elke rug en pagina onder dezelfde hash en zegel. Je spoor blijft.
 <i>Geen vertaling.</i> Dezelfde kamer, andere tong. De interface spreekt die tong
 wanneer er een taalpakket bestaat (Duits, Nederlands, …).</li>
