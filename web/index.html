@@ -293,6 +293,18 @@
       @media (max-width: 960px) {
         .walls { grid-template-columns: 1fr; }
         .shelf { gap: 1px; }
+        /* Sticky wall label so hover titles stay on-screen while scrolling shelves. */
+        .wall h2 {
+          position: sticky;
+          top: 3.6rem; /* under sticky page header */
+          z-index: 6;
+          margin: 0 0 0.5rem;
+          padding: 0.35rem 0.15rem;
+          background: color-mix(in oklab, var(--panel) 92%, var(--accent));
+          border-bottom: 1px solid var(--line);
+        }
+        /* Outline-only hover — lift clips less among dense thin spines. */
+        .book:hover { transform: none; }
       }
       @media (max-width: 720px) {
         .stage { flex-direction: column; }
