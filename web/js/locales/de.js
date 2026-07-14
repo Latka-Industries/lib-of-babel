@@ -158,6 +158,28 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
     "nutzt die aktuelle Alphabet-Linse · bis ~1,3M Zeichen (ein Buch)",
   "search.hintTitle":
     "nutzt die aktuelle Alphabet-Linse · bis {n} Zeichen (Rückentitel)",
+  "search.go": "Dorthin",
+  "search.result.gallery": "Galerie ({z}, {n})",
+  "search.result.coords":
+    "Universum {universe} · Wand {wall} · Regal {shelf} · Buch {book} · {detail}",
+  "search.result.page": "Seite {n}",
+  "search.result.pages": "Seiten {start}–{end}",
+  "search.result.chars": "{n} Zeichen",
+  "search.result.detailContent": "{pages} · {chars} · Alphabet {alphabet}",
+  "search.result.detailTitle": "Titel {query} · {chars} · Alphabet {alphabet}",
+  "search.error.invalid":
+    "Ungültiges Zeichen für dieses Alphabet (nur {alphabet}): {shown}",
+  "search.error.invalidPlural":
+    "Ungültige Zeichen für dieses Alphabet (nur {alphabet}): {shown}",
+  "search.error.invalidGeneric": "Ungültige Zeichen für dieses Alphabet",
+  "search.error.moreKinds": " (+{n} weitere Arten)",
+  "search.error.empty": "Suchtext ist leer",
+  "search.error.tooLong": "Text zu lang (max. {n} Zeichen — ein Buch)",
+  "search.error.titleTooLong": "Titel zu lang (max. {n} Zeichen)",
+  "search.error.pageRoom":
+    "Text braucht {need} Seiten, aber nur {room} bleiben in diesem Buch — kürzere Phrase versuchen",
+  "search.error.badResponse": "Ungültige Antwort vom Generator",
+  "search.error.unknown": "Suche fehlgeschlagen",
 
   "jump.title": "Zu einer Galerie springen",
   "jump.subtitle":

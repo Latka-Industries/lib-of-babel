@@ -153,6 +153,28 @@ Handig als je een rug kent, geen pagina.
     "gebruikt de huidige alfabetlens · tot ~1,3M tekens (één boek)",
   "search.hintTitle":
     "gebruikt de huidige alfabetlens · tot {n} tekens (rugtitel)",
+  "search.go": "ga erheen",
+  "search.result.gallery": "galerij ({z}, {n})",
+  "search.result.coords":
+    "universum {universe} · wand {wall} · plank {shelf} · boek {book} · {detail}",
+  "search.result.page": "pagina {n}",
+  "search.result.pages": "pagina’s {start}–{end}",
+  "search.result.chars": "{n} tekens",
+  "search.result.detailContent": "{pages} · {chars} · alfabet {alphabet}",
+  "search.result.detailTitle": "titel {query} · {chars} · alfabet {alphabet}",
+  "search.error.invalid":
+    "ongeldig teken voor dit alfabet (alleen {alphabet}): {shown}",
+  "search.error.invalidPlural":
+    "ongeldige tekens voor dit alfabet (alleen {alphabet}): {shown}",
+  "search.error.invalidGeneric": "ongeldige tekens voor dit alfabet",
+  "search.error.moreKinds": " (+{n} andere soorten)",
+  "search.error.empty": "zoektekst is leeg",
+  "search.error.tooLong": "tekst te lang (max. {n} tekens — één boek)",
+  "search.error.titleTooLong": "titel te lang (max. {n} tekens)",
+  "search.error.pageRoom":
+    "tekst heeft {need} pagina’s nodig, maar er blijven er maar {room} in dit boek — probeer een kortere zin",
+  "search.error.badResponse": "ongeldig antwoord van de generator",
+  "search.error.unknown": "zoeken mislukt",
 
   "jump.title": "spring naar een galerij",
   "jump.subtitle":
