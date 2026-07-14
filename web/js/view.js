@@ -23,6 +23,7 @@ import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
 import { titleEmbedFlat } from "./search.js";
 import { sigilSvg } from "./sigil.js";
+import { setAccentFavicon } from "./favicon.js";
 import { step } from "./nav.js";
 import { openBook } from "./book.js";
 import { t } from "./i18n.js";
@@ -89,6 +90,7 @@ export function render() {
     "--accent",
     `hsl(${S.accentHue} 70% 58%)`,
   );
+  setAccentFavicon(S.accentHue);
 
   el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
   renderMinimap(hash, S.accentHue);
