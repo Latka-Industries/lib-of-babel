@@ -25,22 +25,36 @@
       }
       header {
         position: sticky; top: 0; z-index: 5;
-        display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: baseline;
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0;
         background: rgba(11,11,13,0.92);
         border-bottom: 1px solid var(--line);
         backdrop-filter: blur(6px);
+      }
+      .header-bar {
+        display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+        gap: 0.5rem 1rem;
+        width: 100%; max-width: 1320px; margin: 0 auto;
+        padding: 0 1rem; box-sizing: border-box;
+      }
+      .header-left, .header-right {
+        display: flex; flex-wrap: wrap; align-items: center;
+        gap: 0.5rem 1rem; min-width: 0;
       }
       header h1 { font-size: 1rem; letter-spacing: 0.18em; margin: 0; font-weight: 600; }
       .logo {
         font: inherit; font-size: 1rem; font-weight: 600; letter-spacing: 0.18em;
         color: var(--ink); background: none; border: none; padding: 0; margin: 0;
-        cursor: pointer;
+        cursor: pointer; white-space: nowrap;
       }
       .logo:hover { color: var(--accent); border: none; }
-      .stat { color: var(--muted); }
+      .stat { color: var(--muted); white-space: nowrap; }
       .stat b { color: var(--ink); font-weight: 600; }
-      .hash { color: var(--accent); cursor: pointer; }
+      .hash {
+        color: var(--accent); cursor: pointer;
+        display: inline-block; max-width: min(28ch, 40vw);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        vertical-align: bottom;
+      }
       .hash:hover { text-decoration: underline; }
       .coord { cursor: pointer; }
       .coord:hover { color: var(--accent); text-decoration: underline; }
@@ -141,11 +155,13 @@
         padding: 0.35rem 0.5rem; cursor: pointer;
       }
       .alphabet:hover, .save-menu:hover, .actions-menu:hover { border-color: var(--accent); }
-      .universe-wrap { display: flex; align-items: center; gap: 0.25rem; }
+      .universe-wrap {
+        display: flex; align-items: center; gap: 0.25rem; min-width: 0;
+      }
       .universe {
         font: inherit; color: var(--ink); background: var(--panel);
         border: 1px solid var(--line); border-radius: 6px;
-        padding: 0.35rem 0.5rem; width: 9.5rem;
+        padding: 0.35rem 0.5rem; width: min(9.5rem, 100%); min-width: 0;
       }
       .universe::placeholder { color: var(--muted); }
       .universe:focus { outline: none; border-color: var(--accent); }
@@ -158,7 +174,7 @@
       main { padding: 1rem; max-width: 1320px; margin: 0 auto; }
       .stage { display: flex; gap: 1rem; align-items: flex-start; }
       .minimap-wrap {
-        flex: 0 0 210px; position: sticky; top: 60px;
+        flex: 0 0 210px; position: sticky; top: 6.5rem;
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem 0.5rem;
       }
@@ -211,9 +227,20 @@
         outline: 2px solid #ff7070;
         box-shadow: 0 0 6px rgba(224, 85, 85, 0.55);
       }
-      .footer { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
-      .footer .dim { color: var(--muted); font-size: 12px; }
-      .history-btn { font-size: 12px; }
+      .footer {
+        margin-top: 1rem; display: flex; align-items: center;
+        gap: 0.8rem; flex-wrap: wrap; max-width: 100%; min-width: 0;
+      }
+      .footer .dim {
+        color: var(--muted); font-size: 12px;
+        flex: 1 1 10rem; min-width: 0;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .history-btn { font-size: 12px; flex: 0 0 auto; }
+      @media (max-width: 480px) {
+        .footer { flex-direction: column; align-items: flex-start; }
+        .footer .dim { white-space: normal; overflow: visible; text-overflow: unset; }
+      }
       .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
       .hrow {
         display: grid; grid-template-columns: 2.6rem 1fr 1.4rem auto 2rem;
@@ -319,30 +346,36 @@
   </head>
   <body>
     <header>
-      <button id="aboutBtn" class="logo" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
-      <span class="stat">gallery <b id="coord" class="coord" title="click to jump to any gallery">…</b></span>
-      <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
-      <span class="stat">steps <b id="steps">0</b></span>
-      <span class="universe-wrap">
-        <input id="universe" class="universe" type="text" maxlength="40"
-          placeholder="default universe" autocomplete="off" spellcheck="false"
-          title="universe — name a parallel library (blank = the default). Enter to travel." />
-        <button id="universeRandom" class="dice" title="jump to a random universe">&#9860;</button>
-      </span>
-      <select id="alphabet" class="alphabet" title="alphabet — switching steps into a different library (new text + new hash)">
-        <option value="29">a&ndash;z &middot; 29</option>
-        <option value="25">a&ndash;v &middot; 25</option>
-      </select>
-      <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · search · new walk">
-        <option value="" selected disabled>actions&hellip;</option>
-        <option value="copy">copy link</option>
-        <option value="search">search…</option>
-        <option value="export">export journey</option>
-        <option value="verify">verify journey</option>
-        <option value="reset">new walk</option>
-      </select>
-      <input id="verifyFile" type="file" accept="application/json,.json" hidden />
+      <div class="header-bar">
+        <div class="header-left">
+          <button id="aboutBtn" class="logo" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
+          <span class="stat">gallery <b id="coord" class="coord" title="click to jump to any gallery">…</b></span>
+          <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
+          <span class="stat">steps <b id="steps">0</b></span>
+        </div>
+        <div class="header-right">
+          <span class="universe-wrap">
+            <input id="universe" class="universe" type="text" maxlength="40"
+              placeholder="default universe" autocomplete="off" spellcheck="false"
+              title="universe — name a parallel library (blank = the default). Enter to travel." />
+            <button id="universeRandom" class="dice" title="jump to a random universe">&#9860;</button>
+          </span>
+          <select id="alphabet" class="alphabet" title="alphabet — switching steps into a different library (new text + new hash)">
+            <option value="29">a&ndash;z &middot; 29</option>
+            <option value="25">a&ndash;v &middot; 25</option>
+          </select>
+          <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · search · new walk">
+            <option value="" selected disabled>actions&hellip;</option>
+            <option value="copy">copy link</option>
+            <option value="search">search…</option>
+            <option value="export">export journey</option>
+            <option value="verify">verify journey</option>
+            <option value="reset">new walk</option>
+          </select>
+        </div>
+      </div>
     </header>
+    <input id="verifyFile" type="file" accept="application/json,.json" hidden />
     <main>
       <div class="stage">
         <aside class="minimap-wrap">
