@@ -210,7 +210,8 @@
       }
       .wall h2 { font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; }
       .shelf {
-        display: flex; gap: 2px; padding: 4px 0; border-bottom: 1px solid var(--line);
+        display: flex; gap: 2px; padding: 4px 3px; border-bottom: 1px solid var(--line);
+        /* horizontal padding so edge-book outlines (last-picked / hover) aren't clipped */
         overflow: hidden;
       }
       .shelf:last-child { border-bottom: none; }
@@ -224,16 +225,16 @@
         font-size: 8px; line-height: 1; letter-spacing: 1px;
         color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);
         overflow: hidden; padding: 3px 0; transition: transform 0.06s;
+        position: relative;
       }
       .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
       .book.last-picked-up {
         outline: 2px solid #e05555;
         outline-offset: 1px;
-        box-shadow: 0 0 0 1px rgba(224, 85, 85, 0.45);
+        z-index: 1;
       }
       .book.last-picked-up:hover {
         outline: 2px solid #ff7070;
-        box-shadow: 0 0 6px rgba(224, 85, 85, 0.55);
       }
       .footer {
         margin-top: 1rem; display: flex; align-items: center;
