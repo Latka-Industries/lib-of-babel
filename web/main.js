@@ -28,6 +28,7 @@ import {
   formatUniverseLabel,
   formatVerifyList,
   validateSearchQuery,
+  setFooterDim,
 } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
@@ -659,6 +660,57 @@ function wireControls() {
       step(map[e.key]);
     }
   });
+
+  // Live viewport + spine / one shelf-row size (track÷5 when 5×35 grid).
+  let lastTouch = galleryTouch();
+  const measureFooter = () => {
+    const node = el("viewportSize");
+    if (!node) return;
+    const book = document.querySelector(".book");
+    const track = document.querySelector(".shelf-track");
+    const px = (n) => Math.round(n);
+    const bookBox = book?.getBoundingClientRect();
+    const trackBox = track?.getBoundingClientRect();
+    const touch = galleryTouch();
+    const narrow = window.matchMedia("(max-width: 960px)").matches;
+    const spine =
+      bookBox && bookBox.width > 0
+        ? `spine ~${px(bookBox.width)}×${px(bookBox.height)}`
+        : "spine —";
+    let shelfBit = "";
+    if (trackBox && trackBox.width > 0) {
+      // Touch = one scroll row; desktop grid = 5 shelf rows in the track.
+      const rowH = touch ? trackBox.height : trackBox.height / 5;
+      shelfBit = ` · shelf ~${px(trackBox.width)}×${px(rowH)}`;
+    }
+    const mode = touch ? "scroll" : narrow ? "stacked" : "2×2";
+    setFooterDim(
+      node,
+      `${window.innerWidth}×${window.innerHeight}px · ${mode} · ${spine}${shelfBit}`,
+    );
+  };
+  const syncViewportSize = () => {
+    const touch = galleryTouch();
+    if (touch !== lastTouch) {
+      lastTouch = touch;
+      render();
+      requestAnimationFrame(measureFooter);
+      return;
+    }
+    measureFooter();
+  };
+  measureFooter();
+  window.addEventListener("resize", syncViewportSize);
+  for (const q of ["(hover: none)", "(pointer: coarse)", "(max-width: 960px)"]) {
+    window.matchMedia(q).addEventListener("change", syncViewportSize);
+  }
+}
+
+function galleryTouch() {
+  return (
+    window.matchMedia("(hover: none)").matches ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
 }
 
 boot().catch((err) => {

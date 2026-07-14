@@ -13,6 +13,18 @@ import {
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
+/**
+ * Set footer dim text + hover tip (text lives in .dim-clip so the tip isn’t clipped).
+ */
+export function setFooterDim(node, text) {
+  if (!node) return;
+  const clip = node.querySelector(".dim-clip") || node;
+  const value = text ?? "";
+  clip.textContent = value;
+  if (value) node.dataset.tip = value;
+  else delete node.dataset.tip;
+}
+
 /** Escape text for safe HTML insertion. */
 export function escapeHtml(s) {
   return String(s)
