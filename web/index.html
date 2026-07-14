@@ -54,8 +54,8 @@
           wall titles/gaps (~17rem). Cap keeps tall monitors from forcing scroll.
          */
         --book-h: clamp(48px, calc((100dvh - 17rem) / 10 - 0.4rem), 86px);
-        /* Spine thickness: thinner on narrow viewports, a bit wider when tall+wide. */
-        --book-w: clamp(12px, min(calc(var(--book-h) * 0.32), 1.55vw), 28px);
+        /* Spine thickness: a touch wider on desktop so shelves read less crushed. */
+        --book-w: clamp(12px, min(calc(var(--book-h) * 0.34), 1.75vw), 34px);
         /* Content column widens on large screens; stays fluid (wraps) when small. */
         --page-max: min(1760px, 96vw);
         --atmosphere-corners-page:
@@ -289,78 +289,41 @@
       #minimap text { font-family: var(--font); }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      /* Below this, 2×2 walls crush spines — stack every wall full-width. */
-      @media (max-width: 960px) {
-        .walls { grid-template-columns: 1fr; }
-        .shelf { gap: 1px; }
-        /* Outline-only hover — lift clips less among dense thin spines. */
-        .book:hover { transform: none; }
-      }
-      /* Lightweight hover readout (avoids sticky headers / :has() style thrash). */
-      .spine-hint {
-        position: fixed;
-        left: 50%;
-        bottom: 0.65rem;
-        transform: translateX(-50%);
-        z-index: 40;
-        max-width: min(92vw, 42rem);
-        padding: 0.4rem 0.75rem;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        background: color-mix(in oklab, var(--panel) 88%, var(--accent));
-        color: var(--ink);
-        font-size: 0.75rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        pointer-events: none;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-      }
-      .spine-hint[hidden] { display: none; }
-      @media (max-width: 720px) {
-        .stage { flex-direction: column; }
-        .minimap-wrap { position: static; width: 100%; flex-basis: auto; }
-      }
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
-        min-width: 0; /* let grid columns shrink */
-        overflow: visible; /* don’t clip spine hover lift / outline */
+        min-width: 0;
+        overflow: visible;
       }
       .wall h2 {
         font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem;
         letter-spacing: 0.06em; text-transform: uppercase;
         line-height: 1.35;
-        /* Allow a second line for hover titles on narrow walls (was single-line …). */
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
         word-break: break-word;
       }
-      .shelf {
-        display: flex; gap: 2px;
-        /* top pad for translateY hover; side pad for edge outlines */
-        padding: 6px 3px 4px; border-bottom: 1px solid var(--line);
-        overflow: visible;
-        position: relative;
-        z-index: 0;
-      }
-      .shelf:last-child { border-bottom: none; }
-      .book {
-        flex: 1 1 0;
-        /* 0 so 35 spines can shrink into a stacked/narrow wall (9px×35 was overflowing). */
+      /* Desktop / narrow: 5×35 packed grid (books fill in row-major order). */
+      .shelf-track {
         min-width: 0;
-        max-width: var(--book-w);
+        display: grid;
+        grid-template-columns: repeat(35, minmax(0, 1fr));
+        gap: 1px 2px;
+        padding: 6px 3px 4px;
+        background: var(--line);
+      }
+      .book {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
         height: var(--book-h);
         border-radius: 2px; cursor: pointer;
         border: 1px solid rgba(0, 0, 0, 0.55);
         background: linear-gradient(180deg, #3a3550, #211f2c);
         display: flex; align-items: center; justify-content: center;
         writing-mode: vertical-rl; text-orientation: mixed;
-        /* Dense type: fit longer spine titles; budget in view.js matches this. */
         font-size: clamp(6.5px, calc(var(--book-h) * 0.088), 8px);
         line-height: 1; letter-spacing: 0.02em;
         color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);
@@ -376,6 +339,74 @@
       .book.last-picked-up:hover {
         outline: 2px solid #ff7070;
       }
+      /* Skinny desktop: stack walls + minimap above, keep 5 shelf rows (no H-scroll). */
+      @media (max-width: 960px) {
+        .stage {
+          flex-direction: column;
+          /* Base .stage uses flex-start — without stretch, walls shrink-wrap
+             (~400px) instead of filling the row under the minimap. */
+          align-items: stretch;
+        }
+        .minimap-wrap {
+          position: static;
+          flex: 0 0 auto;
+          width: 100%;
+          max-width: none;
+        }
+        .walls {
+          grid-template-columns: 1fr;
+          width: 100%;
+          min-width: 0;
+        }
+      }
+      /*
+        Real mobile (touch / no-hover): one horizontal scroll row per wall.
+        Do not use max-width alone — a skinny desktop mouse window keeps 5×35.
+      */
+      @media (hover: none), (pointer: coarse) {
+        .stage {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .minimap-wrap {
+          position: static;
+          flex: 0 0 auto;
+          width: 100%;
+          max-width: none;
+        }
+        .walls {
+          grid-template-columns: 1fr;
+          width: 100%;
+          min-width: 0;
+        }
+        .wall { padding: 0.55rem 0.4rem; }
+        .shelf-track {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 1px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-x: contain;
+          -webkit-overflow-scrolling: touch;
+          padding: 4px 2px 3px;
+          background: transparent;
+        }
+        .book {
+          flex: 0 0 32px;
+          min-width: 32px;
+          max-width: 32px;
+          width: 32px;
+          height: clamp(72px, min(18dvh, 24vw), 100px);
+          font-size: clamp(8px, calc(clamp(72px, min(18dvh, 24vw), 100px) * 0.085), 12px);
+        }
+        .book:hover {
+          transform: none;
+          outline: none;
+        }
+        .book.last-picked-up:hover {
+          outline: 2px solid #e05555;
+        }
+      }
       .footer {
         margin-top: 1rem; display: flex; align-items: center;
         gap: 0.8rem; flex-wrap: wrap; max-width: 100%; min-width: 0;
@@ -383,12 +414,47 @@
       .footer .dim {
         color: var(--muted); font-size: 12px;
         flex: 1 1 10rem; min-width: 0;
+        position: relative;
+      }
+      .footer .dim .dim-clip {
+        display: block;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
       .history-btn { font-size: 12px; flex: 0 0 auto; }
+      .footer .viewport-size {
+        flex: 1 1 12rem;
+        min-width: 0;
+        max-width: 100%;
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
+      }
+      /* Visible footer tip — host stays overflow:visible so ::after isn’t clipped. */
+      .footer .dim[data-tip] { cursor: help; }
+      .footer .dim[data-tip]:hover::after,
+      .footer .dim[data-tip]:focus-visible::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 0.35rem);
+        z-index: 50;
+        max-width: min(92vw, 36rem);
+        padding: 0.35rem 0.55rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+      }
       @media (max-width: 480px) {
         .footer { flex-direction: column; align-items: flex-start; }
-        .footer .dim { white-space: normal; overflow: visible; text-overflow: unset; }
+        .footer .dim .dim-clip { white-space: normal; overflow: visible; text-overflow: unset; }
+        .footer .dim[data-tip]:hover::after,
+        .footer .dim[data-tip]:focus-visible::after { content: none; }
       }
       .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
       .hrow {
@@ -688,10 +754,10 @@
       </div>
       <div class="footer">
         <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
-        <span id="trailNote" class="dim"></span>
+        <span id="trailNote" class="dim"><span class="dim-clip"></span></span>
+        <span id="viewportSize" class="dim viewport-size"><span class="dim-clip"></span></span>
       </div>
     </main>
-    <div id="spineHint" class="spine-hint" hidden></div>
 
     <dialog id="aboutModal">
       <div class="book-head">
