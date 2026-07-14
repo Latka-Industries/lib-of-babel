@@ -293,19 +293,31 @@
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
-        min-width: 0; /* let grid columns shrink; shelves scroll internally */
+        min-width: 0; /* let grid columns shrink */
+        overflow: visible; /* don’t clip spine hover lift / outline */
       }
       .wall h2 {
         font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem;
-        letter-spacing: 0.1em; text-transform: uppercase;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        letter-spacing: 0.06em; text-transform: uppercase;
+        line-height: 1.35;
+        /* Allow a second line for hover titles on narrow walls (was single-line …). */
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        word-break: break-word;
       }
       .shelf {
-        display: flex; gap: 2px; padding: 4px 3px; border-bottom: 1px solid var(--line);
-        /* horizontal padding so edge-book outlines (last-picked / hover) aren't clipped */
-        overflow: hidden;
+        display: flex; gap: 2px;
+        /* top pad for translateY hover; side pad for edge outlines */
+        padding: 6px 3px 4px; border-bottom: 1px solid var(--line);
+        overflow: visible;
+        position: relative;
+        z-index: 0;
       }
       .shelf:last-child { border-bottom: none; }
+      .shelf:has(.book:hover),
+      .shelf:has(.book.last-picked-up) { z-index: 3; }
       .book {
         flex: 1 1 0;
         min-width: 9px;
@@ -323,7 +335,7 @@
         overflow: hidden; padding: 2px 0; transition: transform 0.06s;
         position: relative;
       }
-      .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 2; }
+      .book:hover { outline: 1px solid #fff; transform: translateY(-3px); z-index: 4; }
       .book.last-picked-up {
         outline: 2px solid #e05555;
         outline-offset: 1px;
