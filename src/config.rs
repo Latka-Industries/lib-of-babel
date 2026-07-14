@@ -60,6 +60,30 @@ pub const ALPHABET_RUSSIAN_ID: u32 = 54;
 pub const ALPHABET_UKRAINIAN_ID: u32 = 55;
 /// Bulgarian — Cyrillic 30 letters + punct (33 glyphs; id `56` — German owns 33).
 pub const ALPHABET_BULGARIAN_ID: u32 = 56;
+/// Icelandic — `a–z` + `áéíóúýþæðö` + punct (39 glyphs; id `49`).
+pub const ALPHABET_ICELANDIC_ID: u32 = 49;
+/// Slovenian — `a–z` + `čšž` + punct (32 glyphs; id `53`).
+pub const ALPHABET_SLOVENIAN_ID: u32 = 53;
+/// Belarusian — Cyrillic 32 letters + punct (35 glyphs; id `58`).
+pub const ALPHABET_BELARUSIAN_ID: u32 = 58;
+/// Macedonian — Cyrillic 31 letters + punct (34 glyphs; id `59`).
+pub const ALPHABET_MACEDONIAN_ID: u32 = 59;
+/// Serbian Cyrillic — 30 letters + punct (33 glyphs; id `61`).
+pub const ALPHABET_SERBIAN_CYRILLIC_ID: u32 = 61;
+/// Catalan — `a–z` + accents + `·` + punct (40 glyphs; id `62`).
+pub const ALPHABET_CATALAN_ID: u32 = 62;
+/// Basque — `a–z` + `ñç` + punct (31 glyphs; id `63`).
+pub const ALPHABET_BASQUE_ID: u32 = 63;
+/// Welsh — `a–z` + `âêîôûŵŷ` + punct (36 glyphs; id `64`).
+pub const ALPHABET_WELSH_ID: u32 = 64;
+/// Irish — `a–z` + `áéíóú` + punct (34 glyphs; id `65`).
+pub const ALPHABET_IRISH_ID: u32 = 65;
+/// Maltese — `a–z` + `ċġħż` + punct (33 glyphs; id `66`).
+pub const ALPHABET_MALTESE_ID: u32 = 66;
+/// Armenian — Eastern letters (38; no և) + punct (41 glyphs; id `67`).
+pub const ALPHABET_ARMENIAN_ID: u32 = 67;
+/// Georgian — Mkhedruli 33 letters + punct (36 glyphs; id `68`).
+pub const ALPHABET_GEORGIAN_ID: u32 = 68;
 
 /// Latin `a–z` + extras + trailing space/comma/period.
 macro_rules! latin_az {
@@ -142,6 +166,35 @@ const ALPHABET_UKRAINIAN: &[char] = &[
 const ALPHABET_BULGARIAN: &[char] = &[
     'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т',
     'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ь', 'ю', 'я', ' ', ',', '.',
+];
+const ALPHABET_ICELANDIC: &[char] = latin_az!('á', 'é', 'í', 'ó', 'ú', 'ý', 'þ', 'æ', 'ð', 'ö');
+const ALPHABET_SLOVENIAN: &[char] = latin_az!('č', 'š', 'ž');
+const ALPHABET_BELARUSIAN: &[char] = &[
+    'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'і', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с',
+    'т', 'у', 'ў', 'ф', 'х', 'ц', 'ч', 'ш', 'ы', 'ь', 'э', 'ю', 'я', ' ', ',', '.',
+];
+const ALPHABET_MACEDONIAN: &[char] = &[
+    'а', 'б', 'в', 'г', 'д', 'ѓ', 'е', 'ж', 'з', 'ѕ', 'и', 'ј', 'к', 'л', 'љ', 'м', 'н', 'њ', 'о',
+    'п', 'р', 'с', 'т', 'ќ', 'у', 'ф', 'х', 'ц', 'ч', 'џ', 'ш', ' ', ',', '.',
+];
+const ALPHABET_SERBIAN_CYRILLIC: &[char] = &[
+    'а', 'б', 'в', 'г', 'д', 'ђ', 'е', 'ж', 'з', 'и', 'ј', 'к', 'л', 'љ', 'м', 'н', 'њ', 'о', 'п',
+    'р', 'с', 'т', 'ћ', 'у', 'ф', 'х', 'ц', 'ч', 'џ', 'ш', ' ', ',', '.',
+];
+const ALPHABET_CATALAN: &[char] = latin_az!('à', 'è', 'é', 'í', 'ï', 'ò', 'ó', 'ú', 'ü', 'ç', '·');
+const ALPHABET_BASQUE: &[char] = latin_az!('ñ', 'ç');
+const ALPHABET_WELSH: &[char] = latin_az!('â', 'ê', 'î', 'ô', 'û', 'ŵ', 'ŷ');
+const ALPHABET_IRISH: &[char] = latin_az!('á', 'é', 'í', 'ó', 'ú');
+const ALPHABET_MALTESE: &[char] = latin_az!('ċ', 'ġ', 'ħ', 'ż');
+/// Eastern Armenian (without ligature և — write ե+վ).
+const ALPHABET_ARMENIAN: &[char] = &[
+    'ա', 'բ', 'գ', 'դ', 'ե', 'զ', 'է', 'ը', 'թ', 'ժ', 'ի', 'լ', 'խ', 'ծ', 'կ', 'հ', 'ձ', 'ղ', 'ճ',
+    'մ', 'յ', 'ն', 'շ', 'ո', 'չ', 'պ', 'ջ', 'ռ', 'ս', 'վ', 'տ', 'ր', 'ց', 'ւ', 'փ', 'ք', 'օ', 'ֆ',
+    ' ', ',', '.',
+];
+const ALPHABET_GEORGIAN: &[char] = &[
+    'ა', 'ბ', 'გ', 'დ', 'ე', 'ვ', 'ზ', 'თ', 'ი', 'კ', 'ლ', 'მ', 'ნ', 'ო', 'პ', 'ჟ', 'რ', 'ს', 'ტ',
+    'უ', 'ფ', 'ქ', 'ღ', 'ყ', 'შ', 'ჩ', 'ც', 'ძ', 'წ', 'ჭ', 'ხ', 'ჯ', 'ჰ', ' ', ',', '.',
 ];
 
 /// The default alphabet when none is specified.
@@ -321,6 +374,66 @@ pub const ALPHABET_REGISTRY: &[AlphabetDef] = &[
         id: ALPHABET_BULGARIAN_ID,
         name: "Bulgarian",
         symbols: ALPHABET_BULGARIAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_ICELANDIC_ID,
+        name: "Icelandic",
+        symbols: ALPHABET_ICELANDIC,
+    },
+    AlphabetDef {
+        id: ALPHABET_SLOVENIAN_ID,
+        name: "Slovenian",
+        symbols: ALPHABET_SLOVENIAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_BELARUSIAN_ID,
+        name: "Belarusian",
+        symbols: ALPHABET_BELARUSIAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_MACEDONIAN_ID,
+        name: "Macedonian",
+        symbols: ALPHABET_MACEDONIAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_SERBIAN_CYRILLIC_ID,
+        name: "Serbian Cyrillic",
+        symbols: ALPHABET_SERBIAN_CYRILLIC,
+    },
+    AlphabetDef {
+        id: ALPHABET_CATALAN_ID,
+        name: "Catalan",
+        symbols: ALPHABET_CATALAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_BASQUE_ID,
+        name: "Basque",
+        symbols: ALPHABET_BASQUE,
+    },
+    AlphabetDef {
+        id: ALPHABET_WELSH_ID,
+        name: "Welsh",
+        symbols: ALPHABET_WELSH,
+    },
+    AlphabetDef {
+        id: ALPHABET_IRISH_ID,
+        name: "Irish",
+        symbols: ALPHABET_IRISH,
+    },
+    AlphabetDef {
+        id: ALPHABET_MALTESE_ID,
+        name: "Maltese",
+        symbols: ALPHABET_MALTESE,
+    },
+    AlphabetDef {
+        id: ALPHABET_ARMENIAN_ID,
+        name: "Armenian",
+        symbols: ALPHABET_ARMENIAN,
+    },
+    AlphabetDef {
+        id: ALPHABET_GEORGIAN_ID,
+        name: "Georgian",
+        symbols: ALPHABET_GEORGIAN,
     },
 ];
 

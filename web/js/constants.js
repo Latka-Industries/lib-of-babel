@@ -225,6 +225,96 @@ export const ALPHABET_REGISTRY = [
     desc: "Bulgarian Cyrillic, space, comma, period",
   },
   {
+    id: 53,
+    name: "Slovenian",
+    native: "Slovenščina",
+    short: "sl",
+    group: "Slavic",
+    stem: "az",
+    extras: "čšž",
+  },
+  {
+    id: 58,
+    name: "Belarusian",
+    native: "Беларуская",
+    short: "be",
+    group: "Slavic",
+    symbols: "абвгдеёжзійклмнопрстуўфхцчшыьэюя" + PUNCT,
+    desc: "Belarusian Cyrillic, space, comma, period",
+  },
+  {
+    id: 59,
+    name: "Macedonian",
+    native: "Македонски",
+    short: "mk",
+    group: "Slavic",
+    symbols: "абвгдѓежзѕијклљмнњопрстќуфхцчџш" + PUNCT,
+    desc: "Macedonian Cyrillic, space, comma, period",
+  },
+  {
+    id: 61,
+    name: "Serbian Cyrillic",
+    native: "Српски",
+    short: "sr-Cyrl",
+    group: "Slavic",
+    symbols: "абвгдђежзијклљмнњопрстћуфхцчџш" + PUNCT,
+    desc: "Serbian Cyrillic, space, comma, period",
+  },
+  {
+    id: 49,
+    name: "Icelandic",
+    native: "Íslenska",
+    short: "is",
+    group: "Germanic",
+    stem: "az",
+    extras: "áéíóúýþæðö",
+  },
+  {
+    id: 62,
+    name: "Catalan",
+    native: "Català",
+    short: "ca",
+    group: "Romance",
+    stem: "az",
+    extras: "àèéíïòóúüç·",
+  },
+  {
+    id: 63,
+    name: "Basque",
+    native: "Euskara",
+    short: "eu",
+    group: "Basque",
+    stem: "az",
+    extras: "ñç",
+  },
+  {
+    id: 64,
+    name: "Welsh",
+    native: "Cymraeg",
+    short: "cy",
+    group: "Celtic",
+    stem: "az",
+    extras: "âêîôûŵŷ",
+  },
+  {
+    id: 65,
+    name: "Irish",
+    native: "Gaeilge",
+    short: "ga",
+    group: "Celtic",
+    stem: "az",
+    extras: "áéíóú",
+  },
+  {
+    id: 66,
+    name: "Maltese",
+    native: "Malti",
+    short: "mt",
+    group: "Maltese",
+    stem: "az",
+    extras: "ċġħż",
+  },
+  {
     id: 50,
     name: "Latvian",
     native: "Latviešu",
@@ -250,6 +340,24 @@ export const ALPHABET_REGISTRY = [
     group: "Albanian",
     stem: "az",
     extras: "çë",
+  },
+  {
+    id: 67,
+    name: "Armenian",
+    native: "Հայերեն",
+    short: "hy",
+    group: "Caucasian",
+    symbols: "աբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆ" + PUNCT,
+    desc: "Eastern Armenian, space, comma, period",
+  },
+  {
+    id: 68,
+    name: "Georgian",
+    native: "ქართული",
+    short: "ka",
+    group: "Caucasian",
+    symbols: "აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ" + PUNCT,
+    desc: "Mkhedruli, space, comma, period",
   },
 ];
 
@@ -316,8 +424,148 @@ export function listAlphabets() {
   return ALPHABET_REGISTRY.map((e) => ({
     id: e.id,
     native: e.native || e.name,
+    group: e.group,
+    uiLocale: e.uiLocale || null,
     symbols: [...symbolsOf(e)],
   }));
+}
+
+/**
+ * External overview links for About blurbs (mostly English Wikipedia).
+ * Not exhaustive scholarship — starting points for the history claims on each shelf.
+ * @type {Record<string, { href: string, title: string }[]>}
+ */
+export const ALPHABET_FAMILY_REFS = {
+  "Latin base": [
+    {
+      href: "https://en.wikipedia.org/wiki/The_Library_of_Babel",
+      title: "The Library of Babel (Borges)",
+    },
+    {
+      href: "https://libraryofbabel.info/",
+      title: "libraryofbabel.info (Basile)",
+    },
+  ],
+  Romance: [
+    {
+      href: "https://en.wikipedia.org/wiki/Romance_languages",
+      title: "Romance languages",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Latin_alphabet",
+      title: "Latin alphabet",
+    },
+  ],
+  Germanic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Germanic_languages",
+      title: "Germanic languages",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Runes",
+      title: "Runes",
+    },
+  ],
+  Uralic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Uralic_languages",
+      title: "Uralic languages",
+    },
+  ],
+  Turkic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Turkish_alphabet",
+      title: "Turkish alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Letter_Revolution",
+      title: "Letter Revolution (1928)",
+    },
+  ],
+  Hellenic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Greek_alphabet",
+      title: "Greek alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Greek_orthography",
+      title: "Greek orthography (monotonic)",
+    },
+  ],
+  Slavic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Cyrillic_script",
+      title: "Cyrillic script",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Glagolitic_script",
+      title: "Glagolitic script",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Gaj%27s_Latin_alphabet",
+      title: "Gaj’s Latin alphabet",
+    },
+  ],
+  Baltic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Baltic_languages",
+      title: "Baltic languages",
+    },
+  ],
+  Albanian: [
+    {
+      href: "https://en.wikipedia.org/wiki/Albanian_alphabet",
+      title: "Albanian alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Congress_of_Manastir",
+      title: "Congress of Manastir (1908)",
+    },
+  ],
+  Celtic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Celtic_languages",
+      title: "Celtic languages",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Ogham",
+      title: "Ogham",
+    },
+  ],
+  Basque: [
+    {
+      href: "https://en.wikipedia.org/wiki/Basque_language",
+      title: "Basque language",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Basque_alphabet",
+      title: "Basque alphabet",
+    },
+  ],
+  Maltese: [
+    {
+      href: "https://en.wikipedia.org/wiki/Maltese_language",
+      title: "Maltese language",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Maltese_alphabet",
+      title: "Maltese alphabet",
+    },
+  ],
+  Caucasian: [
+    {
+      href: "https://en.wikipedia.org/wiki/Armenian_alphabet",
+      title: "Armenian alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Georgian_scripts",
+      title: "Georgian scripts",
+    },
+  ],
+};
+
+export function alphabetFamilyRefs(group) {
+  return ALPHABET_FAMILY_REFS[group] || [];
 }
 
 /** Populate `#alphabet` from the registry (optgroups by `group`). */
