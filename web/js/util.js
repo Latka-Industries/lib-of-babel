@@ -9,6 +9,7 @@ import {
   CHARS_PER_LINE,
   PAGE_CONTENT_SYMBOLS,
 } from "./constants.js";
+import { accentHsl } from "./theme.js";
 
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
@@ -347,7 +348,7 @@ export function hashHue(hex) {
 
 /** Minimap / history accent colour from a hash. */
 export function hashAccentColor(hex) {
-  return `hsl(${hashHue(hex)} 60% 62%)`;
+  return accentHsl(hashHue(hex));
 }
 
 /** Wire `[closeId, modalId]` pairs; stamp ×/label close chrome once. */

@@ -52,6 +52,7 @@ import {
   renderAboutAlphabets,
   wireAboutTabs,
 } from "./about.js";
+import { toggleTheme, syncThemeToggle } from "./theme.js";
 
 export function refreshLocaleChrome() {
   setLocaleFromAlphabet(S.alphabetId, { max: WINDOW_MAX });
@@ -62,6 +63,7 @@ export function refreshLocaleChrome() {
     node.textContent = String(WINDOW_MAX);
   });
   syncSearchKindUI();
+  syncThemeToggle(t);
   const viewBtn = el("viewToggle");
   if (viewBtn) {
     viewBtn.textContent =
@@ -85,6 +87,12 @@ export function wireControls() {
   el("aboutBtn").addEventListener("click", () => {
     selectAboutTab("aboutTab-overview", { animate: false });
     openModal("aboutModal");
+  });
+  el("themeToggle").addEventListener("click", () => {
+    toggleTheme();
+    syncThemeToggle(t);
+    // Retune gallery accent + minimap fill for the new skin.
+    render();
   });
 
   // click the (z, n) coordinate to jump anywhere on the lattice

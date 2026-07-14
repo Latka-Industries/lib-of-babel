@@ -13,6 +13,8 @@ export const nl = {
   "header.alphabetTitle":
     "alfabetlens —zelfde kamer-hash, andere rugtitels en pagina’s (geen vertaling)",
   "header.actionsTitle": "link kopiëren · exporteren · controleren · zoeken · nieuwe tocht",
+  "header.themeToLight": "overschakelen naar lichte modus",
+  "header.themeToDark": "overschakelen naar donkere modus",
   "actions.placeholder": "acties…",
   "actions.copy": "link kopiëren",
   "actions.search": "zoeken…",

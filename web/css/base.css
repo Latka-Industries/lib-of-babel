@@ -21,7 +21,8 @@
   font-display: swap;
   src: url("../fonts/Literata-SemiBold.woff2") format("woff2");
 }
-:root {
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
   /* Flat fills (inputs/chrome). Page atmosphere is layered on body. */
   --bg: #100e14;
@@ -34,12 +35,27 @@
   --accent-link: color-mix(in oklab, var(--accent) 68%, white);
   --accent-link-hover: color-mix(in oklab, var(--accent) 42%, white);
   --line: #2c2934;
+  --page-ink: #b9b3a4;
+  --hover-wash: rgba(255, 255, 255, 0.04);
+  --hover-wash-strong: rgba(255, 255, 255, 0.05);
+  --vignette: radial-gradient(
+    circle at 50% 50%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+  --backdrop: color-mix(in oklab, rgba(0, 0, 0, 0.7) 94%, var(--accent));
+  --mm-fill: rgba(255, 255, 255, 0.025);
   --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
-  /* Page: corner accent washes. Dialogs: flat accent tint (no corners). */
+  /* Page: corner accent washes. Dialogs + stage cards: flat accent tint. */
   --atmosphere-page: 14%;
   --atmosphere-dialog: 8%;
+  --panel-tinted: color-mix(
+    in oklab,
+    var(--panel) calc(100% - var(--atmosphere-dialog)),
+    var(--accent)
+  );
   /*
     Book spine height grows with viewport but stays one-screen when possible:
     10 shelf rows (2 wall rows × 5) share leftover height after header/footer/
@@ -72,6 +88,33 @@
       transparent 40%
     );
 }
+
+/* Day gallery: cool stone paper + same gold accent family (JS retunes hue). */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #d8d4cb;
+  --bg-deep: #e7e3d9;
+  --panel: #f3f0e8;
+  --ink: #2a2824;
+  --muted: #6a6660;
+  --accent: #8f7016;
+  --accent-link: color-mix(in oklab, var(--accent) 68%, black);
+  --accent-link-hover: color-mix(in oklab, var(--accent) 42%, black);
+  --line: #bdb8ac;
+  --page-ink: #3a3732;
+  --hover-wash: rgba(40, 35, 25, 0.05);
+  --hover-wash-strong: rgba(40, 35, 25, 0.08);
+  --vignette: radial-gradient(
+    circle at 50% 50%,
+    transparent 35%,
+    rgba(48, 44, 38, 0.16) 100%
+  );
+  --backdrop: color-mix(in oklab, rgba(42, 38, 32, 0.48) 92%, var(--accent));
+  --mm-fill: rgba(0, 0, 0, 0.04);
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  --atmosphere-page: 10%;
+  --atmosphere-dialog: 6%;
+}
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -98,11 +141,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(
-    circle at 50% 50%,
-    transparent 30%,
-    rgba(0, 0, 0, 0.42) 100%
-  );
+  background: var(--vignette);
 }
 header,
 main,

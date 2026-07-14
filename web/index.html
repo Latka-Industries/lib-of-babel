@@ -7,6 +7,23 @@
     <link id="faviconSvg" rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
     <title>lib-of-babel</title>
+    <script>
+      // Apply theme before CSS paints — same key as web/js/theme.js.
+      (function () {
+        try {
+          var k = "lib-of-babel-theme";
+          var t = localStorage.getItem(k);
+          if (t !== "light" && t !== "dark") {
+            t = matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          }
+          document.documentElement.dataset.theme = t;
+        } catch (e) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="./css/app.css" />
   </head>
   <body>
@@ -38,6 +55,8 @@
             <option value="verify" data-i18n="actions.verify">verify journey</option>
             <option value="reset" data-i18n="actions.reset">new walk</option>
           </select>
+          <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false"
+            title="switch to light mode">☀</button>
         </div>
       </div>
     </header>
