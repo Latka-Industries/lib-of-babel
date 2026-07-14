@@ -28,6 +28,9 @@ import {
   formatUniverseLabel,
   formatVerifyList,
   validateSearchQuery,
+  setFooterDim,
+  isDevMode,
+  galleryIsTouch,
 } from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
@@ -473,13 +476,6 @@ function wireAboutTabs() {
 
 // ---- event wiring ---------------------------------------------------------
 function wireControls() {
-  refreshLocaleChrome();
-  wireAboutTabs();
-  el("aboutBtn").addEventListener("click", () => {
-    selectAboutTab("aboutTab-overview", { animate: false });
-    openModal("aboutModal");
-  });
-
   wireModalCloses([
     ["closeAbout", "aboutModal"],
     ["closeJump", "jumpModal"],
@@ -489,6 +485,12 @@ function wireControls() {
     ["closeBook", "bookModal"],
     ["closeImage", "imageModal"],
   ]);
+  refreshLocaleChrome();
+  wireAboutTabs();
+  el("aboutBtn").addEventListener("click", () => {
+    selectAboutTab("aboutTab-overview", { animate: false });
+    openModal("aboutModal");
+  });
 
   // click the (z, n) coordinate to jump anywhere on the lattice
   const doJump = () => {
@@ -623,8 +625,10 @@ function wireControls() {
   });
   el("saveImage").addEventListener("click", saveBookImage);
   wireEnter("pageJump", jumpPage);
+  el("pageJump").addEventListener("blur", jumpPage);
+  el("pageJump").addEventListener("change", jumpPage);
   el("prevPage").addEventListener("click", () => turnPage(-1));
-  el("nextPage").addEventListener("click", () => turnPage(1));
+  el("nextPage").addEventListener("click", () => turnPage(+1));
   el("goPage").addEventListener("click", jumpPage);
 
   window.addEventListener("keydown", (e) => {
@@ -659,6 +663,53 @@ function wireControls() {
       step(map[e.key]);
     }
   });
+
+  // Touch layout swaps need a re-render (hover listeners). Viewport px footer is
+  // dev-only (localhost / ?dev=1) — production keeps trail note only.
+  let lastTouch = galleryIsTouch();
+  const measureFooter = () => {
+    const node = el("viewportSize");
+    if (!node || node.hidden) return;
+    const book = document.querySelector(".book");
+    const track = document.querySelector(".shelf-track");
+    const px = (n) => Math.round(n);
+    const bookBox = book?.getBoundingClientRect();
+    const trackBox = track?.getBoundingClientRect();
+    const touch = galleryIsTouch();
+    const narrow = window.matchMedia("(max-width: 960px)").matches;
+    const spine =
+      bookBox && bookBox.width > 0
+        ? `spine ~${px(bookBox.width)}×${px(bookBox.height)}`
+        : "spine —";
+    let shelfBit = "";
+    if (trackBox && trackBox.width > 0) {
+      const rowH = touch ? trackBox.height : trackBox.height / 5;
+      shelfBit = ` · shelf ~${px(trackBox.width)}×${px(rowH)}`;
+    }
+    const mode = touch ? "scroll" : narrow ? "stacked" : "2×2";
+    setFooterDim(
+      node,
+      `${window.innerWidth}×${window.innerHeight}px · ${mode} · ${spine}${shelfBit}`,
+    );
+  };
+  const syncGalleryLayout = () => {
+    const touch = galleryIsTouch();
+    if (touch !== lastTouch) {
+      lastTouch = touch;
+      render();
+      if (isDevMode()) requestAnimationFrame(measureFooter);
+      return;
+    }
+    if (isDevMode()) measureFooter();
+  };
+  if (isDevMode()) {
+    el("viewportSize").hidden = false;
+    measureFooter();
+  }
+  window.addEventListener("resize", syncGalleryLayout);
+  for (const q of ["(hover: none)", "(pointer: coarse)", "(max-width: 960px)"]) {
+    window.matchMedia(q).addEventListener("change", syncGalleryLayout);
+  }
 }
 
 boot().catch((err) => {
