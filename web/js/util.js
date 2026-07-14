@@ -20,6 +20,14 @@ export function isDevMode() {
   return new URLSearchParams(location.search).has("dev");
 }
 
+/** Touch / no-hover — single shelf scroll row; skip wall-title hover. */
+export function galleryIsTouch() {
+  return (
+    window.matchMedia("(hover: none)").matches ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 /**
  * Set footer dim text + hover tip (text lives in .dim-clip so the tip isn’t clipped).
  */
@@ -133,6 +141,26 @@ function copyViaExecCommand(text) {
   return ok;
 }
 
+/** Flash short copy feedback without wiping icon/label child structure. */
+function flashButtonLabel(btn, msg, ms) {
+  const label = btn.querySelector(".btn-label");
+  if (label) {
+    const prev = label.textContent;
+    label.textContent = msg;
+    btn.classList.add("is-feedback");
+    setTimeout(() => {
+      label.textContent = prev;
+      btn.classList.remove("is-feedback");
+    }, ms);
+    return;
+  }
+  const prev = btn.textContent;
+  btn.textContent = msg;
+  setTimeout(() => {
+    btn.textContent = prev;
+  }, ms);
+}
+
 /**
  * Copy text to clipboard; briefly flash feedback on the button.
  *
@@ -144,11 +172,7 @@ function copyViaExecCommand(text) {
 export async function copyText(text, btn, okMsg = "copied") {
   const value = String(text ?? "");
   if (!value) {
-    if (btn) {
-      const prev = btn.textContent;
-      btn.textContent = "failed";
-      setTimeout(() => (btn.textContent = prev), 1200);
-    }
+    if (btn) flashButtonLabel(btn, "failed", 1200);
     return false;
   }
 
@@ -175,9 +199,7 @@ export async function copyText(text, btn, okMsg = "copied") {
   }
 
   if (!btn) return ok;
-  const prev = btn.textContent;
-  btn.textContent = viaPrompt ? "shown" : okMsg;
-  setTimeout(() => (btn.textContent = prev), viaPrompt ? 1800 : 1200);
+  flashButtonLabel(btn, viaPrompt ? "shown" : okMsg, viaPrompt ? 1800 : 1200);
   return ok;
 }
 
@@ -328,11 +350,35 @@ export function hashAccentColor(hex) {
   return `hsl(${hashHue(hex)} 60% 62%)`;
 }
 
-/** Wire `[closeId, modalId]` pairs to close their dialogs. */
+/** Wire `[closeId, modalId]` pairs; stamp ×/label close chrome once. */
 export function wireModalCloses(pairs) {
   for (const [closeId, modalId] of pairs) {
-    el(closeId).addEventListener("click", () => el(modalId).close());
+    const btn = el(closeId);
+    stampDialogClose(btn);
+    btn.addEventListener("click", () => el(modalId).close());
   }
+}
+
+/** Expand a plain close button into label + × (mobile shows × only). */
+function stampDialogClose(btn) {
+  if (!btn || btn.querySelector(".dialog-close-x")) return;
+  btn.classList.add("dialog-close");
+  const text = (btn.textContent || "close").trim();
+  btn.removeAttribute("data-i18n");
+  btn.textContent = "";
+  if (!btn.getAttribute("aria-label")) btn.setAttribute("aria-label", text);
+  if (!btn.hasAttribute("data-i18n-aria-label")) {
+    btn.setAttribute("data-i18n-aria-label", "common.close");
+  }
+  const lab = document.createElement("span");
+  lab.className = "dialog-close-label";
+  lab.setAttribute("data-i18n", "common.close");
+  lab.textContent = text;
+  const x = document.createElement("span");
+  x.className = "dialog-close-x";
+  x.setAttribute("aria-hidden", "true");
+  x.textContent = "×";
+  btn.append(lab, x);
 }
 
 /** `<select>` that resets after each choice and dispatches to handlers. */

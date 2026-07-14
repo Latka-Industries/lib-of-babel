@@ -182,6 +182,10 @@ export function renderBookPage() {
     page: p + 1,
     total: PAGES_PER_BOOK,
   });
+  const jump = el("pageJump");
+  if (jump && document.activeElement !== jump) jump.value = String(p + 1);
+  const total = el("pageTotal");
+  if (total) total.textContent = `/ ${PAGES_PER_BOOK}`;
 
   const pageText = pageTextForBook(
     S.currentBook.index,
@@ -226,8 +230,12 @@ export function turnPage(delta) {
 
 export function jumpPage() {
   if (!S.currentBook) return;
-  const v = parseInt(el("pageJump").value, 10);
-  if (!Number.isFinite(v)) return;
+  const jump = el("pageJump");
+  const v = parseInt(jump.value, 10);
+  if (!Number.isFinite(v)) {
+    jump.value = String(S.currentBook.page + 1);
+    return;
+  }
   S.currentBook.page = Math.min(PAGES_PER_BOOK, Math.max(1, v)) - 1;
   renderBookPage();
 }
