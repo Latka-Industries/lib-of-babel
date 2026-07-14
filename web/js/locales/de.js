@@ -198,7 +198,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "book.pageInd": "Seite {page} / {total}",
   "book.pagePlaceholder": "Seite",
   "book.wall": "Wand {n}",
-  "book.wallBook": "Wand {n} · Buch {book}",
+  "book.wallBook": "Wand {n} · Buch {book} · {title}",
 
   "image.save": "PNG speichern",
   "image.saveTitle": "Diese Farbkarte des ganzen Buchs als PNG speichern",
