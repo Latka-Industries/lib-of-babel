@@ -195,6 +195,63 @@ export function oklchToHex(L, C, H) {
   return out;
 }
 
+/** Near-black cell for space — keep in sync with `src/color.rs`. */
+export const SPACE_CELL_HEX = "#15131a";
+
+/** Min letter hue step (°) and punct arc — keep in sync with `src/color.rs`. */
+const MIN_LETTER_HUE_STEP = 10;
+const PUNCT_ARC_DEG = 52;
+
+/**
+ * Per-glyph colours for the page colour map.
+ * Letters share a hue wheel (step floored at ~10°, overflow → lower-chroma rings);
+ * punct/digits sit on a muted arc; space is fixed near-black.
+ * @param {string[]} alpha glyph list for the active lens
+ * @returns {string[]} hex colours aligned to `alpha` indices
+ */
+export function buildAlphabetPalette(alpha, accentHue, accentChroma, accentLight) {
+  const palette = new Array(alpha.length).fill(SPACE_CELL_HEX);
+  const letters = [];
+  const puncts = [];
+  for (let i = 0; i < alpha.length; i++) {
+    const ch = alpha[i];
+    if (ch === " ") {
+      palette[i] = SPACE_CELL_HEX;
+    } else if (/\p{L}/u.test(ch)) {
+      letters.push(i);
+    } else {
+      puncts.push(i);
+    }
+  }
+
+  const n = Math.max(letters.length, 1);
+  const perRing = Math.floor(360 / MIN_LETTER_HUE_STEP); // 36
+  const equalSpace = n <= perRing;
+  const step = equalSpace ? 360 / n : MIN_LETTER_HUE_STEP;
+
+  for (let k = 0; k < letters.length; k++) {
+    const ring = equalSpace ? 0 : Math.floor(k / perRing);
+    const pos = equalSpace ? k : k % perRing;
+    const hue = (((pos * step + accentHue) % 360) + 360) % 360;
+    const chroma = accentChroma * (1 - 0.2 * Math.min(ring, 3));
+    const light = Math.min(0.85, Math.max(0.35, accentLight + 0.05 * ring));
+    palette[letters[k]] = oklchToHex(light, chroma, hue);
+  }
+
+  if (puncts.length > 0) {
+    const base = (((accentHue + 168) % 360) + 360) % 360;
+    const pstep = PUNCT_ARC_DEG / puncts.length;
+    const light = Math.min(0.75, Math.max(0.35, accentLight * 0.78));
+    const chroma = accentChroma * 0.4;
+    for (let k = 0; k < puncts.length; k++) {
+      const hue = (((base + k * pstep) % 360) + 360) % 360;
+      palette[puncts[k]] = oklchToHex(light, chroma, hue);
+    }
+  }
+
+  return palette;
+}
+
 // neighbor math (kept in JS to avoid BigInt/JSON round-trips through wasm)
 /** Lattice neighbor for move `mv`: 0=left, 1=right, 2=up, 3=down. */
 export function neighbor(z, n, mv) {

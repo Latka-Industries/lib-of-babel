@@ -4,7 +4,8 @@
 import { S } from "./state.js";
 import {
   el,
-  oklchToHex,
+  buildAlphabetPalette,
+  SPACE_CELL_HEX,
   flattenSearchQuery,
   escapeHtml,
   downloadBlob,
@@ -63,22 +64,19 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
   cv.height = rows * cell;
   const ctx = cv.getContext("2d");
   const alpha = [...alphabetString(S.alphabetId)];
-  const step = 360 / alpha.length;
-  const palette = new Array(alpha.length);
-  for (let i = 0; i < alpha.length; i++) {
-    palette[i] = oklchToHex(
-      S.accentLightness,
-      S.accentChroma,
-      (i * step + S.accentHue) % 360,
-    );
-  }
+  const palette = buildAlphabetPalette(
+    alpha,
+    S.accentHue,
+    S.accentChroma,
+    S.accentLightness,
+  );
   const glyphIndex = new Map(alpha.map((ch, i) => [ch, i]));
   for (let k = 0; k < chars.length; k++) {
     const ch = chars[k];
     const i = glyphIndex.has(ch) ? glyphIndex.get(ch) : -1;
     const x = (k % cols) * cell;
     const y = Math.floor(k / cols) * cell;
-    ctx.fillStyle = ch === " " || i < 0 ? "#15131a" : palette[i];
+    ctx.fillStyle = ch === " " || i < 0 ? SPACE_CELL_HEX : palette[i];
     ctx.fillRect(x, y, cell, cell);
     if (
       highlightLen > 0 &&
