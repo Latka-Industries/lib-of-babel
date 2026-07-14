@@ -14,6 +14,20 @@
         font-display: swap;
         src: url("fonts/OverpassMono-Regular.woff2") format("woff2");
       }
+      @font-face {
+        font-family: "Literata";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/Literata-Regular.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Literata";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("fonts/Literata-SemiBold.woff2") format("woff2");
+      }
       :root {
         color-scheme: dark;
         --bg: #0b0b0d;
@@ -21,8 +35,12 @@
         --ink: #d8d4c8;
         --muted: #6f6a5e;
         --accent: #c9a227;
+        /* Links: same gold family, lifted so they don’t collide with UI accents. */
+        --accent-link: color-mix(in oklab, var(--accent) 68%, white);
+        --accent-link-hover: color-mix(in oklab, var(--accent) 42%, white);
         --line: #2a2832;
         --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
       }
       * { box-sizing: border-box; }
       body {
@@ -279,6 +297,10 @@
         border: 1px solid var(--line); border-radius: 10px;
         max-width: 760px; width: 92vw; padding: 0;
       }
+      #aboutModal {
+        max-width: min(1040px, 96vw);
+        width: 96vw;
+      }
       dialog::backdrop { background: rgba(0,0,0,0.6); }
       .book-head { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:1rem;}
       .book-head h3 { margin: 0; font-size: 0.95rem; }
@@ -335,11 +357,27 @@
       }
       .about-panel { display: none; }
       .about-panel.active { display: block; }
-      .about-body { padding: 1rem 1.25rem; line-height: 1.6; max-height: 58vh; overflow: auto; }
+      .about-body {
+        padding: 1rem 1.25rem; max-height: 74vh; overflow: auto;
+        font-family: var(--font-prose);
+        font-size: 15px; line-height: 1.55;
+      }
       .about-body p { margin: 0 0 0.85rem; }
-      .about-body h4 { margin: 1.1rem 0 0.4rem; font-size: 0.8rem; letter-spacing: 0.08em;
+      .about-body h4 {
+        margin: 1.1rem 0 0.4rem; font-family: var(--font);
+        font-size: 0.8rem; letter-spacing: 0.08em;
         text-transform: uppercase; color: var(--accent);
-        text-decoration: underline; text-underline-offset: 3px; }
+        text-decoration: underline; text-underline-offset: 3px;
+      }
+      .about-body kbd,
+      .about-body .alpha-family-rail,
+      .about-body .alpha-family-select,
+      .about-body .alpha-shift-btn,
+      .about-body .alpha-lens-meta,
+      .about-body .alpha-refs-h,
+      .about-body .alpha-glyphs {
+        font-family: var(--font);
+      }
       .about-body h4:first-child { margin-top: 0; }
       .about-body ul { margin: 0 0 0.85rem; padding-left: 1.1rem; }
       .about-body li { margin: 0.2rem 0; }
@@ -354,36 +392,156 @@
         padding: 0 0.35rem; font-size: 0.85em;
       }
       .about-body .dim { color: var(--muted); }
-      .about-body a { color: var(--accent); }
+      .about-body a { color: var(--accent-link); }
+      .about-body a:hover { color: var(--accent-link-hover); }
+      .alpha-browse {
+        display: grid;
+        grid-template-columns: 11.5rem minmax(0, 1fr);
+        grid-template-rows: 1fr;
+        gap: 0;
+        margin-top: 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        /* Fixed frame so switching families never resizes the dialog. */
+        height: min(58vh, 38rem);
+        background: var(--bg);
+        overflow: hidden;
+      }
+      .alpha-family-rail {
+        display: flex; flex-direction: column; gap: 0.5rem;
+        padding: 0.65rem 0.5rem;
+        border-right: 1px solid var(--line);
+        background: color-mix(in oklab, var(--panel) 65%, var(--bg));
+        min-height: 0; overflow: auto;
+      }
+      .alpha-family-select-wrap { display: none; flex-direction: column; gap: 0.3rem; flex: 0 0 auto; }
+      .alpha-family-select-label {
+        font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+      }
+      .alpha-family-select {
+        width: 100%; font: inherit; font-size: 0.85rem; color: var(--ink);
+        background: var(--panel); border: 1px solid var(--line); border-radius: 5px;
+        padding: 0.35rem 0.45rem;
+      }
+      .alpha-family-list {
+        display: flex; flex-direction: column; gap: 0.15rem;
+      }
+      .alpha-family-btn {
+        display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem;
+        width: 100%; font: inherit; text-align: left; cursor: pointer;
+        color: var(--muted); background: transparent;
+        border: 1px solid transparent; border-radius: 4px;
+        padding: 0.4rem 0.45rem;
+      }
+      .alpha-family-btn:hover { color: var(--ink); background: color-mix(in oklab, var(--panel) 80%, transparent); }
+      .alpha-family-btn[aria-current="true"] {
+        color: var(--ink); border-color: var(--line);
+        background: var(--panel); box-shadow: inset 2px 0 0 var(--accent);
+      }
+      .alpha-family-name {
+        font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
+      }
+      .alpha-family-count { font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .alpha-family-btn[aria-current="true"] .alpha-family-count { color: var(--accent); }
+      .alpha-family-panel {
+        display: flex; flex-direction: column; gap: 0.7rem;
+        min-width: 0; min-height: 0; overflow: hidden;
+        padding: 0.75rem 0.9rem 0.9rem;
+      }
+      .alpha-family-blurb {
+        flex: 0 0 auto; margin: 0; font-size: 0.88rem; line-height: 1.45;
+      }
+      .alpha-family-refs-host { flex: 0 0 auto; }
+      .alpha-family-lenses {
+        display: flex; flex-direction: column; gap: 0.95rem;
+        flex: 1 1 auto; min-height: 0; overflow: auto;
+        padding-top: 0.65rem; border-top: 1px solid var(--line);
+      }
+      .alpha-refs { margin: 0.45rem 0 0; }
+      .alpha-refs-h {
+        margin: 0 0 0.25rem; font-size: 0.65rem; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted); font-weight: 600;
+      }
+      .alpha-refs ul {
+        margin: 0; padding: 0; list-style: none;
+        display: flex; flex-wrap: wrap; gap: 0.2rem 0.75rem;
+      }
+      .alpha-refs a {
+        font-size: 0.78rem; color: var(--accent-link); text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .alpha-refs a:hover { color: var(--accent-link-hover); }
+      .alpha-lens + .alpha-lens {
+        padding-top: 0.95rem; border-top: 1px dashed var(--line);
+      }
+      .alpha-lens-head {
+        display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem;
+        align-items: baseline; margin-bottom: 0.35rem;
+      }
+      .alpha-lens-head strong { font-weight: 600; }
+      .alpha-lens-meta { color: var(--muted); font-size: 0.85em; }
+      .alpha-lens-pack {
+        font-family: var(--font); font-size: 0.78rem; color: var(--accent);
+      }
+      .alpha-lens-blurb {
+        margin: 0 0 0.5rem; font-size: 0.82rem; line-height: 1.4;
+      }
+      .alpha-glyphs {
+        display: flex; flex-wrap: wrap; gap: 0.3rem;
+        font-family: "Overpass Mono", ui-monospace, monospace;
+        font-size: 0.95rem; line-height: 1;
+      }
+      .alpha-glyph {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 1.65rem; height: 1.65rem; padding: 0 0.3rem;
+        border: 1px solid var(--line); border-radius: 3px;
+        background: color-mix(in oklab, var(--panel) 55%, var(--bg));
+        color: var(--ink);
+      }
+      .alpha-glyph.punct { color: var(--muted); }
+      @media (max-width: 560px) {
+        .alpha-browse {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto 1fr;
+          height: min(62vh, 40rem);
+        }
+        .alpha-family-rail {
+          border-right: none; border-bottom: 1px solid var(--line);
+          padding: 0.65rem 0.75rem; overflow: visible;
+        }
+        .alpha-family-select-wrap { display: flex; }
+        .alpha-family-list { display: none; }
+      }
     </style>
   </head>
   <body>
     <header>
       <div class="header-bar">
         <div class="header-left">
-          <button id="aboutBtn" class="logo" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
-          <span class="stat">gallery <b id="coord" class="coord" title="click to jump to any gallery">…</b></span>
-          <span class="stat">hash <b class="hash" id="hash" title="click to copy this gallery's full hash">…</b></span>
-          <span class="stat">steps <b id="steps">0</b></span>
+          <button id="aboutBtn" class="logo" data-i18n-title="header.aboutTitle" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
+          <span class="stat"><span data-i18n="header.gallery">gallery</span> <b id="coord" class="coord" data-i18n-title="header.coordTitle" title="click to jump to any gallery">…</b></span>
+          <span class="stat"><span data-i18n="header.hash">hash</span> <b class="hash" id="hash" data-i18n-title="header.hashTitle" title="click to copy this gallery's full hash">…</b></span>
+          <span class="stat"><span data-i18n="header.steps">steps</span> <b id="steps">0</b></span>
         </div>
         <div class="header-right">
           <span class="universe-wrap">
             <input id="universe" class="universe" type="text" maxlength="40"
-              placeholder="default universe" autocomplete="off" spellcheck="false"
+              data-i18n-placeholder="header.universePlaceholder" placeholder="default universe"
+              autocomplete="off" spellcheck="false"
+              data-i18n-title="header.universeTitle"
               title="universe — name a parallel library (blank = the default). Enter to travel." />
-            <button id="universeRandom" class="dice" title="jump to a random universe">&#9860;</button>
+            <button id="universeRandom" class="dice" data-i18n-title="header.universeRandomTitle" title="jump to a random universe">&#9860;</button>
           </span>
-          <select id="alphabet" class="alphabet" title="alphabet lens — same room hash, different spines and pages (not translation)">
-            <option value="29">a&ndash;z &middot; 29</option>
-            <option value="25">a&ndash;v &middot; 25</option>
+          <select id="alphabet" class="alphabet" data-i18n-title="header.alphabetTitle" title="alphabet lens — same room hash, different spines and pages (not translation)">
+            <option value="29" selected>a&ndash;z &middot; Basile</option>
           </select>
-          <select id="actionsMenu" class="actions-menu" title="copy link · export · verify · search · new walk">
-            <option value="" selected disabled>actions&hellip;</option>
-            <option value="copy">copy link</option>
-            <option value="search">search…</option>
-            <option value="export">export journey</option>
-            <option value="verify">verify journey</option>
-            <option value="reset">new walk</option>
+          <select id="actionsMenu" class="actions-menu" data-i18n-title="header.actionsTitle" title="copy link · export · verify · search · new walk">
+            <option value="" selected disabled data-i18n="actions.placeholder">actions&hellip;</option>
+            <option value="copy" data-i18n="actions.copy">copy link</option>
+            <option value="search" data-i18n="actions.search">search…</option>
+            <option value="export" data-i18n="actions.export">export journey</option>
+            <option value="verify" data-i18n="actions.verify">verify journey</option>
+            <option value="reset" data-i18n="actions.reset">new walk</option>
           </select>
         </div>
       </div>
@@ -392,12 +550,12 @@
     <main>
       <div class="stage">
         <aside class="minimap-wrap">
-          <div class="minimap-title">you are here</div>
-          <div id="sigil" class="sigil" title="this gallery's sigil — click to download the SVG"></div>
+          <div class="minimap-title" data-i18n="minimap.here">you are here</div>
+          <div id="sigil" class="sigil" data-i18n-title="minimap.sigilTitle" title="this gallery's sigil — click to download the SVG"></div>
           <div id="minimap"></div>
-          <div class="minimap-hint">click an exit to move</div>
+          <div class="minimap-hint" data-i18n="minimap.hint">click an exit to move</div>
         </aside>
-        <div id="walls" class="walls"><div class="loading">building library…</div></div>
+        <div id="walls" class="walls"><div class="loading" data-i18n="loading.building">building library…</div></div>
       </div>
       <div class="footer">
         <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
@@ -409,124 +567,38 @@
       <div class="book-head">
         <div>
           <h3>LIB&middot;OF&middot;BABEL</h3>
-          <small class="dim">a walkable Library of Babel</small>
+          <small class="dim" data-i18n="about.subtitle">a walkable Library of Babel</small>
         </div>
-        <button id="closeAbout">close</button>
+        <button id="closeAbout" data-i18n="common.close">close</button>
       </div>
-      <div class="about-tabs" role="tablist" aria-label="About sections">
-        <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview">overview</button>
-        <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1">wander</button>
-        <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1">books</button>
-        <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1">more</button>
+      <div class="about-tabs" role="tablist" data-i18n-aria-label="about.tabsLabel" aria-label="About sections">
+        <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview" data-i18n="about.tab.overview">overview</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-alphabets" aria-selected="false" aria-controls="aboutPanel-alphabets" tabindex="-1" data-i18n="about.tab.alphabets">alphabets</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1" data-i18n="about.tab.wander">wander</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1" data-i18n="about.tab.books">books</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1" data-i18n="about.tab.more">more</button>
       </div>
       <div class="about-body">
         <div class="about-panel active" role="tabpanel" id="aboutPanel-overview" aria-labelledby="aboutTab-overview">
-          <p>
-            An endless library you can walk. Each hexagonal gallery has
-            <b>four walls of bookshelves</b> (700 books) and <b>two hallways</b> to the next
-            gallery, plus a <b>staircase</b> up and down — four moves from anywhere.
-          </p>
-          <p>
-            Nothing is stored. Every gallery is <b>generated on the spot</b> from its
-            address, so the Library is infinite yet weighs almost nothing: only your
-            <i>path</i> is remembered in the browser.
-          </p>
-          <h4>Three things in the address</h4>
-          <ul>
-            <li>
-              <b>Universe</b> — parallel infinite libraries. Name one in the header (blank =
-              default). Same room numbers, wholly different books. Your wanderings keep
-              going across universes.
-            </li>
-            <li>
-              <b>Room</b> — <b>gallery (z,&nbsp;n)</b> plus its <b>hash</b> and <b>sigil</b>.
-              The hash names the room itself (not the text on the shelves). Same universe +
-              same coordinates → same fingerprint, forever.
-            </li>
-            <li>
-              <b>Alphabet lens</b> — Borges 25 or Basile 29. Flip it and every spine and page
-              rewrites under the <b>same</b> hash and sigil. Your trail stays put.
-              <i>Not translation.</i> The same room, different tongue.
-            </li>
-          </ul>
-          <h4>Inspiration</h4>
-          <p class="dim">
-            <a href="https://en.wikipedia.org/wiki/The_Library_of_Babel"
-               target="_blank" rel="noopener noreferrer">Jorge Luis Borges, &ldquo;The Library of Babel&rdquo; (1941).</a><br />
-            <a href="https://libraryofbabel.info/" target="_blank" rel="noopener noreferrer">Jonathan Basile, <i>libraryofbabel.info</i></a>
-          </p>
+          <div data-i18n-html="about.overview"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-alphabets" aria-labelledby="aboutTab-alphabets" hidden>
+          <h4 data-i18n="about.alphabets.h">Alphabet lenses</h4>
+          <p class="dim" data-i18n-html="about.alphabets.intro"></p>
+          <div id="aboutAlphabetList"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
-          <h4>How to wander</h4>
-          <ul>
-            <li><b>LIB&middot;OF&middot;BABEL</b> (header) opens this guide anytime.</li>
-            <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
-            <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
-            <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
-            <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
-            <li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay. Try flipping it while a book is open.</li>
-            <li><b>actions&hellip;</b> &rarr; <b>copy link</b> (or click the header <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
-            <li><b>actions&hellip;</b> &rarr; <b>search&hellip;</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
-            <li><b>wanderings</b> (footer, last <span data-window-max>500</span>) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
-          </ul>
+          <div data-i18n-html="about.wander"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-books" aria-labelledby="aboutTab-books" hidden>
-          <h4>Reading a book</h4>
-          <ul>
-            <li>Click any colored spine to open it; <kbd>←</kbd> <kbd>→</kbd> turn pages while the reader is open.</li>
-            <li>The spine you last closed is outlined in <b>red</b> so you can find it again on this shelf.</li>
-            <li><b>color</b> redraws the page as a character-colour map — each symbol a square, tinted by the gallery hash.</li>
-            <li><b>link</b> copies a permalink to this book at the current page.</li>
-            <li class="about-save-menu">
-              <div class="about-save-rows">
-                <div class="about-save-row">
-                  <span class="about-save-label"><b>save&hellip;</b></span>
-                  <span>&rarr;</span>
-                  <span><b>borrow book</b> — full text export (~1.3&nbsp;MB .txt)</span>
-                </div>
-                <div class="about-save-row">
-                  <span class="about-save-label"></span>
-                  <span>&rarr;</span>
-                  <span><b>book image</b> — whole book as a PNG colour map</span>
-                </div>
-              </div>
-            </li>
-          </ul>
+          <div data-i18n-html="about.books"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
-          <h4>The numbers in the header</h4>
-          <p class="dim">
-            <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is the room's
-            <b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
-            universe. It does <b>not</b> change when you switch alphabet; the lens only
-            rewrites what the shelves say. <b>Wanderings</b> keeps your last
-            <span data-window-max>500</span> steps (universe + alphabet lens frozen per visit);
-            every step's room hash lives in the full trail. <b>actions&hellip;</b> also
-            offers <b>verify journey</b> and <b>new walk</b>.
-          </p>
-
-          <h4>Search by content</h4>
-          <p class="dim">
-            In <b>actions&hellip;</b> &rarr; <b>search&hellip;</b>, leave the dropdown on
-            <b>content</b>. Paste any phrase (up to one full book — ~1.3&nbsp;million
-            characters) and the library returns the gallery, shelf, book, and page(s) where
-            it already lives — then opens it. Long phrases span consecutive pages in the
-            same volume. Search uses the <b>current alphabet lens</b> and stays in the
-            universe you are standing in. Invalid characters are highlighted in red.
-          </p>
-
-          <h4>Search by title</h4>
-          <p class="dim">
-            Same search dialog — choose <b>title</b> instead of <b>content</b>. Type a spine
-            title (up to <b>24 characters</b>, same lens rules). The library finds the
-            gallery and shelf where that title belongs under the active alphabet, embeds it
-            on the canonical spine, and jumps you there. Useful when you remember a spine
-            label, not a page of text.
-          </p>
-
+          <div data-i18n-html="about.more"></div>
         </div>
       </div>
     </dialog>
@@ -534,10 +606,10 @@
     <dialog id="historyModal">
       <div class="book-head">
         <div>
-          <h3>wanderings</h3>
+          <h3 data-i18n="history.title">wanderings</h3>
           <small id="historyMeta"></small>
         </div>
-        <button id="closeHistory">close</button>
+        <button id="closeHistory" data-i18n="common.close">close</button>
       </div>
       <div class="history-list" id="historyList"></div>
     </dialog>
@@ -545,10 +617,10 @@
     <dialog id="verifyModal">
       <div class="book-head">
         <div>
-          <h3>verify journey</h3>
-          <small id="verifyMeta">drop in an exported journey to re-walk and prove it</small>
+          <h3 data-i18n="verify.title">verify journey</h3>
+          <small id="verifyMeta" data-i18n="verify.meta">drop in an exported journey to re-walk and prove it</small>
         </div>
-        <button id="closeVerify">close</button>
+        <button id="closeVerify" data-i18n="common.close">close</button>
       </div>
       <div class="verify-body" id="verifyBody"></div>
     </dialog>
@@ -556,28 +628,28 @@
     <dialog id="searchModal">
       <div class="book-head">
         <div>
-          <h3 id="searchHead">search by content</h3>
-          <small id="searchMeta">Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
+          <h3 id="searchHead" data-i18n="search.headContent">search by content</h3>
+          <small id="searchMeta" data-i18n="search.metaContent">Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
         </div>
-        <button id="closeSearch">close</button>
+        <button id="closeSearch" data-i18n="common.close">close</button>
       </div>
       <div class="find-body">
         <div class="find-row">
-          <label>search
-            <select id="searchKind" title="search spine titles or page content">
-              <option value="content" selected>content</option>
-              <option value="title">title</option>
+          <label><span data-i18n="search.label">search</span>
+            <select id="searchKind" data-i18n-title="search.kindTitle" title="search spine titles or page content">
+              <option value="content" selected data-i18n="search.kindContent">content</option>
+              <option value="title" data-i18n="search.kindTitleOpt">title</option>
             </select>
           </label>
         </div>
         <div class="search-editor" id="searchEditor">
           <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
           <textarea id="searchInput" rows="6" spellcheck="false"
-            placeholder="forgive me for i have sinned"></textarea>
+            data-i18n-placeholder="search.placeholderContent" placeholder="forgive me for i have sinned"></textarea>
         </div>
         <div class="find-row">
-          <button id="searchFind">find</button>
-          <span id="searchHint" class="find-dim">uses the current alphabet lens · up to ~1.3M characters (one book)</span>
+          <button id="searchFind" data-i18n="search.find">find</button>
+          <span id="searchHint" class="find-dim" data-i18n="search.hintContent">uses the current alphabet lens · up to ~1.3M characters (one book)</span>
         </div>
         <div class="find-result" id="searchResult"></div>
       </div>
@@ -586,15 +658,15 @@
     <dialog id="jumpModal">
       <div class="book-head">
         <div>
-          <h3>jump to a gallery</h3>
-          <small>type any coordinates — the lattice is vast, so leap as far as you like.</small>
+          <h3 data-i18n="jump.title">jump to a gallery</h3>
+          <small data-i18n="jump.subtitle">type any coordinates — the lattice is vast, so leap as far as you like.</small>
         </div>
-        <button id="closeJump">close</button>
+        <button id="closeJump" data-i18n="common.close">close</button>
       </div>
       <div class="jump-body">
         <label>z <input id="jumpZ" type="text" inputmode="numeric" spellcheck="false" placeholder="0" /></label>
         <label>n <input id="jumpN" type="text" inputmode="numeric" spellcheck="false" placeholder="0" /></label>
-        <button id="goJump">go</button>
+        <button id="goJump" data-i18n="common.go">go</button>
       </div>
     </dialog>
 
@@ -605,25 +677,25 @@
           <small id="bookMeta"></small>
         </div>
         <div class="book-actions">
-          <select id="saveMenu" class="save-menu" title="take this book home">
-            <option value="" selected disabled>save…</option>
-            <option value="txt">borrow book</option>
-            <option value="img">book image</option>
+          <select id="saveMenu" class="save-menu" data-i18n-title="book.saveTitle" title="take this book home">
+            <option value="" selected disabled data-i18n="book.savePlaceholder">save…</option>
+            <option value="txt" data-i18n="book.borrow">borrow book</option>
+            <option value="img" data-i18n="book.image">book image</option>
           </select>
-          <button id="copyBookLink" title="copy a link to this book at this page">link</button>
-          <button id="closeBook">close</button>
+          <button id="copyBookLink" data-i18n="common.link" data-i18n-title="book.linkTitle" title="copy a link to this book at this page">link</button>
+          <button id="closeBook" data-i18n="common.close">close</button>
         </div>
       </div>
       <pre class="page" id="bookPage"></pre>
       <canvas id="bookCanvas" class="page-canvas" hidden></canvas>
       <div class="book-nav">
-        <button id="viewToggle" title="switch between text and a character-color view of the page">color</button>
-        <button id="prevPage">‹ prev</button>
-        <button id="nextPage">next ›</button>
+        <button id="viewToggle" data-i18n="book.viewColor" data-i18n-title="book.viewTitle" title="switch between text and a character-color view of the page">color</button>
+        <button id="prevPage" data-i18n="book.prev">‹ prev</button>
+        <button id="nextPage" data-i18n="book.next">next ›</button>
         <span id="pageInd">page 1 / 410</span>
         <span class="grow"></span>
-        <input id="pageJump" type="number" min="1" max="410" placeholder="page" />
-        <button id="goPage">go</button>
+        <input id="pageJump" type="number" min="1" max="410" data-i18n-placeholder="book.pagePlaceholder" placeholder="page" />
+        <button id="goPage" data-i18n="common.go">go</button>
       </div>
     </dialog>
 
@@ -634,8 +706,8 @@
           <small id="imageMeta"></small>
         </div>
         <div class="book-actions">
-          <button id="saveImage" title="save this whole-book color map as a PNG">save png</button>
-          <button id="closeImage">close</button>
+          <button id="saveImage" data-i18n="image.save" data-i18n-title="image.saveTitle" title="save this whole-book color map as a PNG">save png</button>
+          <button id="closeImage" data-i18n="common.close">close</button>
         </div>
       </div>
       <div class="image-wrap"><canvas id="bookImageCanvas"></canvas></div>

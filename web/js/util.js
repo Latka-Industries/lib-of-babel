@@ -3,7 +3,8 @@
 import {
   I64_MIN,
   I64_MAX,
-  ALPHABETS,
+  alphabetString,
+  DEFAULT_ALPHABET_ID,
   LINES_PER_PAGE,
   CHARS_PER_LINE,
   PAGE_CONTENT_SYMBOLS,
@@ -37,20 +38,20 @@ export function normalizeSearchQuery(text) {
   return text.toLowerCase();
 }
 
-/** Find characters outside the active alphabet. Returns `{ i, ch }` (string index). */
-export function validateSearchQuery(text, alphabetId = 29) {
-  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+/** Find characters outside the active alphabet. Returns `{ i, ch }` (UTF-16 string index). */
+export function validateSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  const allowed = new Set([...alphabetString(alphabetId)]);
   const invalid = [];
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === "\n" || ch === "\r") continue;
-    if (!alpha.includes(ch)) invalid.push({ i, ch });
+  for (let i = 0; i < text.length; ) {
+    const ch = String.fromCodePoint(text.codePointAt(i));
+    if (ch !== "\n" && ch !== "\r" && !allowed.has(ch)) invalid.push({ i, ch });
+    i += ch.length;
   }
   return invalid;
 }
 
 /** Flatten search text for chunking — must match Rust flatten_search_text. */
-export function flattenSearchQuery(text, alphabetId = 29) {
+export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   const invalid = validateSearchQuery(text, alphabetId);
   if (invalid.length) {
     throw new Error(
@@ -69,12 +70,12 @@ export function flattenSearchQuery(text, alphabetId = 29) {
 
 // Space-pad to a full page (phrase at start) — used by notable-text find (THI-76).
 /** Pad a phrase to one page width with spaces (not used by main search embed). */
-export function padPageText(text, alphabetId = 29) {
-  const alpha = ALPHABETS[alphabetId] || ALPHABETS[29];
+export function padPageText(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  const allowed = new Set([...alphabetString(alphabetId)]);
   const symbols = [];
   for (const ch of text) {
     if (ch === "\n" || ch === "\r") continue;
-    if (!alpha.includes(ch)) {
+    if (!allowed.has(ch)) {
       throw new Error(`invalid character '${ch}' for this alphabet`);
     }
     symbols.push(ch);
@@ -192,6 +193,63 @@ export function oklchToHex(L, C, H) {
     out += v.toString(16).padStart(2, "0");
   }
   return out;
+}
+
+/** Near-black cell for space — keep in sync with `src/color.rs`. */
+export const SPACE_CELL_HEX = "#15131a";
+
+/** Min letter hue step (°) and punct arc — keep in sync with `src/color.rs`. */
+const MIN_LETTER_HUE_STEP = 10;
+const PUNCT_ARC_DEG = 52;
+
+/**
+ * Per-glyph colours for the page colour map.
+ * Letters share a hue wheel (step floored at ~10°, overflow → lower-chroma rings);
+ * punct/digits sit on a muted arc; space is fixed near-black.
+ * @param {string[]} alpha glyph list for the active lens
+ * @returns {string[]} hex colours aligned to `alpha` indices
+ */
+export function buildAlphabetPalette(alpha, accentHue, accentChroma, accentLight) {
+  const palette = new Array(alpha.length).fill(SPACE_CELL_HEX);
+  const letters = [];
+  const puncts = [];
+  for (let i = 0; i < alpha.length; i++) {
+    const ch = alpha[i];
+    if (ch === " ") {
+      palette[i] = SPACE_CELL_HEX;
+    } else if (/\p{L}/u.test(ch)) {
+      letters.push(i);
+    } else {
+      puncts.push(i);
+    }
+  }
+
+  const n = Math.max(letters.length, 1);
+  const perRing = Math.floor(360 / MIN_LETTER_HUE_STEP); // 36
+  const equalSpace = n <= perRing;
+  const step = equalSpace ? 360 / n : MIN_LETTER_HUE_STEP;
+
+  for (let k = 0; k < letters.length; k++) {
+    const ring = equalSpace ? 0 : Math.floor(k / perRing);
+    const pos = equalSpace ? k : k % perRing;
+    const hue = (((pos * step + accentHue) % 360) + 360) % 360;
+    const chroma = accentChroma * (1 - 0.2 * Math.min(ring, 3));
+    const light = Math.min(0.85, Math.max(0.35, accentLight + 0.05 * ring));
+    palette[letters[k]] = oklchToHex(light, chroma, hue);
+  }
+
+  if (puncts.length > 0) {
+    const base = (((accentHue + 168) % 360) + 360) % 360;
+    const pstep = PUNCT_ARC_DEG / puncts.length;
+    const light = Math.min(0.75, Math.max(0.35, accentLight * 0.78));
+    const chroma = accentChroma * 0.4;
+    for (let k = 0; k < puncts.length; k++) {
+      const hue = (((base + k * pstep) % 360) + 360) % 360;
+      palette[puncts[k]] = oklchToHex(light, chroma, hue);
+    }
+  }
+
+  return palette;
 }
 
 // neighbor math (kept in JS to avoid BigInt/JSON round-trips through wasm)

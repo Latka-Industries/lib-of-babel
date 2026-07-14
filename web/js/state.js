@@ -3,7 +3,7 @@
 // same state; ES module bindings can't be reassigned across files, but object
 // properties can.
 
-import { WINDOW_MAX } from "./constants.js";
+import { WINDOW_MAX, DEFAULT_ALPHABET_ID } from "./constants.js";
 import { kvSet } from "./db.js";
 import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "./wasm.js";
 
@@ -11,7 +11,7 @@ export const S = {
   z: 0n,
   n: 0n,
   gv: 0,
-  alphabetId: 29, // view lens; 25 = Borges, 29 = Basile. Room hash ignores this.
+  alphabetId: DEFAULT_ALPHABET_ID, // view lens; room hash ignores this.
   universeName: "", // "" = default/canonical universe (seed 0)
   trail: [], // [{ z, n, move, hash, alphabet, universe }]
   startedAt: new Date().toISOString(),
@@ -170,7 +170,15 @@ export function syncLensControls() {
   const uni = document.getElementById("universe");
   const alpha = document.getElementById("alphabet");
   if (uni) uni.value = S.universeName;
-  if (alpha) alpha.value = String(S.alphabetId);
+  if (alpha) {
+    const want = String(S.alphabetId);
+    alpha.value = want;
+    // Unknown / missing option → blank select; fall back to Basile default.
+    if (alpha.value !== want) {
+      S.alphabetId = DEFAULT_ALPHABET_ID;
+      alpha.value = String(DEFAULT_ALPHABET_ID);
+    }
+  }
 }
 
 export function recordStep(move) {

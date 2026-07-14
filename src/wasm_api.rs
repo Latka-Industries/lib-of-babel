@@ -10,10 +10,59 @@ use crate::gallery::{
 };
 use crate::page::{PageAddr, PageRender, book_text, page_text};
 use crate::search::{
-    LocateError, json_char_literal, locate_page, locate_title, normalize_query,
-    search_page_segment, search_page_span,
+    LocateError, PageLocation, json_char_literal, json_string_literal, locate_page, locate_title,
+    normalize_query, push_json_string, search_page_segment, search_page_span,
 };
 use crate::universe::{self, universe as active_universe};
+
+fn locate_error_json(err: LocateError) -> String {
+    match err {
+        LocateError::InvalidChars(list) => {
+            let invalid_json: String = list
+                .iter()
+                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{invalid_json}]}}"#
+            )
+        }
+        LocateError::Message(e) => {
+            format!(r#"{{"ok":false,"error":{}}}"#, json_string_literal(&e))
+        }
+    }
+}
+
+fn locate_hit_json(
+    loc: &PageLocation,
+    char_count: usize,
+    page: u32,
+    page_end: u32,
+    page_span: u32,
+) -> String {
+    let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
+    format!(
+        concat!(
+            "{{\"ok\":true,",
+            "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
+            "\"book\":{},\"page\":{},\"page_end\":{},\"page_span\":{},",
+            "\"char_count\":{},\"alphabet\":{},",
+            "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
+        ),
+        loc.universe_seed,
+        loc.z,
+        loc.n,
+        loc.book_index,
+        page,
+        page_end,
+        page_span,
+        char_count,
+        loc.alphabet_id,
+        wall + 1,
+        shelf + 1,
+        book_on_shelf + 1,
+    )
+}
 
 #[wasm_bindgen]
 #[must_use]
@@ -72,9 +121,8 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32, title_embed: &str) 
         if i > 0 {
             s.push(',');
         }
-        s.push('"');
-        s.push_str(t);
-        s.push('"');
+        // Titles may contain `"` / `\` under Basile++ / Basile# — must escape.
+        push_json_string(&mut s, t);
     }
     s.push(']');
     s
@@ -162,44 +210,16 @@ pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
 pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
     match locate_page(text, alphabet_id, active_universe()) {
         Ok(res) => {
-            let loc = res.location;
-            let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
-            let last_page = loc.page + res.page_span;
-            format!(
-                concat!(
-                    "{{\"ok\":true,",
-                    "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
-                    "\"book\":{},\"page\":{},\"page_end\":{},\"page_span\":{},",
-                    "\"char_count\":{},\"alphabet\":{},",
-                    "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
-                ),
-                loc.universe_seed,
-                loc.z,
-                loc.n,
-                loc.book_index,
-                loc.page + 1,
-                last_page,
-                res.page_span,
+            let loc = &res.location;
+            locate_hit_json(
+                loc,
                 res.char_count,
-                loc.alphabet_id,
-                wall + 1,
-                shelf + 1,
-                book_on_shelf + 1,
+                loc.page + 1,
+                loc.page + res.page_span,
+                res.page_span,
             )
         }
-        Err(LocateError::InvalidChars(list)) => {
-            let invalid_json: String = list
-                .iter()
-                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
-                .collect::<Vec<_>>()
-                .join(",");
-            format!(
-                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{invalid_json}]}}"#
-            )
-        }
-        Err(LocateError::Message(e)) => {
-            format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\""))
-        }
+        Err(e) => locate_error_json(e),
     }
 }
 
@@ -219,41 +239,8 @@ pub fn max_title_len() -> u32 {
 /// Reverse lookup: spine title → JSON hit `{ ok, z, n, book, … }` or validation error.
 pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
     match locate_title(text, alphabet_id, active_universe()) {
-        Ok(res) => {
-            let loc = res.location;
-            let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
-            format!(
-                concat!(
-                    "{{\"ok\":true,",
-                    "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
-                    "\"book\":{},\"page\":1,\"page_end\":1,\"page_span\":1,",
-                    "\"char_count\":{},\"alphabet\":{},",
-                    "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
-                ),
-                loc.universe_seed,
-                loc.z,
-                loc.n,
-                loc.book_index,
-                res.char_count,
-                loc.alphabet_id,
-                wall + 1,
-                shelf + 1,
-                book_on_shelf + 1,
-            )
-        }
-        Err(LocateError::InvalidChars(list)) => {
-            let invalid_json: String = list
-                .iter()
-                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
-                .collect::<Vec<_>>()
-                .join(",");
-            format!(
-                r#"{{"ok":false,"error":"invalid characters for this alphabet","invalid":[{invalid_json}]}}"#
-            )
-        }
-        Err(LocateError::Message(e)) => {
-            format!(r#"{{"ok":false,"error":"{}"}}"#, e.replace('"', "\\\""))
-        }
+        Ok(res) => locate_hit_json(&res.location, res.char_count, 1, 1, 1),
+        Err(e) => locate_error_json(e),
     }
 }
 
