@@ -110,12 +110,15 @@ mod tests {
     #[test]
     fn alphabet_sizes_are_correct() {
         use crate::config::{
-            ALPHABET_BASILE_HASH_ID, ALPHABET_BASILE_ID, ALPHABET_BASILE_PLUS_ID,
-            ALPHABET_BORGES_ID, ALPHABET_DANISH_NORWEGIAN_ID, ALPHABET_DUTCH_ID,
-            ALPHABET_ESTONIAN_ID, ALPHABET_FINNISH_ID, ALPHABET_FRENCH_ID, ALPHABET_GERMAN_ID,
-            ALPHABET_GREEK_ID, ALPHABET_HUNGARIAN_ID, ALPHABET_ITALIAN_ID, ALPHABET_PORTUGUESE_ID,
-            ALPHABET_REGISTRY, ALPHABET_ROMANIAN_ID, ALPHABET_SPANISH_ID, ALPHABET_SWEDISH_ID,
-            ALPHABET_TURKISH_ID, alphabet_def,
+            ALPHABET_ALBANIAN_ID, ALPHABET_BASILE_HASH_ID, ALPHABET_BASILE_ID,
+            ALPHABET_BASILE_PLUS_ID, ALPHABET_BORGES_ID, ALPHABET_BULGARIAN_ID,
+            ALPHABET_CROATIAN_SERBIAN_ID, ALPHABET_CZECH_ID, ALPHABET_DANISH_NORWEGIAN_ID,
+            ALPHABET_DUTCH_ID, ALPHABET_ESTONIAN_ID, ALPHABET_FINNISH_ID, ALPHABET_FRENCH_ID,
+            ALPHABET_GERMAN_ID, ALPHABET_GREEK_ID, ALPHABET_HUNGARIAN_ID, ALPHABET_ITALIAN_ID,
+            ALPHABET_LATVIAN_ID, ALPHABET_LITHUANIAN_ID, ALPHABET_POLISH_ID,
+            ALPHABET_PORTUGUESE_ID, ALPHABET_REGISTRY, ALPHABET_ROMANIAN_ID, ALPHABET_RUSSIAN_ID,
+            ALPHABET_SLOVAK_ID, ALPHABET_SPANISH_ID, ALPHABET_SWEDISH_ID, ALPHABET_TURKISH_ID,
+            ALPHABET_UKRAINIAN_ID, alphabet_def,
         };
         // id → glyph count (diverges when another lens already owns that size).
         let expected_lens: &[(u32, usize)] = &[
@@ -137,6 +140,16 @@ mod tests {
             (ALPHABET_HUNGARIAN_ID, 38),
             (ALPHABET_FRENCH_ID, 45),
             (ALPHABET_GREEK_ID, 35),
+            (ALPHABET_POLISH_ID, 38),
+            (ALPHABET_CZECH_ID, 44),
+            (ALPHABET_SLOVAK_ID, 46),
+            (ALPHABET_CROATIAN_SERBIAN_ID, 34),
+            (ALPHABET_LATVIAN_ID, 40),
+            (ALPHABET_LITHUANIAN_ID, 38),
+            (ALPHABET_ALBANIAN_ID, 31),
+            (ALPHABET_RUSSIAN_ID, 36),
+            (ALPHABET_UKRAINIAN_ID, 36),
+            (ALPHABET_BULGARIAN_ID, 33),
         ];
         for &(id, len) in expected_lens {
             assert_eq!(alphabet(id).len(), len, "alphabet {id}");
@@ -162,6 +175,21 @@ mod tests {
             (ALPHABET_SPANISH_ID, "Spanish", &['ñ'], &[]),
             (ALPHABET_GERMAN_ID, "German", &['ß'], &[]),
             (ALPHABET_FRENCH_ID, "French", &['œ'], &[]),
+            (ALPHABET_POLISH_ID, "Polish", &['ł', 'ż'], &[]),
+            (ALPHABET_CZECH_ID, "Czech", &['ř', 'ů'], &[]),
+            (ALPHABET_SLOVAK_ID, "Slovak", &['ô', 'ľ'], &[]),
+            (
+                ALPHABET_CROATIAN_SERBIAN_ID,
+                "Croatian/Serbian",
+                &['đ', 'č'],
+                &[],
+            ),
+            (ALPHABET_LATVIAN_ID, "Latvian", &['ģ', 'ķ'], &[]),
+            (ALPHABET_LITHUANIAN_ID, "Lithuanian", &['ė', 'ų'], &[]),
+            (ALPHABET_ALBANIAN_ID, "Albanian", &['ç', 'ë'], &[]),
+            (ALPHABET_RUSSIAN_ID, "Russian", &['я', 'ё'], &['a']),
+            (ALPHABET_UKRAINIAN_ID, "Ukrainian", &['ї', 'ґ'], &['ы']),
+            (ALPHABET_BULGARIAN_ID, "Bulgarian", &['ъ', 'я'], &['ё']),
         ];
         for &(id, name, yes, no) in probes {
             assert_eq!(alphabet_def(id).name, name);
