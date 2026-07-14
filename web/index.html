@@ -292,6 +292,7 @@
       /* Below this, 2×2 walls crush spines — stack every wall full-width. */
       @media (max-width: 960px) {
         .walls { grid-template-columns: 1fr; }
+        .shelf { gap: 1px; }
       }
       @media (max-width: 720px) {
         .stage { flex-direction: column; }
@@ -327,7 +328,8 @@
       .shelf:has(.book.last-picked-up) { z-index: 3; }
       .book {
         flex: 1 1 0;
-        min-width: 9px;
+        /* 0 so 35 spines can shrink into a stacked/narrow wall (9px×35 was overflowing). */
+        min-width: 0;
         max-width: var(--book-w);
         height: var(--book-h);
         border-radius: 2px; cursor: pointer;
