@@ -108,8 +108,8 @@
 }
 .hrow:hover .copy, .hrow .copy:focus { opacity: 1; }
 .hrow:last-child { border-bottom: none; }
-.hrow:hover { background: rgba(255,255,255,0.04); }
-.hrow.current { background: rgba(255,255,255,0.05); }
+.hrow:hover { background: var(--hover-wash); }
+.hrow.current { background: var(--hover-wash-strong); }
 .hrow .step { color: var(--muted); text-align: right; }
 .hrow .coord { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hrow .move { text-align: center; color: var(--muted); }
@@ -122,18 +122,14 @@ dialog {
   color: var(--ink);
   border: 1px solid var(--line); border-radius: 10px;
   max-width: 760px; width: 92vw; padding: 0;
-  background: color-mix(
-    in oklab,
-    var(--panel) calc(100% - var(--atmosphere-dialog)),
-    var(--accent)
-  );
+  background: var(--panel-tinted);
 }
 #aboutModal {
   max-width: min(1040px, 96vw);
   width: 96vw;
 }
 dialog::backdrop {
-  background: color-mix(in oklab, rgba(0, 0, 0, 0.7) 94%, var(--accent));
+  background: var(--backdrop);
 }
 .book-head {
   padding: 0.9rem 1rem;
@@ -166,13 +162,13 @@ dialog::backdrop {
 .btn-icon svg { display: block; width: 100%; height: 100%; }
 pre.page {
   margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
-  max-height: 56vh; overflow: auto; color: #b9b3a4; font-size: 13px;
+  max-height: 56vh; overflow: auto; color: var(--page-ink); font-size: 13px;
 }
 pre.page mark.search-hit {
-  background: rgba(201, 162, 39, 0.38);
-  color: #f0ead8;
+  background: color-mix(in oklab, var(--accent) 38%, transparent);
+  color: var(--ink);
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.55);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
 }
 .page-canvas {
   display: block; max-width: 100%; max-height: 56vh; height: auto;

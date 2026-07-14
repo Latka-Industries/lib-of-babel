@@ -13,6 +13,8 @@ export const en = {
   "header.alphabetTitle":
     "alphabet lens — same room hash, different spines and pages (not translation)",
   "header.actionsTitle": "copy link · export · verify · search · new walk",
+  "header.themeToLight": "switch to light mode",
+  "header.themeToDark": "switch to dark mode",
   "actions.placeholder": "actions…",
   "actions.copy": "copy link",
   "actions.search": "search…",
