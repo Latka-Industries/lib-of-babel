@@ -9,7 +9,7 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel } from "./util.js";
+import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, setFooterDim, galleryIsTouch } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -96,13 +96,13 @@ export function render() {
   renderMinimap(hash, S.accentHue);
 
   const wallsEl = el("walls");
+  const prevScroll = [...wallsEl.querySelectorAll(".shelf-track")].map(
+    (node) => node.scrollLeft,
+  );
   wallsEl.innerHTML = "";
-  const spineHint = el("spineHint");
-  if (spineHint) {
-    spineHint.hidden = true;
-    spineHint.textContent = "";
-  }
   const spineBudget = spineCharBudget();
+  const touch = galleryIsTouch();
+  const booksPerWall = SHELVES_PER_WALL * BOOKS_PER_SHELF;
   let idx = 0;
   for (let w = 0; w < WALLS; w++) {
     const wall = document.createElement("div");
@@ -112,65 +112,61 @@ export function render() {
     h.textContent = t("book.wall", { n: wallNum });
     h.dataset.wallLabel = h.textContent;
     wall.appendChild(h);
-    for (let s = 0; s < SHELVES_PER_WALL; s++) {
-      const shelf = document.createElement("div");
-      shelf.className = "shelf";
-      for (let b = 0; b < BOOKS_PER_SHELF; b++) {
-        const bookIndex = idx++;
-        const title = titles[bookIndex] || `book ${bookIndex}`;
-        const hue = hueFromString(title);
-        const book = document.createElement("div");
-        book.className = "book";
-        if (isLastPickedUp(bookIndex)) book.classList.add("last-picked-up");
-        book.title = title;
-        book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
-        // Spine stub: letters/digits from any script (not ASCII a–z only — Greek/Cyrillic
-        // titles would otherwise render blank). Cap to what `--book-h` can show.
-        book.textContent = [...title]
-          .filter((ch) => /\p{L}|\p{N}/u.test(ch))
-          .slice(0, spineBudget)
-          .join("")
-          .toLocaleUpperCase();
+
+    const track = document.createElement("div");
+    track.className = "shelf-track";
+    for (let b = 0; b < booksPerWall; b++) {
+      const bookIndex = idx++;
+      const title = titles[bookIndex] || `book ${bookIndex}`;
+      const hue = hueFromString(title);
+      const book = document.createElement("div");
+      book.className = "book";
+      if (isLastPickedUp(bookIndex)) book.classList.add("last-picked-up");
+      book.title = title;
+      book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
+      // Spine stub: letters/digits from any script (not ASCII a–z only — Greek/Cyrillic
+      // titles would otherwise render blank). Cap to what `--book-h` can show.
+      book.textContent = [...title]
+        .filter((ch) => /\p{L}|\p{N}/u.test(ch))
+        .slice(0, spineBudget)
+        .join("")
+        .toLocaleUpperCase();
+      if (!touch) {
         book.addEventListener("mouseenter", () => {
-          const label = t("book.wallBook", {
+          h.textContent = t("book.wallBook", {
             n: wallNum,
             book: bookIndex + 1,
             title,
           });
-          h.textContent = label;
-          const hint = el("spineHint");
-          if (hint) {
-            hint.textContent = label;
-            hint.hidden = false;
-          }
         });
         book.addEventListener("mouseleave", () => {
           h.textContent = h.dataset.wallLabel;
-          const hint = el("spineHint");
-          if (hint) {
-            hint.textContent = "";
-            hint.hidden = true;
-          }
         });
-        book.addEventListener("click", () => openBook(bookIndex, title));
-        shelf.appendChild(book);
       }
-      wall.appendChild(shelf);
+      book.addEventListener("click", () => openBook(bookIndex, title));
+      track.appendChild(book);
     }
+    wall.appendChild(track);
     wallsEl.appendChild(wall);
   }
+  wallsEl.querySelectorAll(".shelf-track").forEach((track, i) => {
+    if (prevScroll[i] != null) track.scrollLeft = prevScroll[i];
+  });
 
   const win = historyWindow();
   el("historyBtn").textContent = t("footer.wanderings", {
     n: win.length,
     max: WINDOW_MAX,
   });
-  el("trailNote").textContent = t("footer.trail", {
-    nodes: S.trail.length,
-    universe: formatUniverseLabel(S.universeName),
-    alphabet: formatAlphabetSymbolLabel(S.alphabetId, t),
-    gv: S.gv,
-  });
+  setFooterDim(
+    el("trailNote"),
+    t("footer.trail", {
+      nodes: S.trail.length,
+      universe: formatUniverseLabel(S.universeName),
+      alphabet: formatAlphabetSymbolLabel(S.alphabetId, t),
+      gv: S.gv,
+    }),
+  );
   if (el("historyModal").open) renderHistory();
 }
 

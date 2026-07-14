@@ -54,8 +54,8 @@
           wall titles/gaps (~17rem). Cap keeps tall monitors from forcing scroll.
          */
         --book-h: clamp(48px, calc((100dvh - 17rem) / 10 - 0.4rem), 86px);
-        /* Spine thickness: thinner on narrow viewports, a bit wider when tall+wide. */
-        --book-w: clamp(12px, min(calc(var(--book-h) * 0.32), 1.55vw), 28px);
+        /* Spine thickness: a touch wider on desktop so shelves read less crushed. */
+        --book-w: clamp(12px, min(calc(var(--book-h) * 0.34), 1.75vw), 34px);
         /* Content column widens on large screens; stays fluid (wraps) when small. */
         --page-max: min(1760px, 96vw);
         --atmosphere-corners-page:
@@ -289,78 +289,41 @@
       #minimap text { font-family: var(--font); }
       .mm-exit:hover text { opacity: 0.7; }
       .walls { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      /* Below this, 2×2 walls crush spines — stack every wall full-width. */
-      @media (max-width: 960px) {
-        .walls { grid-template-columns: 1fr; }
-        .shelf { gap: 1px; }
-        /* Outline-only hover — lift clips less among dense thin spines. */
-        .book:hover { transform: none; }
-      }
-      /* Lightweight hover readout (avoids sticky headers / :has() style thrash). */
-      .spine-hint {
-        position: fixed;
-        left: 50%;
-        bottom: 0.65rem;
-        transform: translateX(-50%);
-        z-index: 40;
-        max-width: min(92vw, 42rem);
-        padding: 0.4rem 0.75rem;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        background: color-mix(in oklab, var(--panel) 88%, var(--accent));
-        color: var(--ink);
-        font-size: 0.75rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        pointer-events: none;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-      }
-      .spine-hint[hidden] { display: none; }
-      @media (max-width: 720px) {
-        .stage { flex-direction: column; }
-        .minimap-wrap { position: static; width: 100%; flex-basis: auto; }
-      }
       .wall {
         background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
         padding: 0.75rem;
-        min-width: 0; /* let grid columns shrink */
-        overflow: visible; /* don’t clip spine hover lift / outline */
+        min-width: 0;
+        overflow: visible;
       }
       .wall h2 {
         font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem;
         letter-spacing: 0.06em; text-transform: uppercase;
         line-height: 1.35;
-        /* Allow a second line for hover titles on narrow walls (was single-line …). */
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
         word-break: break-word;
       }
-      .shelf {
-        display: flex; gap: 2px;
-        /* top pad for translateY hover; side pad for edge outlines */
-        padding: 6px 3px 4px; border-bottom: 1px solid var(--line);
-        overflow: visible;
-        position: relative;
-        z-index: 0;
-      }
-      .shelf:last-child { border-bottom: none; }
-      .book {
-        flex: 1 1 0;
-        /* 0 so 35 spines can shrink into a stacked/narrow wall (9px×35 was overflowing). */
+      /* Desktop / narrow: 5×35 packed grid (books fill in row-major order). */
+      .shelf-track {
         min-width: 0;
-        max-width: var(--book-w);
+        display: grid;
+        grid-template-columns: repeat(35, minmax(0, 1fr));
+        gap: 1px 2px;
+        padding: 6px 3px 4px;
+        background: var(--line);
+      }
+      .book {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
         height: var(--book-h);
         border-radius: 2px; cursor: pointer;
         border: 1px solid rgba(0, 0, 0, 0.55);
         background: linear-gradient(180deg, #3a3550, #211f2c);
         display: flex; align-items: center; justify-content: center;
         writing-mode: vertical-rl; text-orientation: mixed;
-        /* Dense type: fit longer spine titles; budget in view.js matches this. */
         font-size: clamp(6.5px, calc(var(--book-h) * 0.088), 8px);
         line-height: 1; letter-spacing: 0.02em;
         color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);
@@ -376,6 +339,58 @@
       .book.last-picked-up:hover {
         outline: 2px solid #ff7070;
       }
+      /*
+        Stack walls + full-width stage when narrow OR touch.
+        Touch alone also collapses each wall to one horizontal scroll row.
+        Base .stage uses align-items:flex-start — stretch or walls stay ~400px.
+      */
+      @media (max-width: 960px), (hover: none), (pointer: coarse) {
+        .stage {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .minimap-wrap {
+          position: static;
+          flex: 0 0 auto;
+          width: 100%;
+          max-width: none;
+        }
+        .walls {
+          grid-template-columns: 1fr;
+          width: 100%;
+          min-width: 0;
+        }
+      }
+      @media (hover: none), (pointer: coarse) {
+        .wall { padding: 0.55rem 0.4rem; }
+        .shelf-track {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 1px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-x: contain;
+          -webkit-overflow-scrolling: touch;
+          padding: 4px 2px 3px;
+          background: transparent;
+        }
+        .book {
+          --compact-book-h: clamp(72px, min(18dvh, 24vw), 100px);
+          flex: 0 0 32px;
+          min-width: 32px;
+          max-width: 32px;
+          width: 32px;
+          height: var(--compact-book-h);
+          font-size: clamp(8px, calc(var(--compact-book-h) * 0.085), 12px);
+        }
+        .book:hover {
+          transform: none;
+          outline: none;
+        }
+        .book.last-picked-up:hover {
+          outline: 2px solid #e05555;
+        }
+      }
       .footer {
         margin-top: 1rem; display: flex; align-items: center;
         gap: 0.8rem; flex-wrap: wrap; max-width: 100%; min-width: 0;
@@ -383,12 +398,47 @@
       .footer .dim {
         color: var(--muted); font-size: 12px;
         flex: 1 1 10rem; min-width: 0;
+        position: relative;
+      }
+      .footer .dim .dim-clip {
+        display: block;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
       .history-btn { font-size: 12px; flex: 0 0 auto; }
+      .footer .viewport-size {
+        flex: 1 1 12rem;
+        min-width: 0;
+        max-width: 100%;
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
+      }
+      /* Visible footer tip — host stays overflow:visible so ::after isn’t clipped. */
+      .footer .dim[data-tip] { cursor: help; }
+      .footer .dim[data-tip]:hover::after,
+      .footer .dim[data-tip]:focus-visible::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 0.35rem);
+        z-index: 50;
+        max-width: min(92vw, 36rem);
+        padding: 0.35rem 0.55rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+      }
       @media (max-width: 480px) {
         .footer { flex-direction: column; align-items: flex-start; }
-        .footer .dim { white-space: normal; overflow: visible; text-overflow: unset; }
+        .footer .dim .dim-clip { white-space: normal; overflow: visible; text-overflow: unset; }
+        .footer .dim[data-tip]:hover::after,
+        .footer .dim[data-tip]:focus-visible::after { content: none; }
       }
       .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
       .hrow {
@@ -431,10 +481,35 @@
       dialog::backdrop {
         background: color-mix(in oklab, rgba(0, 0, 0, 0.7) 94%, var(--accent));
       }
-      .book-head { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:1rem;}
+      .book-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "text actions";
+        align-items: center;
+        gap: 0.75rem 1rem;
+      }
+      .book-head-text { grid-area: text; min-width: 0; }
       .book-head h3 { margin: 0; font-size: 0.95rem; }
       .book-head small { color: var(--muted); }
-      .book-actions { display: flex; gap: 0.5rem; flex: 0 0 auto; }
+      .book-head-actions {
+        grid-area: actions;
+        display: flex;
+        gap: 0.5rem;
+        flex: 0 0 auto;
+        align-items: center;
+      }
+      .book-head-tools {
+        display: contents; /* desktop: tools sit in the actions flex row */
+      }
+      .dialog-close-x,
+      .btn-icon,
+      .nav-arrow { display: none; }
+      .btn-icon {
+        width: 1.1rem; height: 1.1rem;
+      }
+      .btn-icon svg { display: block; width: 100%; height: 100%; }
       pre.page {
         margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
         max-height: 56vh; overflow: auto; color: #b9b3a4; font-size: 13px;
@@ -463,13 +538,113 @@
         display: flex; align-items: center; gap: 0.6rem;
         padding: 0.6rem 1rem; border-top: 1px solid var(--line);
       }
-      .book-nav #pageInd { color: var(--muted); min-width: 9rem; }
+      .book-nav .page-turn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex: 0 0 auto;
+      }
+      .book-nav #pageInd {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .book-nav .page-jump-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
       .book-nav input {
         width: 4.5rem; font: inherit; color: var(--ink);
         background: var(--bg); border: 1px solid var(--line);
         border-radius: 5px; padding: 0.25rem 0.4rem;
       }
-      .book-nav .grow { flex: 1; }
+      .book-nav .page-total {
+        display: none;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .book-nav .grow { flex: 1; min-width: 0.5rem; }
+      /*
+        Mobile dialog chrome: × top-right; link/save under title+meta;
+        prev/next are arrows only.
+      */
+      @media (hover: none), (pointer: coarse), (max-width: 960px) {
+        .book-head {
+          grid-template-columns: minmax(0, 1fr) 2.25rem;
+          grid-template-areas:
+            "text close"
+            "tools tools";
+          align-items: start;
+          gap: 0.55rem 0.5rem;
+        }
+        .book-head-text { grid-area: text; }
+        .book-head-actions {
+          display: contents;
+        }
+        .book-head-tools {
+          grid-area: tools;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.45rem;
+          align-items: center;
+        }
+        .dialog-close {
+          grid-area: close;
+          justify-self: end;
+          align-self: start;
+          width: 2.25rem;
+          height: 2.25rem;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.35rem;
+          line-height: 1;
+        }
+        .dialog-close-label { display: none; }
+        .dialog-close-x { display: inline; }
+        .btn-label { display: none; }
+        .btn-icon { display: block; }
+        button.is-feedback .btn-label { display: inline; }
+        button.is-feedback .btn-icon { display: none; }
+        .book-nav .nav-label { display: none; }
+        .book-nav .nav-arrow {
+          display: inline;
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+        .book-nav #prevPage,
+        .book-nav #nextPage {
+          min-width: 2.25rem;
+          padding: 0.35rem 0.5rem;
+        }
+        /* color ····· ‹ [page]/410 › */
+        .book-nav {
+          flex-wrap: nowrap;
+          gap: 0.45rem;
+        }
+        .book-nav .page-turn { display: contents; }
+        .book-nav #viewToggle { order: 1; flex: 0 0 auto; }
+        .book-nav .grow-start {
+          display: block;
+          order: 2;
+          flex: 1 1 auto;
+        }
+        .book-nav #prevPage { order: 3; }
+        .book-nav .page-jump-wrap { order: 4; }
+        .book-nav #nextPage { order: 5; }
+        .book-nav #pageInd,
+        .book-nav .grow-end,
+        .book-nav #goPage { display: none; }
+        .book-nav .page-total { display: inline; }
+        .book-nav input {
+          width: 3.25rem;
+          text-align: center;
+          font-variant-numeric: tabular-nums;
+        }
+      }
       .loading { color: var(--muted); padding: 2rem; text-align: center; }
       .about-tabs {
         display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line);
@@ -483,6 +658,17 @@
       .about-tab:hover { color: var(--ink); }
       .about-tab[aria-selected="true"] {
         color: var(--accent); border-bottom-color: var(--accent);
+      }
+      @media (hover: none), (pointer: coarse), (max-width: 960px) {
+        .about-tabs {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-x: contain;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+        }
+        .about-tab { flex: 0 0 auto; }
       }
       .about-panel { display: none; }
       .about-panel.active { display: block; }
@@ -688,18 +874,20 @@
       </div>
       <div class="footer">
         <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
-        <span id="trailNote" class="dim"></span>
+        <span id="trailNote" class="dim"><span class="dim-clip"></span></span>
+        <span id="viewportSize" class="dim viewport-size" hidden><span class="dim-clip"></span></span>
       </div>
     </main>
-    <div id="spineHint" class="spine-hint" hidden></div>
 
     <dialog id="aboutModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3>LIB&middot;OF&middot;BABEL</h3>
           <small class="dim" data-i18n="about.subtitle">a walkable Library of Babel</small>
         </div>
-        <button id="closeAbout" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <button type="button" id="closeAbout" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
       </div>
       <div class="about-tabs" role="tablist" data-i18n-aria-label="about.tabsLabel" aria-label="About sections">
         <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview" data-i18n="about.tab.overview">overview</button>
@@ -735,33 +923,39 @@
 
     <dialog id="historyModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 data-i18n="history.title">wanderings</h3>
           <small id="historyMeta"></small>
         </div>
-        <button id="closeHistory" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <button type="button" id="closeHistory" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
       </div>
       <div class="history-list" id="historyList"></div>
     </dialog>
 
     <dialog id="verifyModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 data-i18n="verify.title">verify journey</h3>
           <small id="verifyMeta" data-i18n="verify.meta">drop in an exported journey to re-walk and prove it</small>
         </div>
-        <button id="closeVerify" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <button type="button" id="closeVerify" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
       </div>
       <div class="verify-body" id="verifyBody"></div>
     </dialog>
 
     <dialog id="searchModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 id="searchHead" data-i18n="search.headContent">search by content</h3>
           <small id="searchMeta" data-i18n="search.metaContent">Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
         </div>
-        <button id="closeSearch" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <button type="button" id="closeSearch" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
       </div>
       <div class="find-body">
         <div class="find-row">
@@ -787,11 +981,13 @@
 
     <dialog id="jumpModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 data-i18n="jump.title">jump to a gallery</h3>
           <small data-i18n="jump.subtitle">type any coordinates — the lattice is vast, so leap as far as you like.</small>
         </div>
-        <button id="closeJump" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <button type="button" id="closeJump" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
       </div>
       <div class="jump-body">
         <label>z <input id="jumpZ" type="text" inputmode="numeric" spellcheck="false" placeholder="0" /></label>
@@ -802,42 +998,75 @@
 
     <dialog id="bookModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 id="bookTitle">—</h3>
           <small id="bookMeta"></small>
         </div>
-        <div class="book-actions">
-          <select id="saveMenu" class="save-menu" data-i18n-title="book.saveTitle" title="take this book home">
-            <option value="" selected disabled data-i18n="book.savePlaceholder">save…</option>
-            <option value="txt" data-i18n="book.borrow">borrow book</option>
-            <option value="img" data-i18n="book.image">book image</option>
-          </select>
-          <button id="copyBookLink" data-i18n="common.link" data-i18n-title="book.linkTitle" title="copy a link to this book at this page">link</button>
-          <button id="closeBook" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <div class="book-head-tools">
+            <select id="saveMenu" class="save-menu" data-i18n-title="book.saveTitle" title="take this book home">
+              <option value="" selected disabled data-i18n="book.savePlaceholder">save…</option>
+              <option value="txt" data-i18n="book.borrow">borrow book</option>
+              <option value="img" data-i18n="book.image">book image</option>
+            </select>
+            <button type="button" id="copyBookLink" data-i18n-title="book.linkTitle" data-i18n-aria-label="common.link" title="copy a link to this book at this page" aria-label="link">
+              <span class="btn-label" data-i18n="common.link">link</span>
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+          <button type="button" id="closeBook" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
         </div>
       </div>
       <pre class="page" id="bookPage"></pre>
       <canvas id="bookCanvas" class="page-canvas" hidden></canvas>
       <div class="book-nav">
-        <button id="viewToggle" data-i18n="book.viewColor" data-i18n-title="book.viewTitle" title="switch between text and a character-color view of the page">color</button>
-        <button id="prevPage" data-i18n="book.prev">‹ prev</button>
-        <button id="nextPage" data-i18n="book.next">next ›</button>
-        <span id="pageInd">page 1 / 410</span>
-        <span class="grow"></span>
-        <input id="pageJump" type="number" min="1" max="410" data-i18n-placeholder="book.pagePlaceholder" placeholder="page" />
-        <button id="goPage" data-i18n="common.go">go</button>
+        <button type="button" id="viewToggle" data-i18n="book.viewColor" data-i18n-title="book.viewTitle" title="switch between text and a character-color view of the page">color</button>
+        <span class="grow grow-start"></span>
+        <span class="page-turn">
+          <button type="button" id="prevPage" data-i18n-aria-label="book.prev" aria-label="‹ prev">
+            <span class="nav-label" data-i18n="book.prev">‹ prev</span>
+            <span class="nav-arrow" aria-hidden="true">‹</span>
+          </button>
+          <span id="pageInd">page 1 / 410</span>
+          <button type="button" id="nextPage" data-i18n-aria-label="book.next" aria-label="next ›">
+            <span class="nav-label" data-i18n="book.next">next ›</span>
+            <span class="nav-arrow" aria-hidden="true">›</span>
+          </button>
+        </span>
+        <span class="grow grow-end"></span>
+        <span class="page-jump-wrap">
+          <input id="pageJump" type="number" min="1" max="410" inputmode="numeric" data-i18n-placeholder="book.pagePlaceholder" placeholder="page" aria-label="page" />
+          <span class="page-total" id="pageTotal" aria-hidden="true">/ 410</span>
+        </span>
+        <button type="button" id="goPage" data-i18n="common.go">go</button>
       </div>
     </dialog>
 
     <dialog id="imageModal">
       <div class="book-head">
-        <div>
+        <div class="book-head-text">
           <h3 id="imageTitle">—</h3>
           <small id="imageMeta"></small>
         </div>
-        <div class="book-actions">
-          <button id="saveImage" data-i18n="image.save" data-i18n-title="image.saveTitle" title="save this whole-book color map as a PNG">save png</button>
-          <button id="closeImage" data-i18n="common.close">close</button>
+        <div class="book-head-actions">
+          <div class="book-head-tools">
+            <button type="button" id="saveImage" data-i18n-title="image.saveTitle" title="save this whole-book color map as a PNG">
+              <span class="btn-label" data-i18n="image.save">save png</span>
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+          <button type="button" id="closeImage" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
         </div>
       </div>
       <div class="image-wrap"><canvas id="bookImageCanvas"></canvas></div>
