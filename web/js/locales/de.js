@@ -68,7 +68,7 @@ Standard). Dieselben Raumnummern, völlig andere Bücher. Ihre Wanderungen gehen
 Der Hash benennt den Raum selbst (nicht den Text in den Regalen). Gleiches Universum +
 gleiche Koordinaten → immer derselbe Fingerabdruck.</li>
 <li><b>Alphabet-Linse</b> — Borges, Basile, Basile++ / Basile# oder ein Sprachsatz
-(siehe <b>Alphabete</b>: Romanisch, Germanisch, Uralisch, Turkisch, Hellenisch, …).
+(siehe <b>Alphabete</b>: Romanisch bis Slawisch/Baltisch/Kyrillisch, Hellenisch, …).
 Umschalten schreibt jedes Rückenschild und jede Seite unter dem <b>gleichen</b>
 Hash und Siegel um. Ihre Spur bleibt.
 <i>Keine Übersetzung.</i> Derselbe Raum, andere Zunge. Die Oberfläche spricht
