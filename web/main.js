@@ -5,22 +5,42 @@
 // Text is never stored — only the trail of {z, n, move, hash} in IndexedDB.
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
-import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { el, copyText, escapeHtml, downloadBlob, wireModalCloses, wireActionMenu, wireEnter, openModal, formatUniverseLabel, validateSearchQuery } from "./js/util.js";
+import {
+  TOTAL_BOOKS,
+  WINDOW_MAX,
+  formatAlphabetSymbolLabel,
+} from "./js/constants.js";
+import {
+  el,
+  copyText,
+  escapeHtml,
+  downloadBlob,
+  wireModalCloses,
+  wireActionMenu,
+  wireEnter,
+  openModal,
+  formatUniverseLabel,
+  formatVerifyList,
+  validateSearchQuery,
+} from "./js/util.js";
 import { kvGet } from "./js/db.js";
 import {
   S,
   applyUniverse,
+  hydrateTrail,
+  freezeTrailLenses,
+  syncLensControls,
   randomUniverseName,
   persist,
   markLastPickedUp,
 } from "./js/state.js";
 import { currentUrl, syncUrl, parsePermalink } from "./js/url.js";
 import { render, renderHistory } from "./js/view.js";
-import { step, jumpTo, exportJourney, newWalk, freshWalkHere, resetTrail } from "./js/nav.js";
+import { step, jumpTo, exportJourney, newWalk, resetTrail } from "./js/nav.js";
 import { verifyJourney } from "./js/verify.js";
 import {
   openBook,
+  reopenCurrentBook,
   renderBookPage,
   turnPage,
   jumpPage,
@@ -34,6 +54,10 @@ import { locateText, locateTitle, renderSearchResult, syncSearchInput, syncSearc
 async function boot() {
   await init();
   S.gv = generator_version();
+  // Keep guide/footer placeholders in sync with the single WINDOW_MAX constant.
+  document.querySelectorAll("[data-window-max]").forEach((node) => {
+    node.textContent = String(WINDOW_MAX);
+  });
 
   const saved = await kvGet("journey");
   const savedOk =
@@ -73,13 +97,11 @@ async function boot() {
   } else if (savedOk) {
     S.z = BigInt(saved.current.z);
     S.n = BigInt(saved.current.n);
-    S.trail = saved.trail;
+    S.trail = hydrateTrail(saved.trail, {
+      universe: saved.universe,
+      alphabet: saved.alphabet,
+    });
     S.startedAt = saved.started_at || S.startedAt;
-    S.windowBuf = S.trail.slice(-WINDOW_MAX).map((e) => ({
-      z: e.z,
-      n: e.n,
-      hash: e.hash,
-    }));
     render();
   } else {
     await newWalk();
@@ -114,11 +136,17 @@ function showVerify(r, fileName) {
   el("verifyMeta").textContent = fileName
     ? fileName
     : "re-walked in WASM against this build";
+  const alphabetList = formatVerifyList(r.alphabets, (a) =>
+    escapeHtml(formatAlphabetSymbolLabel(a)),
+  );
+  const universeList = formatVerifyList(r.universes, (u) =>
+    escapeHtml(formatUniverseLabel(u)),
+  );
   const facts =
     r.total != null
       ? `<ul class="verify-facts">
-           <li>universe: <b>${escapeHtml(formatUniverseLabel(r.universe))}</b></li>
-           <li>alphabet: <b>${r.alphabet ?? "—"}-symbol</b></li>
+           <li>universe(s): ${universeList}</li>
+           <li>alphabet(s): ${alphabetList}</li>
            <li>generator: <b>v${r.gv ?? "—"}</b></li>
            <li>steps checked: <b>${r.checked} / ${r.total}</b></li>
          </ul>`
@@ -273,33 +301,29 @@ function wireControls() {
     copyText(currentUrl(), ev.currentTarget, "copied!"),
   );
 
-  // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
-  el("alphabet").value = String(S.alphabetId);
-  el("alphabet").addEventListener("change", (ev) => {
-    S.alphabetId = Number(ev.target.value);
+  // Shared path after alphabet/universe change: freeze past steps, persist, redraw.
+  function afterLensChange(reopenHighlight) {
+    syncLensControls();
     persist();
     render();
-    if (S.currentBook) {
-      const b = S.currentBook;
-      // Drop search highlight if it isn't valid under the new lens.
-      const highlight =
-        b.searchHighlight &&
-        validateSearchQuery(b.searchHighlight, S.alphabetId).length === 0
-          ? b.searchHighlight
-          : null;
-      openBook(b.index, null, b.page + 1, highlight, b.searchPageSpan || 1);
-    }
+    reopenCurrentBook(reopenHighlight);
+  }
+
+  // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
+  syncLensControls();
+  el("alphabet").addEventListener("change", (ev) => {
+    freezeTrailLenses();
+    S.alphabetId = Number(ev.target.value);
+    afterLensChange("keep");
   });
 
-  // entering / naming a universe steps into a wholly different parallel library
-  // at the same coordinate (new text + new hashes), so it starts a fresh walk.
-  el("universe").value = S.universeName;
+  // Universe switch: same coords, new library; trail kept across universes.
   const enterUniverse = (name) => {
     const next = (name || "").trim();
-    if (next === S.universeName) return; // already here
+    if (next === S.universeName) return;
+    freezeTrailLenses();
     applyUniverse(next);
-    el("universe").value = S.universeName;
-    freshWalkHere();
+    afterLensChange("clear");
   };
   el("universe").addEventListener("change", (ev) => enterUniverse(ev.target.value));
   wireEnter("universe", (e) => {

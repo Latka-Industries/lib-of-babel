@@ -18,7 +18,8 @@ export function permalink(
   searchQuery = null,
 ) {
   const base = `${location.origin}${location.pathname}`;
-  let frag = `#z=${zv}&n=${nv}&h=${hash.slice(0, 16)}`;
+  const proof = String(hash ?? "").slice(0, 16);
+  let frag = `#z=${zv}&n=${nv}&h=${proof}`;
   if (book !== null) frag += `&b=${book}`;
   if (page !== null) frag += `&p=${page}`;
   if (searchQuery) frag += `&q=${encodeURIComponent(searchQuery)}`;

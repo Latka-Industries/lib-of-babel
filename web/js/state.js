@@ -13,8 +13,7 @@ export const S = {
   gv: 0,
   alphabetId: 29, // view lens; 25 = Borges, 29 = Basile. Room hash ignores this.
   universeName: "", // "" = default/canonical universe (seed 0)
-  trail: [], // [{ z, n, move, hash }]
-  windowBuf: [], // last <=50 visited { z, n, hash }
+  trail: [], // [{ z, n, move, hash, alphabet, universe }]
   startedAt: new Date().toISOString(),
   saveTimer: null,
   currentBook: null, // { index, title, text, page, searchHighlight?, searchStartPage?, searchPageSpan? }
@@ -106,15 +105,72 @@ function scheduleSave() {
   S.saveTimer = setTimeout(persist, 250);
 }
 
-export async function persist() {
-  await kvSet("journey", {
+/** Journey JSON shared by IndexedDB persist and file export. */
+export function journeySnapshot({ includeCurrent = false } = {}) {
+  const body = {
     generator_version: S.gv,
     alphabet: S.alphabetId,
     universe: S.universeName,
     started_at: S.startedAt,
-    current: { z: S.z.toString(), n: S.n.toString() },
     trail: S.trail,
+  };
+  if (includeCurrent) {
+    body.current = { z: S.z.toString(), n: S.n.toString() };
+  }
+  return body;
+}
+
+export async function persist() {
+  await kvSet("journey", journeySnapshot({ includeCurrent: true }));
+}
+
+/** Last `WINDOW_MAX` trail steps (oldest → newest). Single source for wanderings UI. */
+export function historyWindow() {
+  return S.trail.slice(-WINDOW_MAX);
+}
+
+/** Read a step's universe string (trimmed), or `fallback` when missing / not a string. */
+export function stepUniverse(e, fallback = null) {
+  if (e && typeof e.universe === "string") return e.universe.trim();
+  return fallback;
+}
+
+/** Read a step's alphabet id, or `fallback` when missing / not finite. */
+export function stepAlphabet(e, fallback = null) {
+  if (e != null && e.alphabet != null && Number.isFinite(Number(e.alphabet))) {
+    return Number(e.alphabet);
+  }
+  return fallback;
+}
+
+/**
+ * Freeze universe/alphabet onto legacy trail steps that lack them.
+ * Call once when hydrating from IndexedDB so wanderings never fall back to the live UI.
+ */
+export function hydrateTrail(trail, { universe = "", alphabet = 29 } = {}) {
+  const uni = typeof universe === "string" ? universe : "";
+  const alpha = Number.isFinite(Number(alphabet)) ? Number(alphabet) : 29;
+  return (Array.isArray(trail) ? trail : []).map((e) => ({
+    ...e,
+    universe: stepUniverse(e, uni),
+    alphabet: stepAlphabet(e, alpha),
+  }));
+}
+
+/** Stamp missing universe/alphabet on current trail using live header values (before a switch). */
+export function freezeTrailLenses() {
+  S.trail = hydrateTrail(S.trail, {
+    universe: S.universeName,
+    alphabet: S.alphabetId,
   });
+}
+
+/** Mirror live `S` into the header universe/alphabet controls. */
+export function syncLensControls() {
+  const uni = document.getElementById("universe");
+  const alpha = document.getElementById("alphabet");
+  if (uni) uni.value = S.universeName;
+  if (alpha) alpha.value = String(S.alphabetId);
 }
 
 export function recordStep(move) {
@@ -124,11 +180,10 @@ export function recordStep(move) {
     n: S.n.toString(),
     move,
     hash,
-    alphabet: S.alphabetId, // lens at time of visit (room hash is lens-independent)
+    alphabet: S.alphabetId, // lens at visit (room hash ignores this)
+    universe: S.universeName, // library at visit (room hash includes this)
   };
   S.trail.push(entry);
-  S.windowBuf.push({ z: entry.z, n: entry.n, hash });
-  if (S.windowBuf.length > WINDOW_MAX) S.windowBuf.shift(); // forget beyond 50
   scheduleSave();
   return { hash };
 }
