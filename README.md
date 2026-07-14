@@ -34,7 +34,7 @@ Canonical dimensions we honor:
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
 | **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
 | **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
-| **History** | Bounded **wanderings** (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. |
+| **Wanderings** | Bounded trail view (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. Click a step to restore that gallery and its lens. |
 | **Alphabet** | View lens (Borges 25 / Basile 29): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. |
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
@@ -79,7 +79,7 @@ lib-of-babel/
 │   ├── search.rs        reverse lookup, validation, multi-page span planning
 │   ├── color.rs         whole-book RGBA preview image
 │   └── wasm_api.rs      wasm-bindgen JSON/string exports for the frontend
-├── web/                 static frontend: gallery + minimap + sigil, book reader, history, permalinks, export, verifier
+├── web/                 static frontend: gallery + minimap + sigil, book reader, wanderings, permalinks, export, verifier
 │   ├── index.html       layout + styles
 │   ├── main.js          boot + event wiring (the controller)
 │   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · search
@@ -106,7 +106,7 @@ a Feistel permutation over each page's 3200 symbols, so **search-by-content**
 | `book_text_for` / `book_image` | Full book text or RGBA colour map |
 | `neighbor_json(z, n, mv)` | Lattice step (0=left, 1=right, 2=up, 3=down) |
 
-## Search (`generator_version` 6)
+## Search (`generator_version` 7)
 
 **actions… → search…** opens a dialog with a **content / title** dropdown. Both modes use the alphabet selected in the header and stay in the universe you are standing in (no auto-hop to another library).
 
@@ -148,7 +148,8 @@ mise trust && mise install   # one-time: install the pinned toolchain
 mise run dev                 # build the wasm core into web/pkg, then serve
 ```
 
-Then open <http://127.0.0.1:8777/index.html>.
+Then open <http://127.0.0.1:8777/index.html>. The gallery shell shows **building library…**
+until the WASM core finishes loading.
 
 Other tasks:
 
@@ -181,7 +182,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, wand
 
 7. ✅ **BLAKE3 fingerprint** — `node_hash` is now BLAKE3-256 over the canonical book identities; 64-bit prefix shown, full 256-bit exposed for proofs.
 8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
-9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe, or wrong `generator_version`).
+9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe/alphabet lens, or wrong `generator_version`).
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
