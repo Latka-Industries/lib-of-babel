@@ -9,7 +9,7 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, setFooterDim } from "./util.js";
+import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, setFooterDim, galleryIsTouch } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -37,14 +37,6 @@ function spineCharBudget() {
   const fontPx = Math.min(8, Math.max(6.5, h * 0.088));
   // Generous vs exact glyph height — prefer more title over empty spine.
   return Math.max(10, Math.min(22, Math.round((h - 2) / (fontPx * 0.78))));
-}
-
-/** Touch / no-hover — single scroll row, skip wall-title hover. */
-function galleryIsTouch() {
-  return (
-    window.matchMedia("(hover: none)").matches ||
-    window.matchMedia("(pointer: coarse)").matches
-  );
 }
 
 // Hexagon minimap: current gallery in the middle, the hash awaiting down each
