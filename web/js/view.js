@@ -18,6 +18,8 @@ import {
   MOVE_ARROW,
   alphabetShortLabel,
   formatAlphabetSymbolLabel,
+  alphabetIsRtl,
+  alphabetScript,
 } from "./constants.js";
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "./wasm.js";
@@ -127,11 +129,16 @@ export function render() {
       book.style.background = `linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))`;
       // Spine stub: letters/digits from any script (not ASCII a–z only — Greek/Cyrillic
       // titles would otherwise render blank). Cap to what `--book-h` can show.
-      book.textContent = [...title]
+      const script = alphabetScript(S.alphabetId);
+      let stub = [...title]
         .filter((ch) => /\p{L}|\p{N}/u.test(ch))
         .slice(0, spineBudget)
-        .join("")
-        .toLocaleUpperCase();
+        .join("");
+      // Case fold only Latin-ish spines — RTL / fidel / Tifinagh stay as generated.
+      if (script === "latin" || !script) stub = stub.toLocaleUpperCase();
+      book.textContent = stub;
+      if (alphabetIsRtl(S.alphabetId)) book.dir = "rtl";
+      else book.removeAttribute("dir");
       if (!touch) {
         book.addEventListener("mouseenter", () => {
           h.textContent = t("book.wallBook", {
