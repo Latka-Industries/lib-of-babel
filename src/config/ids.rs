@@ -151,7 +151,7 @@ pub struct AlphabetIds {
     pub vietnamese: u32,
     /// Thai — clustered consonants×marks; id `108` (frozen permalink; inventory >255).
     pub thai: u32,
-    /// Khmer — clustered; id `109`.
+    /// Khmer — clustered consonants×vowels; id `109` (frozen permalink; inventory >255).
     pub khmer: u32,
 }
 
