@@ -265,13 +265,13 @@ mod tests {
             );
         }
 
-        // JS registry: every Rust id present; symbol string length matches.
-        let js = std::fs::read_to_string("web/js/constants.js").expect("web/js/constants.js");
+        let js =
+            std::fs::read_to_string("web/js/lib/constants.js").expect("web/js/lib/constants.js");
         for def in ALPHABET_REGISTRY {
             let needle = format!("id: {}", def.id);
             assert!(
                 js.contains(&needle),
-                "web/js/constants.js missing lens id {} ({})",
+                "web/js/lib/constants.js missing lens id {} ({})",
                 def.id,
                 def.name
             );

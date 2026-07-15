@@ -2,8 +2,8 @@
 // encodes (z, n) and carries the gallery hash as a proof token.
 
 import { S } from "./state.js";
-import { el } from "./util.js";
-import { node_hash_hex } from "./wasm.js";
+import { el } from "../lib/util.js";
+import { node_hash_hex } from "../lib/wasm.js";
 
 // An open book adds &b=<shelf>&p=<page>. &q=<search phrase> when opened via search.
 // &u=<universe> is omitted for the default universe so canonical links stay clean.
