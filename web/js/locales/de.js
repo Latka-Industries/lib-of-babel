@@ -138,6 +138,8 @@ unter dem aktiven Alphabet, schreibt den Titel auf den kanonischen Rücken und s
 Nützlich, wenn Sie einen Rücken kennen, keine Seite.
 </p>`,
 
+  "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+
   "history.title": "Wanderungen",
   "history.meta": "{shown} von {total} Schritten · neueste zuerst",
 

@@ -135,6 +135,8 @@ on the canonical spine, and jumps you there. Useful when you remember a spine
 label, not a page of text.
 </p>`,
 
+  "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+
   "history.title": "wanderings",
   "history.meta": "{shown} of {total} steps · newest first",
 
