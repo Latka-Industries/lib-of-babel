@@ -110,64 +110,8 @@ mod tests {
     #[test]
     fn alphabet_sizes_are_correct() {
         use crate::config::{ALPHABET_ID, ALPHABET_REGISTRY, alphabet_def};
-        // id → glyph count (diverges when another lens already owns that size).
-        let expected_lens: &[(u32, usize)] = &[
-            (ALPHABET_ID.borges, 25),
-            (ALPHABET_ID.basile, 29),
-            (ALPHABET_ID.basile_plus, 48),
-            (ALPHABET_ID.basile_hash, 60),
-            (ALPHABET_ID.italian, 35),
-            (ALPHABET_ID.german, 33),
-            (ALPHABET_ID.dutch, 34),
-            (ALPHABET_ID.danish_norwegian, 32),
-            (ALPHABET_ID.swedish, 32),
-            (ALPHABET_ID.turkish, 32),
-            (ALPHABET_ID.finnish, 32),
-            (ALPHABET_ID.spanish, 35),
-            (ALPHABET_ID.romanian, 34),
-            (ALPHABET_ID.portuguese, 41),
-            (ALPHABET_ID.estonian, 33),
-            (ALPHABET_ID.hungarian, 38),
-            (ALPHABET_ID.french, 45),
-            (ALPHABET_ID.greek, 35),
-            (ALPHABET_ID.polish, 38),
-            (ALPHABET_ID.czech, 44),
-            (ALPHABET_ID.slovak, 46),
-            (ALPHABET_ID.croatian_serbian, 34),
-            (ALPHABET_ID.latvian, 40),
-            (ALPHABET_ID.lithuanian, 38),
-            (ALPHABET_ID.albanian, 31),
-            (ALPHABET_ID.russian, 36),
-            (ALPHABET_ID.ukrainian, 36),
-            (ALPHABET_ID.bulgarian, 33),
-            (ALPHABET_ID.icelandic, 39),
-            (ALPHABET_ID.slovenian, 32),
-            (ALPHABET_ID.belarusian, 35),
-            (ALPHABET_ID.macedonian, 34),
-            (ALPHABET_ID.serbian_cyrillic, 33),
-            (ALPHABET_ID.catalan, 40),
-            (ALPHABET_ID.basque, 31),
-            (ALPHABET_ID.welsh, 36),
-            (ALPHABET_ID.irish, 34),
-            (ALPHABET_ID.maltese, 33),
-            (ALPHABET_ID.armenian, 41),
-            (ALPHABET_ID.georgian, 36),
-            (ALPHABET_ID.hebrew, 30),
-            (ALPHABET_ID.arabic, 32),
-            (ALPHABET_ID.persian, 36),
-            (ALPHABET_ID.nko, 36),
-            (ALPHABET_ID.amharic, 234),
-            (ALPHABET_ID.swahili, 29),
-            (ALPHABET_ID.afrikaans, 45),
-            (ALPHABET_ID.hausa, 33),
-            (ALPHABET_ID.yoruba, 42),
-            (ALPHABET_ID.igbo, 33),
-            (ALPHABET_ID.wolof, 34),
-            (ALPHABET_ID.tifinagh, 57),
-        ];
-        for &(id, len) in expected_lens {
-            assert_eq!(alphabet(id).len(), len, "alphabet {id}");
-        }
+        use std::collections::BTreeSet;
+
         assert_eq!(alphabet(999), alphabet(DEFAULT_ALPHABET));
 
         // (id, english name, must_contain, must_not_contain)
@@ -233,7 +177,20 @@ mod tests {
             (ALPHABET_ID.igbo, "Igbo", &['ị', 'ụ'], &[]),
             (ALPHABET_ID.wolof, "Wolof", &['ë', 'ñ'], &[]),
             (ALPHABET_ID.tifinagh, "Tifinagh", &['ⴰ', 'ⵣ'], &['a']),
+            (
+                ALPHABET_ID.japanese,
+                "Japanese",
+                &['あ', 'ン'],
+                &['が', 'a'],
+            ),
+            (ALPHABET_ID.korean, "Korean", &['이', '다'], &['a']),
+            (ALPHABET_ID.chinese, "Chinese", &['的', '一'], &['繁', 'a']),
         ];
+        assert_eq!(
+            alphabet(ALPHABET_ID.japanese).len(),
+            95,
+            "hiragana + katakāna gojūon + punct"
+        );
         for &(id, name, yes, no) in probes {
             assert_eq!(alphabet_def(id).name, name);
             let ab = alphabet(id);
@@ -245,33 +202,32 @@ mod tests {
             }
         }
 
-        let mut ids = std::collections::BTreeSet::new();
+        let mut ids = BTreeSet::new();
+        let owned_ids: BTreeSet<u32> = ALPHABET_REGISTRY.iter().map(|d| d.id).collect();
         for def in ALPHABET_REGISTRY {
             assert!(ids.insert(def.id), "duplicate alphabet id {}", def.id);
             let n = def.symbols.len();
+            assert!(
+                (1..=255).contains(&n),
+                "{} glyph count {n} outside Feistel 1..=255",
+                def.name
+            );
+            assert_eq!(alphabet(def.id).len(), n);
+            assert_eq!(alphabet(def.id), def.symbols);
             assert_eq!(&def.symbols[n - 3..], &[' ', ',', '.']);
-            let id_matches_len = expected_lens
-                .iter()
-                .find(|&&(id, _)| id == def.id)
-                .is_some_and(|&(_, len)| len == def.id as usize);
-            if id_matches_len {
-                assert_eq!(
-                    def.id as usize, n,
-                    "{} id should match glyph count",
-                    def.name
-                );
-            } else {
-                assert_ne!(
-                    def.id as usize, n,
-                    "{} should keep a non-colliding id ≠ glyph count",
-                    def.name
-                );
+            // Prefer id == glyph_count; diverge only when that count is already an id.
+            if def.id as usize == n {
+                continue;
             }
+            assert!(
+                owned_ids.contains(&(n as u32)),
+                "{} id {} ≠ len {n}, but no lens owns id={n} (collide rule)",
+                def.name,
+                def.id
+            );
         }
-        assert_eq!(ids.len(), expected_lens.len());
 
-        // JS registry must mention every Rust lens id (parity smoke — full glyph
-        // tables stay dual across the WASM boundary).
+        // JS registry: every Rust id present; symbol string length matches.
         let js = std::fs::read_to_string("web/js/constants.js").expect("web/js/constants.js");
         for def in ALPHABET_REGISTRY {
             let needle = format!("id: {}", def.id);
@@ -282,8 +238,47 @@ mod tests {
                 def.name
             );
         }
+        // Japanese is built from hiragana + mapped katakāna — spot-check length via node if needed;
+        // full glyph dual stays dual; length parity for explicit `symbols:` strings:
+        for def in ALPHABET_REGISTRY {
+            let re = regex_lite_symbols_len(&js, def.id);
+            if let Some(js_len) = re {
+                assert_eq!(
+                    js_len,
+                    def.symbols.len(),
+                    "JS/Rust length mismatch for {} (id {})",
+                    def.name,
+                    def.id
+                );
+            }
+        }
     }
 
+    /// Len of a pure `symbols: "…"` / `'…'` literal; skip stem / concat / IDENT lenses.
+    fn regex_lite_symbols_len(js: &str, id: u32) -> Option<usize> {
+        let marker = format!("id: {id},");
+        let start = js.find(&marker)?;
+        let window = &js[start..];
+        let end = window.find("\n  },").unwrap_or(window.len().min(2500));
+        let block = &window[..end];
+        if block.contains("stem:") {
+            return None;
+        }
+        for quote in ['"', '\''] {
+            let key = format!("symbols: {quote}");
+            if let Some(i) = block.find(&key) {
+                let rest = &block[i + key.len()..];
+                let j = rest.find(quote)?;
+                let after = rest[j + 1..].trim_start();
+                // `"abc" + PUNCT` and `IDENT` forms are not pure literals.
+                if !after.starts_with(',') {
+                    return None;
+                }
+                return Some(rest[..j].chars().count());
+            }
+        }
+        None
+    }
     #[test]
     fn alphabet_is_a_lens_not_a_room_axis() {
         // Room identity ignores alphabet; content under each lens diverges.

@@ -219,6 +219,7 @@ Handig als je een rug kent, geen pagina.
   "alphabet.group.Ethiopic": "Ethiopisch",
   "alphabet.group.African Latin": "Afrikaans Latijn",
   "alphabet.group.Berber": "Berbers",
+  "alphabet.group.CJK": "CJK",
 
   "alphabet.blurb.Latin base":
     "De startalfabetten van het project: Borges’ beperkte Latijnse set uit het verhaal van 1941 (a–v), Basiles web-bibliotheek a–z, daarna Basile++ / Basile# met cijfers en leestekens.",
@@ -256,6 +257,8 @@ Handig als je een rug kent, geen pagina.
     "Veel Afrikaanse talen gebruiken Latijnse orthografieën uit missie, koloniale school en latere hervormingen. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) markeren klanken die gewoon a–z niet schrijft. Swahili heeft vaak geen extras nodig.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is het moderne officiële Amazigh-alfabet in Marokko, herleefd uit oudere Libisch-Berberse tekens. Geometrische links-naar-rechts-letters, los van Latijn en Arabisch.",
+  "alphabet.blurb.CJK":
+    "Oost-Aziatische pagina’s onder het Feistel-limiet van 255 glyphs: Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
 
   "alphabet.lensBlurb.25":
     "Uit Borges’ verhaal uit 1941: tweeëntwintig letters (a–v) plus spatie, komma en punt — het alfabet dat de fictie aan de Bibliotheek toekent.",

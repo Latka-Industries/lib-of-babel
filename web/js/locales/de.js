@@ -224,6 +224,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.group.Ethiopic": "Äthiopisch",
   "alphabet.group.African Latin": "Afrikanisches Latein",
   "alphabet.group.Berber": "Berberisch",
+  "alphabet.group.CJK": "CJK",
 
   "alphabet.blurb.Latin base":
     "Die Ausgangsalphabete des Projekts: Borges’ eingeschränkter lateinischer Satz aus der Erzählung von 1941 (a–v), Basiles Web-Bibliothek a–z, dann Basile++ / Basile# mit Ziffern und Satzzeichen.",
@@ -261,6 +262,8 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
     "Viele afrikanische Sprachen nutzen lateinische Orthographien aus Mission, Kolonialschule und späteren Reformen. Zusatzbuchstaben (ɓɗƙ, ẹọṣ, ịụ, …) markieren Laute, die einfaches a–z nicht schreibt. Swahili braucht oft keine Extras.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) ist das moderne offizielle Amazigh-Alphabet in Marokko, wiederbelebt aus älteren libysch-berberischen Zeichen. Geometrische Links-nach-rechts-Buchstaben, getrennt von Latein und Arabisch.",
+  "alphabet.blurb.CJK":
+    "Ostasiatische Seiten unter dem Feistel-Limit von 255 Glyphen: japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
 
   "alphabet.lensBlurb.25":
     "Aus Borges’ Erzählung von 1941: zweiundzwanzig Buchstaben (a–v) sowie Leerzeichen, Komma und Punkt — das Alphabet, das die Fiktion der Bibliothek zuweist.",

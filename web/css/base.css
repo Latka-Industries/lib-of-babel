@@ -56,6 +56,27 @@
   font-display: swap;
   src: url("../fonts/NotoSansTifinagh-Regular.woff2") format("woff2");
 }
+@font-face {
+  font-family: "Noto Sans JP";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansJP-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans KR";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansKR-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansSC-Regular.woff2") format("woff2");
+}
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -82,12 +103,16 @@
   --mm-fill: rgba(255, 255, 255, 0.025);
   --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
-  /* Script stacks for RTL / Ethiopic / Tifinagh pages & spines (Noto). */
+  /* Script stacks for non-Latin lenses (Noto). CJK share one fallback. */
+  --font-script-fallback: "Noto Sans", sans-serif;
   --font-arabic: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
   --font-hebrew: "Noto Sans Hebrew", "Segoe UI", Tahoma, sans-serif;
   --font-nko: "Noto Sans NKo", "Noto Sans Arabic", sans-serif;
-  --font-ethiopic: "Noto Sans Ethiopic", "Noto Sans", sans-serif;
-  --font-tifinagh: "Noto Sans Tifinagh", "Noto Sans", sans-serif;
+  --font-ethiopic: "Noto Sans Ethiopic", var(--font-script-fallback);
+  --font-tifinagh: "Noto Sans Tifinagh", var(--font-script-fallback);
+  --font-japanese: "Noto Sans JP", var(--font-script-fallback);
+  --font-hangul: "Noto Sans KR", var(--font-script-fallback);
+  --font-han: "Noto Sans SC", var(--font-script-fallback);
   --font-page: var(--font);
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
   /* Page: corner accent washes. Dialogs + stage cards: flat accent tint. */
@@ -198,6 +223,9 @@ html[data-script="hebrew"] { --font-page: var(--font-hebrew); }
 html[data-script="nko"] { --font-page: var(--font-nko); }
 html[data-script="ethiopic"] { --font-page: var(--font-ethiopic); }
 html[data-script="tifinagh"] { --font-page: var(--font-tifinagh); }
+html[data-script="japanese"] { --font-page: var(--font-japanese); }
+html[data-script="hangul"] { --font-page: var(--font-hangul); }
+html[data-script="han"] { --font-page: var(--font-han); }
 html[data-script="latin"],
 html:not([data-script]) { --font-page: var(--font); }
 
