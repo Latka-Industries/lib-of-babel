@@ -17,8 +17,11 @@ pub use registry::{ALPHABET_REGISTRY, AlphabetDef, alphabet, alphabet_def};
 pub use tables::{ALPHABET_TABLE, AlphabetTables};
 
 /// Bump only with intent — this is the schema for all generated content.
-/// v7: room identity is alphabet-independent (alphabet is a content lens).
-pub const GENERATOR_VERSION: u32 = 7;
+/// v8: Feistel / page state use `u16` cell indices (soft cap [`MAX_ALPHABET_LEN`]).
+pub const GENERATOR_VERSION: u32 = 8;
+
+/// Soft upper bound on alphabet cell count for generator v8.
+pub const MAX_ALPHABET_LEN: u16 = 4096;
 
 /// The default alphabet when none is specified.
 pub const DEFAULT_ALPHABET: u32 = ALPHABET_ID.basile;

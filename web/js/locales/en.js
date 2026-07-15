@@ -270,7 +270,7 @@ label, not a page of text.
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
   "alphabet.blurb.CJK":
-    "East Asian pages under the Feistel 255-glyph cap: Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is impossible as one lens.",
+    "East Asian pages under the Feistel soft cell cap (4096): Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is still impossible as one lens.",
   "alphabet.blurb.Indic":
     "Brahmic abugidas of India as grapheme-cluster cells: independent vowels and consonants, plus curated consonant–matra units (no lone combining marks). Feistel still cannot store full conjunct akshara tables; pages are cluster noise, not composed orthography.",
   "alphabet.blurb.Mongolic":
