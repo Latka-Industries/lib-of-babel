@@ -11,7 +11,7 @@ import {
   downloadBlob,
   validateSearchQuery,
 } from "./util.js";
-import { PAGES_PER_BOOK, PAGE_CHARS, alphabetString } from "./constants.js";
+import { PAGES_PER_BOOK, PAGE_CHARS, alphabetString, alphabetIsRtl, alphabetLang, alphabetScript, syncAlphabetPresentation } from "./constants.js";
 import { t } from "./i18n.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
@@ -195,8 +195,18 @@ export function renderBookPage() {
   );
   const match = phraseMatch(pageText, chunk);
 
+  const pageEl = el("bookPage");
+  syncAlphabetPresentation(S.alphabetId);
+  pageEl.dir = alphabetIsRtl(S.alphabetId) ? "rtl" : "ltr";
+  // Lang helps shaping for Ethiopic / Tifinagh / RTL; Latin lenses stay unmarked.
+  if (alphabetScript(S.alphabetId) !== "latin") {
+    pageEl.lang = alphabetLang(S.alphabetId);
+  } else {
+    pageEl.removeAttribute("lang");
+  }
+
   if (S.viewMode === "color") {
-    el("bookPage").hidden = true;
+    pageEl.hidden = true;
     el("bookCanvas").hidden = false;
     renderBookCanvas(
       pageText,
@@ -205,14 +215,14 @@ export function renderBookPage() {
     );
   } else {
     el("bookCanvas").hidden = true;
-    el("bookPage").hidden = false;
+    pageEl.hidden = false;
     const html = pageHighlightPhrase(pageText, chunk);
     if (html) {
-      el("bookPage").innerHTML = html;
-      el("bookPage").querySelector("mark")?.scrollIntoView({ block: "nearest" });
+      pageEl.innerHTML = html;
+      pageEl.querySelector("mark")?.scrollIntoView({ block: "nearest" });
     } else {
-      el("bookPage").textContent = pageText;
-      el("bookPage").scrollTop = 0;
+      pageEl.textContent = pageText;
+      pageEl.scrollTop = 0;
     }
   }
   el("prevPage").disabled = p <= 0;

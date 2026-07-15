@@ -59,6 +59,7 @@ main { padding: 1rem; max-width: var(--page-max); margin: 0 auto; }
   background: linear-gradient(180deg, #3a3550, #211f2c);
   display: flex; align-items: center; justify-content: center;
   writing-mode: vertical-rl; text-orientation: mixed;
+  font-family: var(--font-page);
   font-size: clamp(6.5px, calc(var(--book-h) * 0.088), 8px);
   line-height: 1; letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 1px rgba(0,0,0,0.6);

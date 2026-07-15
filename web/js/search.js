@@ -2,7 +2,7 @@
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
 import { S, applyUniverseFromInput, syncLensControls } from "./state.js";
-import { TITLE_LEN, formatAlphabetSymbolLabel } from "./constants.js";
+import { TITLE_LEN, formatAlphabetSymbolLabel, alphabetIsRtl, alphabetLang } from "./constants.js";
 import { t, getLocale } from "./i18n.js";
 import {
   el,
@@ -84,6 +84,23 @@ export function syncSearchKindUI() {
     input.placeholder = isTitle
       ? t("search.placeholderTitle")
       : t("search.placeholderContent");
+    const backdrop = el("searchBackdrop");
+    if (alphabetIsRtl(S.alphabetId)) {
+      const lang = alphabetLang(S.alphabetId);
+      input.dir = "rtl";
+      input.lang = lang;
+      if (backdrop) {
+        backdrop.dir = "rtl";
+        backdrop.lang = lang;
+      }
+    } else {
+      input.dir = "ltr";
+      input.removeAttribute("lang");
+      if (backdrop) {
+        backdrop.dir = "ltr";
+        backdrop.removeAttribute("lang");
+      }
+    }
   }
   const hint = el("searchHint");
   if (hint) {
