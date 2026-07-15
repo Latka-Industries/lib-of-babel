@@ -19,7 +19,7 @@ sides: **four walls of bookshelves**, and **two opposite open sides** that lead 
 **hallway/vestibule** containing a **spiral staircase** running up and down. So from any
 gallery you have **four moves**: two horizontal hallways, plus stairs up and stairs down.
 
-Canonical dimensions we honor:
+Canonical dimensions:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
