@@ -46,7 +46,7 @@ fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {
 
 /// Build per-glyph RGB colours for an alphabet lens at a gallery accent.
 fn build_glyph_palette(
-    ab: &[char],
+    ab: &[&str],
     accent_hue: f64,
     accent_chroma: f64,
     accent_light: f64,
@@ -56,10 +56,10 @@ fn build_glyph_palette(
     let mut letters = Vec::with_capacity(len);
     let mut puncts = Vec::with_capacity(8);
 
-    for (i, &ch) in ab.iter().enumerate() {
-        if ch == ' ' {
+    for (i, cell) in ab.iter().enumerate() {
+        if *cell == " " {
             palette[i] = SPACE_RGB;
-        } else if ch.is_alphabetic() {
+        } else if cell.chars().any(|c| c.is_alphabetic()) {
             letters.push(i);
         } else {
             puncts.push(i);
@@ -194,8 +194,8 @@ mod tests {
     fn basile_hash_keeps_letters_off_the_punct_arc() {
         let ab = alphabet(ALPHABET_ID.basile_hash);
         let palette = build_glyph_palette(ab, 40.0, 0.15, 0.66);
-        let a_idx = ab.iter().position(|&c| c == 'a').unwrap();
-        let at_idx = ab.iter().position(|&c| c == '@').unwrap();
+        let a_idx = ab.iter().position(|c| *c == "a").unwrap();
+        let at_idx = ab.iter().position(|c| *c == "@").unwrap();
         // Letter and punct must not share the same RGB (different strata).
         assert_ne!(palette[a_idx], palette[at_idx]);
         let space_idx = ab.len() - 3;
@@ -208,7 +208,7 @@ mod tests {
         let letters: Vec<_> = ab
             .iter()
             .enumerate()
-            .filter(|(_, ch)| ch.is_alphabetic())
+            .filter(|(_, cell)| cell.chars().any(|c| c.is_alphabetic()))
             .map(|(i, _)| i)
             .collect();
         assert!(letters.len() <= 36);

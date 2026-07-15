@@ -29,13 +29,16 @@ fn feistel_f(right: u8, round: u32, pos: usize, base_key: u64, alpha_len: u8) ->
 
 /// Apply the Feistel PRP in place over one page's symbol array.
 pub fn feistel_encrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
+    debug_assert!(alpha_len > 0);
     let half = PAGE_CONTENT_SYMBOLS / 2;
     let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
+    let modulus = u16::from(alpha_len);
     for round in 0..FEISTEL_ROUNDS {
         for i in 0..half {
             let f = feistel_f(state[half + i], round, i, base_key, alpha_len);
             scratch[i] = state[half + i];
-            scratch[half + i] = (state[i] + f) % alpha_len;
+            // Widen: u8 add overflows when alpha_len == 255 and both sides are large.
+            scratch[half + i] = ((u16::from(state[i]) + u16::from(f)) % modulus) as u8;
         }
         state.copy_from_slice(&scratch);
     }
@@ -43,13 +46,15 @@ pub fn feistel_encrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, al
 
 #[cfg(test)]
 pub fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
+    debug_assert!(alpha_len > 0);
     let half = PAGE_CONTENT_SYMBOLS / 2;
     let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
+    let modulus = u16::from(alpha_len);
     for round in (0..FEISTEL_ROUNDS).rev() {
         for i in 0..half {
             let f = feistel_f(state[i], round, i, base_key, alpha_len);
             scratch[half + i] = state[i];
-            scratch[i] = (state[half + i] + alpha_len - f) % alpha_len;
+            scratch[i] = ((u16::from(state[half + i]) + modulus - u16::from(f)) % modulus) as u8;
         }
         state.copy_from_slice(&scratch);
     }

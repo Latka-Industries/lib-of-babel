@@ -115,23 +115,23 @@ pub struct AlphabetIds {
     pub korean: u32,
     /// Chinese — curated Simplified frequent chars + punct (255 glyphs; id `255`).
     pub chinese: u32,
-    /// Hindi — 62 glyphs; id `79` (count slot taken).
+    /// Hindi — clustered Devanagari; id `99`.
     pub hindi: u32,
-    /// Bengali — 61 glyphs; id `80` (count slot taken).
+    /// Bengali — clustered; id `100`.
     pub bengali: u32,
-    /// Tamil — 46 glyphs; id `81` (count slot taken).
+    /// Tamil — clustered; id `101`.
     pub tamil: u32,
-    /// Telugu — 66 glyphs; id `82` (count slot taken).
+    /// Telugu — clustered; id `102`.
     pub telugu: u32,
-    /// Kannada — 66 glyphs; id `83` (count slot taken).
+    /// Kannada — clustered; id `103`.
     pub kannada: u32,
-    /// Malayalam — 73 glyphs; id `84` (count slot taken).
+    /// Malayalam — clustered; id `104`.
     pub malayalam: u32,
-    /// Gujarati — 63 glyphs; id `85` (count slot taken).
+    /// Gujarati — clustered; id `105`.
     pub gujarati: u32,
-    /// Punjabi — 60 glyphs; id `86` (count slot taken).
+    /// Punjabi — clustered; id `106`.
     pub punjabi: u32,
-    /// Odia — 63 glyphs; id `87` (count slot taken).
+    /// Odia — clustered; id `107`.
     pub odia: u32,
     /// Azerbaijani — 35 glyphs; id `88` (count slot taken).
     pub azerbaijani: u32,
@@ -149,9 +149,9 @@ pub struct AlphabetIds {
     pub filipino: u32,
     /// Vietnamese — 96 glyphs; id `96`.
     pub vietnamese: u32,
-    /// Thai — 73 glyphs; id `97` (count slot taken).
+    /// Thai — clustered; id `108`.
     pub thai: u32,
-    /// Khmer — 80 glyphs; id `98` (count slot taken).
+    /// Khmer — clustered; id `109`.
     pub khmer: u32,
 }
 
@@ -212,15 +212,15 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     japanese: 95,
     korean: 250,
     chinese: 255,
-    hindi: 79,
-    bengali: 80,
-    tamil: 81,
-    telugu: 82,
-    kannada: 83,
-    malayalam: 84,
-    gujarati: 85,
-    punjabi: 86,
-    odia: 87,
+    hindi: 99,
+    bengali: 100,
+    tamil: 101,
+    telugu: 102,
+    kannada: 103,
+    malayalam: 104,
+    gujarati: 105,
+    punjabi: 106,
+    odia: 107,
     azerbaijani: 88,
     kazakh: 89,
     uzbek: 90,
@@ -229,6 +229,6 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     mongolian: 93,
     filipino: 94,
     vietnamese: 96,
-    thai: 97,
-    khmer: 98,
+    thai: 108,
+    khmer: 109,
 };

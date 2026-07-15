@@ -7,11 +7,19 @@ import {
   buildAlphabetPalette,
   SPACE_CELL_HEX,
   flattenSearchQuery,
+  segmentText,
   escapeHtml,
   downloadBlob,
   validateSearchQuery,
 } from "./util.js";
-import { PAGES_PER_BOOK, PAGE_CHARS, alphabetString, alphabetIsRtl, alphabetLang, alphabetScript, syncAlphabetPresentation } from "./constants.js";
+import {
+  PAGES_PER_BOOK,
+  alphabetCells,
+  alphabetIsRtl,
+  alphabetLang,
+  alphabetScript,
+  syncAlphabetPresentation,
+} from "./constants.js";
 import { t } from "./i18n.js";
 import { syncUrl } from "./url.js";
 import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
@@ -32,7 +40,9 @@ function phraseMatch(pageText, phrase) {
   const hay = pageText.replace(/\n/g, "");
   const start = hay.indexOf(needle);
   if (!needle || start < 0) return null;
-  return { start, len: needle.length };
+  const before = segmentText(hay.slice(0, start), S.alphabetId).cells.length;
+  const mid = segmentText(needle, S.alphabetId).cells.length;
+  return { start, len: needle.length, cellStart: before, cellLen: mid };
 }
 
 function pageHighlightPhrase(pageText, phrase) {
@@ -56,14 +66,15 @@ function pageHighlightPhrase(pageText, phrase) {
 }
 
 function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
-  const chars = pageText.replace(/\n/g, "");
-  const { cols, rows } = pageGrid(chars.length);
-  const cell = 10;
+  const flat = pageText.replace(/\n/g, "");
+  const { cells } = segmentText(flat, S.alphabetId);
+  const { cols, rows } = pageGrid(cells.length || 1);
+  const cellPx = 10;
   const cv = el("bookCanvas");
-  cv.width = cols * cell;
-  cv.height = rows * cell;
+  cv.width = cols * cellPx;
+  cv.height = rows * cellPx;
   const ctx = cv.getContext("2d");
-  const alpha = [...alphabetString(S.alphabetId)];
+  const alpha = alphabetCells(S.alphabetId);
   const palette = buildAlphabetPalette(
     alpha,
     S.accentHue,
@@ -71,13 +82,13 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
     S.accentLightness,
   );
   const glyphIndex = new Map(alpha.map((ch, i) => [ch, i]));
-  for (let k = 0; k < chars.length; k++) {
-    const ch = chars[k];
+  for (let k = 0; k < cells.length; k++) {
+    const ch = cells[k];
     const i = glyphIndex.has(ch) ? glyphIndex.get(ch) : -1;
-    const x = (k % cols) * cell;
-    const y = Math.floor(k / cols) * cell;
+    const x = (k % cols) * cellPx;
+    const y = Math.floor(k / cols) * cellPx;
     ctx.fillStyle = ch === " " || i < 0 ? SPACE_CELL_HEX : palette[i];
-    ctx.fillRect(x, y, cell, cell);
+    ctx.fillRect(x, y, cellPx, cellPx);
     if (
       highlightLen > 0 &&
       k >= highlightStart &&
@@ -85,7 +96,7 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
     ) {
       ctx.strokeStyle = "rgba(201, 162, 39, 0.95)";
       ctx.lineWidth = 2;
-      ctx.strokeRect(x + 1, y + 1, cell - 2, cell - 2);
+      ctx.strokeRect(x + 1, y + 1, cellPx - 2, cellPx - 2);
     }
   }
 }
@@ -99,19 +110,15 @@ function titleForIndex(i) {
 }
 
 function pageTextForBook(bookIndex, pageIndex, searchQuery = "", searchStartPage = -1) {
-  if (searchQuery) {
-    return page_text_for(
-      S.z,
-      S.n,
-      bookIndex,
-      pageIndex,
-      S.alphabetId,
-      searchQuery,
-      searchStartPage,
-    );
-  }
-  const text = book_text_for(S.z, S.n, bookIndex, S.alphabetId);
-  return text.slice(pageIndex * PAGE_CHARS, (pageIndex + 1) * PAGE_CHARS);
+  return page_text_for(
+    S.z,
+    S.n,
+    bookIndex,
+    pageIndex,
+    S.alphabetId,
+    searchQuery || "",
+    searchQuery ? searchStartPage : -1,
+  );
 }
 
 export function openBook(
@@ -168,7 +175,7 @@ export function renderBookPage() {
     p < S.currentBook.searchStartPage + S.currentBook.searchPageSpan;
   const pageInSpan = onSearchPage ? p - S.currentBook.searchStartPage : 0;
   const chunk = onSearchPage
-    ? search_page_embed_for(S.currentBook.searchHighlight, pageInSpan) || null
+    ? search_page_embed_for(S.currentBook.searchHighlight, S.alphabetId, pageInSpan) || null
     : null;
 
   el("bookMeta").textContent =
@@ -210,8 +217,8 @@ export function renderBookPage() {
     el("bookCanvas").hidden = false;
     renderBookCanvas(
       pageText,
-      match?.start ?? -1,
-      match?.len ?? 0,
+      match?.cellStart ?? -1,
+      match?.cellLen ?? 0,
     );
   } else {
     el("bookCanvas").hidden = true;

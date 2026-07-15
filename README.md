@@ -135,7 +135,7 @@ preference (OS default if unset).
 
 ## To Do
 
-- [ ] Grapheme-cluster alphabet cells — fix dotted-circle combining marks
+- [x] Grapheme-cluster alphabet cells — fix dotted-circle combining marks
 - [ ] Punct mode axis — optional punctuation richness as a second axis on every language lens
 - [ ] Custom alphabet picker — user-defined glyph sets beyond the built-in registry
 - [ ] More UI locale packs — es/fr/… beyond DE/NL
