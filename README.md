@@ -218,4 +218,6 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 
 ## License
 
-Private / unpublished. © Latka Industries.
+[GPLv3](LICENSE). © 2026 Alexander Hurowitz / Latka Industries.
+
+Bundled fonts (Overpass Mono, Lato, Noto …) stay under the [SIL Open Font License](web/fonts/OFL.txt).
