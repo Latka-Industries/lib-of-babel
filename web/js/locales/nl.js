@@ -134,6 +134,8 @@ onder het actieve alfabet, zet de titel op de canonieke rug en springt ernaartoe
 Handig als je een rug kent, geen pagina.
 </p>`,
 
+  "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+
   "history.title": "dwaaltochten",
   "history.meta": "{shown} van {total} stappen · nieuwste eerst",
 
