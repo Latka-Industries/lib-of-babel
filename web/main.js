@@ -14,6 +14,11 @@ import { render } from "./js/view.js";
 import { newWalk, resetTrail } from "./js/nav.js";
 import { openBook } from "./js/book.js";
 import { wireControls } from "./js/controls.js";
+import {
+  openAboutGuide,
+  hasSeenAbout,
+  markSeenAbout,
+} from "./js/about.js";
 
 async function boot() {
   await init();
@@ -67,6 +72,7 @@ async function boot() {
     await newWalk();
   }
 
+  let openedBook = false;
   if (
     link &&
     Number.isInteger(link.b) &&
@@ -82,11 +88,18 @@ async function boot() {
       link.q || null,
       link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
     );
+    openedBook = true;
   }
 
   if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
 
   wireControls();
+
+  // First landing: open the guide (skip if a deep-linked book already owns the stage).
+  if (!hasSeenAbout() && !openedBook) {
+    openAboutGuide();
+    markSeenAbout();
+  }
 }
 
 boot().catch((err) => {

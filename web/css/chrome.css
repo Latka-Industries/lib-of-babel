@@ -299,12 +299,31 @@ header.is-menu-open .menu-toggle-bars::after {
   display: block;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.footer-end {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+  min-width: 0;
+}
 .footer .viewport-size {
   flex: 0 1 16rem;
-  margin-inline-start: auto;
   max-width: 100%;
   font-variant-numeric: tabular-nums;
   opacity: 0.85;
+}
+.help-btn {
+  font-size: 12px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+}
+.help-btn-q {
+  font-weight: 700;
+  color: var(--accent);
 }
 /* Visible tip for clipped dim text (dev viewport). */
 .footer .dim[data-tip] { cursor: help; }
@@ -330,7 +349,7 @@ header.is-menu-open .menu-toggle-bars::after {
 }
 @media (max-width: 480px) {
   .footer { flex-direction: column; align-items: flex-start; }
-  .footer .viewport-size { margin-inline-start: 0; }
+  .footer-end { margin-inline-start: 0; align-self: flex-end; }
   .footer .dim .dim-clip { white-space: normal; overflow: visible; text-overflow: unset; }
   .footer .dim[data-tip]:hover::after,
   .footer .dim[data-tip]:focus-visible::after { content: none; }

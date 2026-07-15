@@ -141,11 +141,12 @@ export function render() {
       else book.removeAttribute("dir");
       if (!touch) {
         book.addEventListener("mouseenter", () => {
-          h.textContent = t("book.wallBook", {
+          // Meta on line 1, title on line 2 — avoids mid-string wrap / shelf jump.
+          const meta = t("book.wallBook", {
             n: wallNum,
             book: bookIndex + 1,
-            title,
           });
+          h.replaceChildren(meta, document.createElement("br"), title);
         });
         book.addEventListener("mouseleave", () => {
           h.textContent = h.dataset.wallLabel;
