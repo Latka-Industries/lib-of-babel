@@ -172,7 +172,7 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alph
 
 Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Book pages scale font to fit the 40×80 grid in the viewport. Header keeps brand + universe + alphabet + actions + theme (hamburger sheet ≤860px); the footer holds wanderings plus gallery `(z,n)` / hash / steps. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
-## Roadmap (mirrored as Linear issues)
+## Roadmap
 
 **Shipped (v1):**
 
@@ -192,29 +192,29 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
 13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. *A new sort of translation.*
-14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active. ([THI-86](https://linear.app/thicclatka/issue/THI-86), [THI-118](https://linear.app/thicclatka/issue/THI-118))
-15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([THI-121](https://linear.app/thicclatka/issue/THI-121), [PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
-16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([THI-120](https://linear.app/thicclatka/issue/THI-120), [PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
-17. ✅ **Frontend modularization** — CSS + JS split; `main.js` boot-only. ([THI-124](https://linear.app/thicclatka/issue/THI-124), [PR #6](https://github.com/Latka-Industries/lib-of-babel/pull/6))
-18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([THI-125](https://linear.app/thicclatka/issue/THI-125), [PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
-19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh. ([THI-88](https://linear.app/thicclatka/issue/THI-88))
-20. ✅ **CJK / Hangul lenses** — Japanese kana gojūon, curated Hangul syllables, Simplified Chinese frequent-char pack (≤255 glyphs each; Noto JP/KR/SC subsets). ([THI-126](https://linear.app/thicclatka/issue/THI-126))
-21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets). ([THI-127](https://linear.app/thicclatka/issue/THI-127))
-22. ✅ **Alphabet lens picker popup** — header button + grouped dialog with current lens highlighted (replaces overflowing `<select>`). ([THI-128](https://linear.app/thicclatka/issue/THI-128))
-23. ✅ **Turkic / Mongolian / SE Asian lenses** — Azerbaijani / Kazakh / Uzbek / Kyrgyz / Turkmen, Mongolian Cyrillic, Filipino / Vietnamese / Thai / Khmer (Noto Thai/Khmer subsets). ([THI-129](https://linear.app/thicclatka/issue/THI-129))
-24. ✅ **UI: book page fit + chrome** — viewport-scaled pages; header = brand + controls (+ theme, mobile sheet); footer = wanderings + gallery/hash/steps; About prose → Lato. ([THI-131](https://linear.app/thicclatka/issue/THI-131), [PR #14](https://github.com/Latka-Industries/lib-of-babel/pull/14))
+14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active.
+15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
+16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
+17. ✅ **Frontend modularization** — CSS + JS split; `main.js` boot-only. ([PR #6](https://github.com/Latka-Industries/lib-of-babel/pull/6))
+18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
+19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh.
+20. ✅ **CJK / Hangul lenses** — Japanese kana gojūon, curated Hangul syllables, Simplified Chinese frequent-char pack (≤255 glyphs each; Noto JP/KR/SC subsets).
+21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets).
+22. ✅ **Alphabet lens picker popup** — header button + grouped dialog with current lens highlighted (replaces overflowing `<select>`).
+23. ✅ **Turkic / Mongolian / SE Asian lenses** — Azerbaijani / Kazakh / Uzbek / Kyrgyz / Turkmen, Mongolian Cyrillic, Filipino / Vietnamese / Thai / Khmer (Noto Thai/Khmer subsets).
+24. ✅ **UI: book page fit + chrome** — viewport-scaled pages; header = brand + controls (+ theme, mobile sheet); footer = wanderings + gallery/hash/steps; About prose → Lato. ([PR #14](https://github.com/Latka-Industries/lib-of-babel/pull/14))
 
 **Next:**
 
-25. 🚧 **Grapheme-cluster alphabet cells** — fix dotted-circle combining marks ([THI-130](https://linear.app/thicclatka/issue/THI-130)).
-26. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-27. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
-28. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
+25. 🚧 **Grapheme-cluster alphabet cells** — fix dotted-circle combining marks.
+26. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens.
+27. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry.
+28. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL.
 
 **Later:**
 
-- **Generative audio** per gallery ([THI-84](https://linear.app/thicclatka/issue/THI-84)).
-- **Colour-mosaic search** — photo → alphabet mosaic → invert to book ([THI-117](https://linear.app/thicclatka/issue/THI-117)).
+- **Generative audio** per gallery.
+- **Colour-mosaic search** — photo → alphabet mosaic → invert to book.
 
 ## License
 
