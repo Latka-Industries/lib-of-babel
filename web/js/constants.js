@@ -625,6 +625,108 @@ export const ALPHABET_REGISTRY = [
     lang: "or",
     symbols: "ଅଆଇଈଉଊଋଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହାିୀୁୂୃେୈୋୌଂଃଁ଼୍ ,.",
   },
+  {
+    id: 88,
+    name: "Azerbaijani",
+    native: "Azərbaycan",
+    short: "az",
+    group: "Turkic",
+    script: "latin",
+    lang: "az",
+    symbols: "abcçdeəfgğhxıijkqlmnoöprsştuüvyz" + PUNCT,
+  },
+  {
+    id: 89,
+    name: "Kazakh",
+    native: "Qazaqşa",
+    short: "kk",
+    group: "Turkic",
+    script: "latin",
+    lang: "kk",
+    symbols: "aäbdefgğhıijklmnñoöpqrsştuūüvyz" + PUNCT,
+  },
+  {
+    id: 90,
+    name: "Uzbek",
+    native: "Oʻzbekcha",
+    short: "uz",
+    group: "Turkic",
+    script: "latin",
+    lang: "uz",
+    symbols: "abcdefghijklmnopqrstuvwxyzʻ" + PUNCT,
+  },
+  {
+    id: 91,
+    name: "Turkmen",
+    native: "Türkmençe",
+    short: "tk",
+    group: "Turkic",
+    script: "latin",
+    lang: "tk",
+    symbols: "abçdeäfghijžklmnňoöprsştuüwyýz" + PUNCT,
+  },
+  {
+    id: 92,
+    name: "Kyrgyz",
+    native: "Кыргызча",
+    short: "ky",
+    group: "Turkic",
+    symbols: "абвгдеёжзийклмнңоөпрстуүфхцчшщъыьэюя" + PUNCT,
+  },
+  {
+    id: 93,
+    name: "Mongolian",
+    native: "Монгол",
+    short: "mn",
+    group: "Mongolic",
+    symbols: "абвгдеёжзийклмноөпрстуүфхцчшщъыьэюя" + PUNCT,
+  },
+  {
+    id: 94,
+    name: "Filipino",
+    native: "Filipino",
+    short: "fil",
+    group: "Southeast Asian",
+    script: "latin",
+    lang: "fil",
+    symbols: "abcdefghijklmnopqrstuvwxyzñ" + PUNCT,
+  },
+  {
+    id: 96,
+    name: "Vietnamese",
+    native: "Tiếng Việt",
+    short: "vi",
+    group: "Southeast Asian",
+    script: "latin",
+    lang: "vi",
+    symbols:
+      "abcdefghijklmnopqrstuvwxyzđáàảãạâấầẩẫậăắằẳẵặéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ" +
+      PUNCT,
+  },
+  {
+    id: 97,
+    name: "Thai",
+    native: "ไทย",
+    short: "th",
+    group: "Southeast Asian",
+    rtl: false,
+    script: "thai",
+    lang: "th",
+    symbols: "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮะัาำิีึืุูเแโใไ็่้๊๋์ๆฯํ" + PUNCT,
+  },
+  {
+    id: 98,
+    name: "Khmer",
+    native: "ខ្មែរ",
+    short: "km",
+    group: "Southeast Asian",
+    rtl: false,
+    script: "khmer",
+    lang: "km",
+    symbols:
+      "កខគឃងចឆជឈញដឋឌឍណតថទធនបផពភមយរលវសហឡអឥឦឧឨឩឪឫឬឭឮឯឰឱឲឳាិីឹឺុូួើឿៀេែៃោៅំះៈ៉៊់៌៍៎៏័៑្" +
+      PUNCT,
+  },
 ];
 
 function stemLetters(stem) {
@@ -666,7 +768,7 @@ export function alphabetIsRtl(alphabetId = DEFAULT_ALPHABET_ID) {
   return !!alphabetEntry(alphabetId).rtl;
 }
 
-/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh | japanese | hangul | han | Indic scripts. */
+/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh | japanese | hangul | han | thai | khmer | Indic scripts. */
 export function alphabetScript(alphabetId = DEFAULT_ALPHABET_ID) {
   return alphabetEntry(alphabetId).script || "latin";
 }
@@ -774,6 +876,14 @@ export const ALPHABET_FAMILY_REFS = {
     {
       href: "https://en.wikipedia.org/wiki/Letter_Revolution",
       title: "Letter Revolution (1928)",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Turkic_languages",
+      title: "Turkic languages",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Latinisation_in_the_Soviet_Union",
+      title: "Latinisation in the Soviet Union",
     },
   ],
   Hellenic: [
@@ -932,6 +1042,34 @@ export const ALPHABET_FAMILY_REFS = {
     {
       href: "https://en.wikipedia.org/wiki/Languages_of_India",
       title: "Languages of India",
+    },
+  ],
+  Mongolic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Mongolian_Cyrillic_alphabet",
+      title: "Mongolian Cyrillic alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Mongolic_languages",
+      title: "Mongolic languages",
+    },
+  ],
+  "Southeast Asian": [
+    {
+      href: "https://en.wikipedia.org/wiki/Thai_script",
+      title: "Thai script",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Khmer_script",
+      title: "Khmer script",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Vietnamese_alphabet",
+      title: "Vietnamese alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Filipino_alphabet",
+      title: "Filipino alphabet",
     },
   ],
 };

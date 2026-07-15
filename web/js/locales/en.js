@@ -224,6 +224,8 @@ label, not a page of text.
   "alphabet.group.Berber": "Berber",
   "alphabet.group.CJK": "CJK",
   "alphabet.group.Indic": "Indic",
+  "alphabet.group.Mongolic": "Mongolic",
+  "alphabet.group.Southeast Asian": "Southeast Asian",
 
   "alphabet.blurb.Latin base":
     "The project’s starting alphabets: Borges’s restricted Latin set from the 1941 story (a–v), Basile’s web library a–z, then Basile++ / Basile# adding digits and punctuation.",
@@ -234,7 +236,7 @@ label, not a page of text.
   "alphabet.blurb.Uralic":
     "A non-Indo-European root family: Finnic languages around the Baltic, Hungarian carried west with the Magyars. All three here use modern Latin orthographies; Finnish and Estonian remained closely related, while Hungarian branched early and has a larger vowel inventory.",
   "alphabet.blurb.Turkic":
-    "Ottoman Turkish used Arabic script for centuries. In 1928 the Republic adopted a Latin alphabet designed to match Turkish vowels (including dotted/dotless i) more directly than Arabic spelling had.",
+    "Turkic languages span Anatolia to Central Asia. Ottoman Turkish used Arabic script for centuries until the 1928 Latin reform; Soviet-era Latin and Cyrillic waves followed for Azerbaijani, Kazakh, Uzbek, Turkmen, and Kyrgyz. This shelf mixes modern Latin and Cyrillic school orthographies.",
   "alphabet.blurb.Hellenic":
     "Greek letters continue from antiquity. This lens is monotonic modern Greek (official from 1982): one accent mark instead of the older polytonic system, with the same α–ω inventory plus final sigma.",
   "alphabet.blurb.Slavic":
@@ -265,6 +267,10 @@ label, not a page of text.
     "East Asian pages under the Feistel 255-glyph cap: Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is impossible as one lens.",
   "alphabet.blurb.Indic":
     "Brahmic abugidas of India as Unicode atoms (independent vowels, consonants, matras, virama/marks) plus space, comma, period. Feistel cannot store conjunct-heavy akshara tables; pages are letter noise, not composed orthography.",
+  "alphabet.blurb.Mongolic":
+    "Mongolic languages of the steppe. Modern Khalkha Mongolian in Mongolia uses a Cyrillic alphabet with ө and ү for front rounded vowels — same civil-script family as Russian, different Feistel inventory.",
+  "alphabet.blurb.Southeast Asian":
+    "Mainland and maritime Southeast Asia: Filipino and Vietnamese in Latin (ñ; đ and tone-marked vowels), Thai and Khmer as Brahmic-descended abugidas with self-hosted Noto faces. Pages are glyph projections, not syllable orthography.",
   // Per-lens blurbs (stable registry ids).
   "alphabet.lensBlurb.25":
     "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
@@ -394,4 +400,24 @@ label, not a page of text.
     "Punjabi (Gurmukhi): Vowels, consonants (incl. ੜ), matras, and tippi/addak/nukta/virama marks.",
   "alphabet.lensBlurb.87":
     "Odia: Vowels, consonants (incl. ଳ), matras, and anusvara/visarga/chandrabindu/virama/nukta.",
+  "alphabet.lensBlurb.88":
+    "Azerbaijani Latin: ə/ğ/x/ı/ö/ü and kin — the modern school alphabet (no w).",
+  "alphabet.lensBlurb.89":
+    "Kazakh Latin (modern orthography): ä/ğ/ñ/ū and related letters for Turkic vowels and ŋ.",
+  "alphabet.lensBlurb.90":
+    "Uzbek Latin: a–z plus modifier letter turned comma ʻ (U+02BB) used in oʻ/gʻ spellings.",
+  "alphabet.lensBlurb.91":
+    "Turkmen Latin: ä/ň/ž/ý/ö/ü and related letters from the post-Soviet Latin standard.",
+  "alphabet.lensBlurb.92":
+    "Kyrgyz Cyrillic: Russian base plus ң/ө/ү for ŋ and front rounded vowels.",
+  "alphabet.lensBlurb.93":
+    "Mongolian Cyrillic (Khalkha): Russian-shaped inventory with ө/ү; no ң.",
+  "alphabet.lensBlurb.94":
+    "Filipino (modern Latin): a–z plus ñ from Spanish-influenced orthography.",
+  "alphabet.lensBlurb.96":
+    "Vietnamese Latin: a–z, đ, and precomposed tone vowels (no combining marks).",
+  "alphabet.lensBlurb.97":
+    "Thai: consonants, vowels, tone marks, and common signs as Unicode atoms (Noto Sans Thai).",
+  "alphabet.lensBlurb.98":
+    "Khmer: consonants, independent vowels, dependent vowels, and marks (Noto Sans Khmer).",
 };

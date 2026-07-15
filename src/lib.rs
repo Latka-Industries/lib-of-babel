@@ -194,6 +194,16 @@ mod tests {
             (ALPHABET_ID.gujarati, "Gujarati", &['અ', 'ક'], &['a']),
             (ALPHABET_ID.punjabi, "Punjabi", &['ਅ', 'ਕ'], &['a']),
             (ALPHABET_ID.odia, "Odia", &['ଅ', 'କ'], &['a']),
+            (ALPHABET_ID.azerbaijani, "Azerbaijani", &['ə', 'ğ'], &['w']),
+            (ALPHABET_ID.kazakh, "Kazakh", &['ä', 'ū'], &['c']),
+            (ALPHABET_ID.uzbek, "Uzbek", &['ʻ'], &['ä']),
+            (ALPHABET_ID.turkmen, "Turkmen", &['ň', 'ý'], &['q']),
+            (ALPHABET_ID.kyrgyz, "Kyrgyz", &['ң', 'ө'], &['a']),
+            (ALPHABET_ID.mongolian, "Mongolian", &['ө', 'ү'], &['a']),
+            (ALPHABET_ID.filipino, "Filipino", &['ñ'], &['ə']),
+            (ALPHABET_ID.vietnamese, "Vietnamese", &['đ', 'ă'], &['ф']),
+            (ALPHABET_ID.thai, "Thai", &['ก', 'ฮ'], &['a']),
+            (ALPHABET_ID.khmer, "Khmer", &['ក', '្'], &['a']),
         ];
         assert_eq!(
             alphabet(ALPHABET_ID.japanese).len(),

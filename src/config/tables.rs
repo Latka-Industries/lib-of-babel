@@ -129,6 +129,26 @@ pub struct AlphabetTables {
     pub punjabi: &'static [char],
     /// Odia oriya atoms + trail punct.
     pub odia: &'static [char],
+    /// Azerbaijani Latin (ə/ğ/x/ı/…) + trail punct.
+    pub azerbaijani: &'static [char],
+    /// Kazakh Latin (ä/ğ/ñ/ū/…) + trail punct.
+    pub kazakh: &'static [char],
+    /// Uzbek Latin (a–z + ʻ U+02BB) + trail punct.
+    pub uzbek: &'static [char],
+    /// Turkmen Latin (ä/ň/ž/ý/…) + trail punct.
+    pub turkmen: &'static [char],
+    /// Kyrgyz Cyrillic (ң/ө/ү) + trail punct.
+    pub kyrgyz: &'static [char],
+    /// Mongolian Cyrillic (ө/ү) + trail punct.
+    pub mongolian: &'static [char],
+    /// Filipino Latin (a–z + ñ) + trail punct.
+    pub filipino: &'static [char],
+    /// Vietnamese Latin (đ + tone vowels) + trail punct.
+    pub vietnamese: &'static [char],
+    /// Thai consonants / vowels / marks + trail punct.
+    pub thai: &'static [char],
+    /// Khmer consonants / vowels / marks + trail punct.
+    pub khmer: &'static [char],
 }
 
 /// Built-in alphabet glyph tables.
@@ -372,5 +392,54 @@ pub const ALPHABET_TABLE: AlphabetTables = AlphabetTables {
         'ଜ', 'ଝ', 'ଞ', 'ଟ', 'ଠ', 'ଡ', 'ଢ', 'ଣ', 'ତ', 'ଥ', 'ଦ', 'ଧ', 'ନ', 'ପ', 'ଫ', 'ବ', 'ଭ', 'ମ',
         'ଯ', 'ର', 'ଲ', 'ଳ', 'ଵ', 'ଶ', 'ଷ', 'ସ', 'ହ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 'ୃ', 'େ', 'ୈ', 'ୋ', 'ୌ',
         'ଂ', 'ଃ', 'ଁ', '୍', '଼',
+    ),
+    azerbaijani: with_trail_punct!(
+        'a', 'b', 'c', 'ç', 'd', 'e', 'ə', 'f', 'g', 'ğ', 'h', 'x', 'ı', 'i', 'j', 'k', 'q', 'l',
+        'm', 'n', 'o', 'ö', 'p', 'r', 's', 'ş', 't', 'u', 'ü', 'v', 'y', 'z',
+    ),
+    kazakh: with_trail_punct!(
+        'a', 'ä', 'b', 'd', 'e', 'f', 'g', 'ğ', 'h', 'ı', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o',
+        'ö', 'p', 'q', 'r', 's', 'ş', 't', 'u', 'ū', 'ü', 'v', 'y', 'z',
+    ),
+    uzbek: with_trail_punct!(
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ʻ',
+    ),
+    turkmen: with_trail_punct!(
+        'a', 'b', 'ç', 'd', 'e', 'ä', 'f', 'g', 'h', 'i', 'j', 'ž', 'k', 'l', 'm', 'n', 'ň', 'o',
+        'ö', 'p', 'r', 's', 'ş', 't', 'u', 'ü', 'w', 'y', 'ý', 'z',
+    ),
+    kyrgyz: with_trail_punct!(
+        'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'ң', 'о', 'ө',
+        'п', 'р', 'с', 'т', 'у', 'ү', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
+    ),
+    mongolian: with_trail_punct!(
+        'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'ө', 'п',
+        'р', 'с', 'т', 'у', 'ү', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
+    ),
+    filipino: with_trail_punct!(
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ñ',
+    ),
+    vietnamese: with_trail_punct!(
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'đ', 'á', 'à', 'ả', 'ã', 'ạ', 'â', 'ấ', 'ầ', 'ẩ',
+        'ẫ', 'ậ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'ê', 'ế', 'ề', 'ể', 'ễ',
+        'ệ', 'í', 'ì', 'ỉ', 'ĩ', 'ị', 'ó', 'ò', 'ỏ', 'õ', 'ọ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'ơ',
+        'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ý', 'ỳ',
+        'ỷ', 'ỹ', 'ỵ',
+    ),
+    thai: with_trail_punct!(
+        'ก', 'ข', 'ฃ', 'ค', 'ฅ', 'ฆ', 'ง', 'จ', 'ฉ', 'ช', 'ซ', 'ฌ', 'ญ', 'ฎ', 'ฏ', 'ฐ', 'ฑ', 'ฒ',
+        'ณ', 'ด', 'ต', 'ถ', 'ท', 'ธ', 'น', 'บ', 'ป', 'ผ', 'ฝ', 'พ', 'ฟ', 'ภ', 'ม', 'ย', 'ร', 'ฤ',
+        'ล', 'ฦ', 'ว', 'ศ', 'ษ', 'ส', 'ห', 'ฬ', 'อ', 'ฮ', 'ะ', 'ั', 'า', 'ำ', 'ิ', 'ี', 'ึ', 'ื', 'ุ',
+        'ู', 'เ', 'แ', 'โ', 'ใ', 'ไ', '็', '่', '้', '๊', '๋', '์', 'ๆ', 'ฯ', 'ํ',
+    ),
+    khmer: with_trail_punct!(
+        'ក', 'ខ', 'គ', 'ឃ', 'ង', 'ច', 'ឆ', 'ជ', 'ឈ', 'ញ', 'ដ', 'ឋ', 'ឌ', 'ឍ', 'ណ', 'ត', 'ថ', 'ទ',
+        'ធ', 'ន', 'ប', 'ផ', 'ព', 'ភ', 'ម', 'យ', 'រ', 'ល', 'វ', 'ស', 'ហ', 'ឡ', 'អ', 'ឥ', 'ឦ', 'ឧ',
+        'ឨ', 'ឩ', 'ឪ', 'ឫ', 'ឬ', 'ឭ', 'ឮ', 'ឯ', 'ឰ', 'ឱ', 'ឲ', 'ឳ', 'ា', 'ិ', 'ី', 'ឹ', 'ឺ', 'ុ', 'ូ',
+        'ួ', 'ើ', 'ឿ', 'ៀ', 'េ', 'ែ', 'ៃ', 'ោ', 'ៅ', 'ំ', 'ះ', 'ៈ', '៉', '៊', '់', '៌', '៍', '៎', '៏', '័',
+        '៑', '្',
     ),
 };
