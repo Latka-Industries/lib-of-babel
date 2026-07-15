@@ -32,7 +32,9 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve |
 | `mise run serve` | serve `web/` only (no rebuild) |
 | `mise run test` | `cargo test` |
-| `mise run check` | fmt + clippy (`-D warnings`) + tests + config-size guard |
+| `mise run check` | fmt + clippy (`-D warnings`) + tests + config-size + alphabet-pack drift |
+| `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
+| `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
 | `mise run clean` | remove `target/` and `web/pkg` |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
@@ -54,6 +56,7 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 | `generator_version()` | Schema stamp for verify/export (currently **8**) |
 | `books_per_gallery()` | Constant `700` |
 | `default_alphabet()` | Default lens id (`29` = Basile) |
+| `alphabet_symbols_json(a)` / `alphabet_len(a)` | Feistel cell list / count (UI cache) |
 | `max_title_len()` | Spine title length cap (`24`) |
 | `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis (`""` / blank → `0`) |
 | `gallery_titles_json(z, n, a, title_embed)` | 700 spines; optional title-search embed |

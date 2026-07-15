@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check:
-    name: fmt · clippy · test · config sizes
+    name: fmt · clippy · test · config sizes · alphabet packs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,3 +35,6 @@ jobs:
 
       - name: config size guard
         run: sh scripts/check-config-sizes.sh
+
+      - name: alphabet pack drift
+        run: sh scripts/check-alphabet-packs.sh

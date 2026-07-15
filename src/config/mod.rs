@@ -5,6 +5,7 @@
 //! - [`tables`] — glyph vectors
 //! - [`registry`] — [`AlphabetDef`] joining id + name + symbols
 
+mod generated;
 mod ids;
 mod registry;
 mod tables;
