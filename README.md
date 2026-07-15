@@ -34,7 +34,6 @@ Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [do
 
 - [Jorge Luis Borges, “The Library of Babel” (1941)](https://en.wikipedia.org/wiki/The_Library_of_Babel)
 - [Jonathan Basile, libraryofbabel.info](https://libraryofbabel.info/) — default Basile glyph set
-- [Wikipedia: The Library of Babel](https://en.wikipedia.org/wiki/The_Library_of_Babel)
 
 ## To Do
 
