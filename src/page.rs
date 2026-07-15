@@ -1,7 +1,8 @@
 //! Page and book text generation.
 
 use crate::config::{
-    CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, alphabet,
+    CHARS_PER_LINE, LINES_PER_PAGE, MAX_ALPHABET_LEN, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
+    alphabet,
 };
 use crate::feistel::{feistel_encrypt, feistel_key, plaintext_from_address};
 use crate::search::{search_page_segment, text_to_symbols};
@@ -81,7 +82,7 @@ fn normalize_search_text(text: &str) -> String {
 
 /// Raw symbol indices for one page (post-Feistel, with optional search embed).
 #[must_use]
-pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
+pub fn page_symbols(req: &PageRender<'_>) -> [u16; PAGE_CONTENT_SYMBOLS] {
     let PageAddr {
         z,
         n,
@@ -92,10 +93,10 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
     } = req.addr;
     let alpha_len_usize = alphabet(alphabet_id).len();
     debug_assert!(
-        alpha_len_usize > 0 && alpha_len_usize <= u8::MAX as usize,
-        "alphabet must fit Feistel u8 modulus"
+        alpha_len_usize > 0 && alpha_len_usize <= MAX_ALPHABET_LEN as usize,
+        "alphabet must fit Feistel u16 soft cap"
     );
-    let alpha_len = alpha_len_usize as u8;
+    let alpha_len = alpha_len_usize as u16;
     let mut state = plaintext_from_address(universe_seed, z, n, book_index, page, alpha_len);
     feistel_encrypt(&mut state, feistel_key(alphabet_id), alpha_len);
     if let (Some(full), Some(hit_start)) = (req.search_full, req.search_hit_start_page)
@@ -113,7 +114,7 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
     state
 }
 
-fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[&str]) -> String {
+fn symbols_to_page_text(symbols: &[u16; PAGE_CONTENT_SYMBOLS], ab: &[&str]) -> String {
     let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS * 4 + LINES_PER_PAGE as usize);
     for row in 0..LINES_PER_PAGE {
         for col in 0..CHARS_PER_LINE {
