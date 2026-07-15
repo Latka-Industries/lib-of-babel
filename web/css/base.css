@@ -349,7 +349,6 @@ html[data-script="latin"],
 html:not([data-script]) { --font-page: var(--font); }
 
 .search-editor textarea,
-.search-backdrop,
-.alpha-glyph {
+.search-backdrop {
   font-family: var(--font-page);
 }
