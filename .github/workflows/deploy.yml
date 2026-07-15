@@ -1,0 +1,55 @@
+# Build the WASM gallery and publish `web/` to GitHub Pages (lib-of-babel.xyz).
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          # rust + wasm-pack from .mise.toml (uv unused for deploy)
+          install: true
+          cache: true
+
+      - name: Build WASM (release → web/pkg)
+        run: mise run build
+
+      - name: Strip pkg packaging noise from the static tree
+        run: |
+          # wasm-pack drops npm metadata we don't serve
+          rm -f web/pkg/.gitignore web/pkg/package.json web/pkg/README.md \
+            web/pkg/*.d.ts
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
