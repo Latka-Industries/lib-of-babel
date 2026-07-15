@@ -221,6 +221,7 @@ label, not a page of text.
   "alphabet.group.African Latin": "African Latin",
   "alphabet.group.Berber": "Berber",
   "alphabet.group.CJK": "CJK",
+  "alphabet.group.Indic": "Indic",
 
   "alphabet.blurb.Latin base":
     "The project’s starting alphabets: Borges’s restricted Latin set from the 1941 story (a–v), Basile’s web library a–z, then Basile++ / Basile# adding digits and punctuation.",
@@ -260,6 +261,8 @@ label, not a page of text.
     "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
   "alphabet.blurb.CJK":
     "East Asian pages under the Feistel 255-glyph cap: Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is impossible as one lens.",
+  "alphabet.blurb.Indic":
+    "Brahmic abugidas of India as Unicode atoms (independent vowels, consonants, matras, virama/marks) plus space, comma, period. Feistel cannot store conjunct-heavy akshara tables; pages are letter noise, not composed orthography.",
   // Per-lens blurbs (stable registry ids).
   "alphabet.lensBlurb.25":
     "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
@@ -371,4 +374,22 @@ label, not a page of text.
     "Korean Hangul as precomposed syllables (not jamo soup). Top 247 syllables by token frequency from a Korean word-frequency list, plus space, comma, period.",
   "alphabet.lensBlurb.255":
     "Simplified Chinese frequent characters (Jun Da modern list, top 252) plus space, comma, period. Traditional and fuller Unihan packs stay backlog.",
+  "alphabet.lensBlurb.79":
+    "Hindi (Devanagari): Vowels, consonants, matras, and marks (anusvara/visarga/chandrabindu/nukta/virama). Shared shelf for Marathi/Sanskrit/Nepali orthography.",
+  "alphabet.lensBlurb.80":
+    "Bengali: Vowels, consonants, matras, and hasanta/nukta marks. Assamese extras stay backlog.",
+  "alphabet.lensBlurb.81":
+    "Tamil: Uyir, mei, vowel signs, āytam, and pulli — atom inventory, not the full uyirmei table.",
+  "alphabet.lensBlurb.82":
+    "Telugu: Independent vowels, consonants (incl. ళ), matras, and anusvara/visarga/chandrabindu/virama.",
+  "alphabet.lensBlurb.83":
+    "Kannada: Independent vowels, consonants (incl. ಳ), matras, and combining marks parallel to Telugu.",
+  "alphabet.lensBlurb.84":
+    "Malayalam: Vowels, consonants (incl. ള/ഴ/റ), matras, marks, and common chillu letters (ൻ/ർ/ൽ/ൾ/ൺ/ൿ).",
+  "alphabet.lensBlurb.85":
+    "Gujarati: Vowels, consonants (incl. ળ), matras, and anusvara/visarga/chandrabindu/nukta/virama.",
+  "alphabet.lensBlurb.86":
+    "Punjabi (Gurmukhi): Vowels, consonants (incl. ੜ), matras, and tippi/addak/nukta/virama marks.",
+  "alphabet.lensBlurb.87":
+    "Odia: Vowels, consonants (incl. ଳ), matras, and anusvara/visarga/chandrabindu/virama/nukta.",
 };

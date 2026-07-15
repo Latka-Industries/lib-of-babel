@@ -185,6 +185,15 @@ mod tests {
             ),
             (ALPHABET_ID.korean, "Korean", &['이', '다'], &['a']),
             (ALPHABET_ID.chinese, "Chinese", &['的', '一'], &['繁', 'a']),
+            (ALPHABET_ID.hindi, "Hindi", &['अ', 'क'], &['a']),
+            (ALPHABET_ID.bengali, "Bengali", &['অ', 'ক'], &['a']),
+            (ALPHABET_ID.tamil, "Tamil", &['அ', 'க'], &['a']),
+            (ALPHABET_ID.telugu, "Telugu", &['అ', 'క'], &['a']),
+            (ALPHABET_ID.kannada, "Kannada", &['ಅ', 'ಕ'], &['a']),
+            (ALPHABET_ID.malayalam, "Malayalam", &['അ', 'ക'], &['a']),
+            (ALPHABET_ID.gujarati, "Gujarati", &['અ', 'ક'], &['a']),
+            (ALPHABET_ID.punjabi, "Punjabi", &['ਅ', 'ਕ'], &['a']),
+            (ALPHABET_ID.odia, "Odia", &['ଅ', 'କ'], &['a']),
         ];
         assert_eq!(
             alphabet(ALPHABET_ID.japanese).len(),
