@@ -102,7 +102,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Geben Sie einen <b>Universum</b>-Namen ein oder würfeln Sie mit <b>&#9860;</b>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
 <li>Das <b>Alphabet</b>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.</li>
 <li><b>Aktionen…</b> → <b>Link kopieren</b> (oder Fußzeilen-<b>Hash</b>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
-<li><b>Aktionen…</b> → <b>Suchen…</b> — <b>Inhalt</b> oder <b>Titel</b>, Koordinaten finden, hinspringen (siehe <b>Mehr</b>).</li>
+<li><b>Aktionen…</b> → <b>Suchen…</b> — <b>Text</b> oder <b>Babelgram</b>; hinspringen (siehe <b>Mehr</b>).</li>
 <li><b>Wanderungen</b> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <b>Reise exportieren</b> speichert den gesamten Weg als JSON.</li>
 </ul>`,
 
@@ -130,7 +130,7 @@ der Raum-Hash jedes Schritts lebt in der vollen Spur. <b>Aktionen…</b> bietet 
 </p>
 <h4>Suche nach Inhalt</h4>
 <p class="dim">
-Unter <b>Aktionen…</b> → <b>Suchen…</b> belassen Sie die Auswahl auf
+Unter <b>Aktionen…</b> → <b>Suchen…</b> bleiben Sie auf dem Tab <b>Text</b> mit
 <b>Inhalt</b>. Fügen Sie eine Phrase ein (bis zu einem ganzen Buch — ~1,3&nbsp;Millionen
 Zeichen); die Bibliothek nennt Galerie, Regal, Buch und Seite(n), wo sie
 bereits lebt — und öffnet sie. Lange Phrasen spannen aufeinanderfolgende Seiten.
@@ -139,11 +139,18 @@ Ungültige Zeichen werden rot markiert.
 </p>
 <h4>Suche nach Titel</h4>
 <p class="dim">
-Denselben Dialog — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie bis zu
+Derselbe <b>Text</b>-Tab — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie bis zu
 <b>24 Zeichen</b> ein (aktive Linsenregeln). Die Zeichenkette gilt als
 <b>Rückenbeschriftung</b>: die Bibliothek springt zur Galerie und zum Regal, wo
 dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken und
 öffnet Seite&nbsp;1.
+</p>
+<h4>Suche nach Babelgram</h4>
+<p class="dim">
+Tab <b>Babelgram</b>: gestempeltes PNG von <b>Speichern… → Buchbild</b>
+(exaktes Farbraster, <code>lob:babel</code>-Stempel) → Locate →
+<b>Dorthin</b> / kurzen Buchbild-Link (gleiches Universum = Export; sonst projektiv).
+(Beliebiges Foto→Mosaik ist vorübergehend aus.)
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -155,12 +162,59 @@ dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken u
   "verify.meta":
     "Legen Sie eine exportierte Reise ab, um sie nachzugehen und zu prüfen",
 
+  "search.head": "Suche",
   "search.headContent": "Suche nach Inhalt",
   "search.headTitle": "Suche nach Titel",
+  "search.headMosaic": "Suche nach Farbmosaik",
+  "search.metaText":
+    "Eine Phrase in der Bibliothek finden oder ein Babelgram-Buchbild öffnen.",
   "search.metaContent":
     "Geben Sie eine Phrase ein — die Bibliothek findet, wo sie bereits existiert (mit Leerzeichen auf eine volle Seite aufgefüllt).",
   "search.metaTitle":
     "Geben Sie einen Rücken-Titel ein — die Bibliothek findet Galerie und Regal.",
+  "search.metaMosaic":
+    "Bild hochladen, Mosaik einstellen, Buchtext erzeugen und in die Inhaltssuche einfügen.",
+  "search.tabsLabel": "Suchmodus",
+  "search.tab.text": "Text",
+  "search.tab.photo": "Foto",
+  "search.tab.babel": "Babelgram",
+  "search.tab.image": "Foto",
+  "search.headBabel": "Suche nach Babelgram",
+  "search.metaBabel":
+    "Gestempeltes PNG von Speichern → Buchbild (exaktes Gitter). Dekodieren → Locate → Buch-Farbkarte öffnen.",
+  "search.hintBabel":
+    "nur gestempeltes Babelgram-PNG · 1:1 · gleiches Universum → Export-Galerie · anderes Universum → projektives Locate",
+  "search.babel.honesty":
+    "Braucht ein PNG von Speichern → Buchbild (Provenienz-Chunk). Pixel bleiben 1:1. Gleiches Universum wie der Export → zurück zu dieser Galerie und diesem Buch. Anderes Universum projiziert die Zellen auf eine neue Adresse (~100 % Dekodierung in beiden Fällen).",
+  "search.babel.find": "Buch finden",
+  "search.babel.progress": "Babelgram wird dekodiert…",
+  "search.babel.upload": "Babelgram-PNG hochladen",
+  "search.babel.original": "Babelgram-Export",
+  "search.babel.gridHint":
+    "Braucht ein gestempeltes verlustfreies PNG genau {w}×{h} (Speichern → Buchbild).",
+  "search.babel.fileMeta": "{name} · exakt {w}×{h} Babelgram-Gitter",
+  "search.babel.sizeMismatch":
+    "Falsche Größe ({sw}×{sh}). Babelgrams müssen exakt {w}×{h} sein — neu exportieren unter Speichern → Buchbild.",
+  "search.babel.needExact": "zuerst ein exaktes {w}×{h} Babelgram-PNG hochladen",
+  "search.babel.notBabel":
+    "Kein Babelgram-Buchbild-PNG (fehlt lob:babel-Stempel). Neu exportieren unter Speichern → Buchbild.",
+  "search.babel.nameMismatch":
+    "Dateiname-Koordinaten stimmen nicht mit dem PNG-Stempel überein",
+  "search.babel.originLine":
+    "Export-Ursprung · {universe} (Seed {u}) · Galerie ({z}, {n}) · Buch {book} · {alphabet}",
+  "search.babel.universeUnknown": "Seed {seed}",
+  "search.babel.originNote":
+    "Locate-Ziel weicht vom Export-Ursprung ab (gleiche Zellen → neue Koordinaten; anderes Universum → andere Koordinaten).",
+  "search.babel.originNoteSame":
+    "Gleiches Universum wie der Export — Gehen öffnet die gestempelte Galerie und das Buch.",
+  "search.babel.originNoteOther":
+    "Anderes Universum als der Export — Zellen werden hier projektiv lokalisiert (Ziel ≠ Stempel-Ursprung).",
+  "search.babel.resultsIntro":
+    "Babelgram-Locate in {universe} (Seed {seed}) — exakte Akzent-Dekodierung:",
+  "search.babel.resultsIntroSame":
+    "Babelgram-Round-Trip in {universe} (Seed {seed}) — zurück zum Export:",
+  "search.babel.resultsIntroOther":
+    "Babelgram-Locate in {universe} (Seed {seed}) — projektiv (Export war ein anderes Universum):",
   "search.label": "Suche",
   "search.kindTitle": "Rücken-Titel oder Seiteninhalt suchen",
   "search.kindContent": "Inhalt",
@@ -168,10 +222,57 @@ dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken u
   "search.placeholderContent": "Verzeihen Sie mir, denn ich habe gesündigt",
   "search.placeholderTitle": "Karmesinrücken",
   "search.find": "Finden",
+  "search.count": "{n} / {max}",
+  "search.countTip": "{n} Alphabet-Zellen von {max} erlaubt",
   "search.hintContent":
-    "nutzt die aktuelle Alphabet-Linse · bis ~1,3M Zeichen (ein Buch)",
+    "nutzt die aktuelle Alphabet-Linse · bis ein ganzes Buch",
   "search.hintTitle":
-    "nutzt die aktuelle Alphabet-Linse · bis {n} Zeichen (Rückentitel)",
+    "nutzt die aktuelle Alphabet-Linse · bis {n} Rückentitel-Zellen",
+  "search.hintMosaic":
+    "Ganzbuch-Farbgitter · aktuelle Regler → Glyphen-Text → in Inhaltssuche einfügen",
+  "search.mosaic.find": "Buchtext erzeugen",
+  "search.mosaic.searching": "schreibe…",
+  "search.mosaic.progress": "Glyphen projizieren…",
+  "search.mosaic.upload": "Bild hochladen",
+  "search.mosaic.honesty":
+    "Bildhelligkeit wird auf eine Luma-Rampe des aktuellen Alphabets gelegt; danach Buchtext — in die Inhaltssuche einfügen.",
+  "search.mosaic.bookTextIntro":
+    "Buchtext ({n} Zeichen). Kopieren, oder in die Inhaltssuche legen und Finden.",
+  "search.mosaic.toSearch": "in Inhaltssuche legen",
+  "search.mosaic.noText": "Buchtext aus diesem Bild nicht erzeugbar",
+  "search.mosaic.original": "Original (Buchgitter)",
+  "search.mosaic.preview": "Mosaik-Vorschau",
+  "search.mosaic.fitPct": "Passung {n}%",
+  "search.mosaic.previewError": "Vorschau fehlgeschlagen",
+  "search.mosaic.fileMeta": "{name} · {sw}×{sh} → gestreckt auf {w}×{h} Buchgitter",
+  "search.mosaic.gridHint":
+    "Jedes Bild wird auf das Ganzbuch-Farbgitter ({w}×{h}) gestreckt.",
+  "search.mosaic.badImage": "Bild konnte nicht gelesen werden",
+  "search.mosaic.dither": "Dither",
+  "search.mosaic.brightness": "Helligkeit",
+  "search.mosaic.contrast": "Kontrast",
+  "search.mosaic.hue": "Farbton",
+  "search.mosaic.chroma": "Chroma",
+  "search.mosaic.light": "Hellton",
+  "search.mosaic.space": "Leerzeichen",
+  "search.mosaic.knobsSource": "Originalbild",
+  "search.mosaic.knobsMosaic": "Mosaik-Palette",
+  "search.mosaic.tip.brightness":
+    "Upload aufhellen oder abdunkeln, bevor er zum Mosaik wird.",
+  "search.mosaic.tip.contrast":
+    "Kontrast des Uploads vor dem Mosaikieren.",
+  "search.mosaic.tip.hue":
+    "Färbung der Helligkeitsrampe (Foto-Mosaik mappt Helligkeit aufs Alphabet).",
+  "search.mosaic.tip.chroma":
+    "Wie viel Farbton vs. Grau auf der Luma-Rampe — niedrig ≈ Graustufen.",
+  "search.mosaic.tip.light":
+    "Zentriert die Helligkeitsrampe (dunkel↔hell) für das Foto-Mosaik.",
+  "search.mosaic.tip.space":
+    "Dunklere Pixel als diese Luminanz werden beim Mosaikieren zum Leerzeichen.",
+  "search.mosaic.tip.dither":
+    "Floyd–Steinberg-Dither streut Farbfehler für ein weicheres, körnigeres Mosaik.",
+  "search.mosaic.needImage": "zuerst ein Bild hochladen",
+  "search.mosaic.hitBook": "Buch {book}",
   "search.go": "Dorthin",
   "search.result.gallery": "Galerie ({z}, {n})",
   "search.result.coords":

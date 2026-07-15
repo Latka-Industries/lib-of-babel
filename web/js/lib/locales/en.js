@@ -98,7 +98,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
 <li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.</li>
 <li><b>actions…</b> → <b>copy link</b> (or click the footer <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
-<li><b>actions…</b> → <b>search…</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
+<li><b>actions…</b> → <b>search…</b> — <b>text</b> or <b>Babelgram</b>; jump there (see <b>more</b> tab).</li>
 <li><b>wanderings</b> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
 </ul>`,
 
@@ -126,7 +126,7 @@ offers <b>verify journey</b> and <b>new walk</b>.
 </p>
 <h4>Search by content</h4>
 <p class="dim">
-In <b>actions…</b> → <b>search…</b>, leave the dropdown on
+In <b>actions…</b> → <b>search…</b>, stay on the <b>text</b> tab with
 <b>content</b>. Paste any phrase (up to one full book — ~1.3&nbsp;million
 characters) and the library returns the gallery, shelf, book, and page(s) where
 it already lives — then opens it. Long phrases span consecutive pages in the
@@ -135,11 +135,19 @@ universe you are standing in. Invalid characters are highlighted in red.
 </p>
 <h4>Search by title</h4>
 <p class="dim">
-Same dialog — choose <b>title</b> instead of <b>content</b>. Enter up to
+Same <b>text</b> tab — choose <b>title</b> instead of <b>content</b>. Enter up to
 <b>24 characters</b> (active lens rules). That string is treated as a
 <b>spine label</b>: the library jumps to the gallery and shelf where that
 title sits under the current alphabet, shows it on that book’s spine, and
 opens page&nbsp;1.
+</p>
+<h4>Search by Babelgram</h4>
+<p class="dim">
+<b>Babelgram</b> tab: upload a stamped PNG from <b>save… → book image</b>
+(exact colour grid, <code>lob:babel</code> stamp) → decode/locate →
+<b>go there</b> / copy a short book-image link. Same universe returns to the
+export; another universe is projective. (Arbitrary photo→mosaic is temporarily
+off.)
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -150,12 +158,59 @@ opens page&nbsp;1.
   "verify.title": "verify journey",
   "verify.meta": "drop in an exported journey to re-walk and prove it",
 
+  "search.head": "search",
   "search.headContent": "search by content",
   "search.headTitle": "search by title",
+  "search.headMosaic": "search by colour mosaic",
+  "search.metaText":
+    "Find a phrase already in the library, or open a Babelgram book image.",
   "search.metaContent":
     "Type a phrase — the library finds where it already exists (space-padded to a full page).",
   "search.metaTitle":
     "Type a spine title — the library finds the gallery and shelf where it belongs.",
+  "search.metaMosaic":
+    "Upload an image, tune the mosaic, then make book text and paste it into content search.",
+  "search.tabsLabel": "Search mode",
+  "search.tab.text": "text",
+  "search.tab.photo": "photo",
+  "search.tab.babel": "Babelgram",
+  "search.tab.image": "photo",
+  "search.headBabel": "search by Babelgram",
+  "search.metaBabel":
+    "Upload a stamped PNG from save → book image (exact grid). Decode → locate → open that book’s colour map.",
+  "search.hintBabel":
+    "stamped Babelgram PNG only · 1:1 · same universe → export gallery · other universe → projective locate",
+  "search.babel.honesty":
+    "Needs a PNG from save → book image (provenance chunk). Pixels stay 1:1. Same universe as the export → return to that gallery and book. A different universe projects the cells to a new address (~100% decode either way).",
+  "search.babel.find": "find book",
+  "search.babel.progress": "decoding Babelgram…",
+  "search.babel.upload": "upload Babelgram PNG",
+  "search.babel.original": "Babelgram export",
+  "search.babel.gridHint":
+    "Needs a stamped lossless PNG at exactly {w}×{h} (save → book image).",
+  "search.babel.fileMeta": "{name} · exact {w}×{h} Babelgram grid",
+  "search.babel.sizeMismatch":
+    "Wrong size ({sw}×{sh}). Babelgrams must be exactly {w}×{h} — re-export from save → book image.",
+  "search.babel.needExact": "upload an exact {w}×{h} Babelgram PNG first",
+  "search.babel.notBabel":
+    "Not a Babelgram book-image PNG (missing lob:babel stamp). Re-export from save → book image.",
+  "search.babel.nameMismatch":
+    "filename coords do not match the PNG stamp",
+  "search.babel.originLine":
+    "export origin · {universe} (seed {u}) · gallery ({z}, {n}) · book {book} · {alphabet}",
+  "search.babel.universeUnknown": "seed {seed}",
+  "search.babel.originNote":
+    "Locate destination differs from export origin by design (same cells → new coords; other universe → other coords).",
+  "search.babel.originNoteSame":
+    "Same universe as the export — go opens the stamped gallery and book.",
+  "search.babel.originNoteOther":
+    "You are in a different universe than the export — cells are located projectively here (destination ≠ stamp origin).",
+  "search.babel.resultsIntro":
+    "Babelgram locate in {universe} (seed {seed}) — exact accent decode:",
+  "search.babel.resultsIntroSame":
+    "Babelgram round-trip in {universe} (seed {seed}) — return to export:",
+  "search.babel.resultsIntroOther":
+    "Babelgram locate in {universe} (seed {seed}) — projective (export was another universe):",
   "search.label": "search",
   "search.kindTitle": "search spine titles or page content",
   "search.kindContent": "content",
@@ -163,10 +218,57 @@ opens page&nbsp;1.
   "search.placeholderContent": "forgive me for i have sinned",
   "search.placeholderTitle": "crimson spine",
   "search.find": "find",
+  "search.count": "{n} / {max}",
+  "search.countTip": "{n} alphabet cells of {max} allowed",
   "search.hintContent":
-    "uses the current alphabet lens · up to ~1.3M characters (one book)",
+    "uses the current alphabet lens · up to one full book",
   "search.hintTitle":
-    "uses the current alphabet lens · up to {n} characters (spine title)",
+    "uses the current alphabet lens · up to {n} spine-title cells",
+  "search.hintMosaic":
+    "full-book colour grid · current knobs → glyph string → paste into content search",
+  "search.mosaic.find": "make book text",
+  "search.mosaic.searching": "writing…",
+  "search.mosaic.progress": "projecting glyphs…",
+  "search.mosaic.upload": "upload image",
+  "search.mosaic.honesty":
+    "Maps photo brightness onto a luma ramp of the current alphabet, then spits out book text — paste into content search.",
+  "search.mosaic.bookTextIntro":
+    "Book text ({n} chars). Copy, or put it in content search and hit find.",
+  "search.mosaic.toSearch": "put in content search",
+  "search.mosaic.noText": "could not build book text from that image",
+  "search.mosaic.original": "original (book grid)",
+  "search.mosaic.preview": "mosaic preview",
+  "search.mosaic.fitPct": "projection fit {n}%",
+  "search.mosaic.previewError": "preview failed",
+  "search.mosaic.fileMeta": "{name} · {sw}×{sh} → stretched to {w}×{h} book grid",
+  "search.mosaic.gridHint":
+    "Any image is stretched to the full-book colour grid ({w}×{h}).",
+  "search.mosaic.badImage": "could not decode that image",
+  "search.mosaic.dither": "dither",
+  "search.mosaic.brightness": "brightness",
+  "search.mosaic.contrast": "contrast",
+  "search.mosaic.hue": "hue",
+  "search.mosaic.chroma": "chroma",
+  "search.mosaic.light": "light",
+  "search.mosaic.space": "space",
+  "search.mosaic.knobsSource": "original image",
+  "search.mosaic.knobsMosaic": "mosaic palette",
+  "search.mosaic.tip.brightness":
+    "Brighten or darken the upload before it is mosaiced.",
+  "search.mosaic.tip.contrast":
+    "Raise or lower contrast of the upload before mosaicing.",
+  "search.mosaic.tip.hue":
+    "Tint of the lightness ramp (photo mosaic maps brightness onto the alphabet).",
+  "search.mosaic.tip.chroma":
+    "How much tint vs grey on the luma ramp — low is nearly greyscale.",
+  "search.mosaic.tip.light":
+    "Centers the lightness ramp (dark↔light glyph ladder) for the photo mosaic.",
+  "search.mosaic.tip.space":
+    "Pixels darker than this luminance become the space glyph when mosaicing.",
+  "search.mosaic.tip.dither":
+    "Floyd–Steinberg dither spreads colour error for a softer, grainier mosaic.",
+  "search.mosaic.needImage": "upload an image first",
+  "search.mosaic.hitBook": "book {book}",
   "search.go": "go there",
   "search.result.gallery": "gallery ({z}, {n})",
   "search.result.coords":

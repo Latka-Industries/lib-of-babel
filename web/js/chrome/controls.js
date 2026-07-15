@@ -40,12 +40,21 @@ import {
 import {
   syncSearchInput,
   syncSearchKindUI,
+  syncSearchCount,
   clearSearchHighlights,
   renderSearchHighlights,
   syncSearchBackdropScroll,
   openSearch,
   runSearch,
+  wireSearchTabs,
 } from "../reader/search.js";
+import {
+  wireMosaicSearch,
+  syncMosaicKnobsFromGallery,
+  syncMosaicGridHint,
+  syncMosaicModeUI,
+  clearMosaicResults,
+} from "../reader/mosaic-search.js";
 import {
   openAboutGuide,
   stepAboutTab,
@@ -205,7 +214,10 @@ export function wireControls() {
     "actionsMenu",
     {
       copy: () => copyText(currentUrl()),
-      search: openSearch,
+      search: () => {
+        clearMosaicResults();
+        openSearch();
+      },
       export: exportJourney,
       verify: () => el("verifyFile").click(),
       reset: newWalk,
@@ -220,8 +232,22 @@ export function wireControls() {
     syncSearchKindUI();
     el("searchInput").focus();
   });
+  wireSearchTabs({
+    onPhoto: () => {
+      syncMosaicModeUI("photo");
+      syncMosaicKnobsFromGallery();
+      syncMosaicGridHint();
+    },
+    onBabel: () => {
+      syncMosaicModeUI("babel");
+      syncMosaicKnobsFromGallery();
+      syncMosaicGridHint();
+    },
+  });
+  wireMosaicSearch();
   el("searchInput").addEventListener("input", () => {
     syncSearchInput();
+    syncSearchCount();
     const invalid = validateSearchQuery(el("searchInput").value, S.alphabetId);
     if (invalid.length) renderSearchHighlights(invalid);
     else clearSearchHighlights();

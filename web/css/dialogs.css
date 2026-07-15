@@ -4,6 +4,15 @@
 .find-body { padding: 0.75rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .find-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .find-row label { color: var(--muted); font-size: 0.85rem; }
+.search-find-row .search-count {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.search-find-row .search-count-over {
+  color: #c45c5c;
+  font-weight: 600;
+}
+.search-find-row #searchHint { flex: 1 1 12rem; }
 .find-body select, .find-body input { padding: 0.35rem 0.5rem; }
 .find-body button { padding: 0.35rem 0.6rem; }
 .find-result { border: 1px solid var(--line); border-radius: 8px; padding: 0.75rem; display: none; }
@@ -58,6 +67,163 @@
   color: inherit;
   border-radius: 2px;
 }
+
+.hidden { display: none !important; }
+
+.mosaic-panel { display: flex; flex-direction: column; gap: 0.75rem; }
+.mosaic-file-label input[type="file"] { display: block; margin-top: 0.25rem; font-size: 0.8rem; }
+.mosaic-compare.mosaic-compare-solo {
+  grid-template-columns: 1fr;
+  max-width: 22rem;
+}
+.mosaic-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .mosaic-compare { grid-template-columns: 1fr; }
+}
+.mosaic-compare figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mosaic-compare figcaption {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.35rem;
+  min-height: 1.1em;
+}
+.mosaic-compare canvas {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  aspect-ratio: 1280 / 1025;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #15131a;
+  display: block;
+}
+.mosaic-fit-slot {
+  min-height: 1.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+.mosaic-knobs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+.mosaic-knobs-head {
+  margin: 0 0 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.mosaic-knob {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5.75rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.55rem;
+  min-height: 1.85rem;
+}
+.mosaic-knob > span {
+  position: relative;
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mosaic-knob > span[data-tip] {
+  cursor: help;
+}
+.mosaic-knob input[type="range"] {
+  width: 100%;
+  margin: 0;
+  align-self: center;
+  cursor: default;
+}
+.mosaic-knob.mosaic-check input[type="checkbox"] {
+  justify-self: start;
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+.mosaic-knob > span[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  right: auto;
+  top: calc(100% + 6px);
+  bottom: auto;
+  width: max(100%, 12rem);
+  max-width: min(18rem, 70vw);
+  z-index: 20;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  box-shadow: 0 8px 22px color-mix(in oklab, #000 35%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+.mosaic-knob > span[data-tip]:hover::after,
+.mosaic-knob > span[data-tip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+.mosaic-compare,
+.mosaic-knobs {
+  overflow: visible;
+}
+.mosaic-knobs-source {
+  border-top-color: color-mix(in oklab, var(--line) 70%, var(--muted));
+}
+.mosaic-knobs-mosaic {
+  border-top-color: color-mix(in oklab, var(--line) 40%, var(--ink));
+}
+.mosaic-book-text {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.35rem 0 0.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  resize: vertical;
+  min-height: 8rem;
+}
+.mosaic-hit {
+  border-top: 1px solid var(--line);
+  padding: 0.65rem 0 0.25rem;
+  margin-top: 0.5rem;
+}
+.mosaic-hit:first-of-type { border-top: none; margin-top: 0.25rem; }
+.mosaic-hit-main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.mosaic-hit-pct { font-size: 1.25rem; font-weight: 700; }
+.mosaic-hit-label { color: var(--muted); font-size: 0.8rem; }
+
 .jump-body {
   display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
   padding: 0.9rem 1rem 1.1rem;
@@ -342,21 +508,26 @@ pre.page mark.search-hit {
   }
 }
 .loading { color: var(--muted); padding: 2rem; text-align: center; }
-.about-tabs {
+.about-tabs,
+.search-tabs {
   display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line);
   padding: 0 0.75rem; overflow: hidden;
 }
-.about-tab {
+.about-tab,
+.search-tab {
   font: inherit; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent;
   padding: 0.65rem 0.85rem; margin-bottom: -1px; cursor: pointer; white-space: nowrap;
 }
-.about-tab:hover { color: var(--ink); }
-.about-tab[aria-selected="true"] {
+.about-tab:hover,
+.search-tab:hover { color: var(--ink); }
+.about-tab[aria-selected="true"],
+.search-tab[aria-selected="true"] {
   color: var(--accent); border-bottom-color: var(--accent);
 }
 @media (hover: none), (pointer: coarse), (max-width: 960px) {
-  .about-tabs {
+  .about-tabs,
+  .search-tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
@@ -364,10 +535,13 @@ pre.page mark.search-hit {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
-  .about-tab { flex: 0 0 auto; }
+  .about-tab,
+  .search-tab { flex: 0 0 auto; }
 }
 .about-panel { display: none; }
 .about-panel.active { display: block; }
+.search-panel { display: none; }
+.search-panel.active { display: flex; flex-direction: column; gap: 0.75rem; }
 .about-body {
   padding: 1rem 1.25rem; max-height: 74vh; overflow: auto;
   font-family: var(--font-prose);

@@ -49,6 +49,9 @@ export function applyI18n(root = document, vars = {}) {
   root.querySelectorAll("[data-i18n-title]").forEach((el) => {
     applyAttr(el, "title", el.getAttribute("data-i18n-title"), vars);
   });
+  root.querySelectorAll("[data-i18n-tip]").forEach((el) => {
+    applyAttr(el, "data-tip", el.getAttribute("data-i18n-tip"), vars);
+  });
   root.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
     applyAttr(el, "placeholder", el.getAttribute("data-i18n-placeholder"), vars);
   });

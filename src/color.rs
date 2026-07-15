@@ -14,7 +14,26 @@ use crate::universe::universe;
 
 /// Arc width for the punct/digit stratum (degrees).
 const PUNCT_ARC_DEG: f64 = 52.0;
-const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
+pub(crate) const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
+
+/// Total colour cells in a full-book mosaic (`PAGES × 40 × 80`).
+#[must_use]
+pub fn book_cell_count() -> usize {
+    (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize
+}
+
+/// Near-square width × height for [`book_image`] / mosaic encode (shared).
+#[must_use]
+pub fn book_grid_dims() -> (u32, u32) {
+    let total = book_cell_count();
+    let mut grid_side = (total as f64).sqrt() as usize;
+    while !total.is_multiple_of(grid_side) {
+        grid_side -= 1;
+    }
+    let height = grid_side as u32;
+    let width = (total / grid_side) as u32;
+    (width, height)
+}
 
 fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {
     let hue_rad = hue_deg * std::f64::consts::PI / 180.0;
@@ -50,7 +69,7 @@ fn index_hash(idx: u32, salt: u32) -> u32 {
 }
 
 /// Build per-glyph RGB colours for an alphabet lens at a gallery accent.
-fn build_glyph_palette(
+pub(crate) fn build_glyph_palette(
     ab: &[&str],
     accent_hue: f64,
     accent_chroma: f64,
@@ -90,6 +109,45 @@ fn build_glyph_palette(
     palette
 }
 
+/// Photo-mosaic palette: non-space glyphs on a lightness ramp (structure-first).
+///
+/// Reading colour maps ([`build_glyph_palette`]) scatter hues so Feistel text looks
+/// speckled. Photos need the opposite — nearby greys must stay nearby — so we place
+/// every non-space cell on an OKLCH lightness ladder with a subdued accent tint.
+pub(crate) fn build_photo_luma_palette(
+    ab: &[&str],
+    accent_hue: f64,
+    accent_chroma: f64,
+    accent_light: f64,
+) -> Vec<[u8; 3]> {
+    let len = ab.len();
+    let mut palette = vec![SPACE_RGB; len];
+    let mut ramp = Vec::with_capacity(len);
+    for (i, cell) in ab.iter().enumerate() {
+        if *cell != " " {
+            ramp.push(i);
+        }
+    }
+    if ramp.is_empty() {
+        return palette;
+    }
+    let mid = accent_light.clamp(0.35, 0.85);
+    let lo = (mid - 0.38).clamp(0.06, 0.45);
+    let hi = (mid + 0.38).clamp(0.55, 0.96);
+    let chroma = (accent_chroma * 0.32).clamp(0.0, 0.12);
+    let n = ramp.len();
+    for (k, &idx) in ramp.iter().enumerate() {
+        let t = if n == 1 {
+            0.5
+        } else {
+            k as f64 / (n - 1) as f64
+        };
+        let light = lo + (hi - lo) * t;
+        palette[idx] = oklch_to_srgb(light, chroma, accent_hue.rem_euclid(360.0));
+    }
+    palette
+}
+
 /// One RGBA image of a whole book, ready for `ctx.putImageData`.
 #[wasm_bindgen]
 pub struct BookImage {
@@ -123,6 +181,36 @@ impl BookImage {
 #[must_use]
 /// Render a whole book as an RGBA image (gallery palette keyed by fingerprint).
 pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImage {
+    book_image_inner(z, n, book_index, alphabet_id, None)
+}
+
+/// Same as [`book_image`], but embeds a full-book search string (mosaic / content hit).
+#[wasm_bindgen]
+#[must_use]
+pub fn book_image_search(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    alphabet_id: u32,
+    search_flat: &str,
+) -> BookImage {
+    let flat = search_flat.trim();
+    book_image_inner(
+        z,
+        n,
+        book_index,
+        alphabet_id,
+        if flat.is_empty() { None } else { Some(flat) },
+    )
+}
+
+fn book_image_inner(
+    z: i64,
+    n: i64,
+    book_index: u32,
+    alphabet_id: u32,
+    search_flat: Option<&str>,
+) -> BookImage {
     let ab = alphabet(alphabet_id);
     let len = ab.len();
     let space_idx = len - 3;
@@ -133,18 +221,13 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
     let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
 
-    let total = (PAGES_PER_BOOK * LINES_PER_PAGE * CHARS_PER_LINE) as usize;
-    let mut grid_side = (total as f64).sqrt() as usize;
-    while !total.is_multiple_of(grid_side) {
-        grid_side -= 1;
-    }
-    let height = grid_side as u32;
-    let width = (total / grid_side) as u32;
+    let total = book_cell_count();
+    let (width, height) = book_grid_dims();
 
     let mut pixels = vec![0u8; total * 4];
     let mut px_idx = 0;
     for page in 0..PAGES_PER_BOOK {
-        let req = PageRender::new(PageAddr::new(
+        let mut req = PageRender::new(PageAddr::new(
             z,
             n,
             book_index,
@@ -152,6 +235,9 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
             alphabet_id,
             universe(),
         ));
+        if let Some(flat) = search_flat {
+            req = req.with_search(flat, 0);
+        }
         let state = page_symbols(&req);
         for &sym in &state {
             let idx = sym as usize;
@@ -174,6 +260,26 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
         height,
         pixels,
     }
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Full-book mosaic grid size `[width, height]` (shared by encode + `book_image`).
+pub fn book_image_dims() -> Vec<u32> {
+    let (w, h) = book_grid_dims();
+    vec![w, h]
+}
+
+/// Gallery accent OKLCH knobs for `(z, n)` in `universe_seed` — same formulas as [`book_image`].
+/// Returns `[hue, chroma, lightness]`.
+#[wasm_bindgen]
+#[must_use]
+pub fn room_accent(z: i64, n: i64, universe_seed: u64) -> Vec<f64> {
+    let fp = node_fingerprint(z, n, universe_seed);
+    let hue = (((fp >> 48) & 0xffff) % 360) as f64;
+    let chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
+    let light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
+    vec![hue, chroma, light]
 }
 
 #[cfg(test)]
@@ -202,5 +308,24 @@ mod tests {
         let a_idx = ab.iter().position(|c| *c == "a").unwrap();
         let b_idx = ab.iter().position(|c| *c == "b").unwrap();
         assert_ne!(p0[a_idx], p0[b_idx]);
+    }
+
+    #[test]
+    fn photo_luma_palette_is_monotonic_in_luminance() {
+        let ab = alphabet(ALPHABET_ID.basile);
+        let palette = build_photo_luma_palette(ab, 40.0, 0.15, 0.66);
+        let mut last = -1.0;
+        for (i, cell) in ab.iter().enumerate() {
+            if *cell == " " {
+                continue;
+            }
+            let [r, g, b] = palette[i];
+            let y = 0.2126 * f64::from(r) + 0.7152 * f64::from(g) + 0.0722 * f64::from(b);
+            assert!(
+                y + 1e-6 >= last,
+                "luma ramp must be non-decreasing (got {last} then {y} at {cell})"
+            );
+            last = y;
+        }
     }
 }

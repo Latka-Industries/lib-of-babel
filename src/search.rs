@@ -51,7 +51,7 @@ fn normalize_search_text(text: &str) -> String {
     text.to_lowercase()
 }
 
-fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
+pub(crate) fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
     let mut h = blake3::Hasher::new();
     h.update(b"lob:search:coords");
     h.update(&GENERATOR_VERSION.to_le_bytes());
@@ -209,12 +209,15 @@ fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateErr
 
 /// Reverse lookup: phrase → coordinates in the given universe (may span pages).
 ///
+/// Long / full-book phrases are clamped so the embed always fits in
+/// [`PAGES_PER_BOOK`] pages (a hash-derived start page alone can land too late —
+/// mosaic paste used to fail with “only N remain”).
+///
 /// # Errors
 ///
 /// Returns [`LocateError::InvalidChars`] when the phrase contains characters
 /// outside the selected alphabet. Returns [`LocateError::Message`] when the
-/// phrase is empty, exceeds one book's capacity, or would run past the last page
-/// of the resolved book.
+/// phrase is empty or exceeds one book's capacity.
 pub fn locate_page(
     text: &str,
     alphabet_id: u32,
@@ -233,12 +236,13 @@ pub fn locate_page(
         )));
     }
     let page_span = search_page_span(&flat, alphabet_id);
-    let location = coords_from_phrase(&flat, alphabet_id, universe_seed);
-    if location.page + page_span > PAGES_PER_BOOK {
-        let room = PAGES_PER_BOOK - location.page;
-        return Err(LocateError::Message(format!(
-            "text needs {page_span} pages but only {room} remain in this book — try a shorter phrase"
-        )));
+    debug_assert!(page_span >= 1 && page_span <= PAGES_PER_BOOK);
+    let mut location = coords_from_phrase(&flat, alphabet_id, universe_seed);
+    // Clamp start so span fits. Full book → page 0; shorter multi-page → latest
+    // legal start that still leaves enough room (keeps some hash variety).
+    let max_start = PAGES_PER_BOOK - page_span;
+    if location.page > max_start {
+        location.page = max_start;
     }
     Ok(LocateResult {
         location,
