@@ -386,8 +386,7 @@ pre.page mark.search-hit {
 .about-body .alpha-family-select,
 .about-body .alpha-shift-btn,
 .about-body .alpha-lens-meta,
-.about-body .alpha-refs-h,
-.about-body .alpha-glyphs {
+.about-body .alpha-refs-h {
   font-family: var(--font);
 }
 .about-body h4:first-child { margin-top: 0; }
@@ -525,15 +524,36 @@ pre.page mark.search-hit {
 }
 .alpha-glyphs {
   display: flex; flex-wrap: wrap; gap: 0.3rem;
-  font-family: var(--font-page);
   font-size: 0.95rem; line-height: 1;
+  /* Default: UI mono. Complex scripts set data-script → matching Noto var. */
+  font-family: var(--font);
 }
+.alpha-glyphs[data-script="arabic"] { font-family: var(--font-arabic); }
+.alpha-glyphs[data-script="hebrew"] { font-family: var(--font-hebrew); }
+.alpha-glyphs[data-script="nko"] { font-family: var(--font-nko); }
+.alpha-glyphs[data-script="ethiopic"] { font-family: var(--font-ethiopic); }
+.alpha-glyphs[data-script="tifinagh"] { font-family: var(--font-tifinagh); }
+.alpha-glyphs[data-script="japanese"] { font-family: var(--font-japanese); }
+.alpha-glyphs[data-script="hangul"] { font-family: var(--font-hangul); }
+.alpha-glyphs[data-script="han"] { font-family: var(--font-han); }
+.alpha-glyphs[data-script="devanagari"] { font-family: var(--font-devanagari); }
+.alpha-glyphs[data-script="bengali"] { font-family: var(--font-bengali); }
+.alpha-glyphs[data-script="tamil"] { font-family: var(--font-tamil); }
+.alpha-glyphs[data-script="telugu"] { font-family: var(--font-telugu); }
+.alpha-glyphs[data-script="kannada"] { font-family: var(--font-kannada); }
+.alpha-glyphs[data-script="malayalam"] { font-family: var(--font-malayalam); }
+.alpha-glyphs[data-script="gujarati"] { font-family: var(--font-gujarati); }
+.alpha-glyphs[data-script="gurmukhi"] { font-family: var(--font-gurmukhi); }
+.alpha-glyphs[data-script="oriya"] { font-family: var(--font-oriya); }
+.alpha-glyphs[data-script="thai"] { font-family: var(--font-thai); }
+.alpha-glyphs[data-script="khmer"] { font-family: var(--font-khmer); }
 .alpha-glyph {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 1.65rem; height: 1.65rem; padding: 0 0.3rem;
   border: 1px solid var(--line); border-radius: 3px;
   background: color-mix(in oklab, var(--panel) 55%, var(--bg));
   color: var(--ink);
+  font-family: inherit;
 }
 .alpha-glyph.punct { color: var(--muted); }
 
