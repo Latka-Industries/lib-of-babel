@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic (Turkish + Azerbaijani / Kazakh / Uzbek / Turkmen / Kyrgyz), Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), CJK (Japanese kana / Korean Hangul / Simplified Chinese packs), Indic (Devanagari / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Gurmukhi / Odia), Mongolic (Mongolian Cyrillic), Southeast Asian (Filipino / Vietnamese / Thai / Khmer), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts (Arabic / Persian / N’Ko join; CJK uses subset JP/KR/SC faces; Indic / Thai / Khmer use subset Brahmic and SEA faces).
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic (Turkish + Azerbaijani / Kazakh / Uzbek / Turkmen / Kyrgyz), Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), CJK (Japanese kana / Korean Hangul / Simplified Chinese packs), Indic (Devanagari / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Gurmukhi / Odia), Mongolic (Mongolian Cyrillic), Southeast Asian (Filipino / Vietnamese / Thai / Khmer), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — *a new sort of translation*. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts (Arabic / Persian / N’Ko join; CJK uses subset JP/KR/SC faces; Indic / Thai / Khmer use subset Brahmic and SEA faces).
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -85,7 +85,7 @@ lib-of-babel/
 │   ├── main.js          boot + session restore (wires controls)
 │   ├── css/             app.css barrel · base · chrome · gallery · dialogs
 │   ├── js/              modules: constants · wasm · util · db · state · url · book · view · nav ·
-│   │                    about · controls · search · verify · theme · sigil · i18n · favicon · locales/
+│   │                    about · alphabet-picker · controls · search · verify · theme · sigil · i18n · favicon · locales/
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -170,7 +170,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Lato is used for About prose (UI chrome stays Overpass Mono).
 
-Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
+Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Book pages scale font to fit the 40×80 grid in the viewport. Header keeps brand + universe + alphabet + actions + theme (hamburger sheet ≤860px); the footer holds wanderings plus gallery `(z,n)` / hash / steps. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
 ## Roadmap (mirrored as Linear issues)
 
@@ -191,7 +191,7 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
-13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. Not translation.
+13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. *A new sort of translation.*
 14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active. ([THI-86](https://linear.app/thicclatka/issue/THI-86), [THI-118](https://linear.app/thicclatka/issue/THI-118))
 15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([THI-121](https://linear.app/thicclatka/issue/THI-121), [PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
 16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([THI-120](https://linear.app/thicclatka/issue/THI-120), [PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
@@ -202,10 +202,10 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets). ([THI-127](https://linear.app/thicclatka/issue/THI-127))
 22. ✅ **Alphabet lens picker popup** — header button + grouped dialog with current lens highlighted (replaces overflowing `<select>`). ([THI-128](https://linear.app/thicclatka/issue/THI-128))
 23. ✅ **Turkic / Mongolian / SE Asian lenses** — Azerbaijani / Kazakh / Uzbek / Kyrgyz / Turkmen, Mongolian Cyrillic, Filipino / Vietnamese / Thai / Khmer (Noto Thai/Khmer subsets). ([THI-129](https://linear.app/thicclatka/issue/THI-129))
+24. ✅ **UI: book page fit + chrome** — viewport-scaled pages; header = brand + controls (+ theme, mobile sheet); footer = wanderings + gallery/hash/steps; About prose → Lato. ([THI-131](https://linear.app/thicclatka/issue/THI-131), [PR #14](https://github.com/Latka-Industries/lib-of-babel/pull/14))
 
 **Next:**
 
-24. 🚧 **UI: book page fit + chrome** — page font scales to viewport; header = brand + controls (+ theme); room locus (gallery/hash/steps) + wanderings in the footer ([THI-131](https://linear.app/thicclatka/issue/THI-131)).
 25. 🚧 **Grapheme-cluster alphabet cells** — fix dotted-circle combining marks ([THI-130](https://linear.app/thicclatka/issue/THI-130)).
 26. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
 27. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
@@ -213,17 +213,8 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 
 **Later:**
 
-- **Living membrane** — persisted discovery log ("coral growth"), wear paths ([THI-75](https://linear.app/thicclatka/issue/THI-75)).
-- **Tessera export** — write the journey as a `.tes` document once Tessera ships ([THI-77](https://linear.app/thicclatka/issue/THI-77)).
 - **Generative audio** per gallery ([THI-84](https://linear.app/thicclatka/issue/THI-84)).
 - **Colour-mosaic search** — photo → alphabet mosaic → invert to book ([THI-117](https://linear.app/thicclatka/issue/THI-117)).
-
-Repo: <https://github.com/Latka-Industries/lib-of-babel>
-
-## Relation to sibling projects
-
-- **[Tessera](../tessera)** (`.tes`) — open document format; the planned home for exported journeys.
-- **Tetration** (`.tet`) — numeric tensors; optional, only if we want per-gallery float fingerprints.
 
 ## License
 
