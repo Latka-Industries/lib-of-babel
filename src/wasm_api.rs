@@ -86,6 +86,29 @@ pub fn default_alphabet() -> u32 {
 }
 
 #[wasm_bindgen]
+#[must_use]
+/// JSON array of Feistel cells for `alphabet_id` (unknown id → Basile).
+pub fn alphabet_symbols_json(alphabet_id: u32) -> String {
+    let cells = crate::config::alphabet(alphabet_id);
+    let mut s = String::from("[");
+    for (i, cell) in cells.iter().enumerate() {
+        if i > 0 {
+            s.push(',');
+        }
+        push_json_string(&mut s, cell);
+    }
+    s.push(']');
+    s
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Cell count for `alphabet_id` (unknown id → Basile).
+pub fn alphabet_len(alphabet_id: u32) -> u32 {
+    u32::try_from(crate::config::alphabet(alphabet_id).len()).unwrap_or(u32::MAX)
+}
+
+#[wasm_bindgen]
 /// Set the active universe seed for all subsequent generator calls.
 pub fn set_universe(universe_seed: u64) {
     universe::set_universe(universe_seed);

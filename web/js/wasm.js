@@ -15,6 +15,8 @@ export {
   max_title_len,
   generator_version,
   default_alphabet,
+  alphabet_symbols_json,
+  alphabet_len,
   set_universe,
   get_universe,
   universe_seed_for,
