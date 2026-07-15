@@ -18,7 +18,11 @@
 }
 .search-editor textarea {
   width: 100%;
-  font: inherit;
+  /* Keep size/line-height from chrome; family comes from `--font-page` (Noto for
+     Arabic/Hebrew/…). `font: inherit` would wipe the script cascade. */
+  font-family: var(--font-page);
+  font-size: inherit;
+  line-height: inherit;
   color: transparent;
   caret-color: var(--ink);
   background: transparent;
@@ -36,7 +40,8 @@
   position: absolute;
   inset: 0;
   padding: 0.5rem;
-  font: inherit;
+  font-family: var(--font-page);
+  font-size: inherit;
   line-height: inherit;
   color: var(--ink);
   background: var(--bg);
@@ -163,6 +168,8 @@ dialog::backdrop {
 pre.page {
   margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
   max-height: 56vh; overflow: auto; color: var(--page-ink); font-size: 13px;
+  font-family: var(--font-page);
+  unicode-bidi: plaintext;
 }
 pre.page mark.search-hit {
   background: color-mix(in oklab, var(--accent) 38%, transparent);
@@ -448,7 +455,7 @@ pre.page mark.search-hit {
 }
 .alpha-glyphs {
   display: flex; flex-wrap: wrap; gap: 0.3rem;
-  font-family: "Overpass Mono", ui-monospace, monospace;
+  font-family: var(--font-page);
   font-size: 0.95rem; line-height: 1;
 }
 .alpha-glyph {

@@ -1,6 +1,6 @@
 // DOM event wiring — header, dialogs, lenses, book nav, layout debug.
 
-import { WINDOW_MAX, fillAlphabetSelect } from "./constants.js";
+import { WINDOW_MAX, fillAlphabetSelect, syncAlphabetPresentation } from "./constants.js";
 import { t, setLocaleFromAlphabet } from "./i18n.js";
 import {
   el,
@@ -58,6 +58,7 @@ export function refreshLocaleChrome() {
   setLocaleFromAlphabet(S.alphabetId, { max: WINDOW_MAX });
   fillAlphabetSelect(el("alphabet"), S.alphabetId, t);
   syncLensControls();
+  syncAlphabetPresentation(S.alphabetId);
   renderAboutAlphabets();
   document.querySelectorAll("[data-window-max]").forEach((node) => {
     node.textContent = String(WINDOW_MAX);

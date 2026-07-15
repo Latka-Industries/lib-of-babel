@@ -188,11 +188,11 @@ pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImag
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{ALPHABET_BASILE_HASH_ID, ALPHABET_BASILE_ID, alphabet};
+    use crate::config::{ALPHABET_ID, alphabet};
 
     #[test]
     fn basile_hash_keeps_letters_off_the_punct_arc() {
-        let ab = alphabet(ALPHABET_BASILE_HASH_ID);
+        let ab = alphabet(ALPHABET_ID.basile_hash);
         let palette = build_glyph_palette(ab, 40.0, 0.15, 0.66);
         let a_idx = ab.iter().position(|&c| c == 'a').unwrap();
         let at_idx = ab.iter().position(|&c| c == '@').unwrap();
@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn modest_alphabets_still_equal_space_the_letter_wheel() {
-        let ab = alphabet(ALPHABET_BASILE_ID);
+        let ab = alphabet(ALPHABET_ID.basile);
         let letters: Vec<_> = ab
             .iter()
             .enumerate()

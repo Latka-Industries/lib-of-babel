@@ -21,6 +21,41 @@
   font-display: swap;
   src: url("../fonts/Literata-SemiBold.woff2") format("woff2");
 }
+@font-face {
+  font-family: "Noto Sans Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansArabic-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans Hebrew";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansHebrew-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans Ethiopic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansEthiopic-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans NKo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansNKo-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans Tifinagh";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansTifinagh-Regular.woff2") format("woff2");
+}
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -47,6 +82,13 @@
   --mm-fill: rgba(255, 255, 255, 0.025);
   --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  /* Script stacks for RTL / Ethiopic / Tifinagh pages & spines (Noto). */
+  --font-arabic: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-hebrew: "Noto Sans Hebrew", "Segoe UI", Tahoma, sans-serif;
+  --font-nko: "Noto Sans NKo", "Noto Sans Arabic", sans-serif;
+  --font-ethiopic: "Noto Sans Ethiopic", "Noto Sans", sans-serif;
+  --font-tifinagh: "Noto Sans Tifinagh", "Noto Sans", sans-serif;
+  --font-page: var(--font);
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
   /* Page: corner accent washes. Dialogs + stage cards: flat accent tint. */
   --atmosphere-page: 14%;
@@ -148,4 +190,19 @@ main,
 .footer {
   position: relative;
   z-index: 1;
+}
+
+/* Script cascades for alphabet lenses (Noto joins Arabic / N’Ko when dir=rtl). */
+html[data-script="arabic"] { --font-page: var(--font-arabic); }
+html[data-script="hebrew"] { --font-page: var(--font-hebrew); }
+html[data-script="nko"] { --font-page: var(--font-nko); }
+html[data-script="ethiopic"] { --font-page: var(--font-ethiopic); }
+html[data-script="tifinagh"] { --font-page: var(--font-tifinagh); }
+html[data-script="latin"],
+html:not([data-script]) { --font-page: var(--font); }
+
+.search-editor textarea,
+.search-backdrop,
+.alpha-glyph {
+  font-family: var(--font-page);
 }

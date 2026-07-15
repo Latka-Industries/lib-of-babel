@@ -219,6 +219,11 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.group.Basque": "Baskisch",
   "alphabet.group.Maltese": "Maltesisch",
   "alphabet.group.Caucasian": "Kaukasisch",
+  "alphabet.group.Semitic": "Semitisch",
+  "alphabet.group.West African": "Westafrikanisch",
+  "alphabet.group.Ethiopic": "Äthiopisch",
+  "alphabet.group.African Latin": "Afrikanisches Latein",
+  "alphabet.group.Berber": "Berberisch",
 
   "alphabet.blurb.Latin base":
     "Die Ausgangsalphabete des Projekts: Borges’ eingeschränkter lateinischer Satz aus der Erzählung von 1941 (a–v), Basiles Web-Bibliothek a–z, dann Basile++ / Basile# mit Ziffern und Satzzeichen.",
@@ -246,6 +251,16 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
     "Aus mittelalterlichem Sizilianisch-Arabisch auf Malta, später in Kontakt mit Italienisch und Englisch. Semitisch im Bau, aber mit lateinischem Alphabet (standardisiert 1924) und Zusatzbuchstaben für Konsonanten, die englisches a–z nicht schreibt.",
   "alphabet.blurb.Caucasian":
     "Armenische Buchstaben werden traditionell Mesrop Maschtoz (um 405) für volkssprachliche Schrift zugeschrieben; georgisches Mchedruli stammt aus der mittelalterlichen georgischen Literatursprache. Beides sind eigenständige Links-nach-rechts-Alphabete, weder Latein noch Kyrillisch.",
+  "alphabet.blurb.Semitic":
+    "Hebräisch, Arabisch und Persisch schreiben von rechts nach links. Buchstaben liegen als abstrakte Unicode-Zeichen; der Browser (mit Noto) formt arabische und persische Verbindungen. Hebräisch führt Schlussformen als eigene Glyphen.",
+  "alphabet.blurb.West African":
+    "N’Ko ist ein von rechts nach links laufendes Alphabet, 1949 von Solomana Kanté für Mandingsprachen geschaffen — eigenständige westafrikanische Schrift, weder Latein noch Arabisch.",
+  "alphabet.blurb.Ethiopic":
+    "Die Geʿez-/äthiopische Schrift ist eine Abugida: jedes Zeichen ist eine Konsonant–Vokal-Silbe. Amharisch nutzt ein großes Fidel-Inventar; diese Linse ist eine kuratierte Auswahl unter dem Feistel-Größenlimit.",
+  "alphabet.blurb.African Latin":
+    "Viele afrikanische Sprachen nutzen lateinische Orthographien aus Mission, Kolonialschule und späteren Reformen. Zusatzbuchstaben (ɓɗƙ, ẹọṣ, ịụ, …) markieren Laute, die einfaches a–z nicht schreibt. Swahili braucht oft keine Extras.",
+  "alphabet.blurb.Berber":
+    "Tifinagh (Neo-Tifinagh / IRCAM) ist das moderne offizielle Amazigh-Alphabet in Marokko, wiederbelebt aus älteren libysch-berberischen Zeichen. Geometrische Links-nach-rechts-Buchstaben, getrennt von Latein und Arabisch.",
 
   "alphabet.lensBlurb.25":
     "Aus Borges’ Erzählung von 1941: zweiundzwanzig Buchstaben (a–v) sowie Leerzeichen, Komma und Punkt — das Alphabet, das die Fiktion der Bibliothek zuweist.",

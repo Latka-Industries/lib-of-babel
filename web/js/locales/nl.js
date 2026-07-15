@@ -214,6 +214,11 @@ Handig als je een rug kent, geen pagina.
   "alphabet.group.Basque": "Baskisch",
   "alphabet.group.Maltese": "Maltees",
   "alphabet.group.Caucasian": "Kaukasisch",
+  "alphabet.group.Semitic": "Semitisch",
+  "alphabet.group.West African": "West-Afrikaans",
+  "alphabet.group.Ethiopic": "Ethiopisch",
+  "alphabet.group.African Latin": "Afrikaans Latijn",
+  "alphabet.group.Berber": "Berbers",
 
   "alphabet.blurb.Latin base":
     "De startalfabetten van het project: Borges’ beperkte Latijnse set uit het verhaal van 1941 (a–v), Basiles web-bibliotheek a–z, daarna Basile++ / Basile# met cijfers en leestekens.",
@@ -241,6 +246,16 @@ Handig als je een rug kent, geen pagina.
     "Ontwikkeld uit middeleeuws Siciliaans-Arabisch op Malta, later in contact met Italiaans en Engels. Semitisch van bouw, maar met een Latijns alfabet (gestandaardiseerd 1924) en extra letters voor medeklinkers die Engels a–z niet schrijft.",
   "alphabet.blurb.Caucasian":
     "Armeense letters worden traditioneel aan Mesrop Masjtots (c. 405) toegeschreven voor volkstaalschrift; Georgisch Mkhedruli komt uit de middeleeuwse Georgische literaire traditie. Beide zijn zelfstandige links-naar-rechts-alfabetten, noch Latijn noch Cyrillisch.",
+  "alphabet.blurb.Semitic":
+    "Hebreeuws, Arabisch en Perzisch schrijven van rechts naar links. Letters zijn abstracte Unicode-tekens; de browser (met Noto) vormt Arabische en Perzische verbindingen. Hebreeuws heeft finale lettervormen als aparte glyphs.",
+  "alphabet.blurb.West African":
+    "N’Ko is een rechts-naar-links-alfabet, in 1949 bedacht door Solomana Kanté voor Manding-talen — eigen West-Afrikaans schrift, geen Latijn of Arabisch.",
+  "alphabet.blurb.Ethiopic":
+    "Het Geʿez-/Ethiopische schrift is een abugida: elk teken is een medeklinker–klinker-lettergreep. Amhaars gebruikt een grote fidel-voorraad; deze lens is een gecureerde selectie onder de Feistel-limiet.",
+  "alphabet.blurb.African Latin":
+    "Veel Afrikaanse talen gebruiken Latijnse orthografieën uit missie, koloniale school en latere hervormingen. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) markeren klanken die gewoon a–z niet schrijft. Swahili heeft vaak geen extras nodig.",
+  "alphabet.blurb.Berber":
+    "Tifinagh (Neo-Tifinagh / IRCAM) is het moderne officiële Amazigh-alfabet in Marokko, herleefd uit oudere Libisch-Berberse tekens. Geometrische links-naar-rechts-letters, los van Latijn en Arabisch.",
 
   "alphabet.lensBlurb.25":
     "Uit Borges’ verhaal uit 1941: tweeëntwintig letters (a–v) plus spatie, komma en punt — het alfabet dat de fictie aan de Bibliotheek toekent.",

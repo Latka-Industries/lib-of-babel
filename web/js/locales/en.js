@@ -215,6 +215,11 @@ label, not a page of text.
   "alphabet.group.Basque": "Basque",
   "alphabet.group.Maltese": "Maltese",
   "alphabet.group.Caucasian": "Caucasian",
+  "alphabet.group.Semitic": "Semitic",
+  "alphabet.group.West African": "West African",
+  "alphabet.group.Ethiopic": "Ethiopic",
+  "alphabet.group.African Latin": "African Latin",
+  "alphabet.group.Berber": "Berber",
 
   "alphabet.blurb.Latin base":
     "The project’s starting alphabets: Borges’s restricted Latin set from the 1941 story (a–v), Basile’s web library a–z, then Basile++ / Basile# adding digits and punctuation.",
@@ -242,7 +247,16 @@ label, not a page of text.
     "Developed from medieval Siculo-Arabic on Malta, later in contact with Italian and English. It is Semitic in structure but uses a Latin alphabet (standardized 1924), with extra letters for consonants English a–z does not write.",
   "alphabet.blurb.Caucasian":
     "Armenian letters are traditionally ascribed to Mesrop Mashtots (c. 405) for vernacular scripture; Georgian Mkhedruli comes from medieval Georgian literary tradition. Both are independent left-to-right alphabets, not Latin or Cyrillic.",
-
+  "alphabet.blurb.Semitic":
+    "Hebrew, Arabic, and Persian write right-to-left. Letters are stored as abstract Unicode characters; the browser (with Noto) shapes joining forms for Arabic and Persian. Hebrew includes final letter forms as distinct glyphs.",
+  "alphabet.blurb.West African":
+    "N’Ko is a right-to-left alphabet invented in 1949 by Solomana Kanté for Manding languages. It is indigenous West African writing — not Latin or Arabic — still taught and printed across the region.",
+  "alphabet.blurb.Ethiopic":
+    "Geʿez (Ethiopic) script is an abugida: each character is a consonant–vowel syllable. Amharic, Ethiopia’s working language, uses a large fidel inventory; this lens is a curated set of common syllabographs under the Feistel size limit.",
+  "alphabet.blurb.African Latin":
+    "Many African languages use Latin orthographies shaped by missionaries, colonial schooling, and later national reforms. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) mark sounds plain a–z cannot write. Swahili often needs no extras beyond a–z.",
+  "alphabet.blurb.Berber":
+    "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
   // Per-lens blurbs (stable registry ids).
   "alphabet.lensBlurb.25":
     "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
@@ -324,4 +338,28 @@ label, not a page of text.
     "Mesrop Mashtots is traditionally credited with creating Armenian letters c. 405 so scripture and liturgy could be written in Armenian rather than only Greek or Syriac.",
   "alphabet.lensBlurb.68":
     "Mkhedruli is the modern Georgian letter forms used for ordinary writing. The alphabet is indigenous to Georgian, developed separately from Latin and Cyrillic.",
+  "alphabet.lensBlurb.30":
+    "Hebrew square script, right-to-left. Final forms (ך/ם/ן/ף/ץ) are separate glyphs — the usual printed inventory plus space, comma, and period.",
+  "alphabet.lensBlurb.69":
+    "Arabic abjad letters as abstract Unicode characters. Browser shaping (Noto Sans Arabic) joins them when the page is set right-to-left; hamza is included as a free glyph.",
+  "alphabet.lensBlurb.70":
+    "Persian (Farsi) extends Arabic with پ چ ژ گ. Same RTL joining behaviour as the Arabic lens; the Feistel key differs so shelves are a different projection.",
+  "alphabet.lensBlurb.71":
+    "N’Ko letters for Manding. Right-to-left and shaped by Noto Sans NKo — an African alphabet invented in the twentieth century, not a Latin transcription.",
+  "alphabet.lensBlurb.234":
+    "Amharic fidel: curated Geʿez syllabographs (common consonant–vowel orders). One character is one syllable cell — not Latin letters.",
+  "alphabet.lensBlurb.72":
+    "Kiswahili commonly writes with plain a–z. Same glyphs as Basile, different lens id — a parallel Feistel alphabet for the coastal lingua franca.",
+  "alphabet.lensBlurb.73":
+    "Afrikaans Latin orthography adds several vowel accents (ê/ë/ô/…) used in standard spelling.",
+  "alphabet.lensBlurb.74":
+    "Hausa Latin (Boko) includes hooked letters ɓ ɗ ƙ and ƴ for sounds English a–z does not write.",
+  "alphabet.lensBlurb.75":
+    "Yoruba Latin marks open vowels ẹ/ọ, ṣ, and common tone-bearing accented vowels without combining marks.",
+  "alphabet.lensBlurb.76":
+    "Igbo Latin includes dotted vowels ị ọ ụ and ñ from the Onwu orthography tradition.",
+  "alphabet.lensBlurb.77":
+    "Wolof Latin uses ë, ñ, and a few accented vowels from Senegalese school orthography.",
+  "alphabet.lensBlurb.78":
+    "Neo-Tifinagh (IRCAM range): left-to-right Amazigh letters. Distinct from both Arabic and Latin shelves.",
 };
