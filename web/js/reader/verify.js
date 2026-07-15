@@ -7,14 +7,15 @@
 //   - hallway/stair moves must actually connect consecutive coordinates.
 // Editing a hash, a coordinate, or a move is therefore detectable.
 
-import { neighbor, formatUniverseLabel, formatVerifyList, escapeHtml, el, openModal } from "./util.js";
-import { withUniverse, stepUniverse } from "./state.js";
+import { formatUniverseLabel, formatVerifyList, escapeHtml, el, openModal } from "../lib/util.js";
+import { neighbor } from "../lib/lattice.js";
+import { withUniverse, stepUniverse } from "../gallery/state.js";
 import {
   node_hash_hex,
   generator_version,
-} from "./wasm.js";
-import { alphabetShortLabel, formatAlphabetSymbolLabel } from "./constants.js";
-import { t } from "./i18n.js";
+} from "../lib/wasm.js";
+import { alphabetShortLabel, formatAlphabetSymbolLabel } from "../lib/constants.js";
+import { t } from "../lib/i18n.js";
 
 /**
  * Collect unique values from journey root + each trail step.
