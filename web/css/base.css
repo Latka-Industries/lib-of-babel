@@ -140,6 +140,20 @@
   font-display: swap;
   src: url("../fonts/NotoSansOriya-Regular.woff2") format("woff2");
 }
+@font-face {
+  font-family: "Noto Sans Thai";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansThai-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans Khmer";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansKhmer-Regular.woff2") format("woff2");
+}
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -185,6 +199,8 @@
   --font-gujarati: "Noto Sans Gujarati", var(--font-script-fallback);
   --font-gurmukhi: "Noto Sans Gurmukhi", var(--font-script-fallback);
   --font-oriya: "Noto Sans Oriya", var(--font-script-fallback);
+  --font-thai: "Noto Sans Thai", var(--font-script-fallback);
+  --font-khmer: "Noto Sans Khmer", var(--font-script-fallback);
   --font-page: var(--font);
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E");
   /* Page: corner accent washes. Dialogs + stage cards: flat accent tint. */
@@ -307,6 +323,8 @@ html[data-script="malayalam"] { --font-page: var(--font-malayalam); }
 html[data-script="gujarati"] { --font-page: var(--font-gujarati); }
 html[data-script="gurmukhi"] { --font-page: var(--font-gurmukhi); }
 html[data-script="oriya"] { --font-page: var(--font-oriya); }
+html[data-script="thai"] { --font-page: var(--font-thai); }
+html[data-script="khmer"] { --font-page: var(--font-khmer); }
 html[data-script="latin"],
 html:not([data-script]) { --font-page: var(--font); }
 

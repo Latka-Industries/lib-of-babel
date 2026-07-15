@@ -133,6 +133,26 @@ pub struct AlphabetIds {
     pub punjabi: u32,
     /// Odia — 63 glyphs; id `87` (count slot taken).
     pub odia: u32,
+    /// Azerbaijani — 35 glyphs; id `88` (count slot taken).
+    pub azerbaijani: u32,
+    /// Kazakh — 34 glyphs; id `89` (count slot taken).
+    pub kazakh: u32,
+    /// Uzbek — 30 glyphs; id `90` (count slot taken).
+    pub uzbek: u32,
+    /// Turkmen — 33 glyphs; id `91` (count slot taken).
+    pub turkmen: u32,
+    /// Kyrgyz — 39 glyphs; id `92` (count slot taken).
+    pub kyrgyz: u32,
+    /// Mongolian — 38 glyphs; id `93` (count slot taken).
+    pub mongolian: u32,
+    /// Filipino — 30 glyphs; id `94` (count slot taken).
+    pub filipino: u32,
+    /// Vietnamese — 96 glyphs; id `96`.
+    pub vietnamese: u32,
+    /// Thai — 73 glyphs; id `97` (count slot taken).
+    pub thai: u32,
+    /// Khmer — 80 glyphs; id `98` (count slot taken).
+    pub khmer: u32,
 }
 
 /// Built-in alphabet lens ids.
@@ -201,4 +221,14 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     gujarati: 85,
     punjabi: 86,
     odia: 87,
+    azerbaijani: 88,
+    kazakh: 89,
+    uzbek: 90,
+    turkmen: 91,
+    kyrgyz: 92,
+    mongolian: 93,
+    filipino: 94,
+    vietnamese: 96,
+    thai: 97,
+    khmer: 98,
 };
