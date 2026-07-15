@@ -113,7 +113,7 @@ function alphabetRefsHtml(refs, className) {
   );
 }
 
-function alphabetLensHtml({ id, native, symbols, uiLocale }) {
+function alphabetLensHtml({ id, native, symbols, uiLocale, script, lang }) {
   const glyphs = symbols
     .map((ch) => {
       const punct = isTrailPunct(ch);
@@ -134,6 +134,10 @@ function alphabetLensHtml({ id, native, symbols, uiLocale }) {
     blurb && blurb !== `alphabet.lensBlurb.${id}`
       ? `<p class="alpha-lens-blurb dim">${escapeHtml(blurb)}</p>`
       : "";
+  // Per-lens script/lang so combining marks use that Noto face, not the chrome mono
+  // stack (which paints Unicode dotted circles for Thai/Khmer/Indic clusters).
+  const scriptAttr = escapeHtml(script || "latin");
+  const langAttr = escapeHtml(lang || "en");
   return (
     `<article class="alpha-lens">` +
     `<div class="alpha-lens-head">` +
@@ -142,7 +146,7 @@ function alphabetLensHtml({ id, native, symbols, uiLocale }) {
     pack +
     `</div>` +
     blurbHtml +
-    `<div class="alpha-glyphs" aria-label="${escapeHtml(native)}">${glyphs}</div>` +
+    `<div class="alpha-glyphs" data-script="${scriptAttr}" lang="${langAttr}" aria-label="${escapeHtml(native)}">${glyphs}</div>` +
     `</article>`
   );
 }

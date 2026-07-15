@@ -827,6 +827,8 @@ export function listAlphabets() {
     native: e.native || e.name,
     group: e.group,
     uiLocale: e.uiLocale || null,
+    script: e.script || "latin",
+    lang: e.lang || e.short || "en",
     symbols: symbolsOf(e),
   }));
 }
