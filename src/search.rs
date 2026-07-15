@@ -6,6 +6,7 @@ use crate::config::{
     BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
     TITLE_LEN, alphabet,
 };
+use crate::search_segment::{count_cells, flatten_to_cells, text_to_cell_indices};
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -25,15 +26,15 @@ pub struct LocateResult {
     pub location: PageLocation,
     /// Number of consecutive pages occupied.
     pub page_span: u32,
-    /// Character count after normalization.
+    /// Cell count after normalization (alphabet symbols).
     pub char_count: usize,
 }
 
 /// Errors returned by [`locate_page`].
 #[derive(Debug, PartialEq, Clone)]
 pub enum LocateError {
-    /// One or more characters outside the selected alphabet (index + char).
-    InvalidChars(Vec<(usize, char)>),
+    /// One or more spans outside the selected alphabet (byte offset + sample).
+    InvalidChars(Vec<(usize, String)>),
     /// Empty phrase, over capacity, or insufficient pages remaining in the book.
     Message(String),
 }
@@ -42,7 +43,7 @@ pub enum LocateError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TitleLocateResult {
     pub location: PageLocation,
-    /// Character count after normalization.
+    /// Cell count after normalization.
     pub char_count: usize,
 }
 
@@ -131,10 +132,11 @@ fn search_start_offset(full_len: usize, full: &str) -> usize {
     }
 }
 
-/// How many consecutive pages a flat search phrase occupies.
+/// How many consecutive pages a flat search phrase occupies (cell count).
 #[must_use]
-pub fn search_page_span(full: &str) -> u32 {
-    let total = full.chars().count();
+pub fn search_page_span(full: &str, alphabet_id: u32) -> u32 {
+    let ab = alphabet(alphabet_id);
+    let total = count_cells(full, ab);
     if total == 0 {
         return 0;
     }
@@ -156,10 +158,15 @@ pub fn search_page_span(full: &str) -> u32 {
     pages.max(1)
 }
 
-/// One contiguous slice of a multi-page search hit: `(offset_on_page, char_start, char_len)`.
+/// One contiguous slice of a multi-page search hit: `(offset_on_page, cell_start, cell_len)`.
 #[must_use]
-pub fn search_page_segment(full: &str, page_in_span: u32) -> Option<(usize, usize, usize)> {
-    let total = full.chars().count();
+pub fn search_page_segment(
+    full: &str,
+    alphabet_id: u32,
+    page_in_span: u32,
+) -> Option<(usize, usize, usize)> {
+    let ab = alphabet(alphabet_id);
+    let total = count_cells(full, ab);
     if total == 0 {
         return None;
     }
@@ -191,40 +198,13 @@ pub fn search_page_segment(full: &str, page_in_span: u32) -> Option<(usize, usiz
 /// Returns an error if any character is outside the selected alphabet.
 pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> {
     let ab = alphabet(alphabet_id);
-    let mut out = Vec::with_capacity(PAGE_CONTENT_SYMBOLS);
-    for ch in text.chars() {
-        if ch == '\n' || ch == '\r' {
-            continue;
-        }
-        match ab.iter().position(|&c| c == ch) {
-            Some(i) => out.push(i as u8),
-            None => return Err(format!("invalid character '{ch}' for this alphabet")),
-        }
-    }
-    Ok(out)
+    text_to_cell_indices(text, ab)
+        .map_err(|(_, sample)| format!("invalid character '{sample}' for this alphabet"))
 }
 
 fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateError> {
     let ab = alphabet(alphabet_id);
-    let mut out = String::new();
-    let mut invalid = Vec::new();
-    for (i, ch) in text.chars().enumerate() {
-        if ch == '\n' || ch == '\r' {
-            continue;
-        }
-        if !ab.contains(&ch) {
-            invalid.push((i, ch));
-            continue;
-        }
-        if ch == ' ' && out.ends_with(' ') {
-            continue;
-        }
-        out.push(ch);
-    }
-    if !invalid.is_empty() {
-        return Err(LocateError::InvalidChars(invalid));
-    }
-    Ok(out.trim().to_string())
+    flatten_to_cells(text, ab).map_err(LocateError::InvalidChars)
 }
 
 /// Reverse lookup: phrase → coordinates in the given universe (may span pages).
@@ -245,13 +225,14 @@ pub fn locate_page(
     if flat.is_empty() {
         return Err(LocateError::Message("search text is empty".into()));
     }
-    let char_count = flat.chars().count();
+    let ab = alphabet(alphabet_id);
+    let char_count = count_cells(&flat, ab);
     if char_count > MAX_SEARCH_CHARS {
         return Err(LocateError::Message(format!(
             "text too long (max {MAX_SEARCH_CHARS} characters — one book)"
         )));
     }
-    let page_span = search_page_span(&flat);
+    let page_span = search_page_span(&flat, alphabet_id);
     let location = coords_from_phrase(&flat, alphabet_id, universe_seed);
     if location.page + page_span > PAGES_PER_BOOK {
         let room = PAGES_PER_BOOK - location.page;
@@ -271,7 +252,7 @@ pub fn locate_page(
 /// # Errors
 ///
 /// Same alphabet rules as [`locate_page`], with a maximum length of [`TITLE_LEN`]
-/// characters after normalization.
+/// cells after normalization.
 pub fn locate_title(
     text: &str,
     alphabet_id: u32,
@@ -282,7 +263,8 @@ pub fn locate_title(
     if flat.is_empty() {
         return Err(LocateError::Message("search text is empty".into()));
     }
-    let char_count = flat.chars().count();
+    let ab = alphabet(alphabet_id);
+    let char_count = count_cells(&flat, ab);
     if char_count > TITLE_LEN {
         return Err(LocateError::Message(format!(
             "title too long (max {TITLE_LEN} characters)"
@@ -326,7 +308,7 @@ pub fn json_string_literal(s: &str) -> String {
     out
 }
 
-/// Escape a character as a JSON string literal (for `invalid` arrays in WASM JSON).
-pub fn json_char_literal(c: char) -> String {
-    json_string_literal(&c.to_string())
+/// Escape a short invalid sample as a JSON string literal.
+pub fn json_char_literal(c: &str) -> String {
+    json_string_literal(c)
 }

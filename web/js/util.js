@@ -3,7 +3,7 @@
 import {
   I64_MIN,
   I64_MAX,
-  alphabetString,
+  alphabetCells,
   DEFAULT_ALPHABET_ID,
   LINES_PER_PAGE,
   CHARS_PER_LINE,
@@ -66,19 +66,66 @@ export function normalizeSearchQuery(text) {
   return text.toLowerCase();
 }
 
-/** Find characters outside the active alphabet. Returns `{ i, ch }` (UTF-16 string index). */
+/** Longest alphabet cell that is a prefix of `text` from `from`. */
+export function matchCellAt(cells, text, from) {
+  const rest = text.slice(from);
+  if (!rest) return null;
+  let best = null;
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    if (rest.startsWith(cell) && (!best || cell.length > best.cell.length)) {
+      best = { index: i, cell };
+    }
+  }
+  return best;
+}
+
+/** Segment text into registered alphabet cells (newlines skipped). */
+export function segmentText(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  const cells = alphabetCells(alphabetId);
+  const out = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === "\n" || ch === "\r") {
+      i += 1;
+      continue;
+    }
+    const m = matchCellAt(cells, text, i);
+    if (!m) {
+      const cp = String.fromCodePoint(text.codePointAt(i));
+      return { cells: out, invalidAt: i, sample: cp };
+    }
+    out.push(m.cell);
+    i += m.cell.length;
+  }
+  return { cells: out, invalidAt: -1, sample: null };
+}
+
+/** Find spans outside the active alphabet. Returns `{ i, ch }` (string index + sample). */
 export function validateSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
-  const allowed = new Set([...alphabetString(alphabetId)]);
+  const cells = alphabetCells(alphabetId);
   const invalid = [];
-  for (let i = 0; i < text.length; ) {
-    const ch = String.fromCodePoint(text.codePointAt(i));
-    if (ch !== "\n" && ch !== "\r" && !allowed.has(ch)) invalid.push({ i, ch });
-    i += ch.length;
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === "\n" || ch === "\r") {
+      i += 1;
+      continue;
+    }
+    const m = matchCellAt(cells, text, i);
+    if (!m) {
+      const sample = String.fromCodePoint(text.codePointAt(i));
+      invalid.push({ i, ch: sample });
+      i += sample.length;
+      continue;
+    }
+    i += m.cell.length;
   }
   return invalid;
 }
 
-/** Flatten search text for chunking — must match Rust flatten_search_text. */
+/** Flatten search text for chunking — must match Rust flatten_to_cells. */
 export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   const invalid = validateSearchQuery(text, alphabetId);
   if (invalid.length) {
@@ -86,12 +133,22 @@ export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
       `invalid character${invalid.length > 1 ? "s" : ""} for this alphabet`,
     );
   }
+  const cells = alphabetCells(alphabetId);
   let out = "";
-  for (let i = 0; i < text.length; i++) {
+  let i = 0;
+  while (i < text.length) {
     const ch = text[i];
-    if (ch === "\n" || ch === "\r") continue;
-    if (ch === " " && out.endsWith(" ")) continue;
-    out += ch;
+    if (ch === "\n" || ch === "\r") {
+      i += 1;
+      continue;
+    }
+    const m = matchCellAt(cells, text, i);
+    if (m.cell === " " && out.endsWith(" ")) {
+      i += m.cell.length;
+      continue;
+    }
+    out += m.cell;
+    i += m.cell.length;
   }
   return out.trim();
 }
@@ -99,14 +156,9 @@ export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
 // Space-pad to a full page (phrase at start) — used by notable-text find (THI-76).
 /** Pad a phrase to one page width with spaces (not used by main search embed). */
 export function padPageText(text, alphabetId = DEFAULT_ALPHABET_ID) {
-  const allowed = new Set([...alphabetString(alphabetId)]);
-  const symbols = [];
-  for (const ch of text) {
-    if (ch === "\n" || ch === "\r") continue;
-    if (!allowed.has(ch)) {
-      throw new Error(`invalid character '${ch}' for this alphabet`);
-    }
-    symbols.push(ch);
+  const { cells: symbols, invalidAt, sample } = segmentText(text, alphabetId);
+  if (invalidAt >= 0) {
+    throw new Error(`invalid character '${sample}' for this alphabet`);
   }
   if (symbols.length > PAGE_CONTENT_SYMBOLS) {
     throw new Error(`text too long (max ${PAGE_CONTENT_SYMBOLS} characters)`);

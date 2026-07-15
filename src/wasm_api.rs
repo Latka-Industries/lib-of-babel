@@ -20,7 +20,7 @@ fn locate_error_json(err: LocateError) -> String {
         LocateError::InvalidChars(list) => {
             let invalid_json: String = list
                 .iter()
-                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(*c)))
+                .map(|(i, c)| format!(r#"{{"i":{},"c":{}}}"#, i, json_char_literal(c)))
                 .collect::<Vec<_>>()
                 .join(",");
             format!(
@@ -190,17 +190,18 @@ pub fn page_text_for(
 #[wasm_bindgen]
 #[must_use]
 /// How many consecutive pages a normalized search phrase occupies.
-pub fn search_page_span_for(text: &str) -> u32 {
-    search_page_span(&normalize_query(text))
+pub fn search_page_span_for(text: &str, alphabet_id: u32) -> u32 {
+    search_page_span(&normalize_query(text), alphabet_id)
 }
 
 #[wasm_bindgen]
 #[must_use]
 /// Text slice embedded on page `page_in_span` of a multi-page search hit.
-pub fn search_page_embed_for(text: &str, page_in_span: u32) -> String {
+pub fn search_page_embed_for(text: &str, alphabet_id: u32, page_in_span: u32) -> String {
     let flat = normalize_query(text);
-    search_page_segment(&flat, page_in_span)
-        .map(|(_, start, len)| flat.chars().skip(start).take(len).collect())
+    let ab = crate::config::alphabet(alphabet_id);
+    search_page_segment(&flat, alphabet_id, page_in_span)
+        .map(|(_, start, len)| crate::search_segment::slice_cells(&flat, ab, start, len))
         .unwrap_or_default()
 }
 

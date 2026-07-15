@@ -102,8 +102,9 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
         && page >= hit_start
     {
         let page_in_span = page - hit_start;
-        if let Some((off, start, len)) = search_page_segment(full, page_in_span) {
-            let slice: String = full.chars().skip(start).take(len).collect();
+        if let Some((off, start, len)) = search_page_segment(full, alphabet_id, page_in_span) {
+            let ab = alphabet(alphabet_id);
+            let slice = crate::search_segment::slice_cells(full, ab, start, len);
             if let Ok(syms) = text_to_symbols(&slice, alphabet_id) {
                 state[off..off + len].copy_from_slice(&syms);
             }
@@ -112,12 +113,12 @@ pub fn page_symbols(req: &PageRender<'_>) -> [u8; PAGE_CONTENT_SYMBOLS] {
     state
 }
 
-fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[char]) -> String {
-    let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize);
+fn symbols_to_page_text(symbols: &[u8; PAGE_CONTENT_SYMBOLS], ab: &[&str]) -> String {
+    let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS * 4 + LINES_PER_PAGE as usize);
     for row in 0..LINES_PER_PAGE {
         for col in 0..CHARS_PER_LINE {
             let idx = (row * CHARS_PER_LINE + col) as usize;
-            out.push(ab[symbols[idx] as usize]);
+            out.push_str(ab[symbols[idx] as usize]);
         }
         out.push('\n');
     }
