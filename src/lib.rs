@@ -37,7 +37,9 @@ pub use wasm_api::*;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, alphabet};
+    use crate::config::{
+        BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_ALPHABET_LEN, alphabet,
+    };
     use crate::feistel::{
         feistel_decrypt, feistel_encrypt, feistel_key, pack_page_address, plaintext_from_address,
         unpack_page_address,
@@ -228,9 +230,10 @@ mod tests {
             assert!(ids.insert(def.id), "duplicate alphabet id {}", def.id);
             let n = def.symbols.len();
             assert!(
-                (1..=255).contains(&n),
-                "{} glyph count {n} outside Feistel 1..=255",
-                def.name
+                (1..=MAX_ALPHABET_LEN as usize).contains(&n),
+                "{} glyph count {n} outside Feistel 1..={}",
+                def.name,
+                MAX_ALPHABET_LEN
             );
             assert_eq!(alphabet(def.id).len(), n);
             assert_eq!(alphabet(def.id), def.symbols);
@@ -448,10 +451,10 @@ mod tests {
     }
 
     #[test]
-    fn feistel_round_trips_at_u8_max_modulus() {
-        // Chinese / clustered Indic fill all 255 Feistel slots — u8 add must not overflow.
+    fn feistel_round_trips_at_255() {
+        // Chinese / clustered Indic fill 255 slots — still a common inventory size.
         use crate::config::ALPHABET_ID;
-        let alpha_len = 255;
+        let alpha_len = 255u16;
         let key = feistel_key(ALPHABET_ID.chinese);
         let mut state = plaintext_from_address(1, 2, 3, 4, 5, alpha_len);
         let orig = state;
@@ -459,6 +462,19 @@ mod tests {
         assert_ne!(state, orig);
         feistel_decrypt(&mut state, key, alpha_len);
         assert_eq!(state, orig);
+    }
+
+    #[test]
+    fn feistel_round_trips_at_soft_cap() {
+        let alpha_len = MAX_ALPHABET_LEN;
+        let key = feistel_key(0xF001);
+        let mut state = plaintext_from_address(9, -1, 8, 3, 12, alpha_len);
+        let orig = state;
+        feistel_encrypt(&mut state, key, alpha_len);
+        assert_ne!(state, orig);
+        feistel_decrypt(&mut state, key, alpha_len);
+        assert_eq!(state, orig);
+        assert!(state.iter().all(|&s| s < alpha_len));
     }
 
     #[test]
@@ -622,6 +638,7 @@ mod tests {
 
     #[test]
     fn generator_version_is_frozen_in_tests() {
-        assert_eq!(GENERATOR_VERSION, 7);
+        assert_eq!(GENERATOR_VERSION, 8);
+        assert_eq!(MAX_ALPHABET_LEN, 4096);
     }
 }

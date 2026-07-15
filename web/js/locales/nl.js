@@ -269,7 +269,7 @@ Handig als je een rug kent, geen pagina.
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is het moderne officiële Amazigh-alfabet in Marokko, herleefd uit oudere Libisch-Berberse tekens. Geometrische links-naar-rechts-letters, los van Latijn en Arabisch.",
   "alphabet.blurb.CJK":
-    "Oost-Aziatische pagina’s onder het Feistel-limiet van 255 glyphs: Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
+    "Oost-Aziatische pagina’s onder het Feistel softcap (4096 cellen): Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
   "alphabet.blurb.Indic":
     "Brahmische abugida’s van India als Unicode-atomen (klinkers, medeklinkers, matras, virama/tekens) plus spatie, komma, punt. Feistel kan geen conjunct-tabellen; pagina’s zijn letterruis, geen spelling.",
   "alphabet.blurb.Mongolic":

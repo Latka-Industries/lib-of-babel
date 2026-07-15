@@ -25,7 +25,7 @@ pub fn match_cell_at(ab: &[&str], text: &str, from: usize) -> Option<(usize, usi
 ///
 /// On the first unmatched scalar, returns `Err` with the byte offset and a
 /// one-scalar sample of the invalid text.
-pub fn text_to_cell_indices(text: &str, ab: &[&str]) -> Result<Vec<u8>, (usize, String)> {
+pub fn text_to_cell_indices(text: &str, ab: &[&str]) -> Result<Vec<u16>, (usize, String)> {
     let mut out = Vec::new();
     let mut i = 0;
     let bytes = text.as_bytes();
@@ -38,7 +38,7 @@ pub fn text_to_cell_indices(text: &str, ab: &[&str]) -> Result<Vec<u8>, (usize, 
         }
         match match_cell_at(ab, text, i) {
             Some((idx, cell_len)) => {
-                out.push(idx as u8);
+                out.push(idx as u16);
                 i += cell_len;
             }
             None => {
