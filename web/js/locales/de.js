@@ -228,6 +228,8 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.group.Berber": "Berberisch",
   "alphabet.group.CJK": "CJK",
   "alphabet.group.Indic": "Indisch",
+  "alphabet.group.Mongolic": "Mongolisch",
+  "alphabet.group.Southeast Asian": "Südostasien",
 
   "alphabet.blurb.Latin base":
     "Die Ausgangsalphabete des Projekts: Borges’ eingeschränkter lateinischer Satz aus der Erzählung von 1941 (a–v), Basiles Web-Bibliothek a–z, dann Basile++ / Basile# mit Ziffern und Satzzeichen.",
@@ -238,7 +240,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.blurb.Uralic":
     "Eine nicht-indogermanische Wurzelfamilie: finnische Sprachen an der Ostsee, Ungarisch westwärts mit den Magyaren. Alle drei hier nutzen moderne lateinische Orthographien; Finnisch und Estnisch blieben eng verwandt, während Ungarisch früh abzweigte und ein größeres Vokalinventar hat.",
   "alphabet.blurb.Turkic":
-    "Osmanisches Türkisch nutzte jahrhundertelang arabische Schrift. 1928 übernahm die Republik ein lateinisches Alphabet, das türkische Vokale (einschließlich punktiertem/punktlosem i) direkter abbildet als die arabische Schreibung.",
+    "Turksprachen von Anatolien bis Zentralasien. Osmanisches Türkisch nutzte jahrhundertelang arabische Schrift bis zur lateinischen Reform 1928; sowjetische Latein- und Kyrillisch-Wellen folgten für Aserbaidschanisch, Kasachisch, Usbekisch, Turkmenisch und Kirgisisch. Dieses Regal mischt moderne lateinische und kyrillische Schulorthographien.",
   "alphabet.blurb.Hellenic":
     "Griechische Buchstaben seit der Antike. Diese Linse ist monotonisches Neugriechisch (amtlich ab 1982): ein Akzentzeichen statt des älteren polytonischen Systems, gleiches α–ω-Inventar plus Schluss-Sigma.",
   "alphabet.blurb.Slavic":
@@ -269,6 +271,10 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
     "Ostasiatische Seiten unter dem Feistel-Limit von 255 Glyphen: japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
   "alphabet.blurb.Indic":
     "Brahmische Abugidas Indiens als Unicode-Atome (Vokale, Konsonanten, Matras, Virama/Zeichen) plus Leerzeichen, Komma, Punkt. Feistel speichert keine Konjunkt-Tabellen; Seiten sind Buchstabenrauschen, keine Orthographie.",
+  "alphabet.blurb.Mongolic":
+    "Mongolische Sprachen der Steppe. Modernes Khalkha-Mongolisch in der Mongolei nutzt ein kyrillisches Alphabet mit ө und ү für vordere gerundete Vokale — dieselbe Zivilschriftfamilie wie Russisch, anderes Feistel-Inventar.",
+  "alphabet.blurb.Southeast Asian":
+    "Festland- und See-Südostasien: Filipino und Vietnamesisch in Latein (ñ; đ und Tonvokale), Thai und Khmer als brahmischstämmige Abugidas mit selbst gehosteten Noto-Schriften. Seiten sind Glyphenprojektionen, keine Silbenorthographie.",
 
   "alphabet.lensBlurb.25":
     "Aus Borges’ Erzählung von 1941: zweiundzwanzig Buchstaben (a–v) sowie Leerzeichen, Komma und Punkt — das Alphabet, das die Fiktion der Bibliothek zuweist.",
