@@ -133,6 +133,24 @@ dialog {
   max-width: min(1040px, 96vw);
   width: 96vw;
 }
+#bookModal {
+  /*
+    Wide enough for an 80-column page at the 13px font cap when the viewport
+    allows; otherwise fill 92vw and shrink the mono size to fit.
+  */
+  width: min(92vw, calc(13px * 80 + 3rem));
+  max-width: 92vw;
+  max-height: 96dvh;
+  container-type: inline-size;
+  container-name: book;
+}
+/* Only when open — bare `display: flex` defeats UA `dialog:not([open]){display:none}`. */
+#bookModal[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  --book-body-max-h: calc(96dvh - 7.75rem);
+}
 dialog::backdrop {
   background: var(--backdrop);
 }
@@ -144,6 +162,7 @@ dialog::backdrop {
   grid-template-areas: "text actions";
   align-items: center;
   gap: 0.75rem 1rem;
+  flex: 0 0 auto;
 }
 .book-head-text { grid-area: text; min-width: 0; }
 .book-head h3 { margin: 0; font-size: 0.95rem; }
@@ -166,8 +185,23 @@ dialog::backdrop {
 }
 .btn-icon svg { display: block; width: 100%; height: 100%; }
 pre.page {
-  margin: 0; padding: 1rem; white-space: pre-wrap; word-break: break-word;
-  max-height: 56vh; overflow: auto; color: var(--page-ink); font-size: 13px;
+  margin: 0;
+  padding: 1rem;
+  /* Exact Babel lines (80 cols) — no soft wrap; scale the face instead. */
+  white-space: pre;
+  overflow: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: var(--book-body-max-h, calc(96dvh - 7.75rem));
+  color: var(--page-ink);
+  /*
+    Fit 80 columns (width) and ~40 lines (height) when the viewport allows;
+    otherwise shrink down to the floor (very small screens may still scroll).
+  */
+  --page-fs-w: calc((100cqi - 2rem) / 80);
+  --page-fs-h: calc((96dvh - 8rem) / 54);
+  font-size: clamp(10px, min(var(--page-fs-w), var(--page-fs-h)), 13px);
+  line-height: 1.35;
   font-family: var(--font-page);
   unicode-bidi: plaintext;
 }
@@ -178,8 +212,17 @@ pre.page mark.search-hit {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
 }
 .page-canvas {
-  display: block; max-width: 100%; max-height: 56vh; height: auto;
-  margin: 0 auto; image-rendering: pixelated; background: var(--bg-deep);
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: var(--book-body-max-h, calc(96dvh - 7.75rem));
+  margin: 0 auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: var(--bg-deep);
 }
 .page-canvas[hidden] { display: none; }
 #imageModal { width: min(94vw, 1200px); }
@@ -194,6 +237,7 @@ pre.page mark.search-hit {
 .book-nav {
   display: flex; align-items: center; gap: 0.6rem;
   padding: 0.6rem 1rem; border-top: 1px solid var(--line);
+  flex: 0 0 auto;
 }
 .book-nav .page-turn {
   display: inline-flex;
@@ -327,6 +371,7 @@ pre.page mark.search-hit {
 .about-body {
   padding: 1rem 1.25rem; max-height: 74vh; overflow: auto;
   font-family: var(--font-prose);
+  font-variant-ligatures: none;
   font-size: 15px; line-height: 1.55;
 }
 .about-body p { margin: 0 0 0.85rem; }

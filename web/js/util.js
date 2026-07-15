@@ -56,7 +56,7 @@ export function truncateMiddle(value, { head = 4, tail = 3, minLen = 10 } = {}) 
   return `${s.slice(0, head)}…${s.slice(-tail)}`;
 }
 
-/** Gallery coordinate label for the header — middle-truncates each axis when long. */
+/** Gallery coordinate label for the footer — middle-truncates each axis when long. */
 export function formatCoordDisplay(z, n) {
   return `(${truncateMiddle(z)}, ${truncateMiddle(n)})`;
 }

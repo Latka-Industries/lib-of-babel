@@ -33,7 +33,7 @@ Canonical dimensions we honor:
 | **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, staircase = `z ± 1`. Four moves per gallery. |
 | **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
 | **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
-| **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The header shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
+| **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The footer shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
 | **Wanderings** | Bounded trail view (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. Click a step to restore that gallery and its lens. |
 | **Alphabet** | View lens (Borges / Basile / language presets; see About): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. German / Dutch lenses also switch site chrome locale. Symbols are Unicode `char`s. |
 | **Colour map** | Page + whole-book views map glyphs to OKLCH colours: letters on an accent-seeded hue wheel (min ~10° step), punct/digits on a muted opposite arc, space near-black. |
@@ -168,7 +168,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 **Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet registry id), `book`, `page`, and `q` (search phrase when opened via content search).
 
-Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Literata is used for About prose.
+Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Lato is used for About prose (UI chrome stays Overpass Mono).
 
 Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
@@ -205,9 +205,11 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 
 **Next:**
 
-24. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-25. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
-26. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
+24. 🚧 **UI: book page fit + chrome** — page font scales to viewport; header = brand + controls (+ theme); room locus (gallery/hash/steps) + wanderings in the footer ([THI-131](https://linear.app/thicclatka/issue/THI-131)).
+25. 🚧 **Grapheme-cluster alphabet cells** — fix dotted-circle combining marks ([THI-130](https://linear.app/thicclatka/issue/THI-130)).
+26. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+27. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
+28. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
 
 **Later:**
 
