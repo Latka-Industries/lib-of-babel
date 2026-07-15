@@ -196,6 +196,9 @@ function copyViaExecCommand(text) {
 
 /** Flash short copy feedback without wiping icon/label child structure. */
 function flashButtonLabel(btn, msg, ms) {
+  if (!btn || btn.nodeType !== 1) return;
+  // Never collapse a whole action row into plain text (delegation pitfall).
+  if (btn.matches?.(".find-actions") || btn.querySelector?.("[data-action]")) return;
   const label = btn.querySelector(".btn-label");
   if (label) {
     const prev = label.textContent;
@@ -468,10 +471,14 @@ export function findActionRow(actions) {
   return `<div class="find-row find-actions" style="margin-top:.5rem">${html}</div>`;
 }
 
-/** Delegate clicks on `.find-actions` buttons to handler map. */
+/** Delegate clicks on `.find-actions` buttons to handler map.
+ * Handlers receive `(event, button)` — use `button` for copy feedback, not
+ * `event.currentTarget` (that is the row under delegation). */
 export function wireFindActions(box, handlers) {
   box.querySelector(".find-actions")?.addEventListener("click", (e) => {
-    const id = e.target.closest("[data-action]")?.dataset.action;
-    handlers[id]?.(e);
+    const btn = e.target.closest("[data-action]");
+    const id = btn?.dataset.action;
+    if (!id || !handlers[id]) return;
+    handlers[id](e, btn);
   });
 }

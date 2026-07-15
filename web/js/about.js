@@ -6,7 +6,32 @@ import {
   isTrailPunct,
 } from "./constants.js";
 import { t } from "./i18n.js";
-import { el, escapeHtml } from "./util.js";
+import { el, escapeHtml, openModal } from "./util.js";
+
+/** localStorage: first-landing guide already shown (same pattern as theme). */
+export const SEEN_ABOUT_KEY = "lib-of-babel-seen-about";
+
+export function hasSeenAbout() {
+  try {
+    return localStorage.getItem(SEEN_ABOUT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markSeenAbout() {
+  try {
+    localStorage.setItem(SEEN_ABOUT_KEY, "1");
+  } catch {
+    /* private mode — still fine in-session */
+  }
+}
+
+/** Open the LIB·OF·BABEL guide (overview tab by default). */
+export function openAboutGuide({ tab = "aboutTab-overview", animate = false } = {}) {
+  selectAboutTab(tab, { animate });
+  openModal("aboutModal");
+}
 
 const ABOUT_TAB_RESIZE_MS = 220;
 /** @type {number} */

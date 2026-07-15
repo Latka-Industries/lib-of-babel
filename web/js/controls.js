@@ -47,7 +47,7 @@ import {
   runSearch,
 } from "./search.js";
 import {
-  selectAboutTab,
+  openAboutGuide,
   stepAboutTab,
   renderAboutAlphabets,
   wireAboutTabs,
@@ -160,10 +160,9 @@ export function wireControls() {
   refreshLocaleChrome();
   wireAboutTabs();
   wireHeaderMenu();
-  el("aboutBtn").addEventListener("click", withMenuClosed(() => {
-    selectAboutTab("aboutTab-overview", { animate: false });
-    openModal("aboutModal");
-  }));
+  const openGuide = withMenuClosed(() => openAboutGuide());
+  el("aboutBtn").addEventListener("click", openGuide);
+  el("helpBtn").addEventListener("click", openGuide);
   el("themeToggle").addEventListener("click", () => {
     toggleTheme();
     syncThemeToggle(t);
@@ -315,6 +314,13 @@ export function wireControls() {
   el("goPage").addEventListener("click", jumpPage);
 
   window.addEventListener("keydown", (e) => {
+    const tag = e.target?.tagName;
+    const typing =
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      e.target?.isContentEditable;
+
     // inside an open book, arrows turn pages instead of walking
     if (el("bookModal").open) {
       if (e.target === el("pageJump")) return;
@@ -340,6 +346,12 @@ export function wireControls() {
     }
     // any other open dialog owns the keyboard — don't walk underneath it
     if (document.querySelector("dialog[open]")) return;
+    // ? opens the guide (help)
+    if (!typing && e.key === "?") {
+      e.preventDefault();
+      openAboutGuide();
+      return;
+    }
     const map = { ArrowLeft: 0, ArrowRight: 1, ArrowUp: 2, ArrowDown: 3 };
     if (e.key in map) {
       e.preventDefault();

@@ -37,6 +37,8 @@ export const en = {
   "footer.hash": "hash",
   "footer.hashTitle": "click to copy this gallery's full hash",
   "footer.steps": "steps",
+  "footer.help": "- Help",
+  "footer.helpTitle": "Help — open the guide (?)",
 
   "common.close": "close",
   "common.go": "go",
@@ -88,7 +90,8 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
   "about.wander": `
 <h4>How to wander</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (header) opens this guide anytime.</li>
+<li><b>LIB·OF·BABEL</b> (header), footer <b>?&nbsp;-&nbsp;Help</b>, or <kbd>?</kbd> open this guide anytime.</li>
+<li>The header <b>theme</b> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
 <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
 <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
@@ -132,11 +135,12 @@ universe you are standing in. Invalid characters are highlighted in red.
 </p>
 <h4>Search by title</h4>
 <p class="dim">
-Same search dialog — choose <b>title</b> instead of <b>content</b>. Type a spine
-title (up to <b>24 characters</b>, same lens rules). The library finds the
-gallery and shelf where that title belongs under the active alphabet, embeds it
-on the canonical spine, and jumps you there. Useful when you remember a spine
-label, not a page of text.
+Same dialog — choose <b>title</b> instead of <b>content</b>. Enter up to
+<b>24 characters</b> (active lens rules). That string is treated as a
+<b>spine label</b>: the library jumps to the gallery and shelf where that
+title sits under the current alphabet, shows it on that book’s spine, and
+opens page&nbsp;1. Use this to place a short title on a shelf; use
+<b>content</b> when you care about the text inside a volume.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -204,7 +208,7 @@ label, not a page of text.
   "book.pageInd": "page {page} / {total}",
   "book.pagePlaceholder": "page",
   "book.wall": "Wall {n}",
-  "book.wallBook": "Wall {n} · book {book} · {title}",
+  "book.wallBook": "Wall {n} · book {book}",
 
   "image.save": "save png",
   "image.saveTitle": "save this whole-book color map as a PNG",
