@@ -290,6 +290,51 @@ pub const ALPHABET_REGISTRY: &[AlphabetDef] = &[
         name: "Chinese",
         symbols: ALPHABET_TABLE.chinese,
     },
+    AlphabetDef {
+        id: ALPHABET_ID.hindi,
+        name: "Hindi",
+        symbols: ALPHABET_TABLE.hindi,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.bengali,
+        name: "Bengali",
+        symbols: ALPHABET_TABLE.bengali,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.tamil,
+        name: "Tamil",
+        symbols: ALPHABET_TABLE.tamil,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.telugu,
+        name: "Telugu",
+        symbols: ALPHABET_TABLE.telugu,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.kannada,
+        name: "Kannada",
+        symbols: ALPHABET_TABLE.kannada,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.malayalam,
+        name: "Malayalam",
+        symbols: ALPHABET_TABLE.malayalam,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.gujarati,
+        name: "Gujarati",
+        symbols: ALPHABET_TABLE.gujarati,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.punjabi,
+        name: "Punjabi",
+        symbols: ALPHABET_TABLE.punjabi,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.odia,
+        name: "Odia",
+        symbols: ALPHABET_TABLE.odia,
+    },
 ];
 
 /// Built-in lenses. Unknown ids fall back to Basile (legacy `alphabet()` behavior).

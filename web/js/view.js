@@ -134,7 +134,7 @@ export function render() {
         .filter((ch) => /\p{L}|\p{N}/u.test(ch))
         .slice(0, spineBudget)
         .join("");
-      // Case fold only Latin-ish spines — RTL / fidel / Tifinagh / CJK stay as generated.
+      // Case fold only Latin-ish spines — RTL / fidel / Tifinagh / CJK / Indic stay as generated.
       if (script === "latin" || !script) stub = stub.toLocaleUpperCase();
       book.textContent = stub;
       if (alphabetIsRtl(S.alphabetId)) book.dir = "rtl";
