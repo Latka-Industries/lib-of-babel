@@ -275,6 +275,21 @@ pub const ALPHABET_REGISTRY: &[AlphabetDef] = &[
         name: "Tifinagh",
         symbols: ALPHABET_TABLE.tifinagh,
     },
+    AlphabetDef {
+        id: ALPHABET_ID.japanese,
+        name: "Japanese",
+        symbols: ALPHABET_TABLE.japanese,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.korean,
+        name: "Korean",
+        symbols: ALPHABET_TABLE.korean,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.chinese,
+        name: "Chinese",
+        symbols: ALPHABET_TABLE.chinese,
+    },
 ];
 
 /// Built-in lenses. Unknown ids fall back to Basile (legacy `alphabet()` behavior).

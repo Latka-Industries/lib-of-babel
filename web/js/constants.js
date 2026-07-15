@@ -35,6 +35,19 @@ const BASILE_PLUS_EXTRAS = `?!'"-:;()0123456789`;
 /** Email/URL staples layered on Basile++. */
 const BASILE_HASH_EXTRAS = `${BASILE_PLUS_EXTRAS}@<>/_+[]#%&=`;
 
+/** Hiragana gojūon (ゐ/ゑ omitted); katakāna is +0x60 — keep in sync with Rust `kana_gojuon!`. */
+const HIRAGANA_GOJUON =
+  "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+
+function katakānaFromHiragana(hira) {
+  return [...hira]
+    .map((ch) => String.fromCodePoint(ch.codePointAt(0) + 0x60))
+    .join("");
+}
+
+const JAPANESE_SYMBOLS =
+  HIRAGANA_GOJUON + katakānaFromHiragana(HIRAGANA_GOJUON) + PUNCT;
+
 /**
  * Single registry mirroring `src/config/` (`ALPHABET_ID` + `ALPHABET_TABLE`).
  * `stem`: "av" (Borges) or "az"; `extras` appended before punctuation.
@@ -480,6 +493,39 @@ export const ALPHABET_REGISTRY = [
     script: "tifinagh",
     symbols: "ⴰⴱⴲⴳⴴⴵⴶⴷⴸⴹⴺⴻⴼⴽⴾⴿⵀⵁⵂⵃⵄⵅⵆⵇⵈⵉⵊⵋⵌⵍⵎⵏⵐⵑⵒⵓⵔⵕⵖⵗⵘⵙⵚⵛⵜⵝⵞⵟⵠⵡⵢⵣⵤⵥ ,.",
   },
+  {
+    id: 95,
+    name: "Japanese",
+    native: "日本語",
+    short: "ja",
+    group: "CJK",
+    rtl: false,
+    script: "japanese",
+    lang: "ja",
+    symbols: JAPANESE_SYMBOLS,
+  },
+  {
+    id: 250,
+    name: "Korean",
+    native: "한국어",
+    short: "ko",
+    group: "CJK",
+    rtl: false,
+    script: "hangul",
+    lang: "ko",
+    symbols: '이요어아가그지는다고하에을니있리게거나야해은도기서한내사들말자를로안만네마라의제신우시여일수면데보없래알무당전대저스오할했것건정죠으었난모너좋생인세겠까러않주구같상람려았장걸부때미와금습렇런진더좀소든각왜잘간실돼문못뭐드바예죽잖히누되분음위두날르비럼군봐님테디슨랑원치적워버물중찮괜직계조엄린터동번떻싶줄방냥과선녀남른필빠트얘냐살집입화명발속운단찾친심맞넌합왔처크됐애약작감던레경차유잠돌늘많머식관피얼연결갈길행될릴줘타영새프파녕희언몰놈된공져짜올받절근름술씨먹긴확응루체혼개온겁불성카곳달봤통 ,.',
+  },
+  {
+    id: 255,
+    name: "Chinese",
+    native: "中文",
+    short: "zh",
+    group: "CJK",
+    rtl: false,
+    script: "han",
+    lang: "zh-Hans",
+    symbols: '的一是不了在人有我他这个们中来上大为和国地到以说时要就出会可也你对生能而子那得于着下自之年过发后作里用道行所然家种事成方多经么去法学如都同现当没动面起看定天分还进好小部其些主样理心她本前开但因只从想实日军者意无力它与长把机十民第公此已工使情明性知全三又关点正业外将两高间由问很最重并物手应战向头文体政美相见被利什二等产或新己制身果加西斯月话合回特代内信表化老给世位次度门任常先海通教儿原东声提立及比员解水名真论处走义各入几口认条平系气题活尔更别打女变四神总何电数安少报才结反受目太量再感建务做接必场件计管 ,.',
+  },
 ];
 
 function stemLetters(stem) {
@@ -521,7 +567,7 @@ export function alphabetIsRtl(alphabetId = DEFAULT_ALPHABET_ID) {
   return !!alphabetEntry(alphabetId).rtl;
 }
 
-/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh. */
+/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh | japanese | hangul | han. */
 export function alphabetScript(alphabetId = DEFAULT_ALPHABET_ID) {
   return alphabetEntry(alphabetId).script || "latin";
 }
@@ -755,6 +801,24 @@ export const ALPHABET_FAMILY_REFS = {
     {
       href: "https://en.wikipedia.org/wiki/Tifinagh",
       title: "Tifinagh",
+    },
+  ],
+  CJK: [
+    {
+      href: "https://en.wikipedia.org/wiki/Kana",
+      title: "Kana",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Hangul",
+      title: "Hangul",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Simplified_Chinese_characters",
+      title: "Simplified Chinese characters",
+    },
+    {
+      href: "https://lingua.mtsu.edu/chinese-computing/statistics/char/list.php?Which=MO",
+      title: "Jun Da Chinese character frequency (modern)",
     },
   ],
 };
