@@ -172,49 +172,14 @@ Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alph
 
 Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Book pages scale font to fit the 40×80 grid in the viewport. Header keeps brand + universe + alphabet + actions + theme (hamburger sheet ≤860px); the footer holds wanderings plus gallery `(z,n)` / hash / steps. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
-## Roadmap
+## To Do
 
-**Shipped (v1):**
-
-1. ✅ **Generator core (Rust→WASM)** — `(z,n)` → gallery seed → 700 book spines; lazy book text; node hash; frozen `generator_version`.
-2. ✅ **The walk** — 4 walls / shelves / color-coded spines, four move controls, keyboard nav, random start.
-3. ✅ **Open a book** — lazily generated 410-page text with prev/next/jump paging; "borrow book" `.txt` download.
-4. ✅ **Wanderings + export** — last-500 popup (newest-first; universe + alphabet columns), append-on-step trail in IndexedDB, JSON export.
-5. ✅ **Orientation + sharing** — hexagon minimap previewing each exit's hash; URL permalinks for a gallery and an open book/page; copy-link and copy-hash.
-6. ✅ **Alphabets (base)** — Borges / Basile plus early European language lenses; carried in permalinks (`&a=`) and exports.
-
-**v2 — the multiverse:**
-
-7. ✅ **BLAKE3 fingerprint** — `node_hash` is now BLAKE3-256 over the canonical book identities; 64-bit prefix shown, full 256-bit exposed for proofs.
-8. ✅ **Multiverse** — named `universe` seed as the outermost axis → infinitely many parallel libraries; permalinks (`&u=`), export, persistence.
-9. ✅ **Journey verifier** — import an exported path, re-walk it in WASM, and prove every hash (rejects tampering, wrong universe/alphabet lens, or wrong `generator_version`).
-10. ✅ **Per-gallery sigil** — a generative emblem (irregular star-polygon glyph) drawn deterministically from the gallery hash; shown in the "you are here" panel, click to download the SVG.
-11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
-12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
-13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. *A new sort of translation.*
-14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active.
-15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
-16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
-17. ✅ **Frontend modularization** — CSS + JS split; `main.js` boot-only. ([PR #6](https://github.com/Latka-Industries/lib-of-babel/pull/6))
-18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
-19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh.
-20. ✅ **CJK / Hangul lenses** — Japanese kana gojūon, curated Hangul syllables, Simplified Chinese frequent-char pack (≤255 glyphs each; Noto JP/KR/SC subsets).
-21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets).
-22. ✅ **Alphabet lens picker popup** — header button + grouped dialog with current lens highlighted (replaces overflowing `<select>`).
-23. ✅ **Turkic / Mongolian / SE Asian lenses** — Azerbaijani / Kazakh / Uzbek / Kyrgyz / Turkmen, Mongolian Cyrillic, Filipino / Vietnamese / Thai / Khmer (Noto Thai/Khmer subsets).
-24. ✅ **UI: book page fit + chrome** — viewport-scaled pages; header = brand + controls (+ theme, mobile sheet); footer = wanderings + gallery/hash/steps; About prose → Lato. ([PR #14](https://github.com/Latka-Industries/lib-of-babel/pull/14))
-
-**Next:**
-
-25. 🚧 **Grapheme-cluster alphabet cells** — fix dotted-circle combining marks.
-26. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens.
-27. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry.
-28. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL.
-
-**Later:**
-
-- **Generative audio** per gallery.
-- **Colour-mosaic search** — photo → alphabet mosaic → invert to book.
+- [ ] Grapheme-cluster alphabet cells — fix dotted-circle combining marks
+- [ ] Punct mode axis — optional punctuation richness as a second axis on every language lens
+- [ ] Custom alphabet picker — user-defined glyph sets beyond the built-in registry
+- [ ] More UI locale packs — es/fr/… beyond DE/NL
+- [ ] Generative audio per gallery
+- [ ] Colour-mosaic search — photo → alphabet mosaic → invert to book
 
 ## License
 
