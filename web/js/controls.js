@@ -1,6 +1,6 @@
 // DOM event wiring — header, dialogs, lenses, book nav, layout debug.
 
-import { WINDOW_MAX, fillAlphabetSelect, syncAlphabetPresentation } from "./constants.js";
+import { WINDOW_MAX, syncAlphabetPresentation } from "./constants.js";
 import { t, setLocaleFromAlphabet } from "./i18n.js";
 import {
   el,
@@ -52,11 +52,20 @@ import {
   renderAboutAlphabets,
   wireAboutTabs,
 } from "./about.js";
+import {
+  syncAlphabetPickerLabel,
+  renderAlphabetPicker,
+  wireAlphabetPicker,
+  ensureKnownAlphabetId,
+} from "./alphabet-picker.js";
 import { toggleTheme, syncThemeToggle } from "./theme.js";
 
 export function refreshLocaleChrome() {
   setLocaleFromAlphabet(S.alphabetId, { max: WINDOW_MAX });
-  fillAlphabetSelect(el("alphabet"), S.alphabetId, t);
+  const id = ensureKnownAlphabetId(S.alphabetId);
+  if (id !== S.alphabetId) S.alphabetId = id;
+  syncAlphabetPickerLabel(S.alphabetId);
+  renderAlphabetPicker(S.alphabetId);
   syncLensControls();
   syncAlphabetPresentation(S.alphabetId);
   renderAboutAlphabets();
@@ -76,6 +85,7 @@ export function refreshLocaleChrome() {
 export function wireControls() {
   wireModalCloses([
     ["closeAbout", "aboutModal"],
+    ["closeAlphabet", "alphabetModal"],
     ["closeJump", "jumpModal"],
     ["closeHistory", "historyModal"],
     ["closeSearch", "searchModal"],
@@ -182,11 +192,15 @@ export function wireControls() {
 
   // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
   // UI locale follows German / Dutch (and English for everything else, for now).
-  el("alphabet").addEventListener("change", (ev) => {
-    freezeTrailLenses();
-    S.alphabetId = Number(ev.target.value);
-    afterLensChange("keep");
-  });
+  wireAlphabetPicker(
+    () => S.alphabetId,
+    (id) => {
+      if (id === S.alphabetId) return;
+      freezeTrailLenses();
+      S.alphabetId = id;
+      afterLensChange("keep");
+    },
+  );
 
   // Universe switch: same coords, new library; trail kept across universes.
   const enterUniverse = (name) => {

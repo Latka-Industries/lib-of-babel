@@ -3,7 +3,7 @@
 // same state; ES module bindings can't be reassigned across files, but object
 // properties can.
 
-import { WINDOW_MAX, DEFAULT_ALPHABET_ID } from "./constants.js";
+import { WINDOW_MAX, DEFAULT_ALPHABET_ID, ALPHABET_REGISTRY } from "./constants.js";
 import { kvSet } from "./db.js";
 import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "./wasm.js";
 
@@ -165,19 +165,22 @@ export function freezeTrailLenses() {
   });
 }
 
-/** Mirror live `S` into the header universe/alphabet controls. */
+/** Mirror live `S` into the header universe control (alphabet button synced via picker). */
 export function syncLensControls() {
   const uni = document.getElementById("universe");
-  const alpha = document.getElementById("alphabet");
   if (uni) uni.value = S.universeName;
-  if (alpha) {
-    const want = String(S.alphabetId);
-    alpha.value = want;
-    // Unknown / missing option → blank select; fall back to Basile default.
-    if (alpha.value !== want) {
-      S.alphabetId = DEFAULT_ALPHABET_ID;
-      alpha.value = String(DEFAULT_ALPHABET_ID);
-    }
+  if (!ALPHABET_REGISTRY.some((e) => e.id === S.alphabetId)) {
+    S.alphabetId = DEFAULT_ALPHABET_ID;
+  }
+  const label = document.getElementById("alphabetBtnLabel");
+  const btn = document.getElementById("alphabetBtn");
+  if (label || btn) {
+    const entry =
+      ALPHABET_REGISTRY.find((e) => e.id === S.alphabetId) ||
+      ALPHABET_REGISTRY.find((e) => e.id === DEFAULT_ALPHABET_ID);
+    const text = `${entry.short} · ${entry.native || entry.name}`;
+    if (label) label.textContent = text;
+    else if (btn) btn.textContent = text;
   }
 }
 

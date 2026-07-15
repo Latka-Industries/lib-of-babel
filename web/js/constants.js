@@ -940,7 +940,7 @@ export function alphabetFamilyRefs(group) {
   return ALPHABET_FAMILY_REFS[group] || [];
 }
 
-/** Populate `#alphabet` from the registry (optgroups by `group`). */
+/** @deprecated Header uses the alphabet picker dialog; kept for any stray callers. */
 export function fillAlphabetSelect(select, selectedId = DEFAULT_ALPHABET_ID, t = (k) => k) {
   if (!select) return;
   const want = String(selectedId);
@@ -956,7 +956,6 @@ export function fillAlphabetSelect(select, selectedId = DEFAULT_ALPHABET_ID, t =
     }
     const opt = document.createElement("option");
     opt.value = String(entry.id);
-    // Endonym always — not the current UI locale's word for that language.
     opt.textContent = `${entry.short} · ${entry.native || entry.name}`;
     og.appendChild(opt);
   }
