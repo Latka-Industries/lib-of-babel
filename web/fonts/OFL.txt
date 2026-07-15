@@ -1,8 +1,8 @@
 Copyright 2021 The Overpass Project Authors (https://github.com/RedHatOfficial/Overpass)
-Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)
+Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name "Lato"
 Copyright 2022 The Noto Project Authors (https://github.com/notofonts/noto-fonts)
 
-Bundled here: Overpass Mono, Literata, Noto Sans Arabic, Noto Sans Hebrew,
+Bundled here: Overpass Mono, Lato, Noto Sans Arabic, Noto Sans Hebrew,
 Noto Sans Ethiopic, Noto Sans NKo, Noto Sans Tifinagh, Noto Sans JP,
 Noto Sans KR, Noto Sans SC, Noto Sans Devanagari / Bengali / Tamil / Telugu /
 Kannada / Malayalam / Gujarati / Gurmukhi / Oriya / Thai / Khmer (400/regular
