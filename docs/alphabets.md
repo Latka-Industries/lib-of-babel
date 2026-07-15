@@ -23,7 +23,7 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 | Caucasian | Georgian | ქართული | 68 | 36 | ka | — |
 | Celtic | Irish | Gaeilge | 65 | 34 | ga | — |
 | Celtic | Welsh | Cymraeg | 64 | 36 | cy | — |
-| CJK | Chinese | 中文 | 255 | 255 | zh | — |
+| CJK | Chinese | 中文 | 255 | 1000 | zh | — |
 | CJK | Japanese | 日本語 | 95 | 95 | ja | — |
 | CJK | Korean | 한국어 | 250 | 250 | ko | — |
 | Ethiopic | Amharic | አማርኛ | 234 | 234 | am | — |
