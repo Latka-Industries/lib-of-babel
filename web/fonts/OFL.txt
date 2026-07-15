@@ -5,8 +5,8 @@ Copyright 2022 The Noto Project Authors (https://github.com/notofonts/noto-fonts
 Bundled here: Overpass Mono, Literata, Noto Sans Arabic, Noto Sans Hebrew,
 Noto Sans Ethiopic, Noto Sans NKo, Noto Sans Tifinagh, Noto Sans JP,
 Noto Sans KR, Noto Sans SC, Noto Sans Devanagari / Bengali / Tamil / Telugu /
-Kannada / Malayalam / Gujarati / Gurmukhi / Oriya (400/regular faces;
-CJK and Indic faces subset to lens glyphs).
+Kannada / Malayalam / Gujarati / Gurmukhi / Oriya / Thai / Khmer (400/regular
+faces; CJK, Indic, Thai, and Khmer faces subset to lens glyphs).
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

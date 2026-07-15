@@ -223,6 +223,8 @@ Handig als je een rug kent, geen pagina.
   "alphabet.group.Berber": "Berbers",
   "alphabet.group.CJK": "CJK",
   "alphabet.group.Indic": "Indisch",
+  "alphabet.group.Mongolic": "Mongools",
+  "alphabet.group.Southeast Asian": "Zuidoost-Azië",
 
   "alphabet.blurb.Latin base":
     "De startalfabetten van het project: Borges’ beperkte Latijnse set uit het verhaal van 1941 (a–v), Basiles web-bibliotheek a–z, daarna Basile++ / Basile# met cijfers en leestekens.",
@@ -233,7 +235,7 @@ Handig als je een rug kent, geen pagina.
   "alphabet.blurb.Uralic":
     "Een niet-Indo-Europese wortelfamilie: Finseltalen rond de Oostzee, Hongaars westwaarts met de Magyaren. Alle drie hier gebruiken moderne Latijnse orthografieën; Fins en Estisch bleven nauw verwant, terwijl Hongaars vroeg vertakte en een grotere klinkervoorrad heeft.",
   "alphabet.blurb.Turkic":
-    "Ottomaans Turks gebruikte eeuwenlang Arabisch schrift. In 1928 nam de Republiek een Latijns alfabet aan dat Turkse klinkers (inclusief gepunte/ongepuite i) directer volgt dan Arabische spelling deed.",
+    "Turkse talen van Anatolië tot Centraal-Azië. Ottomaans Turks gebruikte eeuwenlang Arabisch schrift tot de Latijnse hervorming van 1928; Sovjet-tijdperk Latijnse en Cyrillische golven volgden voor Azerbeidzjaans, Kazachs, Oezbeeks, Turkmeens en Kirgizisch. Deze plank mengt moderne Latijnse en Cyrillische schoolorthografieën.",
   "alphabet.blurb.Hellenic":
     "Griekse letters lopen door vanaf de oudheid. Deze lens is monotoon modern Grieks (officieel vanaf 1982): één accentteken in plaats van het oudere polytonische systeem, met dezelfde α–ω-voorraad plus eind-sigma.",
   "alphabet.blurb.Slavic":
@@ -264,6 +266,10 @@ Handig als je een rug kent, geen pagina.
     "Oost-Aziatische pagina’s onder het Feistel-limiet van 255 glyphs: Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
   "alphabet.blurb.Indic":
     "Brahmische abugida’s van India als Unicode-atomen (klinkers, medeklinkers, matras, virama/tekens) plus spatie, komma, punt. Feistel kan geen conjunct-tabellen; pagina’s zijn letterruis, geen spelling.",
+  "alphabet.blurb.Mongolic":
+    "Mongoolse talen van de steppe. Modern Khalkha-Mongools in Mongolië gebruikt een Cyrillisch alfabet met ө en ү voor voorste geronde klinkers — dezelfde civiele-schriftfamilie als Russisch, andere Feistel-voorraad.",
+  "alphabet.blurb.Southeast Asian":
+    "Vasteland- en maritiem Zuidoost-Azië: Filipino en Vietnamees in Latijn (ñ; đ en toonklinkers), Thai en Khmer als Brahmisch-afstammende abugida’s met zelfgehoste Noto-fonts. Pagina’s zijn glyfprojecties, geen lettergreeporthografie.",
 
   "alphabet.lensBlurb.25":
     "Uit Borges’ verhaal uit 1941: tweeëntwintig letters (a–v) plus spatie, komma en punt — het alfabet dat de fictie aan de Bibliotheek toekent.",
