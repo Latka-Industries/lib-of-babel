@@ -423,7 +423,7 @@ label, not a page of text.
   "alphabet.lensBlurb.96":
     "Vietnamese Latin: a–z, đ, and precomposed tone vowels (no combining marks).",
   "alphabet.lensBlurb.108":
-    "Thai: consonants, spacing vowels/signs, and curated consonant–vowel/tone clusters (no lone combining marks; Noto Sans Thai).",
+    "Thai: all consonants × combining vowels/tones as grapheme clusters, plus spacing vowels/signs (no lone combining marks; Noto Sans Thai).",
   "alphabet.lensBlurb.109":
     "Khmer: consonants, independent vowels, and curated consonant–vowel clusters (no lone coeng/marks; Noto Sans Khmer).",
 };
