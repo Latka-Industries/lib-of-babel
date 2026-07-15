@@ -1,17 +1,14 @@
 // The book reader: open a book, page through it, the per-page colour map, and
 // taking it home (full text, or the whole-book colour image from WASM).
 
-import { S } from "./state.js";
+import { S } from "../gallery/state.js";
+import { el, escapeHtml, downloadBlob } from "../lib/util.js";
+import { buildAlphabetPalette, SPACE_CELL_HEX } from "../lib/color.js";
 import {
-  el,
-  buildAlphabetPalette,
-  SPACE_CELL_HEX,
   flattenSearchQuery,
   segmentText,
-  escapeHtml,
-  downloadBlob,
   validateSearchQuery,
-} from "./util.js";
+} from "./search-query.js";
 import {
   PAGES_PER_BOOK,
   alphabetCells,
@@ -19,10 +16,10 @@ import {
   alphabetLang,
   alphabetScript,
   syncAlphabetPresentation,
-} from "./constants.js";
-import { t } from "./i18n.js";
-import { syncUrl } from "./url.js";
-import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "./wasm.js";
+} from "../lib/constants.js";
+import { t } from "../lib/i18n.js";
+import { syncUrl } from "../gallery/url.js";
+import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "../lib/wasm.js";
 import { titleEmbedFlat } from "./search.js";
 
 // the page's characters rewrapped into the near-square divisor pair (64×50) so

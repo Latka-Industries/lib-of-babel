@@ -5,9 +5,9 @@ import {
   DEFAULT_ALPHABET_ID,
   alphabetEntry,
   listAlphabets,
-} from "./constants.js";
-import { t } from "./i18n.js";
-import { el, escapeHtml, openModal } from "./util.js";
+} from "../lib/constants.js";
+import { t } from "../lib/i18n.js";
+import { el, escapeHtml, openModal } from "../lib/util.js";
 
 /** Active family key in the picker dialog. */
 let pickerGroup = null;

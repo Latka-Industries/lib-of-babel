@@ -1,20 +1,20 @@
 // DOM event wiring — header, dialogs, lenses, book nav, layout debug.
 
-import { WINDOW_MAX, syncAlphabetPresentation } from "./constants.js";
-import { t, setLocaleFromAlphabet } from "./i18n.js";
+import { WINDOW_MAX, syncAlphabetPresentation } from "../lib/constants.js";
+import { t, setLocaleFromAlphabet } from "../lib/i18n.js";
 import {
   el,
   copyText,
   downloadBlob,
   wireModalCloses,
-  wireActionMenu,
   wireEnter,
   openModal,
-  validateSearchQuery,
   setFooterDim,
   isDevMode,
   galleryIsTouch,
-} from "./util.js";
+} from "../lib/util.js";
+import { wireDropdownMenu } from "./dropdown.js";
+import { validateSearchQuery } from "../reader/search-query.js";
 import {
   S,
   applyUniverse,
@@ -23,11 +23,11 @@ import {
   randomUniverseName,
   persist,
   markLastPickedUp,
-} from "./state.js";
-import { currentUrl, syncUrl } from "./url.js";
-import { render, renderHistory } from "./view.js";
-import { step, jumpTo, exportJourney, newWalk } from "./nav.js";
-import { verifyJourney, showVerify } from "./verify.js";
+} from "../gallery/state.js";
+import { currentUrl, syncUrl } from "../gallery/url.js";
+import { render, renderHistory } from "../gallery/view.js";
+import { step, jumpTo, exportJourney, newWalk } from "../gallery/nav.js";
+import { verifyJourney, showVerify } from "../reader/verify.js";
 import {
   reopenCurrentBook,
   renderBookPage,
@@ -36,7 +36,7 @@ import {
   downloadBook,
   renderBookImage,
   saveBookImage,
-} from "./book.js";
+} from "../reader/book.js";
 import {
   syncSearchInput,
   syncSearchKindUI,
@@ -45,13 +45,13 @@ import {
   syncSearchBackdropScroll,
   openSearch,
   runSearch,
-} from "./search.js";
+} from "../reader/search.js";
 import {
   openAboutGuide,
   stepAboutTab,
   renderAboutAlphabets,
   wireAboutTabs,
-} from "./about.js";
+} from "../about/about.js";
 import {
   syncAlphabetPickerLabel,
   renderAlphabetPicker,
@@ -201,13 +201,17 @@ export function wireControls() {
     openModal("historyModal");
   });
 
-  wireActionMenu("actionsMenu", {
-    copy: withMenuClosed(() => copyText(currentUrl())),
-    search: withMenuClosed(openSearch),
-    export: withMenuClosed(exportJourney),
-    verify: withMenuClosed(() => el("verifyFile").click()),
-    reset: withMenuClosed(newWalk),
-  });
+  wireDropdownMenu(
+    "actionsMenu",
+    {
+      copy: () => copyText(currentUrl()),
+      search: openSearch,
+      export: exportJourney,
+      verify: () => el("verifyFile").click(),
+      reset: newWalk,
+    },
+    { beforeAction: closeHeaderMenu },
+  );
 
   el("searchFind").addEventListener("click", runSearch);
   el("searchKind").addEventListener("change", () => {
@@ -292,7 +296,7 @@ export function wireControls() {
     S.currentBook = null;
     syncUrl();
   });
-  wireActionMenu("saveMenu", {
+  wireDropdownMenu("saveMenu", {
     txt: downloadBook,
     img: () => {
       renderBookImage();

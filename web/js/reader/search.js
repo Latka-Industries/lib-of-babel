@@ -1,23 +1,25 @@
 // Search-by-content and search-by-title — WASM reverse lookup → coordinates + go there.
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
-import { S, applyUniverseFromInput, syncLensControls } from "./state.js";
-import { TITLE_LEN, formatAlphabetSymbolLabel, alphabetIsRtl, alphabetLang } from "./constants.js";
-import { t, getLocale } from "./i18n.js";
+import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js";
+import { TITLE_LEN, formatAlphabetSymbolLabel, alphabetIsRtl, alphabetLang } from "../lib/constants.js";
+import { t, getLocale } from "../lib/i18n.js";
 import {
   el,
   copyText,
   escapeHtml,
-  normalizeSearchQuery,
-  validateSearchQuery,
   formatUniverseLabel,
   findActionRow,
   wireFindActions,
-} from "./util.js";
-import { locate_page_json, locate_title_json, node_hash_hex } from "./wasm.js";
-import { jumpTo } from "./nav.js";
+} from "../lib/util.js";
+import {
+  normalizeSearchQuery,
+  validateSearchQuery,
+} from "./search-query.js";
+import { locate_page_json, locate_title_json, node_hash_hex } from "../lib/wasm.js";
+import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
-import { permalink } from "./url.js";
+import { permalink } from "../gallery/url.js";
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));

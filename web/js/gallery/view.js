@@ -9,7 +9,9 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, galleryIsTouch } from "./util.js";
+import { el, copyText, formatCoordDisplay, formatUniverseLabel, galleryIsTouch } from "../lib/util.js";
+import { hueFromString, hashHue, hashAccentColor } from "../lib/color.js";
+import { neighbor } from "../lib/lattice.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -20,16 +22,16 @@ import {
   formatAlphabetSymbolLabel,
   alphabetIsRtl,
   alphabetScript,
-} from "./constants.js";
+} from "../lib/constants.js";
 import { syncUrl, permalink } from "./url.js";
-import { node_hash_hex, gallery_titles_json } from "./wasm.js";
-import { titleEmbedFlat } from "./search.js";
+import { node_hash_hex, gallery_titles_json } from "../lib/wasm.js";
+import { titleEmbedFlat } from "../reader/search.js";
 import { sigilSvg } from "./sigil.js";
-import { setAccentFavicon } from "./favicon.js";
+import { setAccentFavicon } from "../chrome/favicon.js";
 import { step } from "./nav.js";
-import { openBook } from "./book.js";
-import { t } from "./i18n.js";
-import { accentHsl } from "./theme.js";
+import { openBook } from "../reader/book.js";
+import { t } from "../lib/i18n.js";
+import { accentHsl } from "../chrome/theme.js";
 
 /** Spine glyphs for the live `--book-h` — dense type, generous so titles aren’t over-cut. */
 function spineCharBudget() {

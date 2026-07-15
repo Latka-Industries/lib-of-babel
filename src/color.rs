@@ -1,6 +1,6 @@
 //! Whole-book colour map rendered as an RGBA image.
 //!
-//! Palette policy (keep in sync with `web/js/util.js` → `buildAlphabetPalette`):
+//! Palette policy (keep in sync with `web/js/lib/color.js` → `buildAlphabetPalette`):
 //! - **Letters** use an index-hash OKLCH hue under the room accent (scales past 36 glyphs).
 //! - **Punct / digits / symbols** sit on a short muted arc opposite the accent.
 //! - **Space** is a fixed near-black (not on the wheel).

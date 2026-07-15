@@ -4,9 +4,9 @@ import {
   listAlphabets,
   alphabetFamilyRefs,
   isTrailPunct,
-} from "./constants.js";
-import { t } from "./i18n.js";
-import { el, escapeHtml, openModal } from "./util.js";
+} from "../lib/constants.js";
+import { t } from "../lib/i18n.js";
+import { el, escapeHtml, openModal } from "../lib/util.js";
 
 /** localStorage: first-landing guide already shown (same pattern as theme). */
 export const SEEN_ABOUT_KEY = "lib-of-babel-seen-about";
