@@ -294,7 +294,8 @@ export function renderSearchResult(result, box, kind = "content") {
 
   wireFindActions(box, {
     go: () => goToSearchResult(result, query, kind),
-    link: (ev) => copyText(searchPermalink(result, query, kind), ev.currentTarget),
+    link: (_ev, btn) =>
+      copyText(searchPermalink(result, query, kind), btn, t("common.copied")),
   });
 }
 

@@ -34,6 +34,7 @@ main { padding: 1rem; max-width: var(--page-max); margin: 0 auto; }
   font-size: 0.75rem; color: var(--muted); margin: 0 0 0.5rem;
   letter-spacing: 0.06em; text-transform: uppercase;
   line-height: 1.35;
+  min-height: calc(2 * 1.35em); /* reserve clamp height — avoid shelf jump on hover */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

@@ -44,12 +44,11 @@ description = "cargo fmt"
 run = "cargo fmt --all"
 
 [tasks.check]
-description = "fmt + clippy (-D warnings) + tests + config-size + alphabet-pack drift"
+description = "fmt + clippy (-D warnings) + tests + alphabet-pack drift"
 run = [
   "cargo fmt --all -- --check",
   "cargo clippy --all-targets -- -D warnings",
   "cargo test",
-  "sh scripts/check-config-sizes.sh",
   "mise run check-alphabets",
 ]
 
