@@ -87,6 +87,7 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 ## Notes
 
 - Browse families in-app under **About → alphabets** (source links per family).
+- Feistel soft cell cap is **4096** (`MAX_ALPHABET_LEN`). Prefer `id == glyph_count`; when an inventory grows past its id, the **permalink id freezes** (e.g. Simplified Chinese `255` → 1000 glyphs). Inventory-only grows do not bump `GENERATOR_VERSION`.
+- Chinese lenses are **frequency packs**, not Unihan: Simplified = Jun Da modern SC prefix (frozen id `255`); Traditional = same ranking via OpenCC **s2tw** (id `1000`). Each is 997 characters + space / comma / period.
 - Indic / Thai / Khmer lenses use **grapheme-cluster cells** (base+matra/tone), not lone combining marks.
-
-Complex scripts use self-hosted Noto faces (RTL join, CJK / Indic / Thai / Khmer subsets, etc.).
+- Complex scripts use self-hosted Noto faces (RTL join, CJK SC/TC, Indic / Thai / Khmer subsets). About tiles set per-lens `data-script` so glyphs are not forced onto the chrome mono stack.

@@ -33,7 +33,7 @@ Canonical dimensions:
 | **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
 | **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
 | **Wanderings** | Last 500 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). |
-| **Alphabet** | View lens (`&a=` in permalinks). DE/NL lenses also switch UI locale. See [docs/alphabets.md](docs/alphabets.md). |
+| **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [docs/alphabets.md](docs/alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
 | **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q`, with gallery hash as proof. |
@@ -86,7 +86,7 @@ Feistel page mapping is invertible, so **search-by-content** is the reverse of r
 | `book_text_for` / `book_image` | Full text or RGBA colour map |
 | `neighbor_json(z, n, mv)` | Lattice step (0–3) |
 
-## Search (`generator_version` 7)
+## Search (`generator_version` 8)
 
 **actions… → search…** — content or title, under the active alphabet and universe.
 
