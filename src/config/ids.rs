@@ -115,6 +115,24 @@ pub struct AlphabetIds {
     pub korean: u32,
     /// Chinese — curated Simplified frequent chars + punct (255 glyphs; id `255`).
     pub chinese: u32,
+    /// Hindi — 62 glyphs; id `79` (count slot taken).
+    pub hindi: u32,
+    /// Bengali — 61 glyphs; id `80` (count slot taken).
+    pub bengali: u32,
+    /// Tamil — 46 glyphs; id `81` (count slot taken).
+    pub tamil: u32,
+    /// Telugu — 66 glyphs; id `82` (count slot taken).
+    pub telugu: u32,
+    /// Kannada — 66 glyphs; id `83` (count slot taken).
+    pub kannada: u32,
+    /// Malayalam — 73 glyphs; id `84` (count slot taken).
+    pub malayalam: u32,
+    /// Gujarati — 63 glyphs; id `85` (count slot taken).
+    pub gujarati: u32,
+    /// Punjabi — 60 glyphs; id `86` (count slot taken).
+    pub punjabi: u32,
+    /// Odia — 63 glyphs; id `87` (count slot taken).
+    pub odia: u32,
 }
 
 /// Built-in alphabet lens ids.
@@ -174,4 +192,13 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     japanese: 95,
     korean: 250,
     chinese: 255,
+    hindi: 79,
+    bengali: 80,
+    tamil: 81,
+    telugu: 82,
+    kannada: 83,
+    malayalam: 84,
+    gujarati: 85,
+    punjabi: 86,
+    odia: 87,
 };

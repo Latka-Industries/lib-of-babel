@@ -526,6 +526,105 @@ export const ALPHABET_REGISTRY = [
     lang: "zh-Hans",
     symbols: '的一是不了在人有我他这个们中来上大为和国地到以说时要就出会可也你对生能而子那得于着下自之年过发后作里用道行所然家种事成方多经么去法学如都同现当没动面起看定天分还进好小部其些主样理心她本前开但因只从想实日军者意无力它与长把机十民第公此已工使情明性知全三又关点正业外将两高间由问很最重并物手应战向头文体政美相见被利什二等产或新己制身果加西斯月话合回特代内信表化老给世位次度门任常先海通教儿原东声提立及比员解水名真论处走义各入几口认条平系气题活尔更别打女变四神总何电数安少报才结反受目太量再感建务做接必场件计管 ,.',
   },
+  {
+    id: 79,
+    name: "Hindi",
+    native: "हिन्दी",
+    short: "hi",
+    group: "Indic",
+    rtl: false,
+    script: "devanagari",
+    lang: "hi",
+    symbols: "अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहािीुूृेैोौंःँ़् ,.",
+  },
+  {
+    id: 80,
+    name: "Bengali",
+    native: "বাংলা",
+    short: "bn",
+    group: "Indic",
+    rtl: false,
+    script: "bengali",
+    lang: "bn",
+    symbols: "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহািীুূৃেৈোৌংঃঁ়্ ,.",
+  },
+  {
+    id: 81,
+    name: "Tamil",
+    native: "தமிழ்",
+    short: "ta",
+    group: "Indic",
+    rtl: false,
+    script: "tamil",
+    lang: "ta",
+    symbols: "அஆஇஈஉஊஎஏஐஒஓஔகஙசஞடணதநபமயரலவழளறனாிீுூெேைொோௌஃ் ,.",
+  },
+  {
+    id: 82,
+    name: "Telugu",
+    native: "తెలుగు",
+    short: "te",
+    group: "Indic",
+    rtl: false,
+    script: "telugu",
+    lang: "te",
+    symbols: "అఆఇఈఉఊఋఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరలవశషసహళాిీుూృెేైొోౌంఃఁ్ ,.",
+  },
+  {
+    id: 83,
+    name: "Kannada",
+    native: "ಕನ್ನಡ",
+    short: "kn",
+    group: "Indic",
+    rtl: false,
+    script: "kannada",
+    lang: "kn",
+    symbols: "ಅಆಇಈಉಊಋಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಲವಶಷಸಹಳಾಿೀುೂೃೆೇೈೊೋೌಂಃಁ್ ,.",
+  },
+  {
+    id: 84,
+    name: "Malayalam",
+    native: "മലയാളം",
+    short: "ml",
+    group: "Indic",
+    rtl: false,
+    script: "malayalam",
+    lang: "ml",
+    symbols: "അആഇഈഉഊഋഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനപഫബഭമയരലവശഷസഹളഴറാിീുൂൃെേൈൊോൗംഃ്ൻർൽൾൺൿ ,.",
+  },
+  {
+    id: 85,
+    name: "Gujarati",
+    native: "ગુજરાતી",
+    short: "gu",
+    group: "Indic",
+    rtl: false,
+    script: "gujarati",
+    lang: "gu",
+    symbols: "અઆઇઈઉઊઋએઐઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલવશષસહળાિીુૂૃેૈોૌંઃઁ઼્ ,.",
+  },
+  {
+    id: 86,
+    name: "Punjabi",
+    native: "ਪੰਜਾਬੀ",
+    short: "pa",
+    group: "Indic",
+    rtl: false,
+    script: "gurmukhi",
+    lang: "pa",
+    symbols: "ਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵਸਹੜਾਿੀੁੂੇੈੋੌਂਃੱ਼੍ੰ ,.",
+  },
+  {
+    id: 87,
+    name: "Odia",
+    native: "ଓଡ଼ିଆ",
+    short: "or",
+    group: "Indic",
+    rtl: false,
+    script: "oriya",
+    lang: "or",
+    symbols: "ଅଆଇଈଉଊଋଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହାିୀୁୂୃେୈୋୌଂଃଁ଼୍ ,.",
+  },
 ];
 
 function stemLetters(stem) {
@@ -567,7 +666,7 @@ export function alphabetIsRtl(alphabetId = DEFAULT_ALPHABET_ID) {
   return !!alphabetEntry(alphabetId).rtl;
 }
 
-/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh | japanese | hangul | han. */
+/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh | japanese | hangul | han | Indic scripts. */
 export function alphabetScript(alphabetId = DEFAULT_ALPHABET_ID) {
   return alphabetEntry(alphabetId).script || "latin";
 }
@@ -819,6 +918,20 @@ export const ALPHABET_FAMILY_REFS = {
     {
       href: "https://lingua.mtsu.edu/chinese-computing/statistics/char/list.php?Which=MO",
       title: "Jun Da Chinese character frequency (modern)",
+    },
+  ],
+  Indic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Brahmic_scripts",
+      title: "Brahmic scripts",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Devanagari",
+      title: "Devanagari",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Languages_of_India",
+      title: "Languages of India",
     },
   ],
 };

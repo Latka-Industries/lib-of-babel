@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic, Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), CJK (Japanese kana / Korean Hangul / Simplified Chinese packs), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts (Arabic / Persian / N’Ko join; CJK uses subset JP/KR/SC faces).
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic, Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), CJK (Japanese kana / Korean Hangul / Simplified Chinese packs), Indic (Devanagari / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Gurmukhi / Odia), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts (Arabic / Persian / N’Ko join; CJK uses subset JP/KR/SC faces; Indic uses subset Noto Brahmic faces).
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -199,12 +199,13 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([THI-125](https://linear.app/thicclatka/issue/THI-125), [PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
 19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh. ([THI-88](https://linear.app/thicclatka/issue/THI-88))
 20. ✅ **CJK / Hangul lenses** — Japanese kana gojūon, curated Hangul syllables, Simplified Chinese frequent-char pack (≤255 glyphs each; Noto JP/KR/SC subsets). ([THI-126](https://linear.app/thicclatka/issue/THI-126))
+21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets). ([THI-127](https://linear.app/thicclatka/issue/THI-127))
 
 **Next:**
 
-21. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-22. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
-23. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
+22. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+23. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
+24. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
 
 **Later:**
 
