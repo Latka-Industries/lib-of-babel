@@ -1,11 +1,6 @@
 /** Dutch UI — alphabet lens id 34. */
 export const nl = {
   "header.aboutTitle": "Over — wat dit is & hoe je dwaalt (opent de gids)",
-  "header.gallery": "galerij",
-  "header.coordTitle": "klik om naar een willekeurige galerij te springen",
-  "header.hash": "hash",
-  "header.hashTitle": "klik om de volledige hash van deze galerij te kopiëren",
-  "header.steps": "stappen",
   "header.universePlaceholder": "standaarduniversum",
   "header.universeTitle":
     "universum — geef een parallelle bibliotheek een naam (leeg = standaard). Enter om te reizen.",
@@ -17,6 +12,12 @@ export const nl = {
   "header.actionsTitle": "link kopiëren · exporteren · controleren · zoeken · nieuwe tocht",
   "header.themeToLight": "overschakelen naar lichte modus",
   "header.themeToDark": "overschakelen naar donkere modus",
+  "header.menuOpenTitle": "menu openen",
+  "header.menuCloseTitle": "menu sluiten",
+  "header.menuUniverse": "universum",
+  "header.menuAlphabet": "alfabet",
+  "header.menuActions": "acties",
+  "header.menuTheme": "thema",
   "actions.placeholder": "acties…",
   "actions.copy": "link kopiëren",
   "actions.search": "zoeken…",
@@ -31,8 +32,11 @@ export const nl = {
   "loading.failed": "laden mislukt: {err}",
 
   "footer.wanderings": "dwaaltochten · {n}/{max}",
-  "footer.trail":
-    "spoor {nodes} knopen · universum {universe} · {alphabet} · gen v{gv}",
+  "footer.gallery": "galerij",
+  "footer.coordTitle": "klik om naar een willekeurige galerij te springen",
+  "footer.hash": "hash",
+  "footer.hashTitle": "klik om de volledige hash van deze galerij te kopiëren",
+  "footer.steps": "stappen",
 
   "common.close": "sluiten",
   "common.go": "gaan",
@@ -49,7 +53,7 @@ export const nl = {
   "about.tabsLabel": "Gidssecties",
   "about.alphabets.h": "Alfabetlenzen",
   "about.alphabets.intro":
-    "Elke set is een <b>symbolenwet</b> voor rugtitels en pagina’s — geen apart universum. Dezelfde kamer-hash en zegel; <i>geen vertaling</i>. Zoeken en titels accepteren alleen symbolen van de actieve lens. Blader hieronder per familie. Een markering <b>interface · …</b> betekent dat menu’s en labels mee wisselen. <b>Bronnen</b> onder elke familieblurb linken naar overzichtsartikelen.",
+    "Elke set is een <b>symbolenwet</b> voor rugtitels en pagina’s — geen apart universum. Dezelfde kamer-hash en zegel; <i>een nieuwe soort vertaling</i>. Zoeken en titels accepteren alleen symbolen van de actieve lens. Blader hieronder per familie. Een markering <b>interface · …</b> betekent dat menu’s en labels mee wisselen. <b>Bronnen</b> onder elke familieblurb linken naar overzichtsartikelen.",
   "about.alphabets.indexLabel": "Familie",
   "about.alphabets.refs": "Bronnen",
   "about.alphabet.meta": "{n} glyphs · &amp;a={id}",
@@ -90,7 +94,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
 <li>Typ een <b>universum</b>naam of gooi <b>&#9860;</b>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
 <li>Het <b>alfabet</b>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.</li>
-<li><b>acties…</b> → <b>link kopiëren</b> (of kop-<b>hash</b>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
+<li><b>acties…</b> → <b>link kopiëren</b> (of voet-<b>hash</b>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
 <li><b>acties…</b> → <b>zoeken…</b> — kies <b>inhoud</b> of <b>titel</b>, vind coördinaten, spring ernaartoe (zie <b>meer</b>).</li>
 <li><b>dwaaltochten</b> (voet, laatste {max}) — recente stappen met universum + alfabet; <b>tocht exporteren</b> bewaart het hele pad als JSON.</li>
 </ul>`,
@@ -107,7 +111,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 </ul>`,
 
   "about.more": `
-<h4>De cijfers in de kop</h4>
+<h4>De cijfers in de voet</h4>
 <p class="dim">
 <b>galerij (z, n)</b> is je coördinaat. <b>hash</b> is de
 <b>BLAKE3</b>-vingerafdruk van de kamer — permalink en bewijs voor deze plek in dit

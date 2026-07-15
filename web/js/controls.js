@@ -79,6 +79,70 @@ export function refreshLocaleChrome() {
     viewBtn.textContent =
       S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
   }
+  syncHeaderMenuTitle();
+}
+
+const HEADER_MENU_MQ = "(max-width: 860px)";
+
+function headerMenuActive() {
+  return window.matchMedia(HEADER_MENU_MQ).matches;
+}
+
+function syncHeaderMenuTitle() {
+  const btn = el("menuBtn");
+  if (!btn) return;
+  const open = document.querySelector("header")?.classList.contains("is-menu-open");
+  btn.title = t(open ? "header.menuCloseTitle" : "header.menuOpenTitle");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function setHeaderMenuOpen(open) {
+  const hdr = document.querySelector("header");
+  const backdrop = el("menuBackdrop");
+  if (hdr) hdr.classList.toggle("is-menu-open", open);
+  if (backdrop) backdrop.hidden = !open;
+  syncHeaderMenuTitle();
+}
+
+export function closeHeaderMenu() {
+  setHeaderMenuOpen(false);
+}
+
+function openHeaderMenu() {
+  if (!headerMenuActive()) return;
+  setHeaderMenuOpen(true);
+}
+
+/** Run an action handler, closing the mobile header sheet first. */
+function withMenuClosed(fn) {
+  return () => {
+    closeHeaderMenu();
+    fn();
+  };
+}
+
+function wireHeaderMenu() {
+  const btn = el("menuBtn");
+  const backdrop = el("menuBackdrop");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const hdr = document.querySelector("header");
+    if (hdr?.classList.contains("is-menu-open")) closeHeaderMenu();
+    else openHeaderMenu();
+  });
+  backdrop?.addEventListener("click", closeHeaderMenu);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (document.querySelector("dialog[open]")) return;
+    closeHeaderMenu();
+  });
+  window.matchMedia(HEADER_MENU_MQ).addEventListener("change", (e) => {
+    if (!e.matches) closeHeaderMenu();
+  });
+
+  // Close the sheet before nested dialogs so they aren't stacked under it.
+  el("alphabetBtn")?.addEventListener("click", closeHeaderMenu, true);
 }
 
 // ---- event wiring ---------------------------------------------------------
@@ -95,10 +159,11 @@ export function wireControls() {
   ]);
   refreshLocaleChrome();
   wireAboutTabs();
-  el("aboutBtn").addEventListener("click", () => {
+  wireHeaderMenu();
+  el("aboutBtn").addEventListener("click", withMenuClosed(() => {
     selectAboutTab("aboutTab-overview", { animate: false });
     openModal("aboutModal");
-  });
+  }));
   el("themeToggle").addEventListener("click", () => {
     toggleTheme();
     syncThemeToggle(t);
@@ -138,11 +203,11 @@ export function wireControls() {
   });
 
   wireActionMenu("actionsMenu", {
-    copy: () => copyText(currentUrl()),
-    search: openSearch,
-    export: exportJourney,
-    verify: () => el("verifyFile").click(),
-    reset: newWalk,
+    copy: withMenuClosed(() => copyText(currentUrl())),
+    search: withMenuClosed(openSearch),
+    export: withMenuClosed(exportJourney),
+    verify: withMenuClosed(() => el("verifyFile").click()),
+    reset: withMenuClosed(newWalk),
   });
 
   el("searchFind").addEventListener("click", runSearch);
@@ -282,8 +347,8 @@ export function wireControls() {
     }
   });
 
-  // Touch layout swaps need a re-render (hover listeners). Viewport px footer is
-  // dev-only (localhost / ?dev=1) — production keeps trail note only.
+  // Touch layout swaps need a re-render (hover listeners). Viewport px strip is
+  // dev-only (localhost / ?dev=1).
   let lastTouch = galleryIsTouch();
   const measureFooter = () => {
     const node = el("viewportSize");

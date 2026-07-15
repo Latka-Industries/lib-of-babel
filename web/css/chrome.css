@@ -27,43 +27,72 @@ header {
   backdrop-filter: blur(8px);
 }
 .header-bar {
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-  gap: 0.5rem 1rem;
-  width: 100%; max-width: var(--page-max); margin: 0 auto;
-  padding: 0 1rem; box-sizing: border-box;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
-.header-left, .header-right {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: 0.5rem 1rem; min-width: 0;
+.header-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-inline-start: auto;
+}
+/* Desktop: field wrappers don't affect flex layout; labels stay hidden. */
+.menu-field { display: contents; }
+.menu-field-label { display: none; }
+.menu-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: color-mix(in oklab, var(--bg-deep) 55%, transparent);
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+/* Real side buffer only once the content column is narrower than the window. */
+@media (min-width: 1840px) {
+  .header-bar {
+    max-width: var(--page-max);
+    margin-inline: auto;
+  }
 }
 header h1 { font-size: 1rem; letter-spacing: 0.18em; margin: 0; font-weight: 600; }
 .logo {
   font: inherit; font-size: 1rem; font-weight: 600; letter-spacing: 0.18em;
   color: var(--ink); background: none; border: none; padding: 0; margin: 0;
   cursor: pointer; white-space: nowrap; border-radius: 0;
+  flex: 0 0 auto;
 }
 .logo:hover,
 .logo:focus {
   color: var(--accent); border: none; background: none; outline: none;
 }
-.stat { color: var(--muted); white-space: nowrap; }
-.stat b { color: var(--ink); font-weight: 600; }
-.hash {
-  color: var(--accent); cursor: pointer;
-  display: inline-block; max-width: min(28ch, 40vw);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  vertical-align: bottom;
-}
-.hash:hover { text-decoration: underline; }
-.coord { cursor: pointer; }
-.coord:hover { color: var(--accent); text-decoration: underline; }
 
 button { padding: 0.35rem 0.7rem; }
 .alphabet, .save-menu, .actions-menu, .universe, .dice, .theme-toggle {
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 0.65rem;
+}
+.actions-menu {
+  flex: 0 0 auto;
 }
 .alphabet {
-  max-width: min(14rem, 46vw);
+  flex: 0 1 13rem;
+  width: 13rem;
+  max-width: 13rem;
+  min-width: 7.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -75,47 +104,215 @@ button { padding: 0.35rem 0.7rem; }
   white-space: nowrap;
 }
 .universe-wrap {
-  display: flex; align-items: center; gap: 0.25rem; min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
 }
 .universe {
-  width: min(9.5rem, 100%); min-width: 0;
+  width: 10.5rem;
+  min-width: 8rem;
+  flex: 0 0 auto;
 }
 .universe::placeholder { color: var(--muted); }
 /* Compact icon controls (random universe + theme). */
 .dice, .theme-toggle {
   line-height: 1;
-  min-width: 2.1rem;
-  padding-inline: 0.45rem;
+  min-width: 2.25rem;
+  flex: 0 0 auto;
+  padding-inline: 0.5rem;
+}
+
+/* Hamburger — three-line icon that becomes × when open. */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0.45rem;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+.menu-toggle-bars {
+  display: block;
+  position: relative;
+  width: 1.15rem;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: background 0.15s ease;
+}
+.menu-toggle-bars::before,
+.menu-toggle-bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.15s ease;
+}
+.menu-toggle-bars::before { top: -6px; }
+.menu-toggle-bars::after { top: 6px; }
+header.is-menu-open .menu-toggle-bars {
+  background: transparent;
+}
+header.is-menu-open .menu-toggle-bars::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+header.is-menu-open .menu-toggle-bars::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+/* Narrow screens: logo + hamburger; controls drop into a panel. */
+@media (max-width: 860px) {
+  .header-bar {
+    overflow: visible;
+    gap: 0.75rem;
+  }
+  .menu-toggle { display: inline-flex; }
+  .header-controls {
+    display: none;
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.85rem 1rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 12px 28px color-mix(in oklab, var(--bg-deep) 45%, transparent);
+    max-height: min(70dvh, 28rem);
+    overflow-y: auto;
+    z-index: 6;
+  }
+  header.is-menu-open .header-controls {
+    display: flex;
+  }
+  header.is-menu-open ~ .menu-backdrop {
+    display: block;
+  }
+  .menu-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+  }
+  .menu-field-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .menu-field-theme .menu-field-label {
+    display: none;
+  }
+  .menu-field-theme .theme-toggle {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0.55rem 0.75rem;
+  }
+  .universe-wrap {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+  .universe {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .alphabet,
+  .actions-menu {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
 }
 
 .footer {
-  margin-top: 1rem; display: flex; align-items: center;
-  gap: 0.8rem; flex-wrap: wrap; max-width: 100%; min-width: 0;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
 }
+.footer-locus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  min-width: 0;
+  flex: 1 1 12rem;
+  font-size: 12px;
+}
+.footer .stat {
+  color: var(--muted);
+  white-space: nowrap;
+  min-width: 0;
+}
+.footer .stat-label {
+  margin-inline-end: 0.3rem;
+}
+.footer .stat b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.footer .hash {
+  color: var(--accent);
+  cursor: pointer;
+  display: inline-block;
+  max-width: min(20ch, 36vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.footer .hash:hover { text-decoration: underline; }
+.footer .coord { cursor: pointer; }
+.footer .coord:hover { color: var(--accent); text-decoration: underline; }
+.history-btn { font-size: 12px; flex: 0 0 auto; }
 .footer .dim {
   color: var(--muted); font-size: 12px;
-  flex: 1 1 10rem; min-width: 0;
+  min-width: 0;
   position: relative;
 }
 .footer .dim .dim-clip {
   display: block;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.history-btn { font-size: 12px; flex: 0 0 auto; }
 .footer .viewport-size {
-  flex: 1 1 12rem;
-  min-width: 0;
+  flex: 0 1 16rem;
+  margin-inline-start: auto;
   max-width: 100%;
   font-variant-numeric: tabular-nums;
   opacity: 0.85;
 }
-/* Visible footer tip — host stays overflow:visible so ::after isn’t clipped. */
+/* Visible tip for clipped dim text (dev viewport). */
 .footer .dim[data-tip] { cursor: help; }
 .footer .dim[data-tip]:hover::after,
 .footer .dim[data-tip]:focus-visible::after {
   content: attr(data-tip);
   position: absolute;
-  left: 0;
+  right: 0;
   bottom: calc(100% + 0.35rem);
   z-index: 50;
   max-width: min(92vw, 36rem);
@@ -133,6 +330,7 @@ button { padding: 0.35rem 0.7rem; }
 }
 @media (max-width: 480px) {
   .footer { flex-direction: column; align-items: flex-start; }
+  .footer .viewport-size { margin-inline-start: 0; }
   .footer .dim .dim-clip { white-space: normal; overflow: visible; text-overflow: unset; }
   .footer .dim[data-tip]:hover::after,
   .footer .dim[data-tip]:focus-visible::after { content: none; }

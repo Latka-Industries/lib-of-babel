@@ -1,22 +1,23 @@
 /** English UI — source of truth (Basile / Borges / unmapped lenses). */
 export const en = {
   "header.aboutTitle": "About — what this is & how to wander (opens a guide)",
-  "header.gallery": "gallery",
-  "header.coordTitle": "click to jump to any gallery",
-  "header.hash": "hash",
-  "header.hashTitle": "click to copy this gallery's full hash",
-  "header.steps": "steps",
   "header.universePlaceholder": "default universe",
   "header.universeTitle":
     "universe — name a parallel library (blank = the default). Enter to travel.",
   "header.universeRandomTitle": "jump to a random universe",
   "header.alphabetTitle":
-    "alphabet lens — same room hash, different spines and pages (not translation)",
+    "alphabet lens — same room hash, other spines and pages (not translation)",
   "alphabet.picker.h": "Alphabet lens",
-  "alphabet.picker.sub": "same room hash · different spines and pages",
+  "alphabet.picker.sub": "same room hash · other spines and pages",
   "header.actionsTitle": "copy link · export · verify · search · new walk",
   "header.themeToLight": "switch to light mode",
   "header.themeToDark": "switch to dark mode",
+  "header.menuOpenTitle": "open menu",
+  "header.menuCloseTitle": "close menu",
+  "header.menuUniverse": "universe",
+  "header.menuAlphabet": "alphabet",
+  "header.menuActions": "actions",
+  "header.menuTheme": "theme",
   "actions.placeholder": "actions…",
   "actions.copy": "copy link",
   "actions.search": "search…",
@@ -31,8 +32,11 @@ export const en = {
   "loading.failed": "failed to load: {err}",
 
   "footer.wanderings": "wanderings · {n}/{max}",
-  "footer.trail":
-    "trail {nodes} nodes · universe {universe} · {alphabet} · gen v{gv}",
+  "footer.gallery": "gallery",
+  "footer.coordTitle": "click to jump to any gallery",
+  "footer.hash": "hash",
+  "footer.hashTitle": "click to copy this gallery's full hash",
+  "footer.steps": "steps",
 
   "common.close": "close",
   "common.go": "go",
@@ -49,7 +53,7 @@ export const en = {
   "about.tabsLabel": "About sections",
   "about.alphabets.h": "Alphabet lenses",
   "about.alphabets.intro":
-    "Each preset is a <b>symbol law</b> for spines and pages — not a separate universe. Same room hash and sigil; <i>not translation</i>. Search and titles only accept symbols from the active lens. Browse by family below. An <b>interface · …</b> mark means menus and labels switch to that language too. <b>Sources</b> under each family blurb link to overview articles.",
+    "Each preset is a <b>symbol law</b> for spines and pages — not a separate universe. Same room hash and sigil; <i>a new sort of translation</i>. Search and titles only accept symbols from the active lens. Browse by family below. An <b>interface · …</b> mark means menus and labels switch to that language too. <b>Sources</b> under each family blurb link to overview articles.",
   "about.alphabets.indexLabel": "Family",
   "about.alphabets.refs": "Sources",
   "about.alphabet.meta": "{n} glyphs · &amp;a={id}",
@@ -90,7 +94,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
 <li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
 <li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.</li>
-<li><b>actions…</b> → <b>copy link</b> (or click the header <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
+<li><b>actions…</b> → <b>copy link</b> (or click the footer <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
 <li><b>actions…</b> → <b>search…</b> — pick <b>content</b> or <b>title</b>, find coordinates, jump there (see <b>more</b> tab).</li>
 <li><b>wanderings</b> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
 </ul>`,
@@ -107,7 +111,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 </ul>`,
 
   "about.more": `
-<h4>The numbers in the header</h4>
+<h4>The numbers in the footer</h4>
 <p class="dim">
 <b>gallery (z, n)</b> is your coordinate. <b>hash</b> is the room's
 <b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
