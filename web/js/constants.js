@@ -1,4 +1,4 @@
-// Canonical library dimensions (mirror src/config.rs) and alphabet UI registry.
+// Canonical library dimensions (mirror src/config/) and alphabet UI registry.
 // Authoritative symbol tables live in Rust; this registry mirrors them for
 // validation / picker / About without round-tripping through WASM.
 
@@ -15,7 +15,7 @@ export const CHARS_PER_LINE = 80;
 export const PAGE_CONTENT_SYMBOLS = LINES_PER_PAGE * CHARS_PER_LINE; // 3200 content chars
 export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newline per line
 export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK; // one full book
-export const TITLE_LEN = 24; // spine title length (mirror src/config.rs)
+export const TITLE_LEN = 24; // spine title length (mirror src/config/)
 
 // i64 bounds, so big coordinate jumps stay in the lattice the WASM core accepts.
 export const I64_MIN = -9223372036854775808n;
@@ -36,11 +36,12 @@ const BASILE_PLUS_EXTRAS = `?!'"-:;()0123456789`;
 const BASILE_HASH_EXTRAS = `${BASILE_PLUS_EXTRAS}@<>/_+[]#%&=`;
 
 /**
- * Single registry mirroring `src/config.rs`.
+ * Single registry mirroring `src/config/` (`ALPHABET_ID` + `ALPHABET_TABLE`).
  * `stem`: "av" (Borges) or "az"; `extras` appended before punctuation.
  * `id` is the permalink/Feistel key (usually glyph count; Italian/Romanian collide).
  * `native` — endonym; always shown in the picker (not UI-locale-translated).
  * `uiLocale` — optional chrome locale when this lens is active.
+ * `rtl` — page/search direction; `script` — font cascade key (arabic/hebrew/…).
  */
 export const ALPHABET_REGISTRY = [
   { id: 29, name: "Basile", native: "Basile", short: "a–z", group: "Latin base", stem: "az", extras: "" },
@@ -359,6 +360,126 @@ export const ALPHABET_REGISTRY = [
     symbols: "აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ" + PUNCT,
     desc: "Mkhedruli, space, comma, period",
   },
+  {
+    id: 30,
+    name: "Hebrew",
+    native: "\u05e2\u05d1\u05e8\u05d9\u05ea",
+    short: "he",
+    group: "Semitic",
+    rtl: true,
+    script: "hebrew",
+    symbols: "אבגדהוזחטיךכלםמןנסעףפץצקרשת ,.",
+  },
+  {
+    id: 69,
+    name: "Arabic",
+    native: "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+    short: "ar",
+    group: "Semitic",
+    rtl: true,
+    script: "arabic",
+    symbols: "ابتثجحخدذرزسشصضطظعغفقكلمنهويء ,.",
+  },
+  {
+    id: 70,
+    name: "Persian",
+    native: "\u0641\u0627\u0631\u0633\u06cc",
+    short: "fa",
+    group: "Semitic",
+    rtl: true,
+    script: "arabic",
+    symbols: "ابپتثجچحخدذرزژسشصضطظعغفقکگلمنهویء ,.",
+  },
+  {
+    id: 71,
+    name: "N'Ko",
+    native: "\u07d2\u07de\u07cf",
+    short: "nqo",
+    group: "West African",
+    rtl: true,
+    script: "nko",
+    symbols: "ߊߋߌߍߎߏߐߑߒߓߔߕߖߗߘߙߚߛߜߝߞߟߠߡߢߣߤߥߦߧߨߩߪ ,.",
+  },
+  {
+    id: 234,
+    name: "Amharic",
+    native: "\u12a0\u121b\u122d\u129b",
+    short: "am",
+    group: "Ethiopic",
+    rtl: false,
+    script: "ethiopic",
+    symbols: "ሀሁሂሃሄህሆለሉሊላሌልሎሐሑሒሓሔሕሖመሙሚማሜምሞሠሡሢሣሤሥሦረሩሪራሬርሮሰሱሲሳሴስሶሸሹሺሻሼሽሾቀቁቂቃቄቅቆበቡቢባቤብቦተቱቲታቴትቶቸቹቺቻቼችቾኀኁኂኃኄኅኆነኑኒናኔንኖኘኙኚኛኜኝኞአኡኢኣኤእኦከኩኪካኬክኮኸኹኺኻኼኽኾወዉዊዋዌውዎዐዑዒዓዔዕዖዘዙዚዛዜዝዞዠዡዢዣዤዥዦየዩዪያዬይዮደዱዲዳዴድዶጀጁጂጃጄጅጆገጉጊጋጌግጎጠጡጢጣጤጥጦጨጩጪጫጬጭጮጰጱጲጳጴጵጶጸጹጺጻጼጽጾፀፁፂፃፄፅፆፈፉፊፋፌፍፎፐፑፒፓፔፕፖ ,.",
+  },
+  {
+    id: 72,
+    name: "Swahili",
+    native: "Kiswahili",
+    short: "sw",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyz ,.",
+  },
+  {
+    id: 73,
+    name: "Afrikaans",
+    native: "Afrikaans",
+    short: "af",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyzáäéêëèíîïóôöúûüý ,.",
+  },
+  {
+    id: 74,
+    name: "Hausa",
+    native: "Hausa",
+    short: "ha",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyzɓɗƙƴ ,.",
+  },
+  {
+    id: 75,
+    name: "Yoruba",
+    native: "Yor\u00f9b\u00e1",
+    short: "yo",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyzẹọṣáàéèíìóòúù ,.",
+  },
+  {
+    id: 76,
+    name: "Igbo",
+    native: "Igbo",
+    short: "ig",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyzịñọụ ,.",
+  },
+  {
+    id: 77,
+    name: "Wolof",
+    native: "Wolof",
+    short: "wo",
+    group: "African Latin",
+    rtl: false,
+    script: "latin",
+    symbols: "abcdefghijklmnopqrstuvwxyzëñàéó ,.",
+  },
+  {
+    id: 78,
+    name: "Tifinagh",
+    native: "\u2d5c\u2d49\u2d3c\u2d49\u2d4f\u2d30\u2d56",
+    short: "zgh",
+    group: "Berber",
+    rtl: false,
+    script: "tifinagh",
+    symbols: "ⴰⴱⴲⴳⴴⴵⴶⴷⴸⴹⴺⴻⴼⴽⴾⴿⵀⵁⵂⵃⵄⵅⵆⵇⵈⵉⵊⵋⵌⵍⵎⵏⵐⵑⵒⵓⵔⵕⵖⵗⵘⵙⵚⵛⵜⵝⵞⵟⵠⵡⵢⵣⵤⵥ ,.",
+  },
 ];
 
 function stemLetters(stem) {
@@ -393,6 +514,34 @@ export function alphabetEntry(alphabetId = DEFAULT_ALPHABET_ID) {
     ALPHABET_REGISTRY.find((e) => e.id === alphabetId) ||
     ALPHABET_REGISTRY.find((e) => e.id === DEFAULT_ALPHABET_ID)
   );
+}
+
+/** True when the lens reads right-to-left (Arabic, Hebrew, N’Ko, …). */
+export function alphabetIsRtl(alphabetId = DEFAULT_ALPHABET_ID) {
+  return !!alphabetEntry(alphabetId).rtl;
+}
+
+/** Font-cascade key: latin | arabic | hebrew | nko | ethiopic | tifinagh. */
+export function alphabetScript(alphabetId = DEFAULT_ALPHABET_ID) {
+  return alphabetEntry(alphabetId).script || "latin";
+}
+
+/** BCP-47 lang hint for shaping (falls back to short code). */
+export function alphabetLang(alphabetId = DEFAULT_ALPHABET_ID) {
+  const e = alphabetEntry(alphabetId);
+  return e.lang || e.short || "en";
+}
+
+/**
+ * Apply lens presentation to the document: script font + (optional) page dir helpers.
+ * Call after alphabet changes and on boot.
+ */
+export function syncAlphabetPresentation(alphabetId = DEFAULT_ALPHABET_ID) {
+  const script = alphabetScript(alphabetId);
+  const rtl = alphabetIsRtl(alphabetId);
+  const lang = alphabetLang(alphabetId);
+  document.documentElement.dataset.script = script;
+  return { script, rtl, lang };
 }
 
 /** Human-readable allowed set for search validation copy. */
@@ -560,6 +709,52 @@ export const ALPHABET_FAMILY_REFS = {
     {
       href: "https://en.wikipedia.org/wiki/Georgian_scripts",
       title: "Georgian scripts",
+    },
+  ],
+  Semitic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Hebrew_alphabet",
+      title: "Hebrew alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Arabic_alphabet",
+      title: "Arabic alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Persian_alphabet",
+      title: "Persian alphabet",
+    },
+  ],
+  "West African": [
+    {
+      href: "https://en.wikipedia.org/wiki/N%27Ko_script",
+      title: "N’Ko script",
+    },
+  ],
+  Ethiopic: [
+    {
+      href: "https://en.wikipedia.org/wiki/Ge%CA%BDez_script",
+      title: "Geʿez script",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Amharic",
+      title: "Amharic",
+    },
+  ],
+  "African Latin": [
+    {
+      href: "https://en.wikipedia.org/wiki/African_reference_alphabet",
+      title: "African reference alphabet",
+    },
+    {
+      href: "https://en.wikipedia.org/wiki/Latin_script_in_Africa",
+      title: "Latin script in Africa",
+    },
+  ],
+  Berber: [
+    {
+      href: "https://en.wikipedia.org/wiki/Tifinagh",
+      title: "Tifinagh",
     },
   ],
 };

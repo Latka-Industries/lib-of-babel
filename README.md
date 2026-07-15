@@ -23,7 +23,7 @@ Canonical dimensions we honor:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic, Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL lenses (Arabic / Hebrew / Persian) are parked.
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic, Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — not translation. RTL lenses use `dir=rtl` and self-hosted Noto fonts so Arabic / Persian / N’Ko join in the reader.
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -71,7 +71,7 @@ is never stored because it is always regenerable.
 lib-of-babel/
 ├── src/                 Rust → WASM generator core (deterministic, reversible-by-design)
 │   ├── lib.rs           crate root, re-exports, integration tests
-│   ├── config.rs        frozen dimensions, alphabets, GENERATOR_VERSION
+│   ├── config/          frozen dimensions, alphabets (ids + tables + registry), GENERATOR_VERSION
 │   ├── prng.rs          SplitMix64 mixer + deterministic title stream
 │   ├── universe.rs      active universe seed (WASM global state)
 │   ├── gallery.rs       gallery/book seeds, titles, BLAKE3 fingerprint, lattice moves
@@ -197,13 +197,14 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([THI-120](https://linear.app/thicclatka/issue/THI-120), [PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
 17. ✅ **Frontend modularization** — CSS + JS split; `main.js` boot-only. ([THI-124](https://linear.app/thicclatka/issue/THI-124), [PR #6](https://github.com/Latka-Industries/lib-of-babel/pull/6))
 18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([THI-125](https://linear.app/thicclatka/issue/THI-125), [PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
+19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh. ([THI-88](https://linear.app/thicclatka/issue/THI-88))
 
 **Next:**
 
-19. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-20. 🚧 **RTL / complex scripts** — Arabic / Hebrew / Persian and similar when the reader can host them cleanly ([THI-88](https://linear.app/thicclatka/issue/THI-88)).
-21. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
-22. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
+20. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+21. 🚧 **CJK / Hangul lenses** — curated subsets or kana-first Japanese; Hangul syllable route ([THI-126](https://linear.app/thicclatka/issue/THI-126)).
+22. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
+23. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
 
 **Later:**
 
