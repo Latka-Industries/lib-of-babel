@@ -97,6 +97,13 @@
   src: url("../fonts/NotoSansSC-Regular.woff2") format("woff2");
 }
 @font-face {
+  font-family: "Noto Sans TC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansTC-Regular.woff2") format("woff2");
+}
+@font-face {
   font-family: "Noto Sans Devanagari";
   font-style: normal;
   font-weight: 400;
@@ -209,6 +216,7 @@
   --font-japanese: "Noto Sans JP", var(--font-script-fallback);
   --font-hangul: "Noto Sans KR", var(--font-script-fallback);
   --font-han: "Noto Sans SC", var(--font-script-fallback);
+  --font-hant: "Noto Sans TC", var(--font-script-fallback);
   --font-devanagari: "Noto Sans Devanagari", var(--font-script-fallback);
   --font-bengali: "Noto Sans Bengali", var(--font-script-fallback);
   --font-tamil: "Noto Sans Tamil", var(--font-script-fallback);
@@ -334,6 +342,7 @@ html[data-script="tifinagh"] { --font-page: var(--font-tifinagh); }
 html[data-script="japanese"] { --font-page: var(--font-japanese); }
 html[data-script="hangul"] { --font-page: var(--font-hangul); }
 html[data-script="han"] { --font-page: var(--font-han); }
+html[data-script="hant"] { --font-page: var(--font-hant); }
 html[data-script="devanagari"] { --font-page: var(--font-devanagari); }
 html[data-script="bengali"] { --font-page: var(--font-bengali); }
 html[data-script="tamil"] { --font-page: var(--font-tamil); }
