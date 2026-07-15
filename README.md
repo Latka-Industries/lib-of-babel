@@ -40,7 +40,7 @@ Canonical dimensions we honor:
 | **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
 | **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
 | **Stack** | Rust → WebAssembly generator core + a static web frontend. |
-| **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. Tessera `.tes` later. |
+| **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. |
 
 ## The generation chain (never store text)
 
@@ -115,7 +115,7 @@ a Feistel permutation over each page's 3200 symbols, so **search-by-content**
 
 ### Search by content
 
-Paste a phrase in the **Search** modal ( **content** selected) → the core finds where it *already lives* in the current universe.
+Paste a phrase in the **Search** modal (**content** selected) → the core finds where it *already lives* in the current universe.
 
 **How it works:**
 
