@@ -9,7 +9,17 @@ alphabet ids in [alphabets.md](alphabets.md).
 lib-of-babel/
 ├── src/          Rust → WASM generator
 │                 (config, Feistel, gallery, page, search, color, universe, wasm_api)
-├── web/          static UI (css/, js/, fonts/, pkg/ from wasm-pack)
+├── web/
+│   ├── css/      chrome + reader styles
+│   ├── fonts/
+│   ├── pkg/      wasm-pack output
+│   ├── main.js   boot
+│   └── js/       static ESM UI
+│       ├── lib/      util, color, lattice, wasm, db, constants, i18n
+│       ├── chrome/   controls, dropdown, theme, favicon, alphabet-picker
+│       ├── gallery/  view, nav, state, url, sigil
+│       ├── reader/   book, search, search-query, verify
+│       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
 ├── scripts/      size guards, sigil sheet helpers
 └── .mise.toml    toolchain + build / serve / test tasks
@@ -32,7 +42,7 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve |
 | `mise run serve` | serve `web/` only (no rebuild) |
 | `mise run test` | `cargo test` |
-| `mise run check` | fmt + clippy (`-D warnings`) + tests + config-size + alphabet-pack drift |
+| `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift |
 | `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
 | `mise run clean` | remove `target/` and `web/pkg` |
@@ -42,7 +52,9 @@ Permalinks: `z`, `n` required; optional `u`, `a`, `book`, `page`, `q`.
 
 ## UI notes
 
-- In-app guide: click **LIB·OF·BABEL**
+- In-app guide: brand **LIB·OF·BABEL**, footer **? · Help**, or keyboard **?** (first visit opens About once)
+- Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
+- Lens registry for the UI lives in `web/js/lib/constants.js` (kept in sync with Rust via tests)
 - Chrome: Overpass Mono; About prose: Lato
 - Mobile header sheet ≤860px; footer = wanderings + gallery/hash/steps
 - Theme toggle remembers preference (OS default if unset)
