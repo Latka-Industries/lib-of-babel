@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { sigilSvg } from "../web/js/sigil.js";
+import { sigilSvg } from "../web/js/gallery/sigil.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const assets = join(here, "..", "assets");
