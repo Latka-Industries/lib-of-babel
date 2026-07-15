@@ -37,17 +37,17 @@ impl Prng {
 
     /// Draw one symbol from `alphabet`.
     #[inline]
-    pub fn next_symbol(&mut self, alphabet: &[char]) -> char {
+    pub fn next_symbol<'a>(&mut self, alphabet: &[&'a str]) -> &'a str {
         alphabet[(self.next_u64() % alphabet.len() as u64) as usize]
     }
 }
 
 /// Deterministic spine title for a book seed (drawn from the given alphabet).
-pub fn book_title(book_seed: u64, alphabet: &[char]) -> String {
+pub fn book_title(book_seed: u64, alphabet: &[&str]) -> String {
     let mut p = Prng::new(book_seed);
-    let mut out = String::with_capacity(TITLE_LEN * 2);
+    let mut out = String::with_capacity(TITLE_LEN * 4);
     for _ in 0..TITLE_LEN {
-        out.push(p.next_symbol(alphabet));
+        out.push_str(p.next_symbol(alphabet));
     }
     out.trim().to_string()
 }

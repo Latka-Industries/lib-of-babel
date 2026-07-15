@@ -33,15 +33,15 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 | Germanic | Icelandic | Íslenska | 49 | 39 | is | — |
 | Germanic | Swedish | Svenska | 38 | 32 | sv | — |
 | Hellenic | Greek | Ελληνικά | 46 | 35 | el | — |
-| Indic | Bengali | বাংলা | 80 | 61 | bn | — |
-| Indic | Gujarati | ગુજરાતી | 85 | 63 | gu | — |
-| Indic | Hindi | हिन्दी | 79 | 62 | hi | — |
-| Indic | Kannada | ಕನ್ನಡ | 83 | 66 | kn | — |
-| Indic | Malayalam | മലയാളം | 84 | 73 | ml | — |
-| Indic | Odia | ଓଡ଼ିଆ | 87 | 63 | or | — |
-| Indic | Punjabi | ਪੰਜਾਬੀ | 86 | 60 | pa | — |
-| Indic | Tamil | தமிழ் | 81 | 46 | ta | — |
-| Indic | Telugu | తెలుగు | 82 | 66 | te | — |
+| Indic | Bengali | বাংলা | 100 | 255 | bn | — |
+| Indic | Gujarati | ગુજરાતી | 105 | 255 | gu | — |
+| Indic | Hindi | हिन्दी | 99 | 255 | hi | — |
+| Indic | Kannada | ಕನ್ನಡ | 103 | 255 | kn | — |
+| Indic | Malayalam | മലയാളം | 104 | 255 | ml | — |
+| Indic | Odia | ଓଡ଼ିଆ | 107 | 255 | or | — |
+| Indic | Punjabi | ਪੰਜਾਬੀ | 106 | 255 | pa | — |
+| Indic | Tamil | தமிழ் | 101 | 250 | ta | — |
+| Indic | Telugu | తెలుగు | 102 | 255 | te | — |
 | Latin base | Basile | Basile | 29 | 29 | a–z | — |
 | Latin base | Basile# | Basile# | 60 | 60 | a–z# | — |
 | Latin base | Basile++ | Basile++ | 48 | 48 | a–z+ | — |
@@ -69,8 +69,8 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 | Slavic | Slovenian | Slovenščina | 53 | 32 | sl | — |
 | Slavic | Ukrainian | Українська | 55 | 36 | uk | — |
 | Southeast Asian | Filipino | Filipino | 94 | 30 | fil | — |
-| Southeast Asian | Khmer | ខ្មែរ | 98 | 80 | km | — |
-| Southeast Asian | Thai | ไทย | 97 | 73 | th | — |
+| Southeast Asian | Khmer | ខ្មែរ | 109 | 255 | km | — |
+| Southeast Asian | Thai | ไทย | 108 | 255 | th | — |
 | Southeast Asian | Vietnamese | Tiếng Việt | 96 | 96 | vi | — |
 | Turkic | Azerbaijani | Azərbaycan | 88 | 35 | az | — |
 | Turkic | Kazakh | Qazaqşa | 89 | 34 | kk | — |
@@ -86,4 +86,6 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 ## Notes
 
 - Browse families in-app under **About → alphabets** (source links per family).
-- Complex scripts use self-hosted Noto faces (RTL join, CJK / Indic / Thai / Khmer subsets, etc.).
+- Indic / Thai / Khmer lenses use **grapheme-cluster cells** (base+matra/tone), not lone combining marks.
+
+Complex scripts use self-hosted Noto faces (RTL join, CJK / Indic / Thai / Khmer subsets, etc.).

@@ -80,7 +80,7 @@ async function boot() {
       null,
       link.p || 1,
       link.q || null,
-      link.q ? search_page_span_for(link.q) : 1,
+      link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
     );
   }
 

@@ -15,6 +15,7 @@ mod gallery;
 mod page;
 mod prng;
 mod search;
+mod search_segment;
 mod universe;
 mod wasm_api;
 
@@ -115,95 +116,95 @@ mod tests {
         assert_eq!(alphabet(999), alphabet(DEFAULT_ALPHABET));
 
         // (id, english name, must_contain, must_not_contain)
-        let probes: &[(u32, &str, &[char], &[char])] = &[
-            (ALPHABET_ID.basile_plus, "Basile++", &['?', '0'], &['@']),
-            (ALPHABET_ID.basile_hash, "Basile#", &['@', '='], &[]),
+        let probes: &[(u32, &str, &[&str], &[&str])] = &[
+            (ALPHABET_ID.basile_plus, "Basile++", &["?", "0"], &["@"]),
+            (ALPHABET_ID.basile_hash, "Basile#", &["@", "="], &[]),
             (
                 ALPHABET_ID.danish_norwegian,
                 "Danish/Norwegian",
-                &['æ', 'ø'],
-                &['ä'],
+                &["æ", "ø"],
+                &["ä"],
             ),
-            (ALPHABET_ID.swedish, "Swedish", &['ä', 'å'], &['æ']),
-            (ALPHABET_ID.turkish, "Turkish", &['ı', 'ş'], &['q']),
-            (ALPHABET_ID.finnish, "Finnish", &['å'], &[]),
-            (ALPHABET_ID.estonian, "Estonian", &['õ'], &[]),
-            (ALPHABET_ID.hungarian, "Hungarian", &['ő'], &[]),
-            (ALPHABET_ID.greek, "Greek", &['ω', 'ς', 'ά'], &['a']),
-            (ALPHABET_ID.spanish, "Spanish", &['ñ'], &[]),
-            (ALPHABET_ID.german, "German", &['ß'], &[]),
-            (ALPHABET_ID.french, "French", &['œ'], &[]),
-            (ALPHABET_ID.polish, "Polish", &['ł', 'ż'], &[]),
-            (ALPHABET_ID.czech, "Czech", &['ř', 'ů'], &[]),
-            (ALPHABET_ID.slovak, "Slovak", &['ô', 'ľ'], &[]),
+            (ALPHABET_ID.swedish, "Swedish", &["ä", "å"], &["æ"]),
+            (ALPHABET_ID.turkish, "Turkish", &["ı", "ş"], &["q"]),
+            (ALPHABET_ID.finnish, "Finnish", &["å"], &[]),
+            (ALPHABET_ID.estonian, "Estonian", &["õ"], &[]),
+            (ALPHABET_ID.hungarian, "Hungarian", &["ő"], &[]),
+            (ALPHABET_ID.greek, "Greek", &["ω", "ς", "ά"], &["a"]),
+            (ALPHABET_ID.spanish, "Spanish", &["ñ"], &[]),
+            (ALPHABET_ID.german, "German", &["ß"], &[]),
+            (ALPHABET_ID.french, "French", &["œ"], &[]),
+            (ALPHABET_ID.polish, "Polish", &["ł", "ż"], &[]),
+            (ALPHABET_ID.czech, "Czech", &["ř", "ů"], &[]),
+            (ALPHABET_ID.slovak, "Slovak", &["ô", "ľ"], &[]),
             (
                 ALPHABET_ID.croatian_serbian,
                 "Croatian/Serbian",
-                &['đ', 'č'],
+                &["đ", "č"],
                 &[],
             ),
-            (ALPHABET_ID.latvian, "Latvian", &['ģ', 'ķ'], &[]),
-            (ALPHABET_ID.lithuanian, "Lithuanian", &['ė', 'ų'], &[]),
-            (ALPHABET_ID.albanian, "Albanian", &['ç', 'ë'], &[]),
-            (ALPHABET_ID.russian, "Russian", &['я', 'ё'], &['a']),
-            (ALPHABET_ID.ukrainian, "Ukrainian", &['ї', 'ґ'], &['ы']),
-            (ALPHABET_ID.bulgarian, "Bulgarian", &['ъ', 'я'], &['ё']),
-            (ALPHABET_ID.icelandic, "Icelandic", &['þ', 'ð', 'æ'], &[]),
-            (ALPHABET_ID.slovenian, "Slovenian", &['č', 'š', 'ž'], &['ć']),
-            (ALPHABET_ID.belarusian, "Belarusian", &['ў', 'і'], &['и']),
-            (ALPHABET_ID.macedonian, "Macedonian", &['ѓ', 'ќ', 'ѕ'], &[]),
+            (ALPHABET_ID.latvian, "Latvian", &["ģ", "ķ"], &[]),
+            (ALPHABET_ID.lithuanian, "Lithuanian", &["ė", "ų"], &[]),
+            (ALPHABET_ID.albanian, "Albanian", &["ç", "ë"], &[]),
+            (ALPHABET_ID.russian, "Russian", &["я", "ё"], &["a"]),
+            (ALPHABET_ID.ukrainian, "Ukrainian", &["ї", "ґ"], &["ы"]),
+            (ALPHABET_ID.bulgarian, "Bulgarian", &["ъ", "я"], &["ё"]),
+            (ALPHABET_ID.icelandic, "Icelandic", &["þ", "ð", "æ"], &[]),
+            (ALPHABET_ID.slovenian, "Slovenian", &["č", "š", "ž"], &["ć"]),
+            (ALPHABET_ID.belarusian, "Belarusian", &["ў", "і"], &["и"]),
+            (ALPHABET_ID.macedonian, "Macedonian", &["ѓ", "ќ", "ѕ"], &[]),
             (
                 ALPHABET_ID.serbian_cyrillic,
                 "Serbian Cyrillic",
-                &['ђ', 'ћ', 'џ'],
-                &['a'],
+                &["ђ", "ћ", "џ"],
+                &["a"],
             ),
-            (ALPHABET_ID.catalan, "Catalan", &['·', 'ç', 'ï'], &[]),
-            (ALPHABET_ID.basque, "Basque", &['ñ', 'ç'], &[]),
-            (ALPHABET_ID.welsh, "Welsh", &['ŵ', 'ŷ'], &[]),
-            (ALPHABET_ID.irish, "Irish", &['á', 'ú'], &[]),
-            (ALPHABET_ID.maltese, "Maltese", &['ħ', 'ġ', 'ċ'], &[]),
-            (ALPHABET_ID.armenian, "Armenian", &['ա', 'ֆ'], &['և']),
-            (ALPHABET_ID.georgian, "Georgian", &['ა', 'ჰ'], &['a']),
-            (ALPHABET_ID.hebrew, "Hebrew", &['א', 'ת', 'ך'], &['a']),
-            (ALPHABET_ID.arabic, "Arabic", &['ا', 'ي', 'ء'], &['پ']),
-            (ALPHABET_ID.persian, "Persian", &['پ', 'چ', 'گ'], &[]),
-            (ALPHABET_ID.nko, "N'Ko", &['ߊ', 'ߪ'], &['a']),
-            (ALPHABET_ID.amharic, "Amharic", &['ሀ', 'ለ', 'ፐ'], &['a']),
-            (ALPHABET_ID.swahili, "Swahili", &['a', 'z'], &['ɓ']),
-            (ALPHABET_ID.afrikaans, "Afrikaans", &['ê', 'ë'], &[]),
-            (ALPHABET_ID.hausa, "Hausa", &['ɓ', 'ƴ'], &[]),
-            (ALPHABET_ID.yoruba, "Yoruba", &['ẹ', 'ọ', 'ṣ'], &[]),
-            (ALPHABET_ID.igbo, "Igbo", &['ị', 'ụ'], &[]),
-            (ALPHABET_ID.wolof, "Wolof", &['ë', 'ñ'], &[]),
-            (ALPHABET_ID.tifinagh, "Tifinagh", &['ⴰ', 'ⵣ'], &['a']),
+            (ALPHABET_ID.catalan, "Catalan", &["·", "ç", "ï"], &[]),
+            (ALPHABET_ID.basque, "Basque", &["ñ", "ç"], &[]),
+            (ALPHABET_ID.welsh, "Welsh", &["ŵ", "ŷ"], &[]),
+            (ALPHABET_ID.irish, "Irish", &["á", "ú"], &[]),
+            (ALPHABET_ID.maltese, "Maltese", &["ħ", "ġ", "ċ"], &[]),
+            (ALPHABET_ID.armenian, "Armenian", &["ա", "ֆ"], &["և"]),
+            (ALPHABET_ID.georgian, "Georgian", &["ა", "ჰ"], &["a"]),
+            (ALPHABET_ID.hebrew, "Hebrew", &["א", "ת", "ך"], &["a"]),
+            (ALPHABET_ID.arabic, "Arabic", &["ا", "ي", "ء"], &["پ"]),
+            (ALPHABET_ID.persian, "Persian", &["پ", "چ", "گ"], &[]),
+            (ALPHABET_ID.nko, "N'Ko", &["ߊ", "ߪ"], &["a"]),
+            (ALPHABET_ID.amharic, "Amharic", &["ሀ", "ለ", "ፐ"], &["a"]),
+            (ALPHABET_ID.swahili, "Swahili", &["a", "z"], &["ɓ"]),
+            (ALPHABET_ID.afrikaans, "Afrikaans", &["ê", "ë"], &[]),
+            (ALPHABET_ID.hausa, "Hausa", &["ɓ", "ƴ"], &[]),
+            (ALPHABET_ID.yoruba, "Yoruba", &["ẹ", "ọ", "ṣ"], &[]),
+            (ALPHABET_ID.igbo, "Igbo", &["ị", "ụ"], &[]),
+            (ALPHABET_ID.wolof, "Wolof", &["ë", "ñ"], &[]),
+            (ALPHABET_ID.tifinagh, "Tifinagh", &["ⴰ", "ⵣ"], &["a"]),
             (
                 ALPHABET_ID.japanese,
                 "Japanese",
-                &['あ', 'ン'],
-                &['が', 'a'],
+                &["あ", "ン"],
+                &["が", "a"],
             ),
-            (ALPHABET_ID.korean, "Korean", &['이', '다'], &['a']),
-            (ALPHABET_ID.chinese, "Chinese", &['的', '一'], &['繁', 'a']),
-            (ALPHABET_ID.hindi, "Hindi", &['अ', 'क'], &['a']),
-            (ALPHABET_ID.bengali, "Bengali", &['অ', 'ক'], &['a']),
-            (ALPHABET_ID.tamil, "Tamil", &['அ', 'க'], &['a']),
-            (ALPHABET_ID.telugu, "Telugu", &['అ', 'క'], &['a']),
-            (ALPHABET_ID.kannada, "Kannada", &['ಅ', 'ಕ'], &['a']),
-            (ALPHABET_ID.malayalam, "Malayalam", &['അ', 'ക'], &['a']),
-            (ALPHABET_ID.gujarati, "Gujarati", &['અ', 'ક'], &['a']),
-            (ALPHABET_ID.punjabi, "Punjabi", &['ਅ', 'ਕ'], &['a']),
-            (ALPHABET_ID.odia, "Odia", &['ଅ', 'କ'], &['a']),
-            (ALPHABET_ID.azerbaijani, "Azerbaijani", &['ə', 'ğ'], &['w']),
-            (ALPHABET_ID.kazakh, "Kazakh", &['ä', 'ū'], &['c']),
-            (ALPHABET_ID.uzbek, "Uzbek", &['ʻ'], &['ä']),
-            (ALPHABET_ID.turkmen, "Turkmen", &['ň', 'ý'], &['q']),
-            (ALPHABET_ID.kyrgyz, "Kyrgyz", &['ң', 'ө'], &['a']),
-            (ALPHABET_ID.mongolian, "Mongolian", &['ө', 'ү'], &['a']),
-            (ALPHABET_ID.filipino, "Filipino", &['ñ'], &['ə']),
-            (ALPHABET_ID.vietnamese, "Vietnamese", &['đ', 'ă'], &['ф']),
-            (ALPHABET_ID.thai, "Thai", &['ก', 'ฮ'], &['a']),
-            (ALPHABET_ID.khmer, "Khmer", &['ក', '្'], &['a']),
+            (ALPHABET_ID.korean, "Korean", &["이", "다"], &["a"]),
+            (ALPHABET_ID.chinese, "Chinese", &["的", "一"], &["繁", "a"]),
+            (ALPHABET_ID.hindi, "Hindi", &["अ", "क"], &["a"]),
+            (ALPHABET_ID.bengali, "Bengali", &["অ", "ক"], &["a"]),
+            (ALPHABET_ID.tamil, "Tamil", &["அ", "க"], &["a"]),
+            (ALPHABET_ID.telugu, "Telugu", &["అ", "క"], &["a"]),
+            (ALPHABET_ID.kannada, "Kannada", &["ಅ", "ಕ"], &["a"]),
+            (ALPHABET_ID.malayalam, "Malayalam", &["അ", "ക"], &["a"]),
+            (ALPHABET_ID.gujarati, "Gujarati", &["અ", "ક"], &["a"]),
+            (ALPHABET_ID.punjabi, "Punjabi", &["ਅ", "ਕ"], &["a"]),
+            (ALPHABET_ID.odia, "Odia", &["ଅ", "କ"], &["a"]),
+            (ALPHABET_ID.azerbaijani, "Azerbaijani", &["ə", "ğ"], &["w"]),
+            (ALPHABET_ID.kazakh, "Kazakh", &["ä", "ū"], &["c"]),
+            (ALPHABET_ID.uzbek, "Uzbek", &["ʻ"], &["ä"]),
+            (ALPHABET_ID.turkmen, "Turkmen", &["ň", "ý"], &["q"]),
+            (ALPHABET_ID.kyrgyz, "Kyrgyz", &["ң", "ө"], &["a"]),
+            (ALPHABET_ID.mongolian, "Mongolian", &["ө", "ү"], &["a"]),
+            (ALPHABET_ID.filipino, "Filipino", &["ñ"], &["ə"]),
+            (ALPHABET_ID.vietnamese, "Vietnamese", &["đ", "ă"], &["ф"]),
+            (ALPHABET_ID.thai, "Thai", &["ก", "ฮ"], &["a"]),
+            (ALPHABET_ID.khmer, "Khmer", &["ក", "កា"], &["a", "្"]),
         ];
         assert_eq!(
             alphabet(ALPHABET_ID.japanese).len(),
@@ -233,7 +234,7 @@ mod tests {
             );
             assert_eq!(alphabet(def.id).len(), n);
             assert_eq!(alphabet(def.id), def.symbols);
-            assert_eq!(&def.symbols[n - 3..], &[' ', ',', '.']);
+            assert_eq!(&def.symbols[n - 3..], &[" ", ",", "."]);
             // Prefer id == glyph_count; diverge only when that count is already an id.
             if def.id as usize == n {
                 continue;
@@ -273,15 +274,38 @@ mod tests {
         }
     }
 
-    /// Len of a pure `symbols: "…"` / `'…'` literal; skip stem / concat / IDENT lenses.
+    /// Cell count for `symbols: [...]` arrays, or pure string literals (+ optional + PUNCT).
     fn regex_lite_symbols_len(js: &str, id: u32) -> Option<usize> {
         let marker = format!("id: {id},");
         let start = js.find(&marker)?;
         let window = &js[start..];
-        let end = window.find("\n  },").unwrap_or(window.len().min(2500));
+        let end = window.find("\n  },").unwrap_or(window.len().min(8000));
         let block = &window[..end];
         if block.contains("stem:") {
             return None;
+        }
+        // symbols: [ "a", "b", ... ]
+        if let Some(i) = block.find("symbols: [") {
+            let rest = &block[i + "symbols: [".len()..];
+            let j = rest.find(']')?;
+            let inner = &rest[..j];
+            let mut count = 0usize;
+            let mut chars = inner.chars().peekable();
+            while let Some(c) = chars.next() {
+                if c == '"' {
+                    count += 1;
+                    while let Some(d) = chars.next() {
+                        if d == '\\' {
+                            chars.next();
+                            continue;
+                        }
+                        if d == '"' {
+                            break;
+                        }
+                    }
+                }
+            }
+            return Some(count);
         }
         for quote in ['"', '\''] {
             let key = format!("symbols: {quote}");
@@ -289,7 +313,10 @@ mod tests {
                 let rest = &block[i + key.len()..];
                 let j = rest.find(quote)?;
                 let after = rest[j + 1..].trim_start();
-                // `"abc" + PUNCT` and `IDENT` forms are not pure literals.
+                if after.starts_with('+') {
+                    // "abc" + PUNCT — count chars + 3
+                    return Some(rest[..j].chars().count() + 3);
+                }
                 if !after.starts_with(',') {
                     return None;
                 }
@@ -298,6 +325,7 @@ mod tests {
         }
         None
     }
+
     #[test]
     fn alphabet_is_a_lens_not_a_room_axis() {
         // Room identity ignores alphabet; content under each lens diverges.
@@ -417,6 +445,37 @@ mod tests {
         assert_ne!(state, orig);
         feistel_decrypt(&mut state, key, alpha_len);
         assert_eq!(state, orig);
+    }
+
+    #[test]
+    fn feistel_round_trips_at_u8_max_modulus() {
+        // Chinese / clustered Indic fill all 255 Feistel slots — u8 add must not overflow.
+        use crate::config::ALPHABET_ID;
+        let alpha_len = 255;
+        let key = feistel_key(ALPHABET_ID.chinese);
+        let mut state = plaintext_from_address(1, 2, 3, 4, 5, alpha_len);
+        let orig = state;
+        feistel_encrypt(&mut state, key, alpha_len);
+        assert_ne!(state, orig);
+        feistel_decrypt(&mut state, key, alpha_len);
+        assert_eq!(state, orig);
+    }
+
+    #[test]
+    fn clustered_alphabet_pages_render() {
+        use crate::config::{ALPHABET_ID, PAGE_CONTENT_SYMBOLS};
+        for &id in &[
+            ALPHABET_ID.hindi,
+            ALPHABET_ID.thai,
+            ALPHABET_ID.khmer,
+            ALPHABET_ID.chinese,
+        ] {
+            let text = page_text(&PageRender::new(PageAddr::new(0, 0, 0, 0, id, 0)));
+            assert!(
+                text.chars().filter(|c| *c != '\n').count() >= PAGE_CONTENT_SYMBOLS,
+                "alphabet {id} page too short"
+            );
+        }
     }
 
     #[test]
