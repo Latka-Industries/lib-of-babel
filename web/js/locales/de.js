@@ -14,6 +14,8 @@ export const de = {
   "header.universeRandomTitle": "Zu einem zufälligen Universum springen",
   "header.alphabetTitle":
     "Alphabet-Linse — gleicher Raum-Hash, andere Rücken und Seiten (keine Übersetzung)",
+  "alphabet.picker.h": "Alphabet-Linse",
+  "alphabet.picker.sub": "gleicher Raum-Hash · andere Rücken und Seiten",
   "header.actionsTitle":
     "Link kopieren · exportieren · prüfen · suchen · neuer Gang",
   "header.themeToLight": "Zum Hellmodus wechseln",

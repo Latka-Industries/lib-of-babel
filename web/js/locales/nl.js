@@ -12,6 +12,8 @@ export const nl = {
   "header.universeRandomTitle": "spring naar een willekeurig universum",
   "header.alphabetTitle":
     "alfabetlens —zelfde kamer-hash, andere rugtitels en pagina’s (geen vertaling)",
+  "alphabet.picker.h": "Alfabetlens",
+  "alphabet.picker.sub": "zelfde kamer-hash · andere rugtitels en pagina’s",
   "header.actionsTitle": "link kopiëren · exporteren · controleren · zoeken · nieuwe tocht",
   "header.themeToLight": "overschakelen naar lichte modus",
   "header.themeToDark": "overschakelen naar donkere modus",

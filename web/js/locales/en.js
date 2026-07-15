@@ -12,6 +12,8 @@ export const en = {
   "header.universeRandomTitle": "jump to a random universe",
   "header.alphabetTitle":
     "alphabet lens — same room hash, different spines and pages (not translation)",
+  "alphabet.picker.h": "Alphabet lens",
+  "alphabet.picker.sub": "same room hash · different spines and pages",
   "header.actionsTitle": "copy link · export · verify · search · new walk",
   "header.themeToLight": "switch to light mode",
   "header.themeToDark": "switch to dark mode",
