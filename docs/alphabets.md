@@ -1,6 +1,6 @@
 # Alphabet lenses
 
-Selectable **symbol laws** for spines and pages; same room hash and sigil at `(universe, z, n)`. Permalinks carry the lens as `&a=<id>`.
+Selectable **symbol laws** for spines and pages; same room hash and sigil at `(universe, z, n)`. Permalinks carry the lens as `&a=<id>`. Broader model: [design.md](design.md).
 
 **UI pack** means chrome menus/labels switch when that lens is active (English otherwise).
 
