@@ -44,13 +44,22 @@ description = "cargo fmt"
 run = "cargo fmt --all"
 
 [tasks.check]
-description = "fmt + clippy (-D warnings) + tests + config-size guard"
+description = "fmt + clippy (-D warnings) + tests + config-size + alphabet-pack drift"
 run = [
   "cargo fmt --all -- --check",
   "cargo clippy --all-targets -- -D warnings",
   "cargo test",
   "sh scripts/check-config-sizes.sh",
+  "mise run check-alphabets",
 ]
+
+[tasks.gen-alphabets]
+description = "Regenerate Rust alphabet packs from data/alphabets/*.txt"
+run = "uv run --no-project --python 3.13 -- python scripts/gen-alphabet-packs.py"
+
+[tasks.check-alphabets]
+description = "Fail if generated Rust alphabet packs drift from data/alphabets/*.txt"
+run = "uv run --no-project --python 3.13 -- env PYTHON=python sh scripts/check-alphabet-packs.sh"
 
 [tasks.clean]
 description = "Remove build artifacts (target/ and web/pkg)"
