@@ -2,12 +2,6 @@
 export const de = {
   "header.aboutTitle":
     "Über — was dies ist und wie Sie wandern (öffnet den Leitfaden)",
-  "header.gallery": "Galerie",
-  "header.coordTitle": "Klicken Sie, um zu einer beliebigen Galerie zu springen",
-  "header.hash": "Hash",
-  "header.hashTitle":
-    "Klicken Sie, um den vollständigen Hash dieser Galerie zu kopieren",
-  "header.steps": "Schritte",
   "header.universePlaceholder": "Standarduniversum",
   "header.universeTitle":
     "Universum — benennen Sie eine parallele Bibliothek (leer = Standard). Eingabe zum Reisen.",
@@ -20,6 +14,12 @@ export const de = {
     "Link kopieren · exportieren · prüfen · suchen · neuer Gang",
   "header.themeToLight": "Zum Hellmodus wechseln",
   "header.themeToDark": "Zum Dunkelmodus wechseln",
+  "header.menuOpenTitle": "Menü öffnen",
+  "header.menuCloseTitle": "Menü schließen",
+  "header.menuUniverse": "Universum",
+  "header.menuAlphabet": "Alphabet",
+  "header.menuActions": "Aktionen",
+  "header.menuTheme": "Thema",
   "actions.placeholder": "Aktionen…",
   "actions.copy": "Link kopieren",
   "actions.search": "Suchen…",
@@ -35,8 +35,12 @@ export const de = {
   "loading.failed": "Laden fehlgeschlagen: {err}",
 
   "footer.wanderings": "Wanderungen · {n}/{max}",
-  "footer.trail":
-    "Spur {nodes} Knoten · Universum {universe} · {alphabet} · Gen v{gv}",
+  "footer.gallery": "Galerie",
+  "footer.coordTitle": "Klicken Sie, um zu einer beliebigen Galerie zu springen",
+  "footer.hash": "Hash",
+  "footer.hashTitle":
+    "Klicken Sie, um den vollständigen Hash dieser Galerie zu kopieren",
+  "footer.steps": "Schritte",
 
   "common.close": "Schließen",
   "common.go": "Los",
@@ -53,7 +57,7 @@ export const de = {
   "about.tabsLabel": "Abschnitte",
   "about.alphabets.h": "Alphabet-Linsen",
   "about.alphabets.intro":
-    "Jeder Satz ist ein <b>Symbolgesetz</b> für Rücken und Seiten — kein eigenes Universum. Gleicher Raum-Hash und Siegel; <i>keine Übersetzung</i>. Suche und Titel akzeptieren nur Symbole der aktiven Linse. Unten nach Familie stöbern. Ein Hinweis <b>Oberfläche · …</b> heißt: Menüs und Beschriftungen wechseln mit. <b>Quellen</b> unter dem Familien-Blurb verweisen auf Überblickstexte.",
+    "Jeder Satz ist ein <b>Symbolgesetz</b> für Rücken und Seiten — kein eigenes Universum. Gleicher Raum-Hash und Siegel; <i>eine neue Art von Übersetzung</i>. Suche und Titel akzeptieren nur Symbole der aktiven Linse. Unten nach Familie stöbern. Ein Hinweis <b>Oberfläche · …</b> heißt: Menüs und Beschriftungen wechseln mit. <b>Quellen</b> unter dem Familien-Blurb verweisen auf Überblickstexte.",
   "about.alphabets.indexLabel": "Familie",
   "about.alphabets.refs": "Quellen",
   "about.alphabet.meta": "{n} Glyphen · &amp;a={id}",
@@ -94,7 +98,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
 <li>Geben Sie einen <b>Universum</b>-Namen ein oder würfeln Sie mit <b>&#9860;</b>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
 <li>Das <b>Alphabet</b>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.</li>
-<li><b>Aktionen…</b> → <b>Link kopieren</b> (oder Kopfzeilen-<b>Hash</b>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
+<li><b>Aktionen…</b> → <b>Link kopieren</b> (oder Fußzeilen-<b>Hash</b>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
 <li><b>Aktionen…</b> → <b>Suchen…</b> — <b>Inhalt</b> oder <b>Titel</b>, Koordinaten finden, hinspringen (siehe <b>Mehr</b>).</li>
 <li><b>Wanderungen</b> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <b>Reise exportieren</b> speichert den gesamten Weg als JSON.</li>
 </ul>`,
@@ -111,7 +115,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 </ul>`,
 
   "about.more": `
-<h4>Die Zahlen in der Kopfzeile</h4>
+<h4>Die Zahlen in der Fußzeile</h4>
 <p class="dim">
 <b>Galerie (z, n)</b> ist Ihre Koordinate. <b>Hash</b> ist der
 <b>BLAKE3</b>-Fingerabdruck des Raums — Permalink und Beweis für diesen Ort in diesem

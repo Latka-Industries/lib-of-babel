@@ -9,7 +9,7 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, setFooterDim, galleryIsTouch } from "./util.js";
+import { el, copyText, hueFromString, neighbor, formatCoordDisplay, hashHue, hashAccentColor, formatUniverseLabel, galleryIsTouch } from "./util.js";
 import {
   WALLS,
   SHELVES_PER_WALL,
@@ -166,15 +166,6 @@ export function render() {
     n: win.length,
     max: WINDOW_MAX,
   });
-  setFooterDim(
-    el("trailNote"),
-    t("footer.trail", {
-      nodes: S.trail.length,
-      universe: formatUniverseLabel(S.universeName),
-      alphabet: formatAlphabetSymbolLabel(S.alphabetId, t),
-      gv: S.gv,
-    }),
-  );
   if (el("historyModal").open) renderHistory();
 }
 

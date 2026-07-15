@@ -2,9 +2,9 @@
 name = "lib-of-babel"
 version = "0.1.0"
 edition = "2024"
-authors = ["AHurowitz <latkaindustries@gmail.com>"]
+authors = ["Alexander Hurowitz <latkaindustries@gmail.com>"]
 description = "A living, walkable Library of Babel: deterministic Rust->WASM gallery generator with cryptographic per-gallery fingerprints."
-license = "MIT"
+license = "GPL-3.0-only"
 repository = "https://github.com/Latka-Industries/lib-of-babel"
 publish = false
 

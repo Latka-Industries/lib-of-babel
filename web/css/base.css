@@ -7,19 +7,38 @@
   font-display: swap;
   src: url("../fonts/OverpassMono-Regular.woff2") format("woff2");
 }
+/* Lato — About / prose. Latin + latin-ext subsets; 600/700 share the bold face. */
 @font-face {
-  font-family: "Literata";
+  font-family: "Lato";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("../fonts/Literata-Regular.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url("../fonts/Lato-Regular.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Literata";
+  font-family: "Lato";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 400;
   font-display: swap;
-  src: url("../fonts/Literata-SemiBold.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url("../fonts/Lato-Regular-Ext.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url("../fonts/Lato-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url("../fonts/Lato-Bold-Ext.woff2") format("woff2");
 }
 @font-face {
   font-family: "Noto Sans Arabic";
@@ -179,7 +198,7 @@
   --backdrop: color-mix(in oklab, rgba(0, 0, 0, 0.7) 94%, var(--accent));
   --mm-fill: rgba(255, 255, 255, 0.025);
   --font: "Overpass Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-prose: "Literata", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-prose: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
   /* Script stacks for non-Latin lenses (Noto). CJK share one fallback. */
   --font-script-fallback: "Noto Sans", sans-serif;
   --font-arabic: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
@@ -274,6 +293,7 @@
 body {
   margin: 0;
   font: 14px/1.5 var(--font);
+  font-variant-ligatures: none;
   color: var(--ink);
   min-height: 100vh;
   background-color: var(--bg-deep);

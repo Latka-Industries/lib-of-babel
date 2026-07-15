@@ -29,40 +29,52 @@
   <body>
     <header>
       <div class="header-bar">
-        <div class="header-left">
-          <button id="aboutBtn" class="logo" data-i18n-title="header.aboutTitle" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
-          <span class="stat"><span data-i18n="header.gallery">gallery</span> <b id="coord" class="coord" data-i18n-title="header.coordTitle" title="click to jump to any gallery">…</b></span>
-          <span class="stat"><span data-i18n="header.hash">hash</span> <b class="hash" id="hash" data-i18n-title="header.hashTitle" title="click to copy this gallery's full hash">…</b></span>
-          <span class="stat"><span data-i18n="header.steps">steps</span> <b id="steps">0</b></span>
-        </div>
-        <div class="header-right">
-          <span class="universe-wrap">
-            <input id="universe" class="universe" type="text" maxlength="40"
-              data-i18n-placeholder="header.universePlaceholder" placeholder="default universe"
-              autocomplete="off" spellcheck="false"
-              data-i18n-title="header.universeTitle"
-              title="universe — name a parallel library (blank = the default). Enter to travel." />
-            <button id="universeRandom" class="dice" data-i18n-title="header.universeRandomTitle" title="jump to a random universe">&#9860;</button>
-          </span>
-          <button type="button" id="alphabetBtn" class="alphabet"
-            data-i18n-title="header.alphabetTitle"
-            title="alphabet lens — same room hash, different spines and pages (not translation)"
-            aria-haspopup="dialog" aria-controls="alphabetModal">
-            <span id="alphabetBtnLabel">a&ndash;z &middot; Basile</span>
-          </button>
-          <select id="actionsMenu" class="actions-menu" data-i18n-title="header.actionsTitle" title="copy link · export · verify · search · new walk">
-            <option value="" selected disabled data-i18n="actions.placeholder">actions&hellip;</option>
-            <option value="copy" data-i18n="actions.copy">copy link</option>
-            <option value="search" data-i18n="actions.search">search…</option>
-            <option value="export" data-i18n="actions.export">export journey</option>
-            <option value="verify" data-i18n="actions.verify">verify journey</option>
-            <option value="reset" data-i18n="actions.reset">new walk</option>
-          </select>
-          <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false"
-            title="switch to light mode">☀</button>
+        <button id="aboutBtn" class="logo" data-i18n-title="header.aboutTitle" title="About — what this is &amp; how to wander (opens a guide)">LIB&middot;OF&middot;BABEL</button>
+        <button type="button" id="menuBtn" class="menu-toggle"
+          aria-expanded="false" aria-controls="headerControls" title="open menu">
+          <span class="menu-toggle-bars" aria-hidden="true"></span>
+        </button>
+        <div id="headerControls" class="header-controls">
+          <div class="menu-field">
+            <label class="menu-field-label" for="universe" data-i18n="header.menuUniverse">universe</label>
+            <span class="universe-wrap">
+              <input id="universe" class="universe" type="text" maxlength="40"
+                data-i18n-placeholder="header.universePlaceholder" placeholder="default universe"
+                autocomplete="off" spellcheck="false"
+                data-i18n-title="header.universeTitle"
+                title="universe — name a parallel library (blank = the default). Enter to travel." />
+              <button id="universeRandom" class="dice" data-i18n-title="header.universeRandomTitle" title="jump to a random universe">&#9860;</button>
+            </span>
+          </div>
+          <div class="menu-field">
+            <span class="menu-field-label" id="menuAlphabetLabel" data-i18n="header.menuAlphabet">alphabet</span>
+            <button type="button" id="alphabetBtn" class="alphabet"
+              data-i18n-title="header.alphabetTitle"
+            title="alphabet lens — same room hash, other spines and pages (not translation)"
+            aria-haspopup="dialog" aria-controls="alphabetModal" aria-labelledby="menuAlphabetLabel alphabetBtnLabel">
+              <span id="alphabetBtnLabel">a&ndash;z &middot; Basile</span>
+            </button>
+          </div>
+          <div class="menu-field">
+            <label class="menu-field-label" for="actionsMenu" data-i18n="header.menuActions">actions</label>
+            <select id="actionsMenu" class="actions-menu" data-i18n-title="header.actionsTitle" title="copy link · export · verify · search · new walk">
+              <option value="" selected disabled data-i18n="actions.placeholder">actions&hellip;</option>
+              <option value="copy" data-i18n="actions.copy">copy link</option>
+              <option value="search" data-i18n="actions.search">search…</option>
+              <option value="export" data-i18n="actions.export">export journey</option>
+              <option value="verify" data-i18n="actions.verify">verify journey</option>
+              <option value="reset" data-i18n="actions.reset">new walk</option>
+            </select>
+          </div>
+          <div class="menu-field menu-field-theme">
+            <span class="menu-field-label" data-i18n="header.menuTheme">theme</span>
+            <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false"
+              title="switch to light mode">☀</button>
+          </div>
         </div>
       </div>
     </header>
+    <div id="menuBackdrop" class="menu-backdrop" hidden></div>
     <input id="verifyFile" type="file" accept="application/json,.json" hidden />
     <main>
       <div class="stage">
@@ -76,7 +88,20 @@
       </div>
       <div class="footer">
         <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
-        <span id="trailNote" class="dim"><span class="dim-clip"></span></span>
+        <div class="footer-locus" aria-label="room">
+          <span class="stat">
+            <span class="stat-label" data-i18n="footer.gallery">gallery</span>
+            <b id="coord" class="coord" data-i18n-title="footer.coordTitle" title="click to jump to any gallery">…</b>
+          </span>
+          <span class="stat">
+            <span class="stat-label" data-i18n="footer.hash">hash</span>
+            <b class="hash" id="hash" data-i18n-title="footer.hashTitle" title="click to copy this gallery's full hash">…</b>
+          </span>
+          <span class="stat">
+            <span class="stat-label" data-i18n="footer.steps">steps</span>
+            <b id="steps">0</b>
+          </span>
+        </div>
         <span id="viewportSize" class="dim viewport-size" hidden><span class="dim-clip"></span></span>
       </div>
     </main>
@@ -85,7 +110,7 @@
       <div class="book-head">
         <div class="book-head-text">
           <h3 data-i18n="alphabet.picker.h">Alphabet lens</h3>
-          <small class="dim" data-i18n="alphabet.picker.sub">same room hash · different spines and pages</small>
+          <small class="dim" data-i18n="alphabet.picker.sub">same room hash · other spines and pages</small>
         </div>
         <div class="book-head-actions">
           <button type="button" id="closeAlphabet" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
