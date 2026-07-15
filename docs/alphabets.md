@@ -69,7 +69,7 @@ Ids are stable registry keys (usually the glyph count; some diverge where counts
 | Slavic | Slovenian | Slovenščina | 53 | 32 | sl | — |
 | Slavic | Ukrainian | Українська | 55 | 36 | uk | — |
 | Southeast Asian | Filipino | Filipino | 94 | 30 | fil | — |
-| Southeast Asian | Khmer | ខ្មែរ | 109 | 255 | km | — |
+| Southeast Asian | Khmer | ខ្មែរ | 109 | 381 | km | — |
 | Southeast Asian | Thai | ไทย | 108 | 565 | th | — |
 | Southeast Asian | Vietnamese | Tiếng Việt | 96 | 96 | vi | — |
 | Turkic | Azerbaijani | Azərbaycan | 88 | 35 | az | — |

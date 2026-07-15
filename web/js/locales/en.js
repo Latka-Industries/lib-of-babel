@@ -425,5 +425,5 @@ label, not a page of text.
   "alphabet.lensBlurb.108":
     "Thai: all consonants × combining vowels/tones as grapheme clusters, plus spacing vowels/signs (no lone combining marks; Noto Sans Thai).",
   "alphabet.lensBlurb.109":
-    "Khmer: consonants, independent vowels, and curated consonant–vowel clusters (no lone coeng/marks; Noto Sans Khmer).",
+    "Khmer: all consonants × curated dependent vowels as grapheme clusters, plus independent vowels (no lone coeng/marks; Noto Sans Khmer).",
 };
