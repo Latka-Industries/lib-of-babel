@@ -200,12 +200,14 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 19. ✅ **RTL + Ethiopic + African lenses** — Hebrew / Arabic / Persian / N’Ko (joined via Noto), Amharic fidel, African Latin packs, Tifinagh. ([THI-88](https://linear.app/thicclatka/issue/THI-88))
 20. ✅ **CJK / Hangul lenses** — Japanese kana gojūon, curated Hangul syllables, Simplified Chinese frequent-char pack (≤255 glyphs each; Noto JP/KR/SC subsets). ([THI-126](https://linear.app/thicclatka/issue/THI-126))
 21. ✅ **Indic alphabet lenses** — Hindi / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Punjabi / Odia atom inventories (Noto Brahmic subsets). ([THI-127](https://linear.app/thicclatka/issue/THI-127))
+22. ✅ **Alphabet lens picker popup** — header button + grouped dialog with current lens highlighted (replaces overflowing `<select>`). ([THI-128](https://linear.app/thicclatka/issue/THI-128))
 
 **Next:**
 
-22. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-23. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
-24. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
+23. 🚧 **Turkic / Mongolian / SE Asian lenses** — Azerbaijani / Kazakh / Uzbek / Kyrgyz / Turkmen, Mongolian Cyrillic, Filipino / Vietnamese / Thai / Khmer ([THI-129](https://linear.app/thicclatka/issue/THI-129)).
+24. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+25. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
+26. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
 
 **Later:**
 

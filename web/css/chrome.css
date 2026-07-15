@@ -62,6 +62,18 @@ button { padding: 0.35rem 0.7rem; }
 .alphabet, .save-menu, .actions-menu, .universe, .dice, .theme-toggle {
   padding: 0.35rem 0.5rem;
 }
+.alphabet {
+  max-width: min(14rem, 46vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#alphabetBtnLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .universe-wrap {
   display: flex; align-items: center; gap: 0.25rem; min-width: 0;
 }

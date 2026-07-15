@@ -44,9 +44,12 @@
               title="universe — name a parallel library (blank = the default). Enter to travel." />
             <button id="universeRandom" class="dice" data-i18n-title="header.universeRandomTitle" title="jump to a random universe">&#9860;</button>
           </span>
-          <select id="alphabet" class="alphabet" data-i18n-title="header.alphabetTitle" title="alphabet lens — same room hash, different spines and pages (not translation)">
-            <option value="29" selected>a&ndash;z &middot; Basile</option>
-          </select>
+          <button type="button" id="alphabetBtn" class="alphabet"
+            data-i18n-title="header.alphabetTitle"
+            title="alphabet lens — same room hash, different spines and pages (not translation)"
+            aria-haspopup="dialog" aria-controls="alphabetModal">
+            <span id="alphabetBtnLabel">a&ndash;z &middot; Basile</span>
+          </button>
           <select id="actionsMenu" class="actions-menu" data-i18n-title="header.actionsTitle" title="copy link · export · verify · search · new walk">
             <option value="" selected disabled data-i18n="actions.placeholder">actions&hellip;</option>
             <option value="copy" data-i18n="actions.copy">copy link</option>
@@ -77,6 +80,21 @@
         <span id="viewportSize" class="dim viewport-size" hidden><span class="dim-clip"></span></span>
       </div>
     </main>
+
+    <dialog id="alphabetModal">
+      <div class="book-head">
+        <div class="book-head-text">
+          <h3 data-i18n="alphabet.picker.h">Alphabet lens</h3>
+          <small class="dim" data-i18n="alphabet.picker.sub">same room hash · different spines and pages</small>
+        </div>
+        <div class="book-head-actions">
+          <button type="button" id="closeAlphabet" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
+      </div>
+      <div class="alphabet-picker-body">
+        <div id="alphabetPickerList"></div>
+      </div>
+    </dialog>
 
     <dialog id="aboutModal">
       <div class="book-head">

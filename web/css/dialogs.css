@@ -466,6 +466,74 @@ pre.page mark.search-hit {
   color: var(--ink);
 }
 .alpha-glyph.punct { color: var(--muted); }
+
+/* Header alphabet lens picker dialog */
+#alphabetModal {
+  max-width: min(720px, 96vw);
+}
+.alphabet-picker-body {
+  padding: 0;
+}
+.alphabet-picker-browse {
+  height: min(58vh, 28rem);
+  border-top: none;
+  margin: 0;
+}
+.alphabet-pick-panel {
+  min-width: 0;
+  overflow: auto;
+  padding: 0.35rem;
+}
+.alphabet-pick-lenses {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.alphabet-pick-lens {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: start;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.alphabet-pick-lens:hover {
+  background: var(--hover-wash);
+}
+.alphabet-pick-lens.is-current,
+.alphabet-pick-lens[aria-current="true"] {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--line));
+  background: var(--hover-wash-strong);
+}
+.alphabet-pick-short {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.alphabet-pick-native {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.alphabet-pick-meta {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .alphabet-picker-browse {
+    height: min(70vh, 36rem);
+  }
+}
 @media (max-width: 560px) {
   .alpha-browse {
     grid-template-columns: 1fr;
