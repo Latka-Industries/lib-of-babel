@@ -10,7 +10,7 @@ use super::tables::ALPHABET_TABLE;
 pub struct AlphabetDef {
     pub id: u32,
     pub name: &'static str,
-    pub symbols: &'static [char],
+    pub symbols: &'static [&'static str],
 }
 
 /// Built-in lenses (single registry — lookup by id; unknown → Basile).
@@ -408,6 +408,6 @@ pub fn alphabet_def(alphabet_id: u32) -> AlphabetDef {
 /// Unknown ids use the Basile symbol table (legacy behaviour).
 #[inline]
 #[must_use]
-pub fn alphabet(alphabet_id: u32) -> &'static [char] {
+pub fn alphabet(alphabet_id: u32) -> &'static [&'static str] {
     alphabet_def(alphabet_id).symbols
 }

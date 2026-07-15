@@ -272,11 +272,11 @@ label, not a page of text.
   "alphabet.blurb.CJK":
     "East Asian pages under the Feistel 255-glyph cap: Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is impossible as one lens.",
   "alphabet.blurb.Indic":
-    "Brahmic abugidas of India as Unicode atoms (independent vowels, consonants, matras, virama/marks) plus space, comma, period. Feistel cannot store conjunct-heavy akshara tables; pages are letter noise, not composed orthography.",
+    "Brahmic abugidas of India as grapheme-cluster cells: independent vowels and consonants, plus curated consonant–matra units (no lone combining marks). Feistel still cannot store full conjunct akshara tables; pages are cluster noise, not composed orthography.",
   "alphabet.blurb.Mongolic":
     "Mongolic languages of the steppe. Modern Khalkha Mongolian in Mongolia uses a Cyrillic alphabet with ө and ү for front rounded vowels — same civil-script family as Russian, different Feistel inventory.",
   "alphabet.blurb.Southeast Asian":
-    "Mainland and maritime Southeast Asia: Filipino and Vietnamese in Latin (ñ; đ and tone-marked vowels), Thai and Khmer as Brahmic-descended abugidas with self-hosted Noto faces. Pages are glyph projections, not syllable orthography.",
+    "Mainland and maritime Southeast Asia: Filipino and Vietnamese in Latin (ñ; đ and tone-marked vowels), Thai and Khmer as clustered abugida cells (base + attached marks; Noto faces). Pages are glyph projections, not syllable orthography.",
   // Per-lens blurbs (stable registry ids).
   "alphabet.lensBlurb.25":
     "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
@@ -388,24 +388,24 @@ label, not a page of text.
     "Korean Hangul as precomposed syllables (not jamo soup). Top 247 syllables by token frequency from a Korean word-frequency list, plus space, comma, period.",
   "alphabet.lensBlurb.255":
     "Simplified Chinese frequent characters (Jun Da modern list, top 252) plus space, comma, period. Traditional and fuller Unihan packs stay backlog.",
-  "alphabet.lensBlurb.79":
-    "Hindi (Devanagari): Vowels, consonants, matras, and marks (anusvara/visarga/chandrabindu/nukta/virama). Shared shelf for Marathi/Sanskrit/Nepali orthography.",
-  "alphabet.lensBlurb.80":
-    "Bengali: Vowels, consonants, matras, and hasanta/nukta marks. Assamese extras stay backlog.",
-  "alphabet.lensBlurb.81":
-    "Tamil: Uyir, mei, vowel signs, āytam, and pulli — atom inventory, not the full uyirmei table.",
-  "alphabet.lensBlurb.82":
-    "Telugu: Independent vowels, consonants (incl. ళ), matras, and anusvara/visarga/chandrabindu/virama.",
-  "alphabet.lensBlurb.83":
-    "Kannada: Independent vowels, consonants (incl. ಳ), matras, and combining marks parallel to Telugu.",
-  "alphabet.lensBlurb.84":
-    "Malayalam: Vowels, consonants (incl. ള/ഴ/റ), matras, marks, and common chillu letters (ൻ/ർ/ൽ/ൾ/ൺ/ൿ).",
-  "alphabet.lensBlurb.85":
-    "Gujarati: Vowels, consonants (incl. ળ), matras, and anusvara/visarga/chandrabindu/nukta/virama.",
-  "alphabet.lensBlurb.86":
-    "Punjabi (Gurmukhi): Vowels, consonants (incl. ੜ), matras, and tippi/addak/nukta/virama marks.",
-  "alphabet.lensBlurb.87":
-    "Odia: Vowels, consonants (incl. ଳ), matras, and anusvara/visarga/chandrabindu/virama/nukta.",
+  "alphabet.lensBlurb.99":
+    "Hindi (Devanagari): Independent vowels, consonants, and common consonant–matra clusters (no lone matras). Shared shelf for Marathi/Sanskrit/Nepali orthography.",
+  "alphabet.lensBlurb.100":
+    "Bengali: Independent vowels, consonants, and common consonant–matra clusters (no lone hasanta).",
+  "alphabet.lensBlurb.101":
+    "Tamil: Uyir, mei, and curated uyir-mei clusters — not the full table, and no lone pulli tiles.",
+  "alphabet.lensBlurb.102":
+    "Telugu: Independent vowels, consonants (incl. ళ), and common consonant–matra clusters.",
+  "alphabet.lensBlurb.103":
+    "Kannada: Independent vowels, consonants (incl. ಳ), and common consonant–matra clusters.",
+  "alphabet.lensBlurb.104":
+    "Malayalam: Vowels, consonants (incl. ള/ഴ/റ), chillu letters, and common consonant–matra clusters.",
+  "alphabet.lensBlurb.105":
+    "Gujarati: Independent vowels, consonants (incl. ળ), and common consonant–matra clusters.",
+  "alphabet.lensBlurb.106":
+    "Punjabi (Gurmukhi): Independent vowels, consonants (incl. ੜ), and common consonant–matra clusters.",
+  "alphabet.lensBlurb.107":
+    "Odia: Independent vowels, consonants (incl. ଳ), and common consonant–matra clusters.",
   "alphabet.lensBlurb.88":
     "Azerbaijani Latin: ə/ğ/x/ı/ö/ü and kin — the modern school alphabet (no w).",
   "alphabet.lensBlurb.89":
@@ -422,8 +422,8 @@ label, not a page of text.
     "Filipino (modern Latin): a–z plus ñ from Spanish-influenced orthography.",
   "alphabet.lensBlurb.96":
     "Vietnamese Latin: a–z, đ, and precomposed tone vowels (no combining marks).",
-  "alphabet.lensBlurb.97":
-    "Thai: consonants, vowels, tone marks, and common signs as Unicode atoms (Noto Sans Thai).",
-  "alphabet.lensBlurb.98":
-    "Khmer: consonants, independent vowels, dependent vowels, and marks (Noto Sans Khmer).",
+  "alphabet.lensBlurb.108":
+    "Thai: consonants, spacing vowels/signs, and curated consonant–vowel/tone clusters (no lone combining marks; Noto Sans Thai).",
+  "alphabet.lensBlurb.109":
+    "Khmer: consonants, independent vowels, and curated consonant–vowel clusters (no lone coeng/marks; Noto Sans Khmer).",
 };
