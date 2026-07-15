@@ -113,8 +113,10 @@ pub struct AlphabetIds {
     pub japanese: u32,
     /// Korean — curated Hangul syllables + punct (250 glyphs; id `250`).
     pub korean: u32,
-    /// Chinese — curated Simplified frequent chars + punct (255 glyphs; id `255`).
+    /// Chinese Simplified — frequency pack; id `255` (frozen permalink; inventory >255).
     pub chinese: u32,
+    /// Chinese Traditional — frequency pack; id `1000`.
+    pub chinese_trad: u32,
     /// Hindi — clustered Devanagari; id `99`.
     pub hindi: u32,
     /// Bengali — clustered; id `100`.
@@ -212,6 +214,7 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     japanese: 95,
     korean: 250,
     chinese: 255,
+    chinese_trad: 1000,
     hindi: 99,
     bengali: 100,
     tamil: 101,

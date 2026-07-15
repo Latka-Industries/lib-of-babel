@@ -270,7 +270,7 @@ label, not a page of text.
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
   "alphabet.blurb.CJK":
-    "East Asian pages under the Feistel soft cell cap (4096): Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is still impossible as one lens.",
+    "East Asian pages under the Feistel soft cell cap (4096): Japanese kana (gojūon, no dakuten), curated Hangul syllables, and Simplified + Traditional Chinese frequent-character packs. Full Unihan or full Hangul is still impossible as one lens.",
   "alphabet.blurb.Indic":
     "Brahmic abugidas of India as grapheme-cluster cells: independent vowels and consonants, plus curated consonant–matra units (no lone combining marks). Feistel still cannot store full conjunct akshara tables; pages are cluster noise, not composed orthography.",
   "alphabet.blurb.Mongolic":
@@ -387,7 +387,9 @@ label, not a page of text.
   "alphabet.lensBlurb.250":
     "Korean Hangul as precomposed syllables (not jamo soup). Top 247 syllables by token frequency from a Korean word-frequency list, plus space, comma, period.",
   "alphabet.lensBlurb.255":
-    "Simplified Chinese frequent characters (Jun Da modern list, top 252) plus space, comma, period. Traditional and fuller Unihan packs stay backlog.",
+    "Simplified Chinese frequent characters (Jun Da modern list, top 997) plus space, comma, period — 1000 cells under frozen id 255.",
+  "alphabet.lensBlurb.1000":
+    "Traditional Chinese frequent characters (Jun Da modern list converted with OpenCC s2tw, top 997) plus space, comma, period — 1000 cells; id 1000.",
   "alphabet.lensBlurb.99":
     "Hindi (Devanagari): Independent vowels, consonants, and common consonant–matra clusters (no lone matras). Shared shelf for Marathi/Sanskrit/Nepali orthography.",
   "alphabet.lensBlurb.100":

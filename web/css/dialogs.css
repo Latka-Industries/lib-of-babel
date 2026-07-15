@@ -536,6 +536,7 @@ pre.page mark.search-hit {
 .alpha-glyphs[data-script="japanese"] { font-family: var(--font-japanese); }
 .alpha-glyphs[data-script="hangul"] { font-family: var(--font-hangul); }
 .alpha-glyphs[data-script="han"] { font-family: var(--font-han); }
+.alpha-glyphs[data-script="hant"] { font-family: var(--font-hant); }
 .alpha-glyphs[data-script="devanagari"] { font-family: var(--font-devanagari); }
 .alpha-glyphs[data-script="bengali"] { font-family: var(--font-bengali); }
 .alpha-glyphs[data-script="tamil"] { font-family: var(--font-tamil); }
