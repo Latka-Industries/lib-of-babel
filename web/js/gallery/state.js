@@ -3,9 +3,9 @@
 // same state; ES module bindings can't be reassigned across files, but object
 // properties can.
 
-import { WINDOW_MAX, DEFAULT_ALPHABET_ID, ALPHABET_REGISTRY } from "./constants.js";
-import { kvSet } from "./db.js";
-import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "./wasm.js";
+import { WINDOW_MAX, DEFAULT_ALPHABET_ID, ALPHABET_REGISTRY } from "../lib/constants.js";
+import { kvSet } from "../lib/db.js";
+import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "../lib/wasm.js";
 
 export const S = {
   z: 0n,

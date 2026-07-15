@@ -8,7 +8,7 @@
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
     <title>lib-of-babel</title>
     <script>
-      // Apply theme before CSS paints — same key as web/js/theme.js.
+      // Apply theme before CSS paints — same key as web/js/chrome/theme.js.
       (function () {
         try {
           var k = "lib-of-babel-theme";
@@ -56,15 +56,27 @@
             </button>
           </div>
           <div class="menu-field">
-            <label class="menu-field-label" for="actionsMenu" data-i18n="header.menuActions">actions</label>
-            <select id="actionsMenu" class="actions-menu" data-i18n-title="header.actionsTitle" title="copy link · export · verify · search · new walk">
-              <option value="" selected disabled data-i18n="actions.placeholder">actions&hellip;</option>
-              <option value="copy" data-i18n="actions.copy">copy link</option>
-              <option value="search" data-i18n="actions.search">search…</option>
-              <option value="export" data-i18n="actions.export">export journey</option>
-              <option value="verify" data-i18n="actions.verify">verify journey</option>
-              <option value="reset" data-i18n="actions.reset">new walk</option>
-            </select>
+            <span class="menu-field-label" id="menuActionsLabel" data-i18n="header.menuActions">actions</span>
+            <div class="dd" id="actionsMenu">
+              <button type="button" id="actionsMenuBtn" class="dd-trigger"
+                data-i18n-title="header.actionsTitle"
+                title="copy link · export · verify · search · new walk"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="actionsMenuPanel"
+                aria-labelledby="menuActionsLabel actionsMenuLabel">
+                <span id="actionsMenuLabel" class="dd-label" data-i18n="actions.placeholder">actions&hellip;</span>
+                <span class="dd-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="dd-menu" id="actionsMenuPanel" role="menu" hidden>
+                <button type="button" role="menuitem" class="dd-item" data-action="copy" data-i18n="actions.copy">copy link</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="search" data-i18n="actions.search">search…</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="export" data-i18n="actions.export">export journey</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="verify" data-i18n="actions.verify">verify journey</button>
+                <div class="dd-sep" role="separator"></div>
+                <button type="button" role="menuitem" class="dd-item" data-action="reset" data-i18n="actions.reset">new walk</button>
+              </div>
+            </div>
           </div>
           <div class="menu-field menu-field-theme">
             <span class="menu-field-label" data-i18n="header.menuTheme">theme</span>
@@ -271,11 +283,21 @@
         </div>
         <div class="book-head-actions">
           <div class="book-head-tools">
-            <select id="saveMenu" class="save-menu" data-i18n-title="book.saveTitle" title="take this book home">
-              <option value="" selected disabled data-i18n="book.savePlaceholder">save…</option>
-              <option value="txt" data-i18n="book.borrow">borrow book</option>
-              <option value="img" data-i18n="book.image">book image</option>
-            </select>
+            <div class="dd" id="saveMenu">
+              <button type="button" id="saveMenuBtn" class="dd-trigger"
+                data-i18n-title="book.saveTitle" title="take this book home"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="saveMenuPanel"
+                aria-labelledby="saveMenuLabel">
+                <span id="saveMenuLabel" class="dd-label" data-i18n="book.savePlaceholder">save…</span>
+                <span class="dd-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="dd-menu" id="saveMenuPanel" role="menu" hidden>
+                <button type="button" role="menuitem" class="dd-item" data-action="txt" data-i18n="book.borrow">borrow book</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="img" data-i18n="book.image">book image</button>
+              </div>
+            </div>
             <button type="button" id="copyBookLink" data-i18n-title="book.linkTitle" data-i18n-aria-label="common.link" title="copy a link to this book at this page" aria-label="link">
               <span class="btn-label" data-i18n="common.link">link</span>
               <span class="btn-icon" aria-hidden="true">

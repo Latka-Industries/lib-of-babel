@@ -1,24 +1,24 @@
 // lib-of-babel — the librarian (boot).
 // Generation lives in WASM (deterministic); this file loads it, restores the
-// session, and hands off to ./js/controls.js for DOM wiring.
-// Modules: constants · wasm · util · db · state · url · book · view · nav ·
-//          about · search · verify · controls
+// session, and hands off to ./js/chrome/controls.js for DOM wiring.
+// Modules: lib/{constants,wasm,util,db,color,lattice,i18n} · gallery/{state,url,view,nav}
+//          · reader/{book,search,verify} · about · chrome/{controls,dropdown,theme}
 // Text is never stored — only the trail of {z, n, move, hash} in IndexedDB.
 
-import { init, generator_version, default_alphabet, search_page_span_for } from "./js/wasm.js";
-import { TOTAL_BOOKS, WINDOW_MAX } from "./js/constants.js";
-import { kvGet } from "./js/db.js";
-import { S, hydrateTrail, persist, applyUniverse } from "./js/state.js";
-import { parsePermalink } from "./js/url.js";
-import { render } from "./js/view.js";
-import { newWalk, resetTrail } from "./js/nav.js";
-import { openBook } from "./js/book.js";
-import { wireControls } from "./js/controls.js";
+import { init, generator_version, default_alphabet, search_page_span_for } from "./js/lib/wasm.js";
+import { TOTAL_BOOKS, WINDOW_MAX } from "./js/lib/constants.js";
+import { kvGet } from "./js/lib/db.js";
+import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
+import { parsePermalink } from "./js/gallery/url.js";
+import { render } from "./js/gallery/view.js";
+import { newWalk, resetTrail } from "./js/gallery/nav.js";
+import { openBook } from "./js/reader/book.js";
+import { wireControls } from "./js/chrome/controls.js";
 import {
   openAboutGuide,
   hasSeenAbout,
   markSeenAbout,
-} from "./js/about.js";
+} from "./js/about/about.js";
 
 async function boot() {
   await init();

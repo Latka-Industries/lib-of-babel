@@ -1,7 +1,8 @@
 // Movement across the lattice, big jumps, journey export, and a fresh walk.
 
 import { S, recordStep, persist, journeySnapshot } from "./state.js";
-import { neighbor, randomCoord, clampI64, downloadBlob } from "./util.js";
+import { downloadBlob } from "../lib/util.js";
+import { neighbor, randomCoord, clampI64 } from "../lib/lattice.js";
 import { render } from "./view.js";
 
 export function resetTrail({ randomCoords = false } = {}) {
