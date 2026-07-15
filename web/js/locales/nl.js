@@ -90,7 +90,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
   "about.wander": `
 <h4>Zo dwaal je</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (kop), voet <b>?&nbsp;-&nbsp;Help</b> of <kbd>?</kbd> openen deze gids altijd.</li>
+<li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd> of <kbd>?</kbd> openen deze gids altijd.</li>
 <li>De kop-<b>thema</b>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
 <li>Gebruik de <b>minikaart</b> — klik een uitgangs-hash. <kbd>pijltjestoetsen</kbd> lopen gangen en trappen (tenzij een dialoog open is).</li>
 <li>Klik <b>galerij&nbsp;(z,&nbsp;n)</b> om ergens te <b>springen</b>.</li>
@@ -139,8 +139,7 @@ Zelfde dialoog — kies <b>titel</b> i.p.v. <b>inhoud</b>. Voer tot
 <b>24 tekens</b> in (actieve lensregels). Die tekenreeks is een
 <b>ruglabel</b>: de bibliotheek springt naar de galerij en plank waar die
 titel onder het huidige alfabet hoort, toont hem op de rug, en opent
-pagina&nbsp;1. Zo zet je een korte titel op een plank; voor tekst in een
-deel gebruik je <b>inhoud</b>.
+pagina&nbsp;1.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",

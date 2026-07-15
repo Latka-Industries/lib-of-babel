@@ -90,7 +90,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
   "about.wander": `
 <h4>How to wander</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (header), footer <b>?&nbsp;-&nbsp;Help</b>, or <kbd>?</kbd> open this guide anytime.</li>
+<li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd>, or <kbd>?</kbd> open this guide anytime.</li>
 <li>The header <b>theme</b> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
 <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
 <li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
@@ -139,8 +139,7 @@ Same dialog — choose <b>title</b> instead of <b>content</b>. Enter up to
 <b>24 characters</b> (active lens rules). That string is treated as a
 <b>spine label</b>: the library jumps to the gallery and shelf where that
 title sits under the current alphabet, shows it on that book’s spine, and
-opens page&nbsp;1. Use this to place a short title on a shelf; use
-<b>content</b> when you care about the text inside a volume.
+opens page&nbsp;1.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",

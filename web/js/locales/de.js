@@ -94,7 +94,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
   "about.wander": `
 <h4>So wandern Sie</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (Kopfzeile), Fußzeile <b>?&nbsp;-&nbsp;Hilfe</b> oder <kbd>?</kbd> öffnen diesen Leitfaden jederzeit.</li>
+<li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Hilfe</kbd> oder <kbd>?</kbd> öffnen diesen Leitfaden jederzeit.</li>
 <li>Die Kopfzeilen-<b>Thema</b>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
 <li>Nutzen Sie die <b>Minikarte</b> — klicken Sie auf einen Ausgangs-Hash. Mit den <kbd>Pfeiltasten</kbd> gehen Sie Flure und Treppen (außer bei offenem Dialog).</li>
 <li>Klicken Sie auf <b>Galerie&nbsp;(z,&nbsp;n)</b>, um irgendwohin zu <b>springen</b>.</li>
@@ -143,8 +143,7 @@ Denselben Dialog — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie bis
 <b>24 Zeichen</b> ein (aktive Linsenregeln). Die Zeichenkette gilt als
 <b>Rückenbeschriftung</b>: die Bibliothek springt zur Galerie und zum Regal, wo
 dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken und
-öffnet Seite&nbsp;1. So setzen Sie einen kurzen Titel auf ein Regal; für Text
-im Band nutzen Sie <b>Inhalt</b>.
+öffnet Seite&nbsp;1.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
