@@ -274,7 +274,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) ist das moderne offizielle Amazigh-Alphabet in Marokko, wiederbelebt aus älteren libysch-berberischen Zeichen. Geometrische Links-nach-rechts-Buchstaben, getrennt von Latein und Arabisch.",
   "alphabet.blurb.CJK":
-    "Ostasiatische Seiten unter dem Feistel-Limit von 255 Glyphen: japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
+    "Ostasiatische Seiten unter dem Feistel-Softcap (4096 Zellen): japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
   "alphabet.blurb.Indic":
     "Brahmische Abugidas Indiens als Unicode-Atome (Vokale, Konsonanten, Matras, Virama/Zeichen) plus Leerzeichen, Komma, Punkt. Feistel speichert keine Konjunkt-Tabellen; Seiten sind Buchstabenrauschen, keine Orthographie.",
   "alphabet.blurb.Mongolic":

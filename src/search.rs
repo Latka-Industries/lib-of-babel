@@ -196,7 +196,7 @@ pub fn search_page_segment(
 /// # Errors
 ///
 /// Returns an error if any character is outside the selected alphabet.
-pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u8>, String> {
+pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u16>, String> {
     let ab = alphabet(alphabet_id);
     text_to_cell_indices(text, ab)
         .map_err(|(_, sample)| format!("invalid character '{sample}' for this alphabet"))

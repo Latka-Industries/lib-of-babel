@@ -1,8 +1,7 @@
 //! Whole-book colour map rendered as an RGBA image.
 //!
 //! Palette policy (keep in sync with `web/js/util.js` → `buildAlphabetPalette`):
-//! - **Letters** (`char::is_alphabetic`) share a hue wheel seeded by the room accent.
-//! - Hue step is at least ~10°; overflow wraps onto further rings (lower chroma).
+//! - **Letters** use an index-hash OKLCH hue under the room accent (scales past 36 glyphs).
 //! - **Punct / digits / symbols** sit on a short muted arc opposite the accent.
 //! - **Space** is a fixed near-black (not on the wheel).
 
@@ -13,8 +12,6 @@ use crate::gallery::node_fingerprint;
 use crate::page::{PageAddr, PageRender, page_symbols};
 use crate::universe::universe;
 
-/// Floor for letter–letter hue separation (degrees).
-const MIN_LETTER_HUE_STEP: f64 = 10.0;
 /// Arc width for the punct/digit stratum (degrees).
 const PUNCT_ARC_DEG: f64 = 52.0;
 const SPACE_RGB: [u8; 3] = [0x15, 0x13, 0x1a];
@@ -44,6 +41,14 @@ fn oklch_to_srgb(lightness: f64, chroma: f64, hue_deg: f64) -> [u8; 3] {
     out
 }
 
+/// Mix alphabet index into a stable 32-bit hash (Knuth multiplicative).
+#[inline]
+fn index_hash(idx: u32, salt: u32) -> u32 {
+    idx.wrapping_mul(0x9E37_79B1)
+        .wrapping_add(salt)
+        .wrapping_mul(0x85EB_CA6B)
+}
+
 /// Build per-glyph RGB colours for an alphabet lens at a gallery accent.
 fn build_glyph_palette(
     ab: &[&str],
@@ -53,35 +58,21 @@ fn build_glyph_palette(
 ) -> Vec<[u8; 3]> {
     let len = ab.len();
     let mut palette = vec![SPACE_RGB; len];
-    let mut letters = Vec::with_capacity(len);
     let mut puncts = Vec::with_capacity(8);
 
     for (i, cell) in ab.iter().enumerate() {
         if *cell == " " {
             palette[i] = SPACE_RGB;
         } else if cell.chars().any(|c| c.is_alphabetic()) {
-            letters.push(i);
+            let h = index_hash(i as u32, 0xA11E_77E5);
+            let hue = (accent_hue + f64::from(h % 360)).rem_euclid(360.0);
+            let chroma = accent_chroma * (0.82 + 0.18 * f64::from((h >> 8) & 0xff) / 255.0);
+            let light = (accent_light + 0.08 * (f64::from((h >> 16) & 0xff) / 255.0 - 0.5))
+                .clamp(0.35, 0.85);
+            palette[i] = oklch_to_srgb(light, chroma, hue);
         } else {
             puncts.push(i);
         }
-    }
-
-    let n = letters.len().max(1);
-    let per_ring = (360.0 / MIN_LETTER_HUE_STEP).floor() as usize; // 36
-    let equal_space = n <= per_ring;
-    let step = if equal_space {
-        360.0 / n as f64
-    } else {
-        MIN_LETTER_HUE_STEP
-    };
-
-    for (k, &idx) in letters.iter().enumerate() {
-        let ring = if equal_space { 0 } else { k / per_ring };
-        let pos = if equal_space { k } else { k % per_ring };
-        let hue = (pos as f64 * step + accent_hue).rem_euclid(360.0);
-        let chroma = accent_chroma * (1.0 - 0.2 * ring.min(3) as f64);
-        let light = (accent_light + 0.05 * ring as f64).clamp(0.35, 0.85);
-        palette[idx] = oklch_to_srgb(light, chroma, hue);
     }
 
     let pn = puncts.len();
@@ -203,15 +194,13 @@ mod tests {
     }
 
     #[test]
-    fn modest_alphabets_still_equal_space_the_letter_wheel() {
+    fn letter_colours_are_index_stable_under_accent() {
         let ab = alphabet(ALPHABET_ID.basile);
-        let letters: Vec<_> = ab
-            .iter()
-            .enumerate()
-            .filter(|(_, cell)| cell.chars().any(|c| c.is_alphabetic()))
-            .map(|(i, _)| i)
-            .collect();
-        assert!(letters.len() <= 36);
-        let _ = build_glyph_palette(ab, 10.0, 0.12, 0.6);
+        let p0 = build_glyph_palette(ab, 10.0, 0.12, 0.6);
+        let p1 = build_glyph_palette(ab, 10.0, 0.12, 0.6);
+        assert_eq!(p0, p1);
+        let a_idx = ab.iter().position(|c| *c == "a").unwrap();
+        let b_idx = ab.iter().position(|c| *c == "b").unwrap();
+        assert_ne!(p0[a_idx], p0[b_idx]);
     }
 }

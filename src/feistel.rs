@@ -1,6 +1,8 @@
 //! Reversible Feistel PRP over page symbols and address embedding.
 
-use crate::config::{ADDR_SYMBOLS, FEISTEL_ROUNDS, GENERATOR_VERSION, PAGE_CONTENT_SYMBOLS};
+use crate::config::{
+    ADDR_SYMBOLS, FEISTEL_ROUNDS, GENERATOR_VERSION, MAX_ALPHABET_LEN, PAGE_CONTENT_SYMBOLS,
+};
 use crate::gallery::{book_seed, gallery_seed};
 use crate::prng::{mix2, splitmix64};
 
@@ -19,42 +21,41 @@ fn round_key(base: u64, round: u32) -> u64 {
 }
 
 #[inline]
-fn feistel_f(right: u8, round: u32, pos: usize, base_key: u64, alpha_len: u8) -> u8 {
+fn feistel_f(right: u16, round: u32, pos: usize, base_key: u64, alpha_len: u16) -> u16 {
     let rk = round_key(base_key, round);
     let x = rk
         .wrapping_add(pos as u64)
         .wrapping_add((right as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15));
-    (splitmix64(x) % alpha_len as u64) as u8
+    (splitmix64(x) % u64::from(alpha_len)) as u16
 }
 
 /// Apply the Feistel PRP in place over one page's symbol array.
-pub fn feistel_encrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
-    debug_assert!(alpha_len > 0);
+pub fn feistel_encrypt(state: &mut [u16; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u16) {
+    debug_assert!((1..=MAX_ALPHABET_LEN).contains(&alpha_len));
     let half = PAGE_CONTENT_SYMBOLS / 2;
-    let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
-    let modulus = u16::from(alpha_len);
+    let mut scratch = [0u16; PAGE_CONTENT_SYMBOLS];
+    let modulus = u32::from(alpha_len);
     for round in 0..FEISTEL_ROUNDS {
         for i in 0..half {
             let f = feistel_f(state[half + i], round, i, base_key, alpha_len);
             scratch[i] = state[half + i];
-            // Widen: u8 add overflows when alpha_len == 255 and both sides are large.
-            scratch[half + i] = ((u16::from(state[i]) + u16::from(f)) % modulus) as u8;
+            scratch[half + i] = ((u32::from(state[i]) + u32::from(f)) % modulus) as u16;
         }
         state.copy_from_slice(&scratch);
     }
 }
 
 #[cfg(test)]
-pub fn feistel_decrypt(state: &mut [u8; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u8) {
-    debug_assert!(alpha_len > 0);
+pub fn feistel_decrypt(state: &mut [u16; PAGE_CONTENT_SYMBOLS], base_key: u64, alpha_len: u16) {
+    debug_assert!((1..=MAX_ALPHABET_LEN).contains(&alpha_len));
     let half = PAGE_CONTENT_SYMBOLS / 2;
-    let mut scratch = [0u8; PAGE_CONTENT_SYMBOLS];
-    let modulus = u16::from(alpha_len);
+    let mut scratch = [0u16; PAGE_CONTENT_SYMBOLS];
+    let modulus = u32::from(alpha_len);
     for round in (0..FEISTEL_ROUNDS).rev() {
         for i in 0..half {
             let f = feistel_f(state[i], round, i, base_key, alpha_len);
             scratch[half + i] = state[i];
-            scratch[i] = ((u16::from(state[half + i]) + modulus - u16::from(f)) % modulus) as u8;
+            scratch[i] = ((u32::from(state[half + i]) + modulus - u32::from(f)) % modulus) as u16;
         }
         state.copy_from_slice(&scratch);
     }
@@ -88,8 +89,10 @@ pub fn unpack_page_address(packed: &[u8; 32]) -> (u64, i64, i64, u32, u32) {
     (universe_seed, z, n, book_index, page)
 }
 
-fn embed_packed(state: &mut [u8; PAGE_CONTENT_SYMBOLS], packed: &[u8; 32], alpha_len: u8) {
+fn embed_packed(state: &mut [u16; PAGE_CONTENT_SYMBOLS], packed: &[u8; 32], alpha_len: u16) {
+    debug_assert!(alpha_len > 0);
     for (i, &b) in packed.iter().enumerate() {
+        let b = u16::from(b);
         state[2 * i] = b % alpha_len;
         state[2 * i + 1] = b / alpha_len;
     }
@@ -104,9 +107,10 @@ pub fn plaintext_from_address(
     n: i64,
     book_index: u32,
     page: u32,
-    alpha_len: u8,
-) -> [u8; PAGE_CONTENT_SYMBOLS] {
-    let mut state = [0u8; PAGE_CONTENT_SYMBOLS];
+    alpha_len: u16,
+) -> [u16; PAGE_CONTENT_SYMBOLS] {
+    debug_assert!((1..=MAX_ALPHABET_LEN).contains(&alpha_len));
+    let mut state = [0u16; PAGE_CONTENT_SYMBOLS];
     let packed = pack_page_address(universe_seed, z, n, book_index, page);
     embed_packed(&mut state, &packed, alpha_len);
 
@@ -121,12 +125,16 @@ pub fn plaintext_from_address(
     h.update(&page.to_le_bytes());
     let mut xof = h.finalize_xof();
     let mut buf = [0u8; 32];
-    for (i, slot) in state.iter_mut().enumerate().skip(ADDR_SYMBOLS) {
-        let off = (i - ADDR_SYMBOLS) % 32;
-        if off == 0 {
+    let mut buf_pos = 32; // force initial XOF fill
+    let modulus = u32::from(alpha_len);
+    for slot in state.iter_mut().skip(ADDR_SYMBOLS) {
+        if buf_pos + 2 > 32 {
             xof.fill(&mut buf);
+            buf_pos = 0;
         }
-        *slot = buf[off] % alpha_len;
+        let v = u16::from_le_bytes([buf[buf_pos], buf[buf_pos + 1]]);
+        buf_pos += 2;
+        *slot = (u32::from(v) % modulus) as u16;
     }
     state
 }
