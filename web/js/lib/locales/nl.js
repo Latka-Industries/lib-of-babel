@@ -98,7 +98,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>Typ een <b>universum</b>naam of gooi <b>&#9860;</b>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
 <li>Het <b>alfabet</b>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.</li>
 <li><b>acties…</b> → <b>link kopiëren</b> (of voet-<b>hash</b>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
-<li><b>acties…</b> → <b>zoeken…</b> — kies <b>inhoud</b> of <b>titel</b>, vind coördinaten, spring ernaartoe (zie <b>meer</b>).</li>
+<li><b>acties…</b> → <b>zoeken…</b> — <b>tekst</b> of <b>Babelgram</b>; spring ernaartoe (zie <b>meer</b>).</li>
 <li><b>dwaaltochten</b> (voet, laatste {max}) — recente stappen met universum + alfabet; <b>tocht exporteren</b> bewaart het hele pad als JSON.</li>
 </ul>`,
 
@@ -126,7 +126,7 @@ de kamer-hash van elke stap leeft in het volledige spoor. <b>acties…</b> biedt
 </p>
 <h4>Zoeken op inhoud</h4>
 <p class="dim">
-Onder <b>acties…</b> → <b>zoeken…</b> laat de keuzelijst op
+Onder <b>acties…</b> → <b>zoeken…</b> blijf op het tabblad <b>tekst</b> met
 <b>inhoud</b>. Plak een zin (tot één heel boek — ~1,3&nbsp;miljoen
 tekens); de bibliotheek noemt galerij, plank, boek en pagina(’s) waar die al leeft —
 en opent hem. Lange zinnen lopen door opeenvolgende pagina’s.
@@ -135,11 +135,18 @@ Ongeldige tekens worden rood gemarkeerd.
 </p>
 <h4>Zoeken op titel</h4>
 <p class="dim">
-Zelfde dialoog — kies <b>titel</b> i.p.v. <b>inhoud</b>. Voer tot
+Zelfde <b>tekst</b>-tab — kies <b>titel</b> i.p.v. <b>inhoud</b>. Voer tot
 <b>24 tekens</b> in (actieve lensregels). Die tekenreeks is een
 <b>ruglabel</b>: de bibliotheek springt naar de galerij en plank waar die
 titel onder het huidige alfabet hoort, toont hem op de rug, en opent
 pagina&nbsp;1.
+</p>
+<h4>Zoeken op Babelgram</h4>
+<p class="dim">
+Tab <b>Babelgram</b>: gestempelde PNG van <b>opslaan… → boekbeeld</b>
+(exact kleurenrooster, <code>lob:babel</code>-stempel) → locate →
+<b>ga erheen</b> / korte boekbeeld-link (zelfde universum = export; anders projectief).
+(Willekeurige foto→mozaïek is tijdelijk uit.)
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -150,12 +157,59 @@ pagina&nbsp;1.
   "verify.title": "tocht controleren",
   "verify.meta": "zet een geëxporteerde tocht neer om hem na te lopen en te bewijzen",
 
+  "search.head": "zoeken",
   "search.headContent": "zoeken op inhoud",
   "search.headTitle": "zoeken op titel",
+  "search.headMosaic": "zoeken op kleurenmozaïek",
+  "search.metaText":
+    "Vind een zin die al in de bibliotheek staat, of open een Babelgram-boekbeeld.",
   "search.metaContent":
     "Typ een zin — de bibliotheek vindt waar die al bestaat (opgevuld met spaties tot een volle pagina).",
   "search.metaTitle":
     "Typ een rugtitel — de bibliotheek vindt galerij en plank.",
+  "search.metaMosaic":
+    "Upload een beeld, stel het mozaïek bij, maak boektekst en plak die in inhoudzoeken.",
+  "search.tabsLabel": "Zoekmodus",
+  "search.tab.text": "tekst",
+  "search.tab.photo": "foto",
+  "search.tab.babel": "Babelgram",
+  "search.tab.image": "foto",
+  "search.headBabel": "zoeken op Babelgram",
+  "search.metaBabel":
+    "Upload een gestempelde PNG van opslaan → boekbeeld (exact raster). Decodeer → locate → open boekkleurenkaart.",
+  "search.hintBabel":
+    "alleen gestempelde Babelgram-PNG · 1:1 · zelfde universum → exportgalerij · ander universum → projectieve locate",
+  "search.babel.honesty":
+    "Vereist een PNG van opslaan → boekbeeld (herkomst-chunk). Pixels blijven 1:1. Zelfde universum als de export → terug naar die galerij en dat boek. Een ander universum projecteert de cellen naar een nieuw adres (~100% decode in beide gevallen).",
+  "search.babel.find": "boek vinden",
+  "search.babel.progress": "Babelgram decoderen…",
+  "search.babel.upload": "Babelgram-PNG uploaden",
+  "search.babel.original": "Babelgram-export",
+  "search.babel.gridHint":
+    "Vereist een gestempelde verliesvrije PNG van precies {w}×{h} (opslaan → boekbeeld).",
+  "search.babel.fileMeta": "{name} · exact {w}×{h} Babelgram-rooster",
+  "search.babel.sizeMismatch":
+    "Verkeerde maat ({sw}×{sh}). Babelgrams moeten precies {w}×{h} zijn — opnieuw exporteren via opslaan → boekbeeld.",
+  "search.babel.needExact": "upload eerst een exacte {w}×{h} Babelgram-PNG",
+  "search.babel.notBabel":
+    "Geen Babelgram-boekbeeld-PNG (ontbreekt lob:babel-stempel). Opnieuw exporteren via opslaan → boekbeeld.",
+  "search.babel.nameMismatch":
+    "bestandsnaam-coördinaten komen niet overeen met de PNG-stempel",
+  "search.babel.originLine":
+    "export-oorsprong · {universe} (seed {u}) · galerij ({z}, {n}) · boek {book} · {alphabet}",
+  "search.babel.universeUnknown": "seed {seed}",
+  "search.babel.originNote":
+    "Locate-bestemming verschilt van de export-oorsprong (zelfde cellen → nieuwe coördinaten; ander universum → andere coördinaten).",
+  "search.babel.originNoteSame":
+    "Zelfde universum als de export — gaan opent de gestempelde galerij en het boek.",
+  "search.babel.originNoteOther":
+    "Ander universum dan de export — cellen worden hier projectief gelokaliseerd (bestemming ≠ stempel-oorsprong).",
+  "search.babel.resultsIntro":
+    "Babelgram-locate in {universe} (seed {seed}) — exacte accentdecode:",
+  "search.babel.resultsIntroSame":
+    "Babelgram-round-trip in {universe} (seed {seed}) — terug naar export:",
+  "search.babel.resultsIntroOther":
+    "Babelgram-locate in {universe} (seed {seed}) — projectief (export was een ander universum):",
   "search.label": "zoeken",
   "search.kindTitle": "zoek rugtitels of pagina-inhoud",
   "search.kindContent": "inhoud",
@@ -163,10 +217,57 @@ pagina&nbsp;1.
   "search.placeholderContent": "vergeef me want ik heb gezondigd",
   "search.placeholderTitle": "karmozijnen rug",
   "search.find": "vinden",
+  "search.count": "{n} / {max}",
+  "search.countTip": "{n} alfabetcellen van {max} toegestaan",
   "search.hintContent":
-    "gebruikt de huidige alfabetlens · tot ~1,3M tekens (één boek)",
+    "gebruikt de huidige alfabetlens · tot één vol boek",
   "search.hintTitle":
-    "gebruikt de huidige alfabetlens · tot {n} tekens (rugtitel)",
+    "gebruikt de huidige alfabetlens · tot {n} rugtitel-cellen",
+  "search.hintMosaic":
+    "volboek-kleurrooster · huidige knoppen → glyph-tekst → plakken in inhoudzoeken",
+  "search.mosaic.find": "boektekst maken",
+  "search.mosaic.searching": "schrijven…",
+  "search.mosaic.progress": "glyfen projecteren…",
+  "search.mosaic.upload": "beeld uploaden",
+  "search.mosaic.honesty":
+    "Mapt helderheid van de foto op een luma-helling van het huidige alfabet, geeft boektekst — plak in inhoudzoeken.",
+  "search.mosaic.bookTextIntro":
+    "Boektekst ({n} tekens). Kopieer, of zet in inhoudzoeken en klik vinden.",
+  "search.mosaic.toSearch": "zet in inhoudzoeken",
+  "search.mosaic.noText": "kon geen boektekst maken van dat beeld",
+  "search.mosaic.original": "origineel (boekrooster)",
+  "search.mosaic.preview": "mozaïekvoorbeeld",
+  "search.mosaic.fitPct": "passing {n}%",
+  "search.mosaic.previewError": "voorbeeld mislukt",
+  "search.mosaic.fileMeta": "{name} · {sw}×{sh} → uitgerekt naar {w}×{h} boekrooster",
+  "search.mosaic.gridHint":
+    "Elk beeld wordt uitgerekt naar het volboek-kleurrooster ({w}×{h}).",
+  "search.mosaic.badImage": "beeld kon niet worden gelezen",
+  "search.mosaic.dither": "dither",
+  "search.mosaic.brightness": "helderheid",
+  "search.mosaic.contrast": "contrast",
+  "search.mosaic.hue": "tint",
+  "search.mosaic.chroma": "chroma",
+  "search.mosaic.light": "licht",
+  "search.mosaic.space": "spatie",
+  "search.mosaic.knobsSource": "origineel beeld",
+  "search.mosaic.knobsMosaic": "mozaïekpalet",
+  "search.mosaic.tip.brightness":
+    "Upload lichter of donkerder maken vóór het mozaïek.",
+  "search.mosaic.tip.contrast":
+    "Contrast van de upload verhogen of verlagen vóór het mozaïek.",
+  "search.mosaic.tip.hue":
+    "Tint van de helderheidshelling (fotomozaïek mapt helderheid op het alfabet).",
+  "search.mosaic.tip.chroma":
+    "Hoeveel tint vs grijs op de luma-helling — laag is bijna grijstinten.",
+  "search.mosaic.tip.light":
+    "Centreert de helderheidshelling (donker↔licht) voor het fotomozaïek.",
+  "search.mosaic.tip.space":
+    "Pixels donkerder dan deze luminantie worden de spatieteken bij mozaïeken.",
+  "search.mosaic.tip.dither":
+    "Floyd–Steinberg-dither spreidt kleurfout voor een zachter, korreliger mozaïek.",
+  "search.mosaic.needImage": "upload eerst een beeld",
+  "search.mosaic.hitBook": "boek {book}",
   "search.go": "ga erheen",
   "search.result.gallery": "galerij ({z}, {n})",
   "search.result.coords":

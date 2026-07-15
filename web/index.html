@@ -229,32 +229,120 @@
     <dialog id="searchModal">
       <div class="book-head">
         <div class="book-head-text">
-          <h3 id="searchHead" data-i18n="search.headContent">search by content</h3>
-          <small id="searchMeta" data-i18n="search.metaContent">Type a phrase — the library finds where it already exists (space-padded to a full page).</small>
+          <h3 id="searchHead" data-i18n="search.head">search</h3>
+          <small id="searchMeta" data-i18n="search.metaText">Find a phrase already in the library, or open a Babelgram book image.</small>
         </div>
         <div class="book-head-actions">
           <button type="button" id="closeSearch" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
         </div>
       </div>
+      <div class="search-tabs" role="tablist" data-i18n-aria-label="search.tabsLabel" aria-label="Search mode">
+        <button type="button" class="search-tab" role="tab" id="searchTab-text"
+          aria-selected="true" aria-controls="searchPanel-text" data-i18n="search.tab.text">text</button>
+        <!-- Photo mosaic tab: kept in DOM; gated by PHOTO_SEARCH_TAB_ENABLED in search.js -->
+        <button type="button" class="search-tab" role="tab" id="searchTab-photo" hidden disabled
+          aria-selected="false" aria-controls="searchPanel-mosaic" tabindex="-1" data-i18n="search.tab.photo">photo</button>
+        <button type="button" class="search-tab" role="tab" id="searchTab-babel"
+          aria-selected="false" aria-controls="searchPanel-mosaic" tabindex="-1" data-i18n="search.tab.babel">Babelgram</button>
+      </div>
       <div class="find-body">
-        <div class="find-row">
-          <label><span data-i18n="search.label">search</span>
-            <select id="searchKind" data-i18n-title="search.kindTitle" title="search spine titles or page content">
-              <option value="content" selected data-i18n="search.kindContent">content</option>
-              <option value="title" data-i18n="search.kindTitleOpt">title</option>
-            </select>
-          </label>
+        <div class="search-panel active" role="tabpanel" id="searchPanel-text" aria-labelledby="searchTab-text">
+          <div class="find-row">
+            <label><span data-i18n="search.label">search</span>
+              <select id="searchKind" data-i18n-title="search.kindTitle" title="search spine titles or page content">
+                <option value="content" selected data-i18n="search.kindContent">content</option>
+                <option value="title" data-i18n="search.kindTitleOpt">title</option>
+              </select>
+            </label>
+          </div>
+          <div id="searchTextPanel">
+            <div class="search-editor" id="searchEditor">
+              <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
+              <textarea id="searchInput" rows="6" spellcheck="false"
+                data-i18n-placeholder="search.placeholderContent" placeholder="forgive me for i have sinned"></textarea>
+            </div>
+          </div>
+          <div class="find-row search-find-row">
+            <button type="button" id="searchFind" data-i18n="search.find">find</button>
+            <span id="searchCount" class="find-dim search-count" aria-live="polite">0 / 1,312,000</span>
+            <span id="searchHint" class="find-dim" data-i18n="search.hintContent">uses the current alphabet lens · up to one full book</span>
+          </div>
+          <div class="find-result" id="searchResult"></div>
         </div>
-        <div class="search-editor" id="searchEditor">
-          <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
-          <textarea id="searchInput" rows="6" spellcheck="false"
-            data-i18n-placeholder="search.placeholderContent" placeholder="forgive me for i have sinned"></textarea>
+        <div class="search-panel" role="tabpanel" id="searchPanel-mosaic" aria-labelledby="searchTab-babel" hidden>
+          <div id="searchMosaicPanel" class="mosaic-panel">
+            <p class="find-dim" id="mosaicHonesty" data-i18n="search.babel.honesty">Needs a PNG from save → book image (provenance chunk). Pixels stay 1:1.</p>
+            <div class="find-row">
+              <label class="mosaic-file-label">
+                <span id="mosaicUploadLabel" data-i18n="search.babel.upload">upload Babelgram PNG</span>
+                <input type="file" id="mosaicFile" accept="image/png" />
+              </label>
+              <span id="mosaicFileMeta" class="find-dim"></span>
+            </div>
+            <div class="mosaic-compare" id="mosaicCompare">
+              <figure>
+                <figcaption id="mosaicOriginalCaption" data-i18n="search.babel.original">Babelgram export</figcaption>
+                <canvas id="mosaicOriginal" width="200" height="200" aria-label="original"></canvas>
+                <div class="mosaic-fit-slot mosaic-photo-only" aria-hidden="true"></div>
+                <div class="mosaic-knobs mosaic-knobs-source mosaic-photo-only" id="mosaicKnobsSource"
+                  data-i18n-aria-label="search.mosaic.knobsSource" aria-label="Original image">
+                  <p class="mosaic-knobs-head" data-i18n="search.mosaic.knobsSource">original image</p>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.brightness" data-i18n-tip="search.mosaic.tip.brightness"
+                      data-tip="Brighten or darken the upload before it is mosaiced">brightness</span>
+                    <input id="mosaicBrightness" type="range" min="-40" max="40" step="1" value="0" />
+                  </label>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.contrast" data-i18n-tip="search.mosaic.tip.contrast"
+                      data-tip="Raise or lower contrast of the upload before mosaicing">contrast</span>
+                    <input id="mosaicContrast" type="range" min="-40" max="40" step="1" value="0" />
+                  </label>
+                </div>
+              </figure>
+              <figure class="mosaic-photo-only">
+                <figcaption data-i18n="search.mosaic.preview">mosaic preview</figcaption>
+                <canvas id="mosaicPreview" width="200" height="200" aria-label="mosaic"></canvas>
+                <div class="mosaic-fit-slot">
+                  <div id="mosaicFitPct" class="find-dim"></div>
+                </div>
+                <div class="mosaic-knobs mosaic-knobs-mosaic" id="mosaicKnobs"
+                  data-i18n-aria-label="search.mosaic.knobsMosaic" aria-label="Mosaic palette">
+                  <p class="mosaic-knobs-head" data-i18n="search.mosaic.knobsMosaic">mosaic palette</p>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.hue" data-i18n-tip="search.mosaic.tip.hue"
+                      data-tip="Rotates the glyph colour wheel used to paint the mosaic">hue</span>
+                    <input id="mosaicHue" type="range" min="0" max="359" step="1" value="40" />
+                  </label>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.chroma" data-i18n-tip="search.mosaic.tip.chroma"
+                      data-tip="How vivid glyph colours are (low = muted, high is saturated)">chroma</span>
+                    <input id="mosaicChroma" type="range" min="0.04" max="0.28" step="0.005" value="0.15" />
+                  </label>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.light" data-i18n-tip="search.mosaic.tip.light"
+                      data-tip="Overall lightness of non-space glyph colours">light</span>
+                    <input id="mosaicLight" type="range" min="0.35" max="0.85" step="0.01" value="0.66" />
+                  </label>
+                  <label class="mosaic-knob">
+                    <span data-i18n="search.mosaic.space" data-i18n-tip="search.mosaic.tip.space"
+                      data-tip="Dark pixels below this luminance become the space glyph">space</span>
+                    <input id="mosaicSpace" type="range" min="0" max="80" step="1" value="28" />
+                  </label>
+                  <label class="mosaic-knob mosaic-check">
+                    <span data-i18n="search.mosaic.dither" data-i18n-tip="search.mosaic.tip.dither"
+                      data-tip="Floyd–Steinberg dither spreads colour error for a softer mosaic">dither</span>
+                    <input type="checkbox" id="mosaicDither" />
+                  </label>
+                </div>
+              </figure>
+            </div>
+            <div class="find-row">
+              <button type="button" id="mosaicFind" data-i18n="search.babel.find">find book</button>
+              <span class="find-dim" id="mosaicHint" data-i18n="search.hintBabel">stamped Babelgram PNG only · 1:1 · same universe → export gallery · other universe → projective locate</span>
+            </div>
+            <div class="find-result" id="mosaicResult"></div>
+          </div>
         </div>
-        <div class="find-row">
-          <button id="searchFind" data-i18n="search.find">find</button>
-          <span id="searchHint" class="find-dim" data-i18n="search.hintContent">uses the current alphabet lens · up to ~1.3M characters (one book)</span>
-        </div>
-        <div class="find-result" id="searchResult"></div>
       </div>
     </dialog>
 
