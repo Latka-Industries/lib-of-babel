@@ -41,6 +41,8 @@ export const de = {
   "footer.hashTitle":
     "Klicken Sie, um den vollständigen Hash dieser Galerie zu kopieren",
   "footer.steps": "Schritte",
+  "footer.help": "- Hilfe",
+  "footer.helpTitle": "Hilfe — Leitfaden öffnen (?)",
 
   "common.close": "Schließen",
   "common.go": "Los",
@@ -92,7 +94,8 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
   "about.wander": `
 <h4>So wandern Sie</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (Kopfzeile) öffnet diesen Leitfaden jederzeit.</li>
+<li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Hilfe</kbd> oder <kbd>?</kbd> öffnen diesen Leitfaden jederzeit.</li>
+<li>Die Kopfzeilen-<b>Thema</b>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
 <li>Nutzen Sie die <b>Minikarte</b> — klicken Sie auf einen Ausgangs-Hash. Mit den <kbd>Pfeiltasten</kbd> gehen Sie Flure und Treppen (außer bei offenem Dialog).</li>
 <li>Klicken Sie auf <b>Galerie&nbsp;(z,&nbsp;n)</b>, um irgendwohin zu <b>springen</b>.</li>
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
@@ -136,10 +139,11 @@ Ungültige Zeichen werden rot markiert.
 </p>
 <h4>Suche nach Titel</h4>
 <p class="dim">
-Denselben Dialog — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie einen Rücken-Titel ein
-(bis <b>24 Zeichen</b>, dieselben Linsenregeln). Die Bibliothek findet Galerie und Regal
-unter dem aktiven Alphabet, schreibt den Titel auf den kanonischen Rücken und springt hin.
-Nützlich, wenn Sie einen Rücken kennen, keine Seite.
+Denselben Dialog — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie bis zu
+<b>24 Zeichen</b> ein (aktive Linsenregeln). Die Zeichenkette gilt als
+<b>Rückenbeschriftung</b>: die Bibliothek springt zur Galerie und zum Regal, wo
+dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken und
+öffnet Seite&nbsp;1.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -208,7 +212,7 @@ Nützlich, wenn Sie einen Rücken kennen, keine Seite.
   "book.pageInd": "Seite {page} / {total}",
   "book.pagePlaceholder": "Seite",
   "book.wall": "Wand {n}",
-  "book.wallBook": "Wand {n} · Buch {book} · {title}",
+  "book.wallBook": "Wand {n} · Buch {book}",
 
   "image.save": "PNG speichern",
   "image.saveTitle": "Diese Farbkarte des ganzen Buchs als PNG speichern",

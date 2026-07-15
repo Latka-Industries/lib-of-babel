@@ -37,6 +37,8 @@ export const nl = {
   "footer.hash": "hash",
   "footer.hashTitle": "klik om de volledige hash van deze galerij te kopiëren",
   "footer.steps": "stappen",
+  "footer.help": "- Help",
+  "footer.helpTitle": "Help — open de gids (?)",
 
   "common.close": "sluiten",
   "common.go": "gaan",
@@ -88,7 +90,8 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
   "about.wander": `
 <h4>Zo dwaal je</h4>
 <ul>
-<li><b>LIB·OF·BABEL</b> (kop) opent deze gids altijd.</li>
+<li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd> of <kbd>?</kbd> openen deze gids altijd.</li>
+<li>De kop-<b>thema</b>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
 <li>Gebruik de <b>minikaart</b> — klik een uitgangs-hash. <kbd>pijltjestoetsen</kbd> lopen gangen en trappen (tenzij een dialoog open is).</li>
 <li>Klik <b>galerij&nbsp;(z,&nbsp;n)</b> om ergens te <b>springen</b>.</li>
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
@@ -132,10 +135,11 @@ Ongeldige tekens worden rood gemarkeerd.
 </p>
 <h4>Zoeken op titel</h4>
 <p class="dim">
-Zelfde dialoog — kies <b>titel</b> i.p.v. <b>inhoud</b>. Typ een rugtitel
-(tot <b>24 tekens</b>, dezelfde lensregels). De bibliotheek vindt galerij en plank
-onder het actieve alfabet, zet de titel op de canonieke rug en springt ernaartoe.
-Handig als je een rug kent, geen pagina.
+Zelfde dialoog — kies <b>titel</b> i.p.v. <b>inhoud</b>. Voer tot
+<b>24 tekens</b> in (actieve lensregels). Die tekenreeks is een
+<b>ruglabel</b>: de bibliotheek springt naar de galerij en plank waar die
+titel onder het huidige alfabet hoort, toont hem op de rug, en opent
+pagina&nbsp;1.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -203,7 +207,7 @@ Handig als je een rug kent, geen pagina.
   "book.pageInd": "pagina {page} / {total}",
   "book.pagePlaceholder": "pagina",
   "book.wall": "Wand {n}",
-  "book.wallBook": "Wand {n} · boek {book} · {title}",
+  "book.wallBook": "Wand {n} · boek {book}",
 
   "image.save": "png opslaan",
   "image.saveTitle": "sla deze kleurenkaart van het hele boek op als PNG",
