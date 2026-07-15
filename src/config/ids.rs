@@ -149,7 +149,7 @@ pub struct AlphabetIds {
     pub filipino: u32,
     /// Vietnamese — 96 glyphs; id `96`.
     pub vietnamese: u32,
-    /// Thai — clustered; id `108`.
+    /// Thai — clustered consonants×marks; id `108` (frozen permalink; inventory >255).
     pub thai: u32,
     /// Khmer — clustered; id `109`.
     pub khmer: u32,

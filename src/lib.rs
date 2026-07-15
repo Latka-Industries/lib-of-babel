@@ -238,13 +238,17 @@ mod tests {
             assert_eq!(alphabet(def.id).len(), n);
             assert_eq!(alphabet(def.id), def.symbols);
             assert_eq!(&def.symbols[n - 3..], &[" ", ",", "."]);
-            // Prefer id == glyph_count; diverge only when that count is already an id.
+            // Prefer id == glyph_count. Allowed divergences:
+            // - classic collide: the count slot is already another lens's id
+            // - v8 inventory grow: permalink id stays frozen while len increases past it
             if def.id as usize == n {
                 continue;
             }
+            let count_taken = owned_ids.contains(&(n as u32));
+            let frozen_permalink_growth = n > def.id as usize;
             assert!(
-                owned_ids.contains(&(n as u32)),
-                "{} id {} ≠ len {n}, but no lens owns id={n} (collide rule)",
+                count_taken || frozen_permalink_growth,
+                "{} id {} ≠ len {n}, count slot free and not a freeze-grow (collide rule)",
                 def.name,
                 def.id
             );
