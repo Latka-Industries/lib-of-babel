@@ -23,7 +23,7 @@ Canonical dimensions:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus language presets across Romance, Germanic, Uralic, Turkic (Turkish + Azerbaijani / Kazakh / Uzbek / Turkmen / Kyrgyz), Hellenic, Slavic (Latin + Cyrillic), Baltic, Celtic, Caucasian, Semitic (Hebrew / Arabic / Persian), West African (N’Ko), Ethiopic (Amharic), African Latin, Berber (Tifinagh), CJK (Japanese kana / Korean Hangul / Simplified Chinese packs), Indic (Devanagari / Bengali / Tamil / Telugu / Kannada / Malayalam / Gujarati / Gurmukhi / Odia), Mongolic (Mongolian Cyrillic), Southeast Asian (Filipino / Vietnamese / Thai / Khmer), and more (see in-app **About → alphabets**). Ids in `&a=` are stable registry keys (usually the glyph count; some diverge where counts collide). Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — *a new sort of translation*. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts (Arabic / Persian / N’Ko join; CJK uses subset JP/KR/SC faces; Indic / Thai / Khmer use subset Brahmic and SEA faces).
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus dozens of language presets (see [docs/alphabets.md](docs/alphabets.md) for the full table, including which lenses ship a UI locale pack). Ids in `&a=` are stable registry keys. Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — *a new sort of translation*. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts.
 - universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
 
 ## Core design decisions
@@ -87,6 +87,7 @@ lib-of-babel/
 │   ├── js/              modules: constants · wasm · util · db · state · url · book · view · nav ·
 │   │                    about · alphabet-picker · controls · search · verify · theme · sigil · i18n · favicon · locales/
 │   └── pkg/             wasm-pack output (generated; gitignored)
+├── docs/                alphabet lens table and related notes
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
 
@@ -168,9 +169,15 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 **Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet registry id), `book`, `page`, and `q` (search phrase when opened via content search).
 
-Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Lato is used for About prose (UI chrome stays Overpass Mono).
+Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Lato is used for About prose (UI chrome stays Overpass Mono). Full lens inventory (ids, glyph counts, UI packs): [docs/alphabets.md](docs/alphabets.md).
 
 Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Book pages scale font to fit the 40×80 grid in the viewport. Header keeps brand + universe + alphabet + actions + theme (hamburger sheet ≤860px); the footer holds wanderings plus gallery `(z,n)` / hash / steps. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
+
+## Inspiration
+
+- [Jorge Luis Borges, “The Library of Babel” (1941)](https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf) — the hexagonal galleries, the four walls of books, the restricted alphabet in the fiction.
+- [Jonathan Basile, libraryofbabel.info](https://libraryofbabel.info/) — the web library that made a deterministic English a–z Library browsable; our default Basile lens follows that glyph set.
+- [Wikipedia: The Library of Babel](https://en.wikipedia.org/wiki/The_Library_of_Babel) — overview of the story and its afterlives.
 
 ## To Do
 
