@@ -81,9 +81,11 @@ lib-of-babel/
 │   ├── color.rs         whole-book RGBA preview image
 │   └── wasm_api.rs      wasm-bindgen JSON/string exports for the frontend
 ├── web/                 static frontend: gallery + minimap + sigil, book reader, wanderings, permalinks, export, verifier
-│   ├── index.html       layout + styles (gallery atmosphere, fluid shelves)
-│   ├── main.js          boot + event wiring (the controller)
-│   ├── js/              ES modules: constants · wasm · util · db · state · url · book · view · nav · verify · sigil · search · i18n · favicon · locales/
+│   ├── index.html       shell markup (CSS + scripts linked in)
+│   ├── main.js          boot + session restore (wires controls)
+│   ├── css/             app.css barrel · base · chrome · gallery · dialogs
+│   ├── js/              modules: constants · wasm · util · db · state · url · book · view · nav ·
+│   │                    about · controls · search · verify · theme · sigil · i18n · favicon · locales/
 │   └── pkg/             wasm-pack output (generated; gitignored)
 └── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
 ```
@@ -168,7 +170,7 @@ downloads it as JSON; **new walk** clears it and drops you somewhere random.
 
 Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Literata is used for About prose.
 
-Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack in one column so spines stay readable. Page chrome picks up a faint gallery-accent atmosphere; the SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
+Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
 
 ## Roadmap (mirrored as Linear issues)
 
@@ -190,21 +192,25 @@ Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px 
 11. ✅ **Reverse lookup** — search-by-content via Feistel page mapping + Basile-style embed. Paste a phrase → coordinates + deep-link; multi-page phrases, universe-scoped, strict alphabet validation.
 12. ✅ **Search by title** — same search dialog with a content/title dropdown; up to 24 characters; embeds the title on the canonical spine and jumps to `(z, n, book)`.
 13. ✅ **Room identity hash** — alphabet is a **lens** (`generator_version` 7): same `(universe, z, n)` keeps one room hash/sigil while spines and pages rewrite. Not translation.
-14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active. ([THI-86](https://linear.app/thicclatka/issue/THI-86))
-15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
+14. ✅ **Multi-language alphabet lenses** — char-based registry + About family browser; Slavic / Baltic / Celtic / Caucasian packs and more; DE/NL UI locale packs when those lenses are active. ([THI-86](https://linear.app/thicclatka/issue/THI-86), [THI-118](https://linear.app/thicclatka/issue/THI-118))
+15. ✅ **Gallery atmosphere + fluid shelves** — accent corner washes, dialog tint, viewport-driven spine sizing, accent-tinted favicon. ([THI-121](https://linear.app/thicclatka/issue/THI-121), [PR #4](https://github.com/Latka-Industries/lib-of-babel/pull/4))
+16. ✅ **Narrow / touch layout** — stacked walls + stretch shelves ≤960px; touch scroll-row spines; compact mobile dialogs. ([THI-120](https://linear.app/thicclatka/issue/THI-120), [PR #5](https://github.com/Latka-Industries/lib-of-babel/pull/5))
+17. ✅ **Frontend modularization** — CSS + JS split; `main.js` boot-only. ([THI-124](https://linear.app/thicclatka/issue/THI-124), [PR #6](https://github.com/Latka-Industries/lib-of-babel/pull/6))
+18. ✅ **Light / dark theme** — header toggle, FOUC-safe preference, shared `--panel-tinted`. ([THI-125](https://linear.app/thicclatka/issue/THI-125), [PR #7](https://github.com/Latka-Industries/lib-of-babel/pull/7))
 
 **Next:**
 
-16. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
-17. 🚧 **Mobile / extreme-narrow UX** — rethink stacked-width discovery (hover does not apply) and book-reader dialogs on small screens ([THI-120](https://linear.app/thicclatka/issue/THI-120)).
-18. 🚧 **RTL alphabet lenses** — Arabic / Hebrew / Persian (and similar) when the reader can host right-to-left text cleanly.
-19. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry.
+19. 🚧 **Punct mode axis** — optional punctuation richness as a second axis on every language lens ([THI-119](https://linear.app/thicclatka/issue/THI-119)).
+20. 🚧 **RTL / complex scripts** — Arabic / Hebrew / Persian and similar when the reader can host them cleanly ([THI-88](https://linear.app/thicclatka/issue/THI-88)).
+21. 🚧 **Custom alphabet picker** — user-defined glyph sets beyond the built-in registry ([THI-123](https://linear.app/thicclatka/issue/THI-123)).
+22. 🚧 **More UI locale packs** — es/fr/… beyond DE/NL ([THI-122](https://linear.app/thicclatka/issue/THI-122)).
 
 **Later:**
 
-- **Living membrane** — persisted discovery log ("coral growth"), wear paths.
-- **Tessera export** — write the journey as a `.tes` document once Tessera ships.
-- **Generative audio** per gallery (deferred).
+- **Living membrane** — persisted discovery log ("coral growth"), wear paths ([THI-75](https://linear.app/thicclatka/issue/THI-75)).
+- **Tessera export** — write the journey as a `.tes` document once Tessera ships ([THI-77](https://linear.app/thicclatka/issue/THI-77)).
+- **Generative audio** per gallery ([THI-84](https://linear.app/thicclatka/issue/THI-84)).
+- **Colour-mosaic search** — photo → alphabet mosaic → invert to book ([THI-117](https://linear.app/thicclatka/issue/THI-117)).
 
 Repo: <https://github.com/Latka-Industries/lib-of-babel>
 
