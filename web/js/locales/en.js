@@ -220,6 +220,7 @@ label, not a page of text.
   "alphabet.group.Ethiopic": "Ethiopic",
   "alphabet.group.African Latin": "African Latin",
   "alphabet.group.Berber": "Berber",
+  "alphabet.group.CJK": "CJK",
 
   "alphabet.blurb.Latin base":
     "The project’s starting alphabets: Borges’s restricted Latin set from the 1941 story (a–v), Basile’s web library a–z, then Basile++ / Basile# adding digits and punctuation.",
@@ -257,6 +258,8 @@ label, not a page of text.
     "Many African languages use Latin orthographies shaped by missionaries, colonial schooling, and later national reforms. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) mark sounds plain a–z cannot write. Swahili often needs no extras beyond a–z.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
+  "alphabet.blurb.CJK":
+    "East Asian pages under the Feistel 255-glyph cap: Japanese kana (gojūon, no dakuten), curated Hangul syllables, and a Simplified Chinese frequent-character pack. Full Unihan or full Hangul is impossible as one lens.",
   // Per-lens blurbs (stable registry ids).
   "alphabet.lensBlurb.25":
     "From Borges’s 1941 story: twenty-two letters (a–v) plus space, comma, and period — the alphabet the fiction assigns to the Library.",
@@ -362,4 +365,10 @@ label, not a page of text.
     "Wolof Latin uses ë, ñ, and a few accented vowels from Senegalese school orthography.",
   "alphabet.lensBlurb.78":
     "Neo-Tifinagh (IRCAM range): left-to-right Amazigh letters. Distinct from both Arabic and Latin shelves.",
+  "alphabet.lensBlurb.95":
+    "Japanese kana gojūon — hiragana and katakāna (ゐ/ゑ omitted) plus space, comma, period. No dakuten, handakuten, or small kana; kanji is a separate backlog.",
+  "alphabet.lensBlurb.250":
+    "Korean Hangul as precomposed syllables (not jamo soup). Top 247 syllables by token frequency from a Korean word-frequency list, plus space, comma, period.",
+  "alphabet.lensBlurb.255":
+    "Simplified Chinese frequent characters (Jun Da modern list, top 252) plus space, comma, period. Traditional and fuller Unihan packs stay backlog.",
 };

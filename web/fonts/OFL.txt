@@ -3,7 +3,8 @@ Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/lite
 Copyright 2022 The Noto Project Authors (https://github.com/notofonts/noto-fonts)
 
 Bundled here: Overpass Mono, Literata, Noto Sans Arabic, Noto Sans Hebrew,
-Noto Sans Ethiopic, Noto Sans NKo, Noto Sans Tifinagh (400/regular faces).
+Noto Sans Ethiopic, Noto Sans NKo, Noto Sans Tifinagh, Noto Sans JP,
+Noto Sans KR, Noto Sans SC (400/regular faces; CJK faces subset to lens glyphs).
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
