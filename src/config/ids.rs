@@ -109,6 +109,12 @@ pub struct AlphabetIds {
     pub wolof: u32,
     /// Tifinagh — 57 glyphs; id `78`.
     pub tifinagh: u32,
+    /// Japanese — hiragana + katakāna gojūon + punct (95 glyphs; id `95`).
+    pub japanese: u32,
+    /// Korean — curated Hangul syllables + punct (250 glyphs; id `250`).
+    pub korean: u32,
+    /// Chinese — curated Simplified frequent chars + punct (255 glyphs; id `255`).
+    pub chinese: u32,
 }
 
 /// Built-in alphabet lens ids.
@@ -165,4 +171,7 @@ pub const ALPHABET_ID: AlphabetIds = AlphabetIds {
     igbo: 76,
     wolof: 77,
     tifinagh: 78,
+    japanese: 95,
+    korean: 250,
+    chinese: 255,
 };
