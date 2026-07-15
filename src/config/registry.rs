@@ -287,8 +287,13 @@ pub const ALPHABET_REGISTRY: &[AlphabetDef] = &[
     },
     AlphabetDef {
         id: ALPHABET_ID.chinese,
-        name: "Chinese",
+        name: "Chinese (Simplified)",
         symbols: ALPHABET_TABLE.chinese,
+    },
+    AlphabetDef {
+        id: ALPHABET_ID.chinese_trad,
+        name: "Chinese (Traditional)",
+        symbols: ALPHABET_TABLE.chinese_trad,
     },
     AlphabetDef {
         id: ALPHABET_ID.hindi,
