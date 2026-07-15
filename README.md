@@ -1,46 +1,44 @@
 # lib-of-babel
 
 **A living, walkable Library of Babel.** Start in a random hexagonal gallery, read the
-books on its shelves, choose a hallway or a staircase, and walk forever. Every gallery
-is generated deterministically from its coordinate, so the Library is infinite yet stores
-almost nothing. Your **journey** is the only thing that is real enough to keep: the path
-you walked and a cryptographic fingerprint of what each gallery held.
+books, take a hallway or a staircase, and keep walking. Every gallery is generated
+deterministically from its coordinate — infinite space, almost nothing stored. What you
+keep is the **journey**: the path and a cryptographic fingerprint of each room.
 
 ![A grid of per-gallery sigils — generative emblems drawn deterministically from each gallery's hash](assets/sigils.svg)
 
-<sub>Each gallery has a **sigil**: a strange star-polygon emblem derived from its room hash. Same coordinate + universe → same sigil, forever (alphabet is a lens and does not change it). The 24 above are **real galleries** in the default universe — their coordinates, hashes, and permalinks are recorded in [`assets/sigils.json`](assets/sigils.json) (redraw with `node scripts/make-sigil-sheet.mjs`).</sub>
+<sub>Each gallery has a **sigil** from its room hash. Same coordinate + universe → same sigil (alphabet is a lens and does not change it). The 24 above are real default-universe galleries — see [`assets/sigils.json`](assets/sigils.json) (`node scripts/make-sigil-sheet.mjs` to redraw).</sub>
 
 ---
 
 ## Concept
 
-Borges' Library is an indefinite number of **hexagonal galleries**. Each hexagon has six
-sides: **four walls of bookshelves**, and **two opposite open sides** that lead into a
-**hallway/vestibule** containing a **spiral staircase** running up and down. So from any
-gallery you have **four moves**: two horizontal hallways, plus stairs up and stairs down.
+Borges imagined **hexagonal galleries**: four walls of shelves, two open sides into a
+vestibule with a spiral stair. So four moves from any room — two hallways, stairs up,
+stairs down.
 
 Canonical dimensions:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile#, plus dozens of language presets (see [docs/alphabets.md](docs/alphabets.md) for the full table, including which lenses ship a UI locale pack). Ids in `&a=` are stable registry keys. Changing alphabet **rewrites spines and pages** at the same `(universe, z, n)` without changing the room hash or sigil — *a new sort of translation*. RTL and complex-script lenses use `dir`/`lang` plus self-hosted Noto fonts.
-- universe: **the outermost axis** — name a `universe` and you cross into an entirely separate infinite library (same rooms, wholly different books). Blank = the **default** universe. There are infinitely many, each reproducible from its name: a **multiverse**.
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile# plus language presets ([full table](docs/alphabets.md)); same room hash/sigil, new spines and pages (*a new sort of translation*)
+- universe: name a parallel infinite library (`""` = default); infinitely many, reproducible from the name
 
 ## Core design decisions
 
 | Topic | Decision |
 | --- | --- |
-| **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, staircase = `z ± 1`. Four moves per gallery. |
-| **Books** | 700 deterministic spines/titles per gallery; full 410-page text generated **lazily** only when a book is opened; per-page **text** or **colour** view in the reader. |
-| **Determinism** | Room identity: `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`. Content: project those slots through an alphabet lens → spines + pages. Nothing is stored. |
-| **Hashing** | `node_hash` = **BLAKE3-256** **room** fingerprint over the 700 book-slot seeds (+ universe, version, coordinate). Alphabet does **not** enter the digest. The footer shows the 64-bit prefix; the full 256-bit value is exposed for exports/proofs. |
-| **Wanderings** | Bounded trail view (last 500 steps, newest-first; universe + alphabet frozen per visit) + append-on-step trail so the full path survives. Click a step to restore that gallery and its lens. |
-| **Alphabet** | View lens (Borges / Basile / language presets; see About): same room hash/sigil, different text. Permalinks carry `&a=` as the active lens; journeys record the lens used. German / Dutch lenses also switch site chrome locale. Symbols are Unicode `char`s. |
-| **Colour map** | Page + whole-book views map glyphs to OKLCH colours: letters on an accent-seeded hue wheel (min ~10° step), punct/digits on a muted opposite arc, space near-black. |
-| **Universe** | A named seed (`""` = default / seed 0) folded into the gallery seed as the outermost axis → infinitely many parallel libraries. Set once as WASM global state; carried in permalinks (`&u=`) and exports. Names map to seeds via BLAKE3 so the mapping has one source of truth. |
-| **Permalinks** | URL encodes `(z, n)` + universe (`u`, omitted when default) + alphabet (`a`) (+ optional `book`/`page`) with the gallery hash as a proof token; opening a link reproduces the exact view. |
-| **Stack** | Rust → WebAssembly generator core + a static web frontend. |
-| **Persistence** | Trail persisted to **IndexedDB**; export the **path** (addresses + moves) and **per-node hash** as JSON. |
+| **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, stairs = `z ± 1`. |
+| **Books** | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view. |
+| **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
+| **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
+| **Wanderings** | Last 500 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). |
+| **Alphabet** | View lens (`&a=` in permalinks). DE/NL lenses also switch UI locale. See [docs/alphabets.md](docs/alphabets.md). |
+| **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
+| **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
+| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q`, with gallery hash as proof. |
+| **Stack** | Rust → WASM core + static web frontend. |
+| **Persistence** | IndexedDB trail; JSON export of path + per-node hashes. |
 
 ## The generation chain (never store text)
 
@@ -52,132 +50,88 @@ book_seed + page + alphabet   ──Feistel──▶  one page (3200 symbols; in
 700 book-slot seeds           ─BLAKE3─▶  node_hash  (room fingerprint; alphabet-free)
 ```
 
-Visit `(z, n)` today, next year, or from another machine → identical seed → identical
-books, character for character. Open a book → generate on the fly → render → discard.
+Same inputs forever → same books. Open a book → generate → render → discard.
 
-**The generator is the schema.** Alphabet, PRNG, hash function, page dimensions, and
-seeding order must be **frozen and versioned**. Every export stamps a `generator_version`;
-changing the core function invalidates previously exported paths/hashes.
+**The generator is the schema.** Alphabet, PRNG, hash, dimensions, and seeding order are
+frozen and versioned. Exports stamp `generator_version`; a core change invalidates old proofs.
 
 ## What gets stored (it's tiny)
 
-Per step: `z` (8B) + `n` (8B) + `move` (1B) + `node_hash` (≤32B) ≈ **~50 bytes**. At human
-pace (~1 gallery/sec) an hour of wandering is ~180 KB; a million steps is ~50 MB. The text
-is never stored because it is always regenerable.
+Per step ≈ **50 bytes** (`z`, `n`, `move`, `node_hash`). An hour of walking is ~180 KB;
+a million steps ~50 MB. Text is never stored.
 
 ## Architecture
 
 ```text
 lib-of-babel/
-├── src/                 Rust → WASM generator core (deterministic, reversible-by-design)
-│   ├── lib.rs           crate root, re-exports, integration tests
-│   ├── config/          frozen dimensions, alphabets (ids + tables + registry), GENERATOR_VERSION
-│   ├── prng.rs          SplitMix64 mixer + deterministic title stream
-│   ├── universe.rs      active universe seed (WASM global state)
-│   ├── gallery.rs       gallery/book seeds, titles, BLAKE3 fingerprint, lattice moves
-│   ├── feistel.rs       reversible page PRP + address embedding
-│   ├── page.rs          lazy page/book text generation + search embed
-│   ├── search.rs        reverse lookup, validation, multi-page span planning
-│   ├── color.rs         whole-book RGBA preview image
-│   └── wasm_api.rs      wasm-bindgen JSON/string exports for the frontend
-├── web/                 static frontend: gallery + minimap + sigil, book reader, wanderings, permalinks, export, verifier
-│   ├── index.html       shell markup (CSS + scripts linked in)
-│   ├── main.js          boot + session restore (wires controls)
-│   ├── css/             app.css barrel · base · chrome · gallery · dialogs
-│   ├── js/              modules: constants · wasm · util · db · state · url · book · view · nav ·
-│   │                    about · alphabet-picker · controls · search · verify · theme · sigil · i18n · favicon · locales/
-│   └── pkg/             wasm-pack output (generated; gitignored)
-├── docs/                alphabet lens table and related notes
-└── .mise.toml           local-dev toolchain + tasks (build / serve / dev / test)
+├── src/          Rust → WASM generator (config, Feistel, gallery, search, color, wasm_api)
+├── web/          static UI (css/, js/, pkg/ from wasm-pack)
+├── docs/         alphabet lens table and notes
+└── .mise.toml    toolchain + build / serve / test tasks
 ```
 
-The core is a **reversible mapping** between coordinate space and page content:
-a Feistel permutation over each page's 3200 symbols, so **search-by-content**
-(`text → coordinates`) is the inverse of reading (`coordinates → text`).
+Feistel page mapping is invertible, so **search-by-content** is the reverse of reading.
 
 ### WASM API (frontend ↔ core)
 
 | Export | Purpose |
 | --- | --- |
-| `generator_version()` | Schema stamp — must match on verify/export |
+| `generator_version()` | Schema stamp for verify/export |
 | `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis |
-| `gallery_titles_json(z, n, a, title_embed)` | 700 spine titles; optional embed flat string for title-search hits |
-| `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 fingerprint |
-| `page_text_for(…, search_query, search_start_page)` | One page; pass `-1` for no search embed |
-| `locate_page_json(text, a)` | Reverse lookup (page content) → JSON hit or validation errors |
-| `locate_title_json(text, a)` | Reverse lookup (spine title, max 24 chars) → JSON hit or validation errors |
+| `gallery_titles_json(z, n, a, title_embed)` | 700 spines; optional title-search embed |
+| `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 |
+| `page_text_for(…, search_query, search_start_page)` | One page (`-1` = no embed) |
+| `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
 | `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
-| `book_text_for` / `book_image` | Full book text or RGBA colour map |
-| `neighbor_json(z, n, mv)` | Lattice step (0=left, 1=right, 2=up, 3=down) |
+| `book_text_for` / `book_image` | Full text or RGBA colour map |
+| `neighbor_json(z, n, mv)` | Lattice step (0–3) |
 
 ## Search (`generator_version` 7)
 
-**actions… → search…** opens a dialog with a **content / title** dropdown. Both modes use the alphabet selected in the header and stay in the universe you are standing in (no auto-hop to another library).
+**actions… → search…** — content or title, under the active alphabet and universe.
 
-### Search by content
+**Content:** validate → BLAKE3 to `(z, n, book, page)` → Basile-style embed (long phrases
+span pages) → open. Up to one full book (~1.3M characters).
 
-Paste a phrase in the **Search** modal (**content** selected) → the core finds where it *already lives* in the current universe.
-
-**How it works:**
-
-1. **Validate** — only characters in the active alphabet are allowed (letters + trailing space/comma/period; extras depend on the lens). Invalid characters are highlighted in red; there is no auto-sanitize. Search result chrome follows the UI locale when a pack is active (e.g. German).
-2. **Hash → address** — the normalized flat phrase is BLAKE3-hashed with universe + alphabet + version to get `(z, n, book, page)`.
-3. **Embed** — the phrase is written into the generated page text at a deterministic offset (Basile-style: real surrounding text, not a padded overlay). Phrases longer than one page span consecutive pages contiguously: page 0 from the computed offset, continuation pages from column 0.
-4. **Go there** — opens the book at the hit; permalink encodes coordinates + book/page + `q=` for the phrase.
-
-**Limits:** up to one full book (~1.3M characters); must fit in the remaining pages of the resolved book. Multi-page hits show `page … page_end` in the result panel.
-
-### Search by title
-
-Choose **title** in the same dialog. Type a spine label (up to **24 characters**, same alphabet rules).
-
-1. **Validate** — same alphabet rules as content search.
-2. **Hash → address** — normalized title → `(z, n, book)` in the current universe.
-3. **Embed** — the title is written onto the canonical spine for that book in the gallery (passed to `gallery_titles_json` as an embed string).
-4. **Go there** — jumps to the gallery and opens the book at page 1 with the searched title on the spine.
+**Title:** same rules, max **24** characters → `(z, n, book)` → embed on the canonical
+spine → jump and open at page 1.
 
 ```text
-content:  user phrase  ──validate──▶  flat text  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
-title:    user title   ──validate──▶  flat text  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine label
+content:  phrase  ──validate──▶  flat  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
+title:    title   ──validate──▶  flat  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine
 ```
 
 ## Run it locally (dev)
 
-Tooling is managed by [mise](https://mise.jdx.dev/) (Rust + wasm-pack + uv). Activating it
-puts its shims first on `PATH`, which sidesteps a Homebrew `rustc` shadowing rustup (the
-`wasm32` target lives in the rustup toolchain, pinned by `rust-toolchain.toml`).
+[mise](https://mise.jdx.dev/) pins Rust + wasm-pack + uv (avoids Homebrew `rustc` shadowing rustup).
 
 ```bash
-mise trust && mise install   # one-time: install the pinned toolchain
-mise run dev                 # build the wasm core into web/pkg, then serve
+mise trust && mise install   # one-time
+mise run dev                 # build wasm → web/pkg, then serve
 ```
 
-Then open <http://127.0.0.1:8777/index.html>. The gallery shell shows **building library…**
-until the WASM core finishes loading.
+Open <http://127.0.0.1:8777/index.html>.
 
-Other tasks:
+| Task | What |
+| --- | --- |
+| `mise run build` / `dev-fast` | release / debug WASM |
+| `mise run serve` | serve `web/` only |
+| `mise run test` / `check` | tests / fmt+clippy+tests |
+| `cargo doc --open` | Rust API docs |
 
-- `mise run build` — release WASM build into `web/pkg`
-- `mise run dev-fast` — faster debug build, then serve
-- `mise run serve` — just serve `web/` (after a build); keeps running until you stop it
-- `mise run test` — host unit tests (`cargo test`)
-- `mise run check` — fmt + clippy + tests
-- `cargo doc --open` — Rust API docs (host build; WASM-only items are still documented)
+Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
 
-The trail lives in the browser's IndexedDB (per-device), so it survives reloads. **export**
-downloads it as JSON; **new walk** clears it and drops you somewhere random.
+Permalinks: `z`, `n` required; optional `u`, `a`, `book`, `page`, `q`.
 
-**Permalink query params:** `z`, `n` (required), optional `u` (universe name), `a` (alphabet registry id), `book`, `page`, and `q` (search phrase when opened via content search).
-
-Click **LIB·OF·BABEL** in the header for a tabbed in-app guide (overview, alphabets, wander, books, more). The **alphabets** tab browses lenses by family with short historical notes and source links; Lato is used for About prose (UI chrome stays Overpass Mono). Full lens inventory (ids, glyph counts, UI packs): [docs/alphabets.md](docs/alphabets.md).
-
-Wide galleries use a 2×2 wall grid with fluid spine height/width; below ~960px walls stack so spines stay readable, and touch/coarse pointers use one horizontal shelf row per wall. Book pages scale font to fit the 40×80 grid in the viewport. Header keeps brand + universe + alphabet + actions + theme (hamburger sheet ≤860px); the footer holds wanderings plus gallery `(z,n)` / hash / steps. Page chrome picks up a faint gallery-accent atmosphere; minimap, walls, and dialogs share the same accent-tinted panel. Header ☀/☾ toggles light/dark (preference saved locally; OS preference used when unset). The SVG favicon tints with the room accent after load (static gold/`favicon.png` as cold fallbacks).
+In-app guide: click **LIB·OF·BABEL**. UI: Overpass Mono chrome, Lato About prose; mobile
+header sheet ≤860px; footer = wanderings + gallery/hash/steps. Theme toggle remembers
+preference (OS default if unset).
 
 ## Inspiration
 
-- [Jorge Luis Borges, “The Library of Babel” (1941)](https://en.wikipedia.org/wiki/The_Library_of_Babel) — the hexagonal galleries, the four walls of books, the restricted alphabet in the fiction.
-- [Jonathan Basile, libraryofbabel.info](https://libraryofbabel.info/) — the web library that made a deterministic English a–z Library browsable; our default Basile lens follows that glyph set.
-- [Wikipedia: The Library of Babel](https://en.wikipedia.org/wiki/The_Library_of_Babel) — overview of the story and its afterlives.
+- [Jorge Luis Borges, “The Library of Babel” (1941)](https://en.wikipedia.org/wiki/The_Library_of_Babel)
+- [Jonathan Basile, libraryofbabel.info](https://libraryofbabel.info/) — default Basile glyph set
+- [Wikipedia: The Library of Babel](https://en.wikipedia.org/wiki/The_Library_of_Babel)
 
 ## To Do
 

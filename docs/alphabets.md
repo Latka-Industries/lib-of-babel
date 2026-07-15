@@ -1,8 +1,8 @@
 # Alphabet lenses
 
-Selectable **symbol laws** for spines and pages — same room hash and sigil at `(universe, z, n)`; *a new sort of translation*, not a separate library. Permalinks carry the lens as `&a=<id>`.
+Selectable **symbol laws** for spines and pages; same room hash and sigil at `(universe, z, n)`. Permalinks carry the lens as `&a=<id>`.
 
-**UI pack** means chrome menus/labels switch when that lens is active (English otherwise). Packs today: Dutch (`nl`), German (`de`).
+**UI pack** means chrome menus/labels switch when that lens is active (English otherwise).
 
 Ids are stable registry keys (usually the glyph count; some diverge where counts collide). Glyph counts below include the trailing space / comma / period in each inventory.
 
