@@ -387,7 +387,7 @@ label, not a page of text.
   "alphabet.lensBlurb.250":
     "Korean Hangul as precomposed syllables (not jamo soup). Top 247 syllables by token frequency from a Korean word-frequency list, plus space, comma, period.",
   "alphabet.lensBlurb.255":
-    "Simplified Chinese frequent characters (Jun Da modern list, top 252) plus space, comma, period. Traditional and fuller Unihan packs stay backlog.",
+    "Simplified Chinese frequent characters (Jun Da modern list, top 997) plus space, comma, period — 1000 cells under frozen id 255. Traditional and fuller Unihan packs stay backlog.",
   "alphabet.lensBlurb.99":
     "Hindi (Devanagari): Independent vowels, consonants, and common consonant–matra clusters (no lone matras). Shared shelf for Marathi/Sanskrit/Nepali orthography.",
   "alphabet.lensBlurb.100":
