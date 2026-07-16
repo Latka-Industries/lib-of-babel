@@ -4,6 +4,9 @@
 // Basile rooms use unbounded BigInt coords — decimal forms are thousands of
 // digits and break copy/open. Long axes are packed as base64url (`z=c…`);
 // search shares prefer short `#q=&find=` links and re-locate on boot.
+//
+// Param order matters: short book-open flags (`bo` / `b` / `img`) come *before*
+// huge `z`/`n` so clipboard / address-bar truncation still keeps “open this book”.
 
 import { S } from "./state.js";
 import { el } from "../lib/util.js";
@@ -81,11 +84,12 @@ export function findPermalink(
   return `${base}${frag}`;
 }
 
-// An open book adds &b=<shelf>&p=<page>. &q=<search phrase> when opened via search
-// (short phrases only — mosaic / full-book embeds stay out of the URL).
-// &u=<universe> is omitted for the default universe so canonical links stay clean.
-// &gv=<GENERATOR_VERSION> stamps the content contract (THI-142).
-// Mosaic / book-image: &img=1 with book id — no glyph payload.
+/**
+ * Room / book permalink.
+ *
+ * Short flags first (`bo`, `img`, `b`, …), then compact `z`/`n`. Basile mosaic
+ * coords are multi-KB; paste truncation used to keep z/n and drop `&b=&img=1`.
+ */
 export function permalink(
   zv,
   nv,
@@ -95,21 +99,55 @@ export function permalink(
   page = null,
   uni = S.universeName,
   searchQuery = null,
-  { image = false, embedId = null, gv = S.gv ?? generator_version() } = {},
+  {
+    image = false,
+    embedId = null,
+    bookOpenId = null,
+    gv = S.gv ?? generator_version(),
+  } = {},
 ) {
   const base = `${location.origin}${location.pathname}`;
   const proof = String(hash ?? "").slice(0, 16);
-  let frag = `#z=${encodeCoordParam(zv)}&n=${encodeCoordParam(nv)}&h=${proof}`;
-  if (book !== null) frag += `&b=${book}`;
-  if (page !== null) frag += `&p=${page}`;
+  const bookIdx =
+    book === null || book === undefined || book === ""
+      ? null
+      : Number(book);
+
+  let frag = `#`;
+  // Same-browser book-open handoff (IndexedDB) — keep early for truncation.
+  if (bookOpenId) frag += `bo=${encodeURIComponent(bookOpenId)}&`;
+  if (image) frag += `img=1&`;
+  if (bookIdx !== null && Number.isFinite(bookIdx)) frag += `b=${bookIdx}&`;
+  if (page !== null && page !== undefined) frag += `p=${page}&`;
+  if (uni) frag += `u=${encodeURIComponent(uni)}&`;
+  frag += `a=${alpha}&gv=${gv}&`;
+  // Short-lived Babelgram print handoff (not shareable).
+  if (embedId) frag += `be=${encodeURIComponent(embedId)}&`;
   const q = shareableSearchQuery(searchQuery);
-  if (q) frag += `&q=${encodeURIComponent(q)}`;
-  if (uni) frag += `&u=${encodeURIComponent(uni)}`;
-  frag += `&a=${alpha}`;
-  frag += `&gv=${gv}`;
+  if (q) frag += `q=${encodeURIComponent(q)}&`;
+  frag += `z=${encodeCoordParam(zv)}&n=${encodeCoordParam(nv)}&h=${proof}`;
+  return `${base}${frag}`;
+}
+
+/**
+ * Short same-browser share for mosaic / Babelgram hits.
+ * Huge Basile `z`/`n` live in IndexedDB under `bo` — keeps clipboard tiny.
+ */
+export function bookOpenShareUrl(
+  bookOpenId,
+  {
+    book = null,
+    image = true,
+    alpha = S.alphabetId,
+    gv = S.gv ?? generator_version(),
+  } = {},
+) {
+  const base = `${location.origin}${location.pathname}`;
+  let frag = `#bo=${encodeURIComponent(bookOpenId)}`;
   if (image) frag += `&img=1`;
-  // Short-lived same-browser handoff for full-book Babelgram embed (not shareable).
-  if (embedId) frag += `&be=${encodeURIComponent(embedId)}`;
+  const bookIdx = book === null || book === undefined ? null : Number(book);
+  if (bookIdx !== null && Number.isFinite(bookIdx)) frag += `&b=${bookIdx}`;
+  frag += `&a=${alpha}&gv=${gv}`;
   return `${base}${frag}`;
 }
 
@@ -170,7 +208,7 @@ export function syncUrl() {
  * @returns {null | {
  *   z: bigint|null, n: bigint|null, h: string, a: number|null,
  *   b: number|null, p: number|null, q: string|null, u: string|null,
- *   gv: number|null, img: boolean, be: string|null,
+ *   gv: number|null, img: boolean, be: string|null, bo: string|null,
  *   find: 'content'|'title'|null
  * }}
  */
@@ -179,6 +217,7 @@ export function parsePermalink() {
   const zs = p.get("z");
   const ns = p.get("n");
   const q = p.get("q");
+  const bo = p.get("bo");
   const findRaw = (p.get("find") || "").toLowerCase();
   const find =
     findRaw === "title" || findRaw === "content"
@@ -187,25 +226,27 @@ export function parsePermalink() {
         ? "content"
         : null;
 
-  if ((zs === null || ns === null) && !q) return null;
+  if ((zs === null || ns === null) && !q && !bo) return null;
 
   try {
     const bs = p.get("b");
     const ps = p.get("p");
     const as = p.get("a");
     const gvs = p.get("gv");
+    const bNum = bs === null ? null : Number(bs);
     return {
       z: zs != null ? decodeCoordParam(zs) : null,
       n: ns != null ? decodeCoordParam(ns) : null,
       h: p.get("h") || "",
       a: as === null ? null : Number(as),
-      b: bs === null ? null : Number(bs),
+      b: bNum !== null && Number.isFinite(bNum) ? bNum : null,
       p: ps === null ? null : Number(ps),
       q,
       u: p.get("u"),
       gv: gvs === null ? null : Number(gvs),
       img: p.get("img") === "1",
       be: p.get("be"),
+      bo,
       find,
     };
   } catch {

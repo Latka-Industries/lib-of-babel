@@ -137,7 +137,8 @@ pagina&nbsp;1.
 Tab <span class="ui">Babelgram</span>: gestempelde PNG van <span class="ui">opslaan…</span> → <span class="ui">boekbeeld</span>.
 <b>Zelfde universum</b> als de export → dat <b>exacte boek</b>.
 <b>Ander universum</b> → dezelfde <b>Babelgram-afdruk</b> op een nieuw adres,
-maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> opent een nieuw tabblad.
+maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span>
+gebruiken een korte handoff in dezelfde browser (kleurenkaart zonder opnieuw opbouwen).
 <span class="ui">check diff</span> veegt <b>reprojectie</b> (stempel-accentdecode) tegen
 <b>diff</b> (|upload − reprojectie|) — bij exacte decode is de diff-kant bijna zwart.
 </p>
@@ -147,7 +148,8 @@ Tab <span class="ui">foto</span>: upload een willekeurig beeld. Het wordt uitger
 volboek-kleurrooster, geprojecteerd op de <b>huidige alfabetlens</b> — de
 <b>letterkleurenkaart</b> (Babelgram-stijl) of een <b>luma-helling</b> — en gerankt op
 <b>rms % / mae / corr</b>. Kies een treffer —
-<span class="ui">ga erheen</span> opent een nieuw tabblad.
+<span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> openen boek + kleurenkaart
+in een nieuw tabblad via een korte handoff in dezelfde browser.
 </p>`,
 
   "about.more": `
@@ -171,10 +173,11 @@ en begint opnieuw in deze browser.
 <h4>Wat in deze browser blijft</h4>
 <p class="dim">
 De Bibliotheek zelf wordt nooit gedownload — alleen je <b>pad</b>,
-<span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Babelgram-<span class="ui">ga erheen</span>
-naar een ander universum kan de afdruk kort lokaal in <b>deze</b> browser
-doorgeven zodat het nieuwe tabblad hem opent; <span class="ui">link kopiëren</span> blijft
-alleen het adres.
+<span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Foto- /
+Babelgram-<span class="ui">ga erheen</span> en <span class="ui">link kopiëren</span> leggen een
+kortstondige handoff in <b>deze</b> browser (coördinaten + kleurenkaartpixels) zodat het
+nieuwe tabblad opent zonder het volboekbeeld opnieuw te bouwen; Babelgram-ga erheen naar
+een ander universum kan ook de afdruk doorgeven.
 </p>
 <h4>Links delen</h4>
 <p class="dim">
@@ -228,7 +231,7 @@ de hash; alleen de planken herschrijven zich.
     "Zelfde universum → exact exportboek. Ander universum → dezelfde Babelgram-afdruk, andere inhoud.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Upload een gestempelde PNG van opslaan → boekbeeld (1:1-rooster + lob:babel). Zelfde universum als de export → dat exacte boek. Ander universum → dezelfde Babelgram-afdruk op een nieuw adres, maar andere boekinhoud. ga erheen opent een nieuw tabblad. Kopieerlink is alleen het adres (geen afdruk-handoff).",
+    "Upload een gestempelde PNG van opslaan → boekbeeld (1:1-rooster + lob:babel). Zelfde universum als de export → dat exacte boek. Ander universum → dezelfde Babelgram-afdruk op een nieuw adres, maar andere boekinhoud. ga erheen / link kopiëren gebruiken een korte handoff in dezelfde browser (gecachte kleurenkaart). Ga erheen naar een ander universum geeft de afdruk ook lokaal door.",
   "search.babel.find": "boek vinden",
   "search.babel.progress": "Babelgram decoderen…",
   "search.babel.upload": "Babelgram-PNG uploaden",
@@ -251,7 +254,7 @@ de hash; alleen de planken herschrijven zich.
   "search.babel.originNoteSame":
     "Zelfde universum als de export — dit is het exacte boek. ga erheen opent een nieuw tabblad.",
   "search.babel.originNoteOther":
-    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. ga erheen opent een nieuw tabblad met die afdruk. Kopieerlink is alleen het adres.",
+    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. ga erheen opent een nieuw tabblad met die afdruk (lokale handoff). link kopiëren gebruikt dezelfde korte handoff in dezelfde browser.",
   "search.babel.resultsIntro":
     "Babelgram-locate in {universe} (seed {seed}) — exacte accentdecode:",
   "search.babel.resultsIntroSame":
@@ -310,7 +313,7 @@ de hash; alleen de planken herschrijven zich.
   "search.mosaic.progressScore": "boekkaart {i} / {n} scoren…",
   "search.mosaic.upload": "beeld uploaden",
   "search.mosaic.honesty":
-    "Zet de foto op het huidige alfabetmozaïek (letterkleuren of luma-helling), rank bestemmingen dan op rms % (~100), mae (~0) en corr (~1).",
+    "Zet de foto op het huidige alfabetmozaïek (letterkleuren of luma-helling), rank bestemmingen dan op rms % (~100), mae (~0) en corr (~1). ga erheen / link kopiëren openen boek + kleurenkaart in een nieuw tabblad via een korte handoff in dezelfde browser (gecachte kaart — geen opnieuw opbouwen bij openen).",
   "search.mosaic.bookTextIntro":
     "Boektekst ({n} tekens). Kopieer, of zet in inhoudzoeken en klik vinden.",
   "search.mosaic.toSearch": "zet in inhoudzoeken",
