@@ -1,5 +1,5 @@
 // Babelgram: stamped PNG → locate → go / copy short book-image link.
-// Photo mosaic tab: implemented but gated by PHOTO_SEARCH_TAB_ENABLED.
+// Photo mosaic: alphabet-lens project → rms/mae/corr rank → go there.
 
 import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js";
 import {
@@ -15,13 +15,7 @@ import {
 } from "../lib/util.js";
 import { t, getLocale } from "../lib/i18n.js";
 import { formatAlphabetSymbolLabel } from "../lib/constants.js";
-import { permalink } from "../gallery/url.js";
-import {
-  PHOTO_SEARCH_TAB_ENABLED,
-  selectSearchTab,
-  syncSearchKindUI,
-  syncSearchCount,
-} from "./search.js";
+import { permalink, bookOpenShareUrl } from "../gallery/url.js";
 import {
   readBabelMeta,
   parseBabelFilename,
@@ -29,26 +23,73 @@ import {
 import { kvSet } from "../lib/db.js";
 import {
   book_image_dims,
-  mosaic_project,
-  mosaic_flat_for,
+  book_image,
+  mosaic_project_preview,
+  mosaic_candidate_packs_json,
+  mosaic_candidate_eval_json,
   mosaic_babel_json,
   room_accent,
   node_hash_hex,
   get_universe,
 } from "../lib/wasm.js";
+import {
+  PHOTO_SEARCH_TAB_ENABLED,
+  selectSearchTab,
+} from "./search.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
+const BOOK_OPEN_KEY = (id) => `book-open:${id}`;
+
+function newHandoffId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Same-browser handoff so paste truncation cannot drop &b=&img=1.
+ * Optional `imageRgba` skips slow virgin `book_image` on open. */
+async function stashBookOpen(
+  hit,
+  {
+    universe = S.universeName,
+    image = true,
+    imageRgba = null,
+    imageW = 0,
+    imageH = 0,
+  } = {},
+) {
+  const id = newHandoffId();
+  const payload = {
+    z: String(hit.z),
+    n: String(hit.n),
+    b: Number(hit.book),
+    a: hit.alphabet ?? S.alphabetId,
+    u: universe ?? "",
+    img: !!image,
+    imageW: imageW || 0,
+    imageH: imageH || 0,
+  };
+  if (imageRgba?.length) {
+    // Own a JS copy before IDB clone (WASM getters already copy; stay defensive).
+    payload.imageRgba =
+      imageRgba instanceof Uint8Array
+        ? imageRgba.slice()
+        : new Uint8Array(imageRgba);
+  }
+  await kvSet(BOOK_OPEN_KEY(id), payload);
+  return id;
+}
 
 /** @type {"photo"|"babel"} */
 let mosaicMode = PHOTO_SEARCH_TAB_ENABLED ? "photo" : "babel";
 
 /** @type {{ rgba: Uint8Array, w: number, h: number, srcW?: number, srcH?: number } | null} */
 let reshaped = null;
+/** Cache key for last ingest (mode + brightness/contrast). */
+let ingestCacheKey = "";
 /** @type {string | null} */
 let sourceName = null;
 /**
  * Per-tab results so photo / Babelgram do not share one output.
- * Photo: `{ flat|error|progress }`.
+ * Photo: `{ hits|error|progress }`.
  * Babelgram: `{ hits, flat?, sameUniverse|error|progress }`.
  */
 const modeResults = { photo: null, babel: null };
@@ -66,6 +107,13 @@ let babelNameMeta = null;
 let babelCompareFrames = null;
 let babelCompareWired = false;
 
+/** Live knob preview: coarse factor while dragging, sharper after settle. */
+const PREVIEW_LIVE_FACTOR = 4;
+const PREVIEW_SETTLE_FACTOR = 2;
+const PREVIEW_SETTLE_MS = 90;
+let previewRaf = 0;
+let previewSettleTimer = 0;
+
 function dims() {
   const d = book_image_dims();
   return { w: d[0], h: d[1] };
@@ -73,6 +121,7 @@ function dims() {
 
 function readParams() {
   const babel = mosaicMode === "babel";
+  const paletteKind = Number(el("mosaicPaletteKind")?.value ?? 1);
   return {
     hue: Number(el("mosaicHue")?.value ?? S.accentHue),
     chroma: Number(el("mosaicChroma")?.value ?? S.accentChroma),
@@ -81,6 +130,8 @@ function readParams() {
     dither: babel ? false : el("mosaicDither")?.checked === true,
     brightness: babel ? 0 : Number(el("mosaicBrightness")?.value ?? 0),
     contrast: babel ? 0 : Number(el("mosaicContrast")?.value ?? 0),
+    /** 0 = luma ramp, 1 = glyph / letter colours */
+    paletteKind: babel ? 1 : paletteKind === 0 ? 0 : 1,
   };
 }
 
@@ -290,30 +341,57 @@ export function syncMosaicModeUI(mode = mosaicMode) {
   if (fileInput) {
     fileInput.accept = babel ? "image/png" : "image/png,image/*";
   }
-  if (lastBitmap) refreshPreview();
+  if (lastBitmap) schedulePreview({ immediate: true });
   else updateFileMeta();
   paintModeResult();
 }
 
-function refreshPreview() {
-  if (!lastBitmap) return;
+/**
+ * Stretch / BC ingest. Cached while brightness+contrast unchanged.
+ * @returns {{ ok: true, rgba: Uint8Array, w: number, h: number, srcW: number, srcH: number, fresh: boolean }
+ *   | { ok: false, error: string }}
+ */
+function ensureIngested() {
+  if (!lastBitmap) {
+    return { ok: false, error: t("search.mosaic.needImage") };
+  }
   if (mosaicMode === "babel" && !babelMeta) {
     reshaped = null;
-    el("mosaicFileMeta").textContent = t("search.babel.notBabel");
-    el("mosaicFitPct").textContent = "";
-    clearPreviewCanvases();
-    return;
+    ingestCacheKey = "";
+    return { ok: false, error: t("search.babel.notBabel") };
+  }
+  const p = readParams();
+  const key = `${mosaicMode}|${p.brightness}|${p.contrast}|${lastBitmap.width}x${lastBitmap.height}`;
+  if (reshaped && ingestCacheKey === key) {
+    return { ok: true, ...reshaped, fresh: false };
   }
   const ingested = ingestBitmap(lastBitmap);
   if (!ingested.ok) {
     reshaped = null;
+    ingestCacheKey = "";
+    return ingested;
+  }
+  reshaped = ingested;
+  ingestCacheKey = key;
+  return { ok: true, ...ingested, fresh: true };
+}
+
+/**
+ * @param {{ factor?: number, dither?: boolean } | undefined} opts
+ */
+function refreshPreview(opts = {}) {
+  if (!lastBitmap) return;
+  const factor = opts.factor ?? PREVIEW_SETTLE_FACTOR;
+  const ingested = ensureIngested();
+  if (!ingested.ok) {
     el("mosaicFileMeta").textContent = ingested.error;
     el("mosaicFitPct").textContent = "";
     clearPreviewCanvases();
     return;
   }
-  reshaped = ingested;
-  paintCanvas(el("mosaicOriginal"), reshaped.rgba, reshaped.w, reshaped.h);
+  if (ingested.fresh) {
+    paintCanvas(el("mosaicOriginal"), ingested.rgba, ingested.w, ingested.h);
+  }
   updateFileMeta();
 
   // Babel exports are already library colour maps — no requantize / no preview edit.
@@ -323,25 +401,23 @@ function refreshPreview() {
   }
 
   const p = readParams();
+  const dither = opts.dither !== undefined ? opts.dither : p.dither;
   let img = null;
   try {
-    img = mosaic_project(
-      reshaped.rgba,
+    img = mosaic_project_preview(
+      ingested.rgba,
       S.alphabetId,
       p.hue,
       p.chroma,
       p.light,
       p.space,
-      p.dither,
+      dither,
+      p.paletteKind,
+      factor,
     );
-    const pixels = img.pixels;
-    paintCanvas(el("mosaicPreview"), pixels, img.width, img.height);
+    paintCanvas(el("mosaicPreview"), img.pixels, img.width, img.height);
     const pct = el("mosaicFitPct");
-    if (pct) {
-      pct.textContent = t("search.mosaic.fitPct", {
-        n: Number(img.percent).toFixed(1),
-      });
-    }
+    if (pct) pct.textContent = "";
   } catch (err) {
     console.error(err);
     const pct = el("mosaicFitPct");
@@ -349,6 +425,30 @@ function refreshPreview() {
   } finally {
     img?.free?.();
   }
+}
+
+/** Coalesce rapid knob `input` into one coarse paint/frame; settle to sharper. */
+function schedulePreview(opts = {}) {
+  const immediate = opts.immediate === true;
+  if (previewRaf) {
+    cancelAnimationFrame(previewRaf);
+    previewRaf = 0;
+  }
+  clearTimeout(previewSettleTimer);
+
+  if (immediate) {
+    refreshPreview({ factor: PREVIEW_SETTLE_FACTOR });
+    return;
+  }
+
+  previewRaf = requestAnimationFrame(() => {
+    previewRaf = 0;
+    // Skip dither while dragging — Floyd–Steinberg dominates cost at any size.
+    refreshPreview({ factor: PREVIEW_LIVE_FACTOR, dither: false });
+  });
+  previewSettleTimer = setTimeout(() => {
+    refreshPreview({ factor: PREVIEW_SETTLE_FACTOR });
+  }, PREVIEW_SETTLE_MS);
 }
 
 function formatOriginLine(meta) {
@@ -420,6 +520,7 @@ async function onFileChosen(file) {
   babelMeta = null;
   babelNameMeta = parseBabelFilename(sourceName);
   reshaped = null;
+  ingestCacheKey = "";
 
   // Stamped book-image PNG → Babelgram tab (auto-switch from photo).
   try {
@@ -463,9 +564,10 @@ async function onFileChosen(file) {
     console.error(err);
     el("mosaicFileMeta").textContent = t("search.mosaic.badImage");
     reshaped = null;
+    ingestCacheKey = "";
     return;
   }
-  refreshPreview();
+  schedulePreview({ immediate: true });
 }
 
 function setModeResult(payload) {
@@ -505,35 +607,274 @@ function paintModeResult() {
     });
     return;
   }
-  if (payload.flat) {
-    paintPhotoBookText(box, payload.flat);
+  if (mosaicMode === "photo" && payload.hits) {
+    paintPhotoHits(box, payload.hits, {
+      bookRgba: payload.bookRgba || null,
+      diffRgba: payload.diffRgba || null,
+      diffW: payload.diffW || 0,
+      diffH: payload.diffH || 0,
+    });
     return;
   }
   box.innerHTML = "";
   box.classList.remove("show");
 }
 
-function paintPhotoBookText(box, flat) {
-  const n = flat.length.toLocaleString(getLocale());
-  box.innerHTML = `
-    <p class="find-dim">${escapeHtml(t("search.mosaic.bookTextIntro", { n }))}</p>
-    <textarea id="mosaicBookText" class="mosaic-book-text" rows="8" readonly></textarea>
-    <div class="find-row find-actions" id="mosaicBookActions">
-      <button type="button" data-find-action="copy">${escapeHtml(t("actions.copy"))}</button>
-      <button type="button" data-find-action="paste">${escapeHtml(t("search.mosaic.toSearch"))}</button>
-    </div>`;
-  const ta = el("mosaicBookText");
-  if (ta) ta.value = flat;
-  box.classList.add("show");
-  const actions = el("mosaicBookActions");
-  actions?.querySelector('[data-find-action="copy"]')?.addEventListener("click", (ev) => {
-    copyText(flat, ev.currentTarget, t("common.copied"));
-  });
-  actions?.querySelector('[data-find-action="paste"]')?.addEventListener("click", () => {
-    putFlatInContentSearch(flat);
+function rgbaAbsDiff(src, other) {
+  const n = Math.min(src.length, other.length);
+  const out = new Uint8Array(n);
+  for (let i = 0; i + 3 < n; i += 4) {
+    out[i] = Math.abs(src[i] - other[i]);
+    out[i + 1] = Math.abs(src[i + 1] - other[i + 1]);
+    out[i + 2] = Math.abs(src[i + 2] - other[i + 2]);
+    out[i + 3] = 255;
+  }
+  return out;
+}
+
+/** Same ideals as Babelgram confirm — score upload vs book colour map. */
+function rgbFitTriple(src, other) {
+  const n = Math.min(src.length, other.length) / 4;
+  if (!n) return { percent: 0, mae: 0, corr: 1, rank: 0 };
+  let sumSq = 0;
+  let sumAbs = 0;
+  let sumSrc = 0;
+  let sumOth = 0;
+  let sumSrcSq = 0;
+  let sumOthSq = 0;
+  let sumCross = 0;
+  let count = 0;
+  for (let i = 0; i < n; i++) {
+    const o = i * 4;
+    for (let c = 0; c < 3; c++) {
+      const x = src[o + c];
+      const y = other[o + c];
+      const d = x - y;
+      sumSq += d * d;
+      sumAbs += Math.abs(d);
+      sumSrc += x;
+      sumOth += y;
+      sumSrcSq += x * x;
+      sumOthSq += y * y;
+      sumCross += x * y;
+      count += 1;
+    }
+  }
+  const rmsNorm = Math.sqrt(sumSq / count / (255 * 255));
+  const percent = Math.max(0, Math.min(100, 100 * (1 - Math.min(1, rmsNorm))));
+  const mae = sumAbs / count;
+  const meanSrc = sumSrc / count;
+  const meanOth = sumOth / count;
+  const cov = sumCross / count - meanSrc * meanOth;
+  const varSrc = sumSrcSq / count - meanSrc * meanSrc;
+  const varOth = sumOthSq / count - meanOth * meanOth;
+  let corr = 1;
+  if (varSrc > 1e-12 && varOth > 1e-12) {
+    corr = Math.max(-1, Math.min(1, cov / (Math.sqrt(varSrc) * Math.sqrt(varOth))));
+  } else if (Math.abs(cov) > 1e-12) {
+    corr = 0;
+  }
+  const rmsTerm = Math.max(0, Math.min(1, percent / 100));
+  const maeTerm = Math.max(0, Math.min(1, 1 - mae / 255));
+  const corrTerm = Math.max(0, Math.min(1, corr));
+  const rank = 100 * (0.4 * rmsTerm + 0.3 * maeTerm + 0.3 * corrTerm);
+  return { percent, mae, corr, rank };
+}
+
+function yieldToUi() {
+  return new Promise((resolve) => {
+    if (typeof scheduler !== "undefined" && scheduler.yield) {
+      scheduler.yield().then(resolve);
+    } else {
+      setTimeout(resolve, 0);
+    }
   });
 }
 
+/** Full address fallback when IndexedDB handoff is unavailable. */
+function photoPermalink(hit) {
+  const z = BigInt(hit.z);
+  const n = BigInt(hit.n);
+  const alphabet = hit.alphabet ?? S.alphabetId;
+  const hash = node_hash_hex(String(z), String(n));
+  return permalink(z, n, hash, alphabet, Number(hit.book), 1, S.universeName, null, {
+    image: true,
+  });
+}
+
+/** Prefer short `&bo=` share — full Basile z/n blow past clipboard / paste limits. */
+async function photoShareUrl(hit, proof = {}) {
+  const bookOpenId = await stashBookOpen(hit, {
+    imageRgba: proof.bookRgba || null,
+    imageW: proof.diffW || 0,
+    imageH: proof.diffH || 0,
+  });
+  return bookOpenShareUrl(bookOpenId, {
+    book: hit.book,
+    image: true,
+    alpha: hit.alphabet ?? S.alphabetId,
+  });
+}
+
+async function goToPhotoHit(hit, proof = {}) {
+  if (!hit) return;
+  try {
+    window.open(
+      await photoShareUrl(hit, proof),
+      "_blank",
+      "noopener,noreferrer",
+    );
+  } catch (err) {
+    console.error(err);
+    // Fallback: full permalink if IndexedDB handoff fails.
+    try {
+      window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
+    } catch (err2) {
+      console.error(err2);
+    }
+  }
+}
+
+function paintPhotoHits(box, hits, proof = {}) {
+  const hit = hits?.[0];
+  if (!hit) {
+    box.innerHTML = `<p class="find-dim search-error">${escapeHtml(
+      t("search.mosaic.noHits"),
+    )}</p>`;
+    box.classList.add("show");
+    return;
+  }
+  const canCompare = !!(
+    proof.bookRgba?.length &&
+    proof.diffRgba?.length &&
+    proof.diffW &&
+    proof.diffH &&
+    proof.bookRgba.length === proof.diffRgba.length
+  );
+  const intro = t("search.mosaic.resultsIntroBest");
+  const { rms, mae, corr, isExact } = formatMetricTriplet(hit);
+  const exact = isExact
+    ? `<span class="mosaic-hit-ok" tabindex="0" data-tip="${escapeHtml(
+        t("search.babel.tip.exactOk"),
+      )}">${escapeHtml(t("search.babel.exactOk"))}</span>`
+    : "";
+  const label = !isExact && hit.label
+    ? `<span class="mosaic-hit-label">${escapeHtml(hit.label)}</span>`
+    : "";
+  const metrics = `<span class="mosaic-hit-metrics">
+        <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
+          t("search.babel.tip.rms"),
+        )}">${escapeHtml(t("search.babel.metric.rms", { n: rms }))}</span>
+        <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
+          t("search.babel.tip.mae"),
+        )}">${escapeHtml(t("search.babel.metric.mae", { n: mae }))}</span>
+        <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
+          t("search.babel.tip.corr"),
+        )}">${escapeHtml(t("search.babel.metric.corr", { n: corr }))}</span>
+      </span>`;
+  box.innerHTML = `<p class="find-dim">${escapeHtml(intro)}</p>
+    <div class="mosaic-hit" data-i="0">
+      <div class="mosaic-hit-thumbs">
+        <div class="mosaic-hit-thumb-wrap">
+          <canvas class="mosaic-hit-thumb mosaic-hit-thumb-book" width="72" height="58" aria-label="${escapeHtml(
+            t("search.mosaic.thumbAlt"),
+          )}"></canvas>
+        </div>
+      </div>
+      <div class="mosaic-hit-body">
+        <div class="mosaic-hit-main">
+          ${metrics}
+          ${label}
+          ${exact}
+        </div>
+        <div class="find-dim" title="${escapeHtml(formatCoordFull(hit.z, hit.n))}">${escapeHtml(
+          t("search.result.gallery", {
+            coords: formatCoordDisplay(hit.z, hit.n),
+          }),
+        )} · ${escapeHtml(
+          t("search.mosaic.hitBook", { book: String(Number(hit.book) + 1) }),
+        )} · ${escapeHtml(formatAlphabetSymbolLabel(hit.alphabet ?? S.alphabetId, t))}</div>
+        ${findActionRow([
+          { id: "go", label: t("search.go") },
+          { id: "link", label: t("actions.copy") },
+          ...(canCompare
+            ? [{ id: "diff", label: t("search.babel.compare.checkDiff") }]
+            : []),
+        ]).replace(
+          'class="find-row find-actions"',
+          'class="find-row find-actions" data-i="0"',
+        )}
+      </div>
+    </div>`;
+  box.classList.add("show");
+  babelCompareFrames = canCompare
+    ? {
+        reprojectRgba: proof.bookRgba,
+        diffRgba: proof.diffRgba,
+        w: proof.diffW,
+        h: proof.diffH,
+      }
+    : null;
+  const row = box.querySelector(".mosaic-hit");
+  const bookThumb = row?.querySelector("canvas.mosaic-hit-thumb-book");
+  if (bookThumb && proof.bookRgba) {
+    paintCanvas(bookThumb, proof.bookRgba, proof.diffW, proof.diffH, 72);
+  }
+  const handlers = {
+    go: () => {
+      void goToPhotoHit(hit, proof);
+    },
+    link: (_ev, btn) => {
+      void (async () => {
+        try {
+          await copyText(await photoShareUrl(hit, proof), btn, t("common.copied"));
+        } catch (err) {
+          console.error(err);
+          try {
+            await copyText(photoPermalink(hit), btn, t("common.copied"));
+          } catch (err2) {
+            console.error(err2);
+          }
+        }
+      })();
+    },
+  };
+  if (canCompare) {
+    handlers.diff = () => openBabelCompare();
+  }
+  if (row) wireFindActions(row, handlers);
+}
+
+function formatMetricTriplet(r) {
+  const pctNum = Number(r.percent);
+  const maeNum = Number(r.mae);
+  const corrNum = Number(r.corr);
+  const rms = pctNum.toLocaleString(getLocale(), {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
+  const mae = Number.isFinite(maeNum)
+    ? maeNum.toLocaleString(getLocale(), {
+        maximumFractionDigits: 3,
+        minimumFractionDigits: 3,
+      })
+    : "—";
+  const corr = Number.isFinite(corrNum)
+    ? corrNum.toLocaleString(getLocale(), {
+        maximumFractionDigits: 4,
+        minimumFractionDigits: 4,
+      })
+    : "—";
+  const isExact =
+    pctNum >= 99.9 &&
+    Number.isFinite(maeNum) &&
+    maeNum < 0.5 &&
+    Number.isFinite(corrNum) &&
+    corrNum >= 0.999;
+  return { rms, mae, corr, isExact };
+}
+
+/** Full address fallback when IndexedDB handoff is unavailable. */
 function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
   const z = BigInt(hit.z);
   const n = BigInt(hit.n);
@@ -541,14 +882,14 @@ function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
   // Prefer stamped export name on same-universe round-trip; else current session.
   const uni =
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
-  return permalink(z, n, hash, hit.alphabet, hit.book, 1, uni, null, {
+  return permalink(z, n, hash, hit.alphabet, Number(hit.book), 1, uni, null, {
     image: true,
     embedId,
   });
 }
 
 async function stashBabelEmbed({ flat, pageSpan, imageRgba, imageW, imageH }) {
-  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const id = newHandoffId();
   await kvSet(BABEL_EMBED_KEY(id), {
     flat,
     pageSpan,
@@ -612,31 +953,7 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
   );
   const rows = hits
     .map((r, i) => {
-      const pctNum = Number(r.percent);
-      const maeNum = Number(r.mae);
-      const corrNum = Number(r.corr);
-      const rms = pctNum.toLocaleString(getLocale(), {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      });
-      const mae = Number.isFinite(maeNum)
-        ? maeNum.toLocaleString(getLocale(), {
-            maximumFractionDigits: 3,
-            minimumFractionDigits: 3,
-          })
-        : "—";
-      const corr = Number.isFinite(corrNum)
-        ? corrNum.toLocaleString(getLocale(), {
-            maximumFractionDigits: 4,
-            minimumFractionDigits: 4,
-          })
-        : "—";
-      const isExact =
-        pctNum >= 99.9 &&
-        Number.isFinite(maeNum) &&
-        maeNum < 0.5 &&
-        Number.isFinite(corrNum) &&
-        corrNum >= 0.999;
+      const { rms, mae, corr, isExact } = formatMetricTriplet(r);
       const exact = isExact
         ? `<span class="mosaic-hit-ok" tabindex="0" data-tip="${escapeHtml(
             t("search.babel.tip.exactOk"),
@@ -714,12 +1031,26 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
         void goToBabelHit(hit, sameUniverse, flat);
       },
       link: (_ev, btn) => {
-        try {
-          // Address-only — no embed handoff (shareable / durable).
-          copyText(babelPermalink(hit, { sameUniverse }), btn, t("common.copied"));
-        } catch (err) {
-          console.error(err);
-        }
+        void (async () => {
+          try {
+            await copyText(
+              await babelShareUrl(hit, { sameUniverse }),
+              btn,
+              t("common.copied"),
+            );
+          } catch (err) {
+            console.error(err);
+            try {
+              await copyText(
+                babelPermalink(hit, { sameUniverse }),
+                btn,
+                t("common.copied"),
+              );
+            } catch (err2) {
+              console.error(err2);
+            }
+          }
+        })();
       },
     };
     if (canCompare) {
@@ -731,7 +1062,27 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
   });
 }
 
-/** Open hit in a new tab. Other-universe embeds use a short-lived IndexedDB handoff. */
+async function babelShareUrl(hit, { sameUniverse = false, embedId = null } = {}) {
+  const uni =
+    sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
+  // Cache upload / reproject pixels so open skips virgin book_image.
+  const bookOpenId = await stashBookOpen(hit, {
+    universe: uni,
+    imageRgba: reshaped?.rgba || null,
+    imageW: reshaped?.w || 0,
+    imageH: reshaped?.h || 0,
+  });
+  // Prefer short handoff — full Basile address is multi-KB.
+  let url = bookOpenShareUrl(bookOpenId, {
+    book: hit.book,
+    image: true,
+    alpha: hit.alphabet ?? S.alphabetId,
+  });
+  // Other-universe print payload still needs &be= on the short link.
+  if (embedId) url += `&be=${encodeURIComponent(embedId)}`;
+  return url;
+}
+
 async function goToBabelHit(hit, sameUniverse = false, flat = null) {
   if (!hit) return;
   try {
@@ -746,10 +1097,22 @@ async function goToBabelHit(hit, sameUniverse = false, flat = null) {
         imageH: reshaped.h,
       });
     }
-    const url = babelPermalink(hit, { sameUniverse, embedId });
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(
+      await babelShareUrl(hit, { sameUniverse, embedId }),
+      "_blank",
+      "noopener,noreferrer",
+    );
   } catch (err) {
     console.error(err);
+    try {
+      window.open(
+        babelPermalink(hit, { sameUniverse }),
+        "_blank",
+        "noopener,noreferrer",
+      );
+    } catch (err2) {
+      console.error(err2);
+    }
   }
 }
 
@@ -761,47 +1124,151 @@ export function clearMosaicResults() {
   paintModeResult();
 }
 
-function putFlatInContentSearch(flat) {
-  if (!flat) return;
-  selectSearchTab("text");
-  const kind = el("searchKind");
-  if (kind) kind.value = "content";
-  syncSearchKindUI();
-  const input = el("searchInput");
-  if (input) {
-    input.value = flat;
-    input.focus();
-    input.select();
-  }
-  syncSearchCount();
-}
+function runPhotoCandidates(modeAtStart, findBtn) {
+  void (async () => {
+    try {
+      if (mosaicMode !== modeAtStart || !reshaped) return;
+      const p = readParams();
 
-function runPhotoBookText(modeAtStart, findBtn) {
-  try {
-    if (mosaicMode !== modeAtStart) return;
-    const p = readParams();
-    const flat = mosaic_flat_for(
-      reshaped.rgba,
-      S.alphabetId,
-      p.hue,
-      p.chroma,
-      p.light,
-      p.space,
-      p.dither,
-    );
-    if (mosaicMode !== modeAtStart) return;
-    setModeResult(flat ? { flat } : { error: t("search.mosaic.noText") });
-  } catch (err) {
-    console.error(err);
-    if (mosaicMode === modeAtStart) {
-      setModeResult({ error: t("search.error.unknown") });
+      setModeResult({ progress: t("search.mosaic.progressPacks") });
+      await yieldToUi();
+      if (mosaicMode !== modeAtStart) return;
+
+      let packsDecoded;
+      try {
+        packsDecoded = JSON.parse(
+          mosaic_candidate_packs_json(
+            reshaped.rgba,
+            S.alphabetId,
+            p.hue,
+            p.chroma,
+            p.light,
+            p.space,
+            p.dither,
+            p.paletteKind,
+          ),
+        );
+      } catch {
+        setModeResult({ error: t("search.mosaic.noHits") });
+        return;
+      }
+      const packs = packsDecoded?.packs;
+      if (!packsDecoded?.ok || !packs?.length) {
+        setModeResult({
+          error: packsDecoded?.error || t("search.mosaic.noHits"),
+        });
+        return;
+      }
+
+      /** @type {object[]} */
+      const located = [];
+      for (let i = 0; i < packs.length; i++) {
+        if (mosaicMode !== modeAtStart) return;
+        setModeResult({
+          progress: t("search.mosaic.progressLocate", {
+            i: String(i + 1),
+            n: String(packs.length),
+          }),
+        });
+        await yieldToUi();
+        if (mosaicMode !== modeAtStart) return;
+        const pack = packs[i];
+        let ev;
+        try {
+          ev = JSON.parse(
+            mosaic_candidate_eval_json(
+              reshaped.rgba,
+              S.alphabetId,
+              pack.hue,
+              pack.chroma,
+              pack.light,
+              pack.space_threshold,
+              !!pack.dither,
+              p.paletteKind,
+              pack.label || "",
+            ),
+          );
+        } catch {
+          continue;
+        }
+        const hit = ev?.results?.[0];
+        if (!ev?.ok || !hit) continue;
+        const key = `${hit.z}|${hit.n}|${hit.book}`;
+        if (located.some((h) => `${h.z}|${h.n}|${h.book}` === key)) continue;
+        located.push(hit);
+      }
+
+      if (!located.length) {
+        setModeResult({ error: t("search.mosaic.noHits") });
+        return;
+      }
+
+      // Re-rank by virgin book colour map ↔ upload (matches thumb + check-diff).
+      let best = null;
+      let bestBookRgba = null;
+      let bestDiff = null;
+      let bestW = 0;
+      let bestH = 0;
+      for (let i = 0; i < located.length; i++) {
+        if (mosaicMode !== modeAtStart) return;
+        setModeResult({
+          progress: t("search.mosaic.progressScore", {
+            i: String(i + 1),
+            n: String(located.length),
+          }),
+        });
+        await yieldToUi();
+        if (mosaicMode !== modeAtStart) return;
+        const hit = located[i];
+        const alphabet = hit.alphabet ?? S.alphabetId;
+        let bookImg = null;
+        try {
+          bookImg = book_image(String(hit.z), String(hit.n), hit.book, alphabet);
+          const bookRgba = bookImg.pixels;
+          const fit = rgbFitTriple(reshaped.rgba, bookRgba);
+          const scored = {
+            ...hit,
+            percent: fit.percent,
+            mae: fit.mae,
+            corr: fit.corr,
+            _rank: fit.rank,
+          };
+          if (!best || fit.rank > best._rank) {
+            best = scored;
+            bestBookRgba = bookRgba;
+            bestW = bookImg.width;
+            bestH = bookImg.height;
+            bestDiff = rgbaAbsDiff(reshaped.rgba, bookRgba);
+          }
+        } finally {
+          bookImg?.free?.();
+        }
+      }
+
+      if (!best || !bestBookRgba) {
+        setModeResult({ error: t("search.mosaic.noHits") });
+        return;
+      }
+      if (mosaicMode !== modeAtStart) return;
+      setModeResult({
+        hits: [best],
+        bookRgba: bestBookRgba,
+        diffRgba: bestDiff,
+        diffW: bestW,
+        diffH: bestH,
+      });
+    } catch (err) {
+      console.error(err);
+      if (mosaicMode === modeAtStart) {
+        setModeResult({ error: t("search.error.unknown") });
+      }
+    } finally {
+      if (findBtn) {
+        findBtn.disabled = false;
+        findBtn.textContent = t("search.mosaic.find");
+      }
     }
-  } finally {
-    if (findBtn) {
-      findBtn.disabled = false;
-      findBtn.textContent = t("search.mosaic.find");
-    }
-  }
+  })();
 }
 
 async function runBabelLocate(modeAtStart, findBtn) {
@@ -901,9 +1368,10 @@ async function runBabelLocate(modeAtStart, findBtn) {
 
 function runMosaicSearch() {
   const modeAtStart = mosaicMode;
-  if (!reshaped) {
+  const ingested = ensureIngested();
+  if (!ingested.ok) {
     const { w, h } = dims();
-    let err = t("search.mosaic.needImage");
+    let err = ingested.error || t("search.mosaic.needImage");
     if (mosaicMode === "babel") {
       err = !babelMeta
         ? t("search.babel.notBabel")
@@ -926,7 +1394,7 @@ function runMosaicSearch() {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (modeAtStart === "babel") void runBabelLocate(modeAtStart, findBtn);
-      else runPhotoBookText(modeAtStart, findBtn);
+      else runPhotoCandidates(modeAtStart, findBtn);
     });
   });
 }
@@ -950,9 +1418,12 @@ export function wireMosaicSearch() {
     "mosaicBrightness",
     "mosaicContrast",
     "mosaicDither",
+    "mosaicPaletteKind",
   ].forEach((id) => {
-    el(id)?.addEventListener("input", refreshPreview);
-    el(id)?.addEventListener("change", refreshPreview);
+    const node = el(id);
+    if (!node) return;
+    node.addEventListener("input", () => schedulePreview());
+    node.addEventListener("change", () => schedulePreview({ immediate: true }));
   });
 
   el("mosaicFind")?.addEventListener("click", runMosaicSearch);

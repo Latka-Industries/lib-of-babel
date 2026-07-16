@@ -1,9 +1,10 @@
 //! Mosaic unit tests.
 
 use super::{
-    COARSE_FACTOR, alphabet_space_idx, book_cell_count, book_grid_dims, build_nearest_lut,
-    downsample_rgba, fit_percent, fit_perceptual_percent, indices_to_flat, locate_mosaic_flat,
-    nearest_index, oklab_dist_sq, project_indices, project_indices_sized, srgb_to_oklab,
+    COARSE_FACTOR, MosaicOpts, PhotoPaletteKind, alphabet_space_idx, book_cell_count,
+    book_grid_dims, build_nearest_lut, downsample_rgba, fit_percent, indices_to_flat,
+    locate_mosaic_flat, nearest_index, oklab_dist_sq, project_indices, project_indices_sized,
+    project_photo_preview, rgb_fit_triple, srgb_to_oklab,
 };
 use crate::color::{book_image_at, build_glyph_palette, room_accent_at};
 use crate::config::{DEFAULT_ALPHABET, alphabet};
@@ -196,8 +197,8 @@ fn oklab_nearest_prefers_matching_accent_palette() {
     );
     let (_, mosaic_good) = project_indices(&pixels, &good, space_idx, 0.0, false);
     let (_, mosaic_bad) = project_indices(&pixels, &bad, space_idx, 0.0, false);
-    let good_fit = fit_perceptual_percent(&pixels, &mosaic_good, 8);
-    let bad_fit = fit_perceptual_percent(&pixels, &mosaic_bad, 8);
+    let good_fit = rgb_fit_triple(&pixels, &mosaic_good, 8).rank_percent();
+    let bad_fit = rgb_fit_triple(&pixels, &mosaic_bad, 8).rank_percent();
     assert!(
         good_fit > bad_fit,
         "OKLab project should rank true accent higher (good={good_fit} bad={bad_fit})"
@@ -205,7 +206,7 @@ fn oklab_nearest_prefers_matching_accent_palette() {
 }
 
 #[test]
-fn perceptual_fit_prefers_matching_accent_over_wrong_hue() {
+fn multi_metric_fit_prefers_matching_accent_over_wrong_hue() {
     let _g = lock_universe();
     set_universe(0);
     let alphabet_id = DEFAULT_ALPHABET;
@@ -218,12 +219,36 @@ fn perceptual_fit_prefers_matching_accent_over_wrong_hue() {
     let bad = build_glyph_palette(ab, (hue + 180.0) % 360.0, chroma, light);
     let (_, mosaic_good) = project_indices(&pixels, &good, space_idx, 0.0, false);
     let (_, mosaic_bad) = project_indices(&pixels, &bad, space_idx, 0.0, false);
-    let good_fit = fit_perceptual_percent(&pixels, &mosaic_good, 1);
-    let bad_fit = fit_perceptual_percent(&pixels, &mosaic_bad, 1);
+    let good_fit = rgb_fit_triple(&pixels, &mosaic_good, 1).rank_percent();
+    let bad_fit = rgb_fit_triple(&pixels, &mosaic_bad, 1).rank_percent();
     assert!(
         good_fit > bad_fit,
-        "perceptual fit should prefer matching accent (good={good_fit} bad={bad_fit})"
+        "multi-metric fit should prefer matching accent (good={good_fit} bad={bad_fit})"
     );
+}
+
+#[test]
+fn preview_factor_shrinks_grid() {
+    let _g = lock_universe();
+    set_universe(0);
+    let alphabet_id = DEFAULT_ALPHABET;
+    let img = book_image_at(&bi(0), &bi(0), 0, alphabet_id);
+    let pixels = img.pixels();
+    let (bw, bh) = book_grid_dims();
+    let (hue, chroma, light) = accent_for(&bi(0), &bi(0), 0);
+    let opts = MosaicOpts::new(
+        alphabet_id,
+        hue,
+        chroma,
+        light,
+        0.0,
+        false,
+        PhotoPaletteKind::Glyph,
+    );
+    let (pw, ph, mosaic) = project_photo_preview(&pixels, &opts, 8).expect("preview");
+    assert_eq!(pw as usize, (bw as usize / 8).max(1));
+    assert_eq!(ph as usize, (bh as usize / 8).max(1));
+    assert_eq!(mosaic.len(), (pw * ph * 4) as usize);
 }
 
 #[test]
@@ -242,8 +267,8 @@ fn coarse_downsample_preserves_ranking_signal() {
     let bad = build_glyph_palette(ab, (hue + 90.0) % 360.0, chroma, light);
     let (_, g) = project_indices_sized(&coarse, cw, ch, &good, space_idx, 0.0, false);
     let (_, b) = project_indices_sized(&coarse, cw, ch, &bad, space_idx, 0.0, false);
-    let good_fit = fit_perceptual_percent(&coarse, &g, 1);
-    let bad_fit = fit_perceptual_percent(&coarse, &b, 1);
+    let good_fit = rgb_fit_triple(&coarse, &g, 1).rank_percent();
+    let bad_fit = rgb_fit_triple(&coarse, &b, 1).rank_percent();
     assert!(
         good_fit > bad_fit,
         "coarse ranking should still prefer true accent (good={good_fit} bad={bad_fit})"

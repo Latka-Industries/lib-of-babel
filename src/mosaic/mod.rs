@@ -22,8 +22,11 @@ mod score;
 #[cfg(test)]
 mod tests;
 
-pub use api::{MosaicImage, mosaic_flat_for, mosaic_project};
-pub use candidates::{BabelLocateResult, mosaic_babel_json, mosaic_candidates_json};
+pub use api::{MosaicImage, mosaic_flat_for, mosaic_project, mosaic_project_preview};
+pub use candidates::{
+    BabelLocateResult, mosaic_babel_json, mosaic_candidate_eval_json, mosaic_candidate_packs_json,
+    mosaic_candidates_json,
+};
 
 // Re-export internals into this module so `tests` can `use super::…`.
 #[cfg(test)]
@@ -40,7 +43,10 @@ use flat::{indices_to_flat, locate_mosaic_flat};
 use lab::{build_nearest_lut, nearest_index, oklab_dist_sq, srgb_to_oklab};
 #[cfg(test)]
 #[allow(unused_imports)]
-use project::{alphabet_space_idx, project_indices, project_indices_sized};
+use project::{
+    MosaicOpts, PhotoPaletteKind, alphabet_space_idx, project_indices, project_indices_sized,
+    project_photo_preview,
+};
 #[cfg(test)]
 #[allow(unused_imports)]
-use score::{downsample_rgba, fit_percent, fit_perceptual_percent};
+use score::{downsample_rgba, fit_percent, rgb_fit_triple};

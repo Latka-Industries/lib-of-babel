@@ -143,10 +143,10 @@ export function syncSearchCount() {
 }
 
 /**
- * Photo→mosaic search tab. Off until the luma path is good enough to ship.
- * Core + Babelgram stay available; flip this when re-enabling the UI.
+ * Photo→mosaic search tab (THI-143: rms / mae / corr ranking).
+ * Flip false to hide the UI; core stays in `src/mosaic/`.
  */
-export const PHOTO_SEARCH_TAB_ENABLED = false;
+export const PHOTO_SEARCH_TAB_ENABLED = true;
 
 /** @returns {"text"|"photo"|"babel"} */
 export function searchMode() {

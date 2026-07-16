@@ -168,7 +168,10 @@ export function showVerify(r, fileName, journey = null) {
     (r.ok
       ? ""
       : String(r.reason || "").includes("generator version mismatch")
-        ? `<p class="verify-migrate"><button type="button" id="verifyOpenLastRoom">${escapeHtml(t("verify.openLastRoom"))}</button></p>`
+        ? `<p class="verify-migrate find-row find-actions">
+             <button type="button" id="verifyOpenLastRoom">${escapeHtml(t("verify.openLastRoom"))}</button>
+             <button type="button" id="verifyWipeLocal">${escapeHtml(t("legacy.gv.wipe"))}</button>
+           </p>`
         : "");
   openModal("verifyModal");
   const migrateBtn = el("verifyOpenLastRoom");
@@ -177,6 +180,13 @@ export function showVerify(r, fileName, journey = null) {
       const { openLastRoomFromJourney } = await import("../gallery/migrate.js");
       await openLastRoomFromJourney(lastJourneyForMigrate);
       el("verifyModal")?.close();
+    };
+  }
+  const wipeBtn = el("verifyWipeLocal");
+  if (wipeBtn) {
+    wipeBtn.onclick = async () => {
+      const { wipeLocalDataAndReload } = await import("../lib/db.js");
+      await wipeLocalDataAndReload();
     };
   }
 }

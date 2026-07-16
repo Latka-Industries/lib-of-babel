@@ -99,7 +99,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>Het <span class="ui">alfabet</span>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALFABETTEN</button></li>
 <li>Klik een gekleurde rug op een wand om een boek te openen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOEKEN</button></li>
 <li><span class="ui">acties…</span> → <span class="ui">link kopiëren</span> (of voet-<span class="ui">hash</span>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
-<li><span class="ui">acties…</span> → <span class="ui">zoeken…</span> — <span class="ui">tekst</span> of <span class="ui">Babelgram</span>; spring ernaartoe.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">ZOEKEN</button></li>
+<li><span class="ui">acties…</span> → <span class="ui">zoeken…</span> — <span class="ui">tekst</span>, <span class="ui">foto</span> of <span class="ui">Babelgram</span>; spring ernaartoe.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">ZOEKEN</button></li>
 <li><span class="ui">dwaaltochten</span> (voet, laatste {max}) — recente stappen met universum + alfabet; <span class="ui">tocht exporteren</span> bewaart het hele pad als JSON.</li>
 </ul>`,
 
@@ -137,10 +137,19 @@ pagina&nbsp;1.
 Tab <span class="ui">Babelgram</span>: gestempelde PNG van <span class="ui">opslaan…</span> → <span class="ui">boekbeeld</span>.
 <b>Zelfde universum</b> als de export → dat <b>exacte boek</b>.
 <b>Ander universum</b> → dezelfde <b>Babelgram-afdruk</b> op een nieuw adres,
-maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> opent een nieuw tabblad.
+maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span>
+gebruiken een korte handoff in dezelfde browser (kleurenkaart zonder opnieuw opbouwen).
 <span class="ui">check diff</span> veegt <b>reprojectie</b> (stempel-accentdecode) tegen
 <b>diff</b> (|upload − reprojectie|) — bij exacte decode is de diff-kant bijna zwart.
-(Willekeurige foto→mozaïek is tijdelijk uit.)
+</p>
+<h4>op fotomozaïek</h4>
+<p class="dim">
+Tab <span class="ui">foto</span>: upload een willekeurig beeld. Het wordt uitgerekt naar het
+volboek-kleurrooster, geprojecteerd op de <b>huidige alfabetlens</b> — de
+<b>letterkleurenkaart</b> (Babelgram-stijl) of een <b>luma-helling</b> — en gerankt op
+<b>rms % / mae / corr</b>. Kies een treffer —
+<span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> openen boek + kleurenkaart
+in een nieuw tabblad via een korte handoff in dezelfde browser.
 </p>`,
 
   "about.more": `
@@ -164,10 +173,11 @@ en begint opnieuw in deze browser.
 <h4>Wat in deze browser blijft</h4>
 <p class="dim">
 De Bibliotheek zelf wordt nooit gedownload — alleen je <b>pad</b>,
-<span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Babelgram-<span class="ui">ga erheen</span>
-naar een ander universum kan de afdruk kort lokaal in <b>deze</b> browser
-doorgeven zodat het nieuwe tabblad hem opent; <span class="ui">link kopiëren</span> blijft
-alleen het adres.
+<span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Foto- /
+Babelgram-<span class="ui">ga erheen</span> en <span class="ui">link kopiëren</span> leggen een
+kortstondige handoff in <b>deze</b> browser (coördinaten + kleurenkaartpixels) zodat het
+nieuwe tabblad opent zonder het volboekbeeld opnieuw te bouwen; Babelgram-ga erheen naar
+een ander universum kan ook de afdruk doorgeven.
 </p>
 <h4>Links delen</h4>
 <p class="dim">
@@ -193,7 +203,10 @@ de hash; alleen de planken herschrijven zich.
     "Deze link komt uit een oudere bibliotheekversie. We kunnen dezelfde zoekzin onder de huidige generator plaatsen (mogelijk een andere plank).",
   "legacy.gv.bodyRelocated":
     "Deze link komt uit een oudere bibliotheekversie. We hebben je zoekzin opnieuw gelokaliseerd onder de huidige generator — dezelfde woorden, mogelijk een nieuwe plank.",
+  "legacy.gv.bodyJourney":
+    "Deze browser heeft nog wandelingen van generator v{old}. Kamerhashes en paginatekst kunnen afwijken van v{cur}. Doorgaan houdt deze plank en start een nieuw spoor, of wis lokale data en herlaad.",
   "legacy.gv.continue": "Doorgaan",
+  "legacy.gv.wipe": "Lokale data wissen & herladen",
   "legacy.gv.skipSession": "Niet meer tonen deze sessie",
 
   "search.head": "zoeken",
@@ -201,13 +214,13 @@ de hash; alleen de planken herschrijven zich.
   "search.headTitle": "zoeken op titel",
   "search.headMosaic": "zoeken op kleurenmozaïek",
   "search.metaText":
-    "Vind een zin die al in de bibliotheek staat, of open een Babelgram-boekbeeld.",
+    "Vind een zin, match een fotomozaïek, of open een Babelgram-boekbeeld.",
   "search.metaContent":
     "Typ een zin — de bibliotheek vindt waar die al bestaat (opgevuld met spaties tot een volle pagina).",
   "search.metaTitle":
     "Typ een rugtitel — de bibliotheek vindt galerij en plank.",
   "search.metaMosaic":
-    "Upload een beeld, stel het mozaïek bij, maak boektekst en plak die in inhoudzoeken.",
+    "Upload een beeld → alfabetmozaïek → boeken ranken op rms / mae / corr.",
   "search.tabsLabel": "Zoekmodus",
   "search.tab.text": "tekst",
   "search.tab.photo": "foto",
@@ -218,7 +231,7 @@ de hash; alleen de planken herschrijven zich.
     "Zelfde universum → exact exportboek. Ander universum → dezelfde Babelgram-afdruk, andere inhoud.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Upload een gestempelde PNG van opslaan → boekbeeld (1:1-rooster + lob:babel). Zelfde universum als de export → dat exacte boek. Ander universum → dezelfde Babelgram-afdruk op een nieuw adres, maar andere boekinhoud. ga erheen opent een nieuw tabblad. Kopieerlink is alleen het adres (geen afdruk-handoff).",
+    "Upload een gestempelde PNG van opslaan → boekbeeld (1:1-rooster + lob:babel). Zelfde universum als de export → dat exacte boek. Ander universum → dezelfde Babelgram-afdruk op een nieuw adres, maar andere boekinhoud. ga erheen / link kopiëren gebruiken een korte handoff in dezelfde browser (gecachte kleurenkaart). Ga erheen naar een ander universum geeft de afdruk ook lokaal door.",
   "search.babel.find": "boek vinden",
   "search.babel.progress": "Babelgram decoderen…",
   "search.babel.upload": "Babelgram-PNG uploaden",
@@ -241,7 +254,7 @@ de hash; alleen de planken herschrijven zich.
   "search.babel.originNoteSame":
     "Zelfde universum als de export — dit is het exacte boek. ga erheen opent een nieuw tabblad.",
   "search.babel.originNoteOther":
-    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. ga erheen opent een nieuw tabblad met die afdruk. Kopieerlink is alleen het adres.",
+    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. ga erheen opent een nieuw tabblad met die afdruk (lokale handoff). link kopiëren gebruikt dezelfde korte handoff in dezelfde browser.",
   "search.babel.resultsIntro":
     "Babelgram-locate in {universe} (seed {seed}) — exacte accentdecode:",
   "search.babel.resultsIntroSame":
@@ -291,17 +304,25 @@ de hash; alleen de planken herschrijven zich.
   "search.hintTitle":
     "gebruikt de huidige alfabetlens · tot {n} rugtitel-cellen",
   "search.hintMosaic":
-    "volboek-kleurrooster · huidige knoppen → glyph-tekst → plakken in inhoudzoeken",
-  "search.mosaic.find": "boektekst maken",
-  "search.mosaic.searching": "schrijven…",
-  "search.mosaic.progress": "glyfen projecteren…",
+    "volboek-kleurrooster · huidig alfabet → mozaïek → toptreffers op rms / mae / corr",
+  "search.mosaic.find": "treffers vinden",
+  "search.mosaic.searching": "zoeken…",
+  "search.mosaic.progress": "mozaïeken projecteren + ranken…",
+  "search.mosaic.progressPacks": "paletpakketten scannen…",
+  "search.mosaic.progressLocate": "pakket {i} / {n} lokaliseren…",
+  "search.mosaic.progressScore": "boekkaart {i} / {n} scoren…",
   "search.mosaic.upload": "beeld uploaden",
   "search.mosaic.honesty":
-    "Mapt helderheid van de foto op een luma-helling van het huidige alfabet, geeft boektekst — plak in inhoudzoeken.",
+    "Zet de foto op het huidige alfabetmozaïek (letterkleuren of luma-helling), rank bestemmingen dan op rms % (~100), mae (~0) en corr (~1). ga erheen / link kopiëren openen boek + kleurenkaart in een nieuw tabblad via een korte handoff in dezelfde browser (gecachte kaart — geen opnieuw opbouwen bij openen).",
   "search.mosaic.bookTextIntro":
     "Boektekst ({n} tekens). Kopieer, of zet in inhoudzoeken en klik vinden.",
   "search.mosaic.toSearch": "zet in inhoudzoeken",
   "search.mosaic.noText": "kon geen boektekst maken van dat beeld",
+  "search.mosaic.noHits": "geen mozaïektreffers voor dat beeld",
+  "search.mosaic.resultsIntro":
+    "Top {n} alfabetmozaïek-treffers (gesorteerd op rms / mae / corr):",
+  "search.mosaic.resultsIntroBest": "Beste mozaïektreffer:",
+  "search.mosaic.thumbAlt": "boekkleurenkaart bij treffer",
   "search.mosaic.original": "origineel (boekrooster)",
   "search.mosaic.preview": "mozaïekvoorbeeld",
   "search.mosaic.fitPct": "passing {n}%",
@@ -310,6 +331,11 @@ de hash; alleen de planken herschrijven zich.
   "search.mosaic.gridHint":
     "Elk beeld wordt uitgerekt naar het volboek-kleurrooster ({w}×{h}).",
   "search.mosaic.badImage": "beeld kon niet worden gelezen",
+  "search.mosaic.palette": "palet",
+  "search.mosaic.palette.glyph": "letters",
+  "search.mosaic.palette.luma": "luma-helling",
+  "search.mosaic.tip.palette":
+    "Letters = Babelgram-glyfkleuren. Luma-helling = helderheidstrap (structuur eerst).",
   "search.mosaic.dither": "dither",
   "search.mosaic.brightness": "helderheid",
   "search.mosaic.contrast": "contrast",
