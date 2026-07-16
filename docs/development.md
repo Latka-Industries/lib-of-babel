@@ -83,5 +83,5 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 | `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
 | `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
 | `book_text_for` / `book_image` / `book_image_search` / `book_image_dims` / `room_accent` | Full text, RGBA colour map (optionally with search embed), grid size, or origin-room OKLCH knobs |
-| `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate (returns flat + decode metrics for UI) |
+| `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate (`BabelLocateResult`: flat, `reproject_pixels`, `diff_pixels`, metrics) |
 | `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |

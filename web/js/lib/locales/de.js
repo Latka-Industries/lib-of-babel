@@ -142,7 +142,9 @@ Tab <span class="ui">Babelgram</span>: gestempeltes PNG von <span class="ui">Spe
 <b>Gleiches Universum</b> wie der Export → genau <b>dieses Buch</b>.
 <b>Anderes Universum</b> → gleicher <b>Babelgram-Druck</b> an neuer Adresse,
 aber <b>anderer Buchinhalt</b>. <span class="ui">Dorthin</span> öffnet einen neuen Tab.
-(Beliebiges Foto→Mosaik ist vorübergehend aus.)
+<span class="ui">Diff prüfen</span> wischt <b>Reprojektion</b> (Stempel-Akzent-Dekodierung)
+gegen <b>Diff</b> (|Upload − Reprojektion|) — bei exakter Dekodierung ist die Diff-Seite
+nahezu schwarz. (Beliebiges Foto→Mosaik ist vorübergehend aus.)
 </p>`,
 
   "about.more": `
@@ -245,6 +247,13 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.babel.exactOk": "exakte Dekodierung",
   "search.babel.seal": "Inhalts-Siegel {seal}",
   "search.babel.diffCaption": "Diff",
+  "search.babel.compare.title": "Vergleich",
+  "search.babel.compare.hint":
+    "Wischer Reprojektion ↔ Diff — bei exakter Dekodierung ist die Diff-Seite nahezu schwarz",
+  "search.babel.compare.result": "Reprojektion",
+  "search.babel.compare.diff": "Diff",
+  "search.babel.compare.sliderAria": "Wischer zwischen Reprojektion und Diff",
+  "search.babel.compare.checkDiff": "Diff prüfen",
   "search.babel.metric.rms": "rms {n}%",
   "search.babel.metric.mae": "mae {n}",
   "search.babel.metric.corr": "korr {n}",
@@ -261,7 +270,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.babel.tip.exactOk":
     "Dekodierung wirkt exakt: rms ≥ 99,9 %, mae < 0,5 und korr ≥ 0,999.",
   "search.babel.confirmHint":
-    "Bilder sind verrauscht — vertrauen Sie rms % (~100), MAE (~0), Korr (~1), schwarzem Diff und Inhalts-Siegel.",
+    "Bilder sind verrauscht — vertrauen Sie rms % (~100), MAE (~0), Korr (~1), nahezu schwarzem Diff-Wischer und Inhalts-Siegel.",
   "search.label": "Suche",
   "search.kindTitle": "Rücken-Titel oder Seiteninhalt suchen",
   "search.kindContent": "Inhalt",
