@@ -99,7 +99,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li>The <span class="ui">alphabet</span> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETS</button></li>
 <li>Click any colored spine on a wall to open a book.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOOKS</button></li>
 <li><span class="ui">actions…</span> → <span class="ui">copy link</span> (or click the footer <span class="ui">hash</span>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
-<li><span class="ui">actions…</span> → <span class="ui">search…</span> — <span class="ui">text</span> or <span class="ui">Babelgram</span>; jump there.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SEARCH</button></li>
+<li><span class="ui">actions…</span> → <span class="ui">search…</span> — <span class="ui">text</span>, <span class="ui">photo</span>, or <span class="ui">Babelgram</span>; jump there.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SEARCH</button></li>
 <li><span class="ui">wanderings</span> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <span class="ui">export journey</span> saves the full path as JSON.</li>
 </ul>`,
 
@@ -140,7 +140,14 @@ opens page&nbsp;1.
 <b>different book contents</b>. <span class="ui">go there</span> opens a new tab.
 <span class="ui">check diff</span> wipes <b>reproject</b> (stamp-accent decode) against the
 <b>diff</b> (|upload − reproject|) — exact decode makes the diff side near-black.
-(Arbitrary photo→mosaic is temporarily off.)
+</p>
+<h4>by photo mosaic</h4>
+<p class="dim">
+<span class="ui">photo</span> tab: upload any image. It is stretched to the full-book colour
+grid, projected onto the <b>current alphabet lens</b> — either the <b>letter colour map</b>
+(Babelgram-style) or a <b>luma ramp</b> — then ranked by
+<b>rms % / mae / corr</b>. Pick a hit and
+<span class="ui">go there</span>.
 </p>`,
 
   "about.more": `
@@ -192,7 +199,10 @@ keeps the hash; only the shelves rewrite.
     "This link is from an older library version. We can place the same search phrase under the current generator (it may live on a different shelf).",
   "legacy.gv.bodyRelocated":
     "This link is from an older library version. We re-located your search phrase under the current generator — same words, possibly a new shelf.",
+  "legacy.gv.bodyJourney":
+    "This browser still has wanderings from generator v{old}. Room hashes and page text may not match v{cur}. Continue keeps this shelf and starts a fresh trail, or wipe local data and reload.",
   "legacy.gv.continue": "Continue",
+  "legacy.gv.wipe": "Wipe local data & refresh",
   "legacy.gv.skipSession": "Don't show again this session",
 
   "search.head": "search",
@@ -200,13 +210,13 @@ keeps the hash; only the shelves rewrite.
   "search.headTitle": "search by title",
   "search.headMosaic": "search by colour mosaic",
   "search.metaText":
-    "Find a phrase already in the library, or open a Babelgram book image.",
+    "Find a phrase, match a photo mosaic, or open a Babelgram book image.",
   "search.metaContent":
     "Type a phrase — the library inverts it to the page where those glyphs already live (padded to a full page).",
   "search.metaTitle":
     "Type a spine title — the library finds the gallery and shelf where it belongs.",
   "search.metaMosaic":
-    "Upload an image, tune the mosaic, then make book text and paste it into content search.",
+    "Upload an image → alphabet mosaic → find books ranked by rms / mae / corr.",
   "search.tabsLabel": "Search mode",
   "search.tab.text": "text",
   "search.tab.photo": "photo",
@@ -263,11 +273,11 @@ keeps the hash; only the shelves rewrite.
   "search.babel.metric.mae": "mae {n}",
   "search.babel.metric.corr": "corr {n}",
   "search.babel.tip.rms":
-    "Root-mean-square RGB fit of upload vs stamp-accent reproject. fit% = 100 × (1 − √(mean((ΔR²+ΔG²+ΔB²)/3) / 255²)). Ideal ≈ 100%.",
+    "Root-mean-square RGB fit of upload vs mosaic/reproject. fit% = 100 × (1 − √(mean((ΔR²+ΔG²+ΔB²)/3) / 255²)). Ideal ≈ 100%.",
   "search.babel.tip.mae":
     "Mean absolute RGB error: mean((|ΔR|+|ΔG|+|ΔB|)/3) on a 0–255 scale. Ideal ≈ 0.",
   "search.babel.tip.corr":
-    "Pearson correlation of paired RGB samples between upload and reproject. Ideal ≈ 1.",
+    "Pearson correlation of paired RGB samples between upload and mosaic/reproject. Ideal ≈ 1.",
   "search.babel.tip.diff":
     "Pixelwise |upload − reproject| under the stamp accent. Ideal: near-black (all zeros).",
   "search.babel.tip.seal":
@@ -290,17 +300,25 @@ keeps the hash; only the shelves rewrite.
   "search.hintTitle":
     "uses the current alphabet lens · up to {n} spine-title cells",
   "search.hintMosaic":
-    "full-book colour grid · current knobs → glyph string → paste into content search",
-  "search.mosaic.find": "make book text",
-  "search.mosaic.searching": "writing…",
-  "search.mosaic.progress": "projecting glyphs…",
+    "full-book colour grid · current alphabet lens → mosaic → top matches by rms / mae / corr",
+  "search.mosaic.find": "find matches",
+  "search.mosaic.searching": "searching…",
+  "search.mosaic.progress": "projecting + ranking mosaics…",
+  "search.mosaic.progressPacks": "scanning palette packs…",
+  "search.mosaic.progressLocate": "locating pack {i} / {n}…",
+  "search.mosaic.progressScore": "scoring book map {i} / {n}…",
   "search.mosaic.upload": "upload image",
   "search.mosaic.honesty":
-    "Maps photo brightness onto a luma ramp of the current alphabet, then spits out book text — paste into content search.",
+    "Maps the photo onto the current alphabet as a colour mosaic (letters or luma ramp), then ranks destinations by rms % (~100), mae (~0), and corr (~1).",
   "search.mosaic.bookTextIntro":
     "Book text ({n} chars). Copy, or put it in content search and hit find.",
   "search.mosaic.toSearch": "put in content search",
   "search.mosaic.noText": "could not build book text from that image",
+  "search.mosaic.noHits": "no mosaic matches for that image",
+  "search.mosaic.resultsIntro":
+    "Top {n} alphabet-mosaic matches (ranked by rms / mae / corr):",
+  "search.mosaic.resultsIntroBest": "Best mosaic match:",
+  "search.mosaic.thumbAlt": "book colour map at match",
   "search.mosaic.original": "original (book grid)",
   "search.mosaic.preview": "mosaic preview",
   "search.mosaic.fitPct": "projection fit {n}%",
@@ -309,6 +327,11 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.gridHint":
     "Any image is stretched to the full-book colour grid ({w}×{h}).",
   "search.mosaic.badImage": "could not decode that image",
+  "search.mosaic.palette": "palette",
+  "search.mosaic.palette.glyph": "letters",
+  "search.mosaic.palette.luma": "luma ramp",
+  "search.mosaic.tip.palette":
+    "Letters = Babelgram-style per-glyph colours. Luma ramp = brightness ladder (structure-first).",
   "search.mosaic.dither": "dither",
   "search.mosaic.brightness": "brightness",
   "search.mosaic.contrast": "contrast",
@@ -323,11 +346,11 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.tip.contrast":
     "Raise or lower contrast of the upload before mosaicing.",
   "search.mosaic.tip.hue":
-    "Tint of the lightness ramp (photo mosaic maps brightness onto the alphabet).",
+    "Rotates the accent on the letter colour map (or the luma ramp tint).",
   "search.mosaic.tip.chroma":
-    "How much tint vs grey on the luma ramp — low is nearly greyscale.",
+    "How vivid glyph colours are — or how much tint vs grey on the luma ramp.",
   "search.mosaic.tip.light":
-    "Centers the lightness ramp (dark↔light glyph ladder) for the photo mosaic.",
+    "Overall lightness of letter colours — or the center of the luma ramp.",
   "search.mosaic.tip.space":
     "Pixels darker than this luminance become the space glyph when mosaicing.",
   "search.mosaic.tip.dither":

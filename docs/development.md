@@ -61,8 +61,8 @@ opens the migrate modal.
 - In-app guide: brand **LIB·OF·BABEL**, footer **? · Help**, or keyboard **?** (first visit opens About once)
 - About tabs: **overview → wander → alphabets → books → search → more**. Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH**). Control names in the prose use panel chips (`.ui`).
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
-- Search modes shipped in UI: **text** (content / title), **Babelgram** (exact-size stamped book-image PNG → locate; metrics + **go there** / copy link)
-- Photo→mosaic tab exists in code but is **off** (`PHOTO_SEARCH_TAB_ENABLED = false` in `web/js/reader/search.js`); core stays in `src/mosaic/`
+- Search modes shipped in UI: **text** (content / title), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp), **Babelgram** (exact-size stamped book-image PNG → locate; metrics + **go there** / copy link)
+- Photo tab flag: `PHOTO_SEARCH_TAB_ENABLED` in `web/js/reader/search.js` (on)
 - Lens registry for the UI lives in `web/js/lib/constants.js` (kept in sync with Rust via tests)
 - Chrome: Overpass Mono; About prose: Lato
 - Mobile header sheet ≤860px; footer = wanderings (last 1000) + gallery/hash/steps
@@ -86,5 +86,5 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 | `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
 | `search_page_span_for` / `search_page_embed_for` | Multi-page highlight helpers |
 | `book_text_for` / `book_image` / `book_image_search` / `book_image_dims` / `room_accent` | Full text, RGBA colour map (search flat ignored), grid size, or origin-room OKLCH knobs |
-| `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate (`BabelLocateResult`: flat, `reproject_pixels`, `diff_pixels`, metrics) |
+| `mosaic_project` / `mosaic_project_preview` / `mosaic_flat_for` / `mosaic_candidate_packs_json` / `mosaic_candidate_eval_json` / `mosaic_babel_json` | Full / downsampled preview; flat; chunked candidate packs + eval (rms/mae/corr); exact Babelgram locate (`BabelLocateResult`) |
 | `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |
