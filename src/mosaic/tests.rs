@@ -1,10 +1,10 @@
 //! Mosaic unit tests.
 
 use super::{
-    COARSE_FACTOR, PhotoPaletteKind, alphabet_space_idx, book_cell_count, book_grid_dims,
-    build_nearest_lut, downsample_rgba, fit_percent, indices_to_flat, locate_mosaic_flat,
-    nearest_index, oklab_dist_sq, project_indices, project_indices_sized, project_photo_preview,
-    rgb_fit_triple, srgb_to_oklab,
+    COARSE_FACTOR, MosaicOpts, PhotoPaletteKind, alphabet_space_idx, book_cell_count,
+    book_grid_dims, build_nearest_lut, downsample_rgba, fit_percent, indices_to_flat,
+    locate_mosaic_flat, nearest_index, oklab_dist_sq, project_indices, project_indices_sized,
+    project_photo_preview, rgb_fit_triple, srgb_to_oklab,
 };
 use crate::color::{book_image_at, build_glyph_palette, room_accent_at};
 use crate::config::{DEFAULT_ALPHABET, alphabet};
@@ -236,8 +236,7 @@ fn preview_factor_shrinks_grid() {
     let pixels = img.pixels();
     let (bw, bh) = book_grid_dims();
     let (hue, chroma, light) = accent_for(&bi(0), &bi(0), 0);
-    let (pw, ph, mosaic) = project_photo_preview(
-        &pixels,
+    let opts = MosaicOpts::new(
         alphabet_id,
         hue,
         chroma,
@@ -245,9 +244,8 @@ fn preview_factor_shrinks_grid() {
         0.0,
         false,
         PhotoPaletteKind::Glyph,
-        8,
-    )
-    .expect("preview");
+    );
+    let (pw, ph, mosaic) = project_photo_preview(&pixels, &opts, 8).expect("preview");
     assert_eq!(pw as usize, (bw as usize / 8).max(1));
     assert_eq!(ph as usize, (bh as usize / 8).max(1));
     assert_eq!(mosaic.len(), (pw * ph * 4) as usize);

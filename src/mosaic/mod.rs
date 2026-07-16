@@ -44,7 +44,7 @@ use lab::{build_nearest_lut, nearest_index, oklab_dist_sq, srgb_to_oklab};
 #[cfg(test)]
 #[allow(unused_imports)]
 use project::{
-    PhotoPaletteKind, alphabet_space_idx, project_indices, project_indices_sized,
+    MosaicOpts, PhotoPaletteKind, alphabet_space_idx, project_indices, project_indices_sized,
     project_photo_preview,
 };
 #[cfg(test)]
