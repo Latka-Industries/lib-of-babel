@@ -285,12 +285,14 @@ fn book_image_pages_inner(
     let start = page_start.min(PAGES_PER_BOOK);
     let end = page_end.min(PAGES_PER_BOOK).max(start);
     let page_count = (end - start) as usize;
+    // Snapshot once — parallel tests may mutate the global mid-call.
+    let universe_seed = universe();
 
     let ab = alphabet(alphabet_id);
     let len = ab.len();
     let space_idx = len - 3;
 
-    let fp = node_fingerprint(z, n, universe());
+    let fp = node_fingerprint(z, n, universe_seed);
     let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
@@ -305,7 +307,7 @@ fn book_image_pages_inner(
             book_index,
             page,
             alphabet_id,
-            universe(),
+            universe_seed,
         ));
         let state = page_symbols(&req);
         for &sym in &state {

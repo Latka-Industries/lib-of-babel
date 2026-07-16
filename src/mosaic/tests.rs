@@ -8,17 +8,11 @@ use super::{
 };
 use crate::color::{book_image_at, build_glyph_palette, room_accent_at};
 use crate::config::{DEFAULT_ALPHABET, alphabet};
-use crate::universe::set_universe;
+use crate::universe::{lock_for_tests, set_universe};
 use num_bigint::BigInt;
-use std::sync::Mutex;
-
-/// `set_universe` is process-global — serialize tests that touch it.
-static UNIVERSE_LOCK: Mutex<()> = Mutex::new(());
 
 fn lock_universe() -> std::sync::MutexGuard<'static, ()> {
-    UNIVERSE_LOCK
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+    lock_for_tests()
 }
 
 fn bi(x: i64) -> BigInt {
