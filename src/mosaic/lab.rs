@@ -1,4 +1,4 @@
-//! sRGB ↔ OKLab helpers + nearest-palette LUT for mosaic quantization.
+//! sRGB ↔ `OKLab` helpers + nearest-palette LUT for mosaic quantization.
 
 /// Nearest-colour LUT resolution per RGB channel (32³ = 32 768 entries).
 pub(crate) const LUT_BINS: usize = 32;
@@ -12,21 +12,22 @@ pub(crate) fn srgb_channel_to_linear(c: u8) -> f64 {
     }
 }
 
-/// sRGB 8-bit → OKLab (Björn Ottosson).
+/// sRGB 8-bit → `OKLab` (Björn Ottosson).
 pub(crate) fn srgb_to_oklab(rgb: [u8; 3]) -> [f64; 3] {
-    let r = srgb_channel_to_linear(rgb[0]);
-    let g = srgb_channel_to_linear(rgb[1]);
-    let b = srgb_channel_to_linear(rgb[2]);
-    let l = 0.412_221_470_8 * r + 0.536_332_536_3 * g + 0.051_445_992_9 * b;
-    let m = 0.211_903_498_2 * r + 0.680_699_545_1 * g + 0.107_396_956_6 * b;
-    let s = 0.088_302_461_9 * r + 0.281_718_837_6 * g + 0.629_978_700_5 * b;
-    let l_ = l.cbrt();
-    let m_ = m.cbrt();
-    let s_ = s.cbrt();
+    let lin_r = srgb_channel_to_linear(rgb[0]);
+    let lin_g = srgb_channel_to_linear(rgb[1]);
+    let lin_b = srgb_channel_to_linear(rgb[2]);
+    // Cone LMS (paper names L/M/S).
+    let cone_l = 0.412_221_470_8 * lin_r + 0.536_332_536_3 * lin_g + 0.051_445_992_9 * lin_b;
+    let cone_m = 0.211_903_498_2 * lin_r + 0.680_699_545_1 * lin_g + 0.107_396_956_6 * lin_b;
+    let cone_s = 0.088_302_461_9 * lin_r + 0.281_718_837_6 * lin_g + 0.629_978_700_5 * lin_b;
+    let root_l = cone_l.cbrt();
+    let root_m = cone_m.cbrt();
+    let root_s = cone_s.cbrt();
     [
-        0.210_454_255_3 * l_ + 0.793_617_785_0 * m_ - 0.004_072_046_8 * s_,
-        1.977_998_495_1 * l_ - 2.428_592_205_0 * m_ + 0.450_593_709_9 * s_,
-        0.025_904_037_1 * l_ + 0.782_771_766_2 * m_ - 0.808_675_766_0 * s_,
+        0.210_454_255_3 * root_l + 0.793_617_785_0 * root_m - 0.004_072_046_8 * root_s,
+        1.977_998_495_1 * root_l - 2.428_592_205_0 * root_m + 0.450_593_709_9 * root_s,
+        0.025_904_037_1 * root_l + 0.782_771_766_2 * root_m - 0.808_675_766_0 * root_s,
     ]
 }
 
@@ -52,7 +53,7 @@ pub(crate) fn lut_index(r: u8, g: u8, b: u8) -> usize {
     (rq * LUT_BINS + gq) * LUT_BINS + bq
 }
 
-/// Nearest palette entry in OKLab (used for photo projection).
+/// Nearest palette entry in `OKLab` (used for photo projection).
 pub(crate) fn build_nearest_lut(
     palette: &[[u8; 3]],
     space_idx: usize,

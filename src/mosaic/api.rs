@@ -45,6 +45,11 @@ impl MosaicImage {
 }
 
 /// Project a book-grid RGBA buffer onto the alphabet palette (preview).
+///
+/// # Errors
+///
+/// Returns a string `JsValue` when `src_rgba` is not the full-book colour grid
+/// length (`book_cell_count() * 4`).
 #[wasm_bindgen]
 pub fn mosaic_project(
     src_rgba: &[u8],
@@ -76,6 +81,11 @@ pub fn mosaic_project(
 }
 
 /// Build the embeddable cell string for a mosaic projection (no space-collapse).
+///
+/// # Errors
+///
+/// Returns a string `JsValue` when `src_rgba` is not the full-book colour grid
+/// length (`book_cell_count() * 4`).
 #[wasm_bindgen]
 pub fn mosaic_flat_for(
     src_rgba: &[u8],

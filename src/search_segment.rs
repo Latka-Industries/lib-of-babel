@@ -65,15 +65,12 @@ pub fn flatten_to_cells(text: &str, ab: &[&str]) -> Result<String, Vec<(usize, S
             i += ch_len;
             continue;
         }
-        match match_cell_at(ab, text, i) {
-            Some((idx, cell_len)) => {
-                out.push_str(ab[idx]);
-                i += cell_len;
-            }
-            None => {
-                invalid.push((i, ch.to_string()));
-                i += ch_len;
-            }
+        if let Some((idx, cell_len)) = match_cell_at(ab, text, i) {
+            out.push_str(ab[idx]);
+            i += cell_len;
+        } else {
+            invalid.push((i, ch.to_string()));
+            i += ch_len;
         }
     }
     if !invalid.is_empty() {

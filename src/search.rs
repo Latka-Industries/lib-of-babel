@@ -236,7 +236,7 @@ pub fn locate_page(
         )));
     }
     let page_span = search_page_span(&flat, alphabet_id);
-    debug_assert!(page_span >= 1 && page_span <= PAGES_PER_BOOK);
+    debug_assert!((1..=PAGES_PER_BOOK).contains(&page_span));
     let mut location = coords_from_phrase(&flat, alphabet_id, universe_seed);
     // Clamp start so span fits. Full book → page 0; shorter multi-page → latest
     // legal start that still leaves enough room (keeps some hash variety).

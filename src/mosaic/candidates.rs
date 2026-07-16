@@ -179,6 +179,166 @@ fn json_results(hits: &[JsonHit<'_>]) -> String {
     out
 }
 
+struct LocateHit {
+    percent: f64,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    space_threshold: f64,
+    dither: bool,
+    label: String,
+    z: i64,
+    n: i64,
+    book: u32,
+    page: u32,
+    page_span: u32,
+}
+
+/// Coarse downsample sweep → keep top distinct packs (+ space variants).
+fn coarse_candidate_packs(
+    src_rgba: &[u8],
+    ab: &[&str],
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    space: f64,
+    dither: bool,
+) -> Vec<CandidatePack> {
+    let space_idx = alphabet_space_idx(ab);
+    let (bw, bh) = book_grid_dims();
+    let (coarse_src, cw, ch) = downsample_rgba(src_rgba, bw as usize, bh as usize, COARSE_FACTOR);
+
+    let mut coarse: Vec<(f64, CandidatePack)> =
+        Vec::with_capacity(1 + COARSE_HUE_STEPS * COARSE_CHROMA.len() * COARSE_LIGHT.len());
+    let mut push_coarse = |pack: CandidatePack| {
+        let pct = score_coarse_luma(&coarse_src, cw, ch, ab, space_idx, &pack);
+        coarse.push((pct, pack));
+    };
+
+    push_coarse(CandidatePack {
+        hue,
+        chroma,
+        light,
+        space_threshold: space,
+        dither,
+        label: "current",
+    });
+    for step in 0..COARSE_HUE_STEPS {
+        let h = (step as f64) * (360.0 / COARSE_HUE_STEPS as f64);
+        for &c in &COARSE_CHROMA {
+            for &l in &COARSE_LIGHT {
+                push_coarse(CandidatePack {
+                    hue: h,
+                    chroma: c,
+                    light: l,
+                    space_threshold: space,
+                    dither,
+                    label: "coarse",
+                });
+            }
+        }
+    }
+    coarse.sort_by(|a, b| by_percent_desc(a.0, b.0));
+
+    let mut packs: Vec<CandidatePack> = Vec::new();
+    for (_pct, mut pack) in coarse {
+        if packs.len() >= COARSE_KEEP {
+            break;
+        }
+        let key = pack.dedup_key();
+        if packs.iter().any(|p| p.dedup_key() == key) {
+            continue;
+        }
+        if pack.label != "current" {
+            pack.label = if packs.iter().all(|p| p.label == "current") {
+                "best match"
+            } else {
+                "runner-up"
+            };
+        }
+        packs.push(pack);
+    }
+
+    if let Some(best) = packs.first().cloned() {
+        for (space_mul, label) in [(0.6_f64, "space low"), (1.4_f64, "space high")] {
+            packs.push(CandidatePack {
+                space_threshold: (best.space_threshold * space_mul).clamp(0.0, 255.0),
+                label,
+                ..best
+            });
+        }
+    }
+    packs
+}
+
+/// Full-res locate for coarse survivors; keep best pack per destination.
+fn fine_locate_hits(src: &[u8], alphabet_id: u32, packs: &[CandidatePack]) -> Vec<LocateHit> {
+    let mut hits: Vec<LocateHit> = Vec::new();
+    for pack in packs {
+        let Some((percent, label, res)) =
+            evaluate_pack(src, alphabet_id, pack, FitMode::PhotoPerceptual)
+        else {
+            continue;
+        };
+        let loc = &res.location;
+        let key = (loc.z, loc.n, loc.book_index);
+        if let Some(existing) = hits.iter_mut().find(|h| (h.z, h.n, h.book) == key) {
+            if percent > existing.percent {
+                existing.percent = percent;
+                existing.hue = pack.hue;
+                existing.chroma = pack.chroma;
+                existing.light = pack.light;
+                existing.space_threshold = pack.space_threshold;
+                existing.dither = pack.dither;
+                existing.label = label;
+                existing.page = loc.page;
+                existing.page_span = res.page_span;
+            }
+            continue;
+        }
+        hits.push(LocateHit {
+            percent,
+            hue: pack.hue,
+            chroma: pack.chroma,
+            light: pack.light,
+            space_threshold: pack.space_threshold,
+            dither: pack.dither,
+            label,
+            z: loc.z,
+            n: loc.n,
+            book: loc.book_index,
+            page: loc.page,
+            page_span: res.page_span,
+        });
+    }
+    hits.sort_by(|a, b| by_percent_desc(a.percent, b.percent));
+    hits.truncate(FINE_TOP);
+    hits
+}
+
+fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
+    let json_hits: Vec<JsonHit<'_>> = hits
+        .iter()
+        .map(|h| JsonHit {
+            percent: h.percent,
+            z: h.z,
+            n: h.n,
+            book: h.book,
+            page: h.page,
+            page_span: h.page_span,
+            hue: h.hue,
+            chroma: h.chroma,
+            light: h.light,
+            space_threshold: h.space_threshold,
+            dither: h.dither,
+            label: &h.label,
+            alphabet_id,
+            babel_exact: false,
+        })
+        .collect();
+    json_results(&json_hits)
+}
+
 /// Exact babel-export decode: one pack (`space=0`, no dither) → locate in the active universe.
 ///
 /// Returns JSON `{ ok, results:[{ percent, z, n, book, page, page_span, hue, chroma, light,
@@ -248,154 +408,15 @@ pub fn mosaic_candidates_json(
     if ensure_book_rgba(src_rgba).is_err() {
         return ERR_BOOK_GRID.into();
     }
-
-    let ab = alphabet(alphabet_id);
-    let space_idx = alphabet_space_idx(ab);
-    let space = space_threshold.clamp(0.0, 255.0);
-    let (bw, bh) = book_grid_dims();
-    let (coarse_src, cw, ch) = downsample_rgba(src_rgba, bw as usize, bh as usize, COARSE_FACTOR);
-
-    // Always keep the UI knobs pack; score the rest on the downsample.
-    let mut coarse: Vec<(f64, CandidatePack)> =
-        Vec::with_capacity(1 + COARSE_HUE_STEPS * COARSE_CHROMA.len() * COARSE_LIGHT.len());
-
-    let mut push_coarse = |pack: CandidatePack| {
-        let pct = score_coarse_luma(&coarse_src, cw, ch, ab, space_idx, &pack);
-        coarse.push((pct, pack));
-    };
-
-    push_coarse(CandidatePack {
+    let packs = coarse_candidate_packs(
+        src_rgba,
+        alphabet(alphabet_id),
         hue,
         chroma,
         light,
-        space_threshold: space,
+        space_threshold.clamp(0.0, 255.0),
         dither,
-        label: "current",
-    });
-
-    for step in 0..COARSE_HUE_STEPS {
-        let h = (step as f64) * (360.0 / COARSE_HUE_STEPS as f64);
-        for &c in &COARSE_CHROMA {
-            for &l in &COARSE_LIGHT {
-                push_coarse(CandidatePack {
-                    hue: h,
-                    chroma: c,
-                    light: l,
-                    space_threshold: space,
-                    dither,
-                    label: "coarse",
-                });
-            }
-        }
-    }
-    coarse.sort_by(|a, b| by_percent_desc(a.0, b.0));
-
-    // Deduplicate near-identical packs (same rounded hue/chroma/light).
-    let mut packs: Vec<CandidatePack> = Vec::new();
-    for (_pct, mut pack) in coarse {
-        if packs.len() >= COARSE_KEEP {
-            break;
-        }
-        let key = pack.dedup_key();
-        if packs.iter().any(|p| p.dedup_key() == key) {
-            continue;
-        }
-        if pack.label != "current" {
-            pack.label = if packs.iter().all(|p| p.label == "current") {
-                "best match"
-            } else {
-                "runner-up"
-            };
-        }
-        packs.push(pack);
-    }
-
-    // Space-threshold variants of the top pack (fine-resolved later).
-    if let Some(best) = packs.first().cloned() {
-        for (space_mul, label) in [(0.6_f64, "space low"), (1.4_f64, "space high")] {
-            packs.push(CandidatePack {
-                space_threshold: (best.space_threshold * space_mul).clamp(0.0, 255.0),
-                label,
-                ..best
-            });
-        }
-    }
-
-    struct Hit {
-        percent: f64,
-        hue: f64,
-        chroma: f64,
-        light: f64,
-        space_threshold: f64,
-        dither: bool,
-        label: String,
-        z: i64,
-        n: i64,
-        book: u32,
-        page: u32,
-        page_span: u32,
-    }
-
-    let mut hits: Vec<Hit> = Vec::new();
-    for pack in &packs {
-        let Some((percent, label, res)) =
-            evaluate_pack(src_rgba, alphabet_id, pack, FitMode::PhotoPerceptual)
-        else {
-            continue;
-        };
-        let loc = &res.location;
-        let key = (loc.z, loc.n, loc.book_index);
-        if let Some(existing) = hits.iter_mut().find(|h| (h.z, h.n, h.book) == key) {
-            if percent > existing.percent {
-                existing.percent = percent;
-                existing.hue = pack.hue;
-                existing.chroma = pack.chroma;
-                existing.light = pack.light;
-                existing.space_threshold = pack.space_threshold;
-                existing.dither = pack.dither;
-                existing.label = label;
-                existing.page = loc.page;
-                existing.page_span = res.page_span;
-            }
-            continue;
-        }
-        hits.push(Hit {
-            percent,
-            hue: pack.hue,
-            chroma: pack.chroma,
-            light: pack.light,
-            space_threshold: pack.space_threshold,
-            dither: pack.dither,
-            label,
-            z: loc.z,
-            n: loc.n,
-            book: loc.book_index,
-            page: loc.page,
-            page_span: res.page_span,
-        });
-    }
-
-    hits.sort_by(|a, b| by_percent_desc(a.percent, b.percent));
-    hits.truncate(FINE_TOP);
-
-    let json_hits: Vec<JsonHit<'_>> = hits
-        .iter()
-        .map(|h| JsonHit {
-            percent: h.percent,
-            z: h.z,
-            n: h.n,
-            book: h.book,
-            page: h.page,
-            page_span: h.page_span,
-            hue: h.hue,
-            chroma: h.chroma,
-            light: h.light,
-            space_threshold: h.space_threshold,
-            dither: h.dither,
-            label: &h.label,
-            alphabet_id,
-            babel_exact: false,
-        })
-        .collect();
-    json_results(&json_hits)
+    );
+    let hits = fine_locate_hits(src_rgba, alphabet_id, &packs);
+    hits_to_json(&hits, alphabet_id)
 }
