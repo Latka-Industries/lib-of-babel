@@ -138,6 +138,8 @@ opens page&nbsp;1.
 <b>Same universe</b> as the export → find that <b>exact book</b>.
 <b>Other universe</b> → same <b>Babelgram print</b> at a new address, but
 <b>different book contents</b>. <span class="ui">go there</span> opens a new tab.
+<span class="ui">check diff</span> wipes <b>reproject</b> (stamp-accent decode) against the
+<b>diff</b> (|upload − reproject|) — exact decode makes the diff side near-black.
 (Arbitrary photo→mosaic is temporarily off.)
 </p>`,
 
@@ -239,6 +241,13 @@ keeps the hash; only the shelves rewrite.
   "search.babel.exactOk": "exact decode",
   "search.babel.seal": "content seal {seal}",
   "search.babel.diffCaption": "diff",
+  "search.babel.compare.title": "compare",
+  "search.babel.compare.hint":
+    "wipe reproject ↔ diff — exact decode makes the diff side near-black",
+  "search.babel.compare.result": "reproject",
+  "search.babel.compare.diff": "diff",
+  "search.babel.compare.sliderAria": "wipe between reproject and diff",
+  "search.babel.compare.checkDiff": "check diff",
   "search.babel.metric.rms": "rms {n}%",
   "search.babel.metric.mae": "mae {n}",
   "search.babel.metric.corr": "corr {n}",
@@ -255,7 +264,7 @@ keeps the hash; only the shelves rewrite.
   "search.babel.tip.exactOk":
     "Decode looks exact: rms ≥ 99.9%, mae < 0.5, and corr ≥ 0.999.",
   "search.babel.confirmHint":
-    "Pics are noisy — trust rms % (~100), mae (~0), corr (~1), black diff, and content seal.",
+    "Pics are noisy — trust rms % (~100), mae (~0), corr (~1), near-black diff wipe, and content seal.",
   "search.label": "search",
   "search.kindTitle": "search spine titles or page content",
   "search.kindContent": "content",
