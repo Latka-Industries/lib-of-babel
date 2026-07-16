@@ -2,7 +2,13 @@
 // Search is scoped to the universe in the header — we never switch universes on "go there".
 
 import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js";
-import { TITLE_LEN, formatAlphabetSymbolLabel, alphabetIsRtl, alphabetLang } from "../lib/constants.js";
+import {
+  TITLE_LEN,
+  MAX_SEARCH_CHARS,
+  formatAlphabetSymbolLabel,
+  alphabetIsRtl,
+  alphabetLang,
+} from "../lib/constants.js";
 import { t, getLocale } from "../lib/i18n.js";
 import {
   el,
@@ -15,11 +21,12 @@ import {
 import {
   normalizeSearchQuery,
   validateSearchQuery,
+  countSearchCells,
 } from "./search-query.js";
 import { locate_page_json, locate_title_json, node_hash_hex } from "../lib/wasm.js";
 import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
-import { permalink } from "../gallery/url.js";
+import { permalink, shareableSearchQuery } from "../gallery/url.js";
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));
@@ -75,13 +82,13 @@ export function titleEmbedFlat() {
   return hit.flat;
 }
 
-/** Update search field limits and copy for content vs title mode. */
+/** Update search field limits and copy for content / title (text tab). */
 export function syncSearchKindUI() {
   const kind = el("searchKind")?.value || "content";
   const isTitle = kind === "title";
   const input = el("searchInput");
   if (input) {
-    input.maxLength = isTitle ? TITLE_LEN : 1_000_000;
+    input.maxLength = isTitle ? TITLE_LEN : MAX_SEARCH_CHARS;
     input.rows = isTitle ? 2 : 6;
     input.placeholder = isTitle
       ? t("search.placeholderTitle")
@@ -110,16 +117,141 @@ export function syncSearchKindUI() {
       ? t("search.hintTitle", { n: TITLE_LEN })
       : t("search.hintContent");
   }
+  syncSearchCount();
+  syncSearchChrome();
+}
+
+/** Live cell count vs max for content / title (alphabet cells, not UTF-16 units). */
+export function syncSearchCount() {
+  const countEl = el("searchCount");
+  const input = el("searchInput");
+  if (!countEl || !input) return;
+  const isTitle = el("searchKind")?.value === "title";
+  const max = isTitle ? TITLE_LEN : MAX_SEARCH_CHARS;
+  const n = countSearchCells(normalizeSearchQuery(input.value), S.alphabetId);
+  countEl.textContent = t("search.count", {
+    n: n.toLocaleString(getLocale()),
+    max: max.toLocaleString(getLocale()),
+  });
+  countEl.classList.toggle("search-count-over", n > max);
+  countEl.title = t("search.countTip", {
+    n: String(n),
+    max: String(max),
+  });
+}
+
+/**
+ * Photo→mosaic search tab. Off until the luma path is good enough to ship.
+ * Core + Babelgram stay available; flip this when re-enabling the UI.
+ */
+export const PHOTO_SEARCH_TAB_ENABLED = false;
+
+/** @returns {"text"|"photo"|"babel"} */
+export function searchMode() {
+  if (el("searchTab-babel")?.getAttribute("aria-selected") === "true") {
+    return "babel";
+  }
+  if (
+    PHOTO_SEARCH_TAB_ENABLED &&
+    el("searchTab-photo")?.getAttribute("aria-selected") === "true"
+  ) {
+    return "photo";
+  }
+  return "text";
+}
+
+function syncSearchChrome() {
+  const mode = searchMode();
   const head = el("searchHead");
-  if (head) head.textContent = isTitle ? t("search.headTitle") : t("search.headContent");
   const meta = el("searchMeta");
+  if (mode === "photo") {
+    if (head) head.textContent = t("search.headMosaic");
+    if (meta) meta.textContent = t("search.metaMosaic");
+    return;
+  }
+  if (mode === "babel") {
+    if (head) head.textContent = t("search.headBabel");
+    if (meta) meta.textContent = t("search.metaBabel");
+    return;
+  }
+  const isTitle = el("searchKind")?.value === "title";
+  if (head) {
+    head.textContent = isTitle ? t("search.headTitle") : t("search.headContent");
+  }
   if (meta) {
     meta.textContent = isTitle ? t("search.metaTitle") : t("search.metaContent");
   }
 }
 
+/**
+ * Switch search modal tabs: text | photo | babel.
+ * @param {"text"|"photo"|"babel"} mode
+ */
+export function selectSearchTab(mode) {
+  let want = mode === "babel" ? "babel" : mode === "photo" ? "photo" : "text";
+  if (want === "photo" && !PHOTO_SEARCH_TAB_ENABLED) want = "text";
+  const mosaicOn = want === "photo" || want === "babel";
+
+  const textTab = el("searchTab-text");
+  const photoTab = el("searchTab-photo");
+  const babelTab = el("searchTab-babel");
+  const textPanel = el("searchPanel-text");
+  const mosaicPanel = el("searchPanel-mosaic");
+
+  const setTab = (tab, on) => {
+    if (!tab) return;
+    tab.setAttribute("aria-selected", on ? "true" : "false");
+    tab.tabIndex = on ? 0 : -1;
+  };
+
+  if (photoTab) {
+    photoTab.hidden = !PHOTO_SEARCH_TAB_ENABLED;
+    photoTab.disabled = !PHOTO_SEARCH_TAB_ENABLED;
+  }
+
+  setTab(textTab, want === "text");
+  setTab(photoTab, want === "photo");
+  setTab(babelTab, want === "babel");
+
+  if (textPanel) {
+    textPanel.classList.toggle("active", want === "text");
+    textPanel.hidden = want !== "text";
+  }
+  if (mosaicPanel) {
+    mosaicPanel.classList.toggle("active", mosaicOn);
+    mosaicPanel.hidden = !mosaicOn;
+  }
+
+  syncSearchChrome();
+}
+
 export function searchKind() {
   return el("searchKind")?.value === "title" ? "title" : "content";
+}
+
+/** Wire text / photo / babel tab buttons (once). */
+export function wireSearchTabs({ onPhoto, onBabel } = {}) {
+  el("searchTab-text")?.addEventListener("click", () => {
+    selectSearchTab("text");
+    el("searchInput")?.focus();
+  });
+  el("searchTab-photo")?.addEventListener("click", () => {
+    if (!PHOTO_SEARCH_TAB_ENABLED) return;
+    selectSearchTab("photo");
+    onPhoto?.();
+  });
+  el("searchTab-babel")?.addEventListener("click", () => {
+    selectSearchTab("babel");
+    onBabel?.();
+  });
+  // Keep DOM in sync if the flag is off (hidden + disabled).
+  if (!PHOTO_SEARCH_TAB_ENABLED) {
+    const photoTab = el("searchTab-photo");
+    if (photoTab) {
+      photoTab.hidden = true;
+      photoTab.disabled = true;
+    }
+  }
 }
 
 /** Parse WASM `locate_page_json` / `locate_title_json` response. */
@@ -231,7 +363,7 @@ export function searchPermalink(result, query, kind = "content") {
     result.book,
     kind === "title" ? 1 : result.page,
     S.universeName,
-    kind === "content" ? query : null,
+    kind === "content" ? shareableSearchQuery(query) : null,
   );
 }
 
@@ -330,17 +462,28 @@ export function goToSearchResult(result, query, kind = "content") {
 }
 
 /** Open the search dialog empty and focused. */
-export function openSearch() {
-  el("searchResult").classList.remove("show");
-  el("searchInput").value = "";
+export function openSearch({ tab = "text" } = {}) {
+  el("searchResult")?.classList.remove("show");
+  if (el("searchInput")) el("searchInput").value = "";
   clearSearchHighlights();
+  let want = "text";
+  if (tab === "babel") want = "babel";
+  else if (
+    PHOTO_SEARCH_TAB_ENABLED &&
+    (tab === "photo" || tab === "image")
+  ) {
+    want = "photo";
+  }
+  selectSearchTab(want);
   syncSearchKindUI();
+  syncSearchCount();
   el("searchModal").showModal();
-  el("searchInput").focus();
+  if (want === "text") el("searchInput")?.focus();
 }
 
 /** Run the current search field against title or content. */
 export function runSearch() {
+  if (searchMode() !== "text") return;
   const text = syncSearchInput();
   if (!text.trim()) return;
   const kind = searchKind();

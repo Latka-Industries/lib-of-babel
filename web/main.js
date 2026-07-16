@@ -12,7 +12,7 @@ import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
 import { parsePermalink } from "./js/gallery/url.js";
 import { render } from "./js/gallery/view.js";
 import { newWalk, resetTrail } from "./js/gallery/nav.js";
-import { openBook } from "./js/reader/book.js";
+import { openBook, openBookImage } from "./js/reader/book.js";
 import { wireControls } from "./js/chrome/controls.js";
 import {
   openAboutGuide,
@@ -81,13 +81,17 @@ async function boot() {
     S.z === link.z &&
     S.n === link.n
   ) {
-    openBook(
-      link.b,
-      null,
-      link.p || 1,
-      link.q || null,
-      link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
-    );
+    if (link.img) {
+      openBookImage(link.b);
+    } else {
+      openBook(
+        link.b,
+        null,
+        link.p || 1,
+        link.q || null,
+        link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
+      );
+    }
     openedBook = true;
   }
 

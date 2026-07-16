@@ -101,11 +101,11 @@ pub struct AlphabetTables {
     pub tifinagh: &'static [&'static str],
     /// Hiragana + katakāna gojūon (ゐ/ゑ omitted); no dakuten / small kana.
     pub japanese: &'static [&'static str],
-    /// Frequent Hangul syllables (FrequencyWords ko_50k token → syllable counts).
+    /// Frequent Hangul syllables (`FrequencyWords` `ko_50k` token → syllable counts).
     pub korean: &'static [&'static str],
     /// Top Simplified characters (Jun Da modern Chinese frequency; curated pack).
     pub chinese: &'static [&'static str],
-    /// Top Traditional characters (Jun Da → OpenCC s2tw; curated pack).
+    /// Top Traditional characters (Jun Da → `OpenCC` s2tw; curated pack).
     pub chinese_trad: &'static [&'static str],
     /// Hindi clustered Devanagari (bases + C+matra cells).
     pub hindi: &'static [&'static str],
