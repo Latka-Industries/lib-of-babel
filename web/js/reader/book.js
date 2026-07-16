@@ -6,11 +6,13 @@ import { el, escapeHtml, downloadBlob, openModal } from "../lib/util.js";
 import { buildAlphabetPalette, SPACE_CELL_HEX } from "../lib/color.js";
 import {
   flattenSearchQuery,
+  normalizeSearchQuery,
   segmentText,
   validateSearchQuery,
 } from "./search-query.js";
 import {
   PAGES_PER_BOOK,
+  PAGE_CONTENT_SYMBOLS,
   alphabetCells,
   alphabetIsRtl,
   alphabetLang,
@@ -23,6 +25,7 @@ import {
   gallery_titles_json,
   book_text_for,
   book_image,
+  book_image_search,
   page_text_for,
   search_page_embed_for,
   get_universe,
@@ -133,13 +136,21 @@ export function openBook(
   startPage = 1,
   searchHighlight = null,
   searchPageSpan = 1,
-  { viewMode = null } = {},
+  { viewMode = null, imageRgba = null, imageW = 0, imageH = 0 } = {},
 ) {
-  const text = book_text_for(S.z, S.n, bookIndex, S.alphabetId);
   const page = Math.min(PAGES_PER_BOOK, Math.max(1, startPage)) - 1;
-  const highlight = searchHighlight
-    ? flattenSearchQuery(searchHighlight, S.alphabetId)
+  // Full-book flats (Babelgram): skip JS re-flatten + full virgin book_text —
+  // both are huge and used to abort Go after jumpTo, leaving a virgin shelf book.
+  const raw = searchHighlight ? normalizeSearchQuery(searchHighlight) : null;
+  const longEmbed = raw != null && raw.length >= PAGE_CONTENT_SYMBOLS;
+  const highlight = raw
+    ? longEmbed
+      ? raw
+      : flattenSearchQuery(raw, S.alphabetId)
     : null;
+  const text = longEmbed
+    ? ""
+    : book_text_for(S.z, S.n, bookIndex, S.alphabetId);
   if (viewMode === "color" || viewMode === "text") {
     S.viewMode = viewMode;
     const toggle = el("viewToggle");
@@ -156,6 +167,11 @@ export function openBook(
     searchHighlight: highlight,
     searchStartPage: highlight ? page : null,
     searchPageSpan: highlight ? searchPageSpan : null,
+    // Exact Babelgram pixels when set — colour map must match the upload, not
+    // the destination room accent.
+    imageRgba: imageRgba || null,
+    imageW: imageW || 0,
+    imageH: imageH || 0,
   };
   el("bookTitle").textContent = S.currentBook.title;
   if (!el("bookModal").open) el("bookModal").showModal();
@@ -285,29 +301,59 @@ export function downloadBook() {
 
 export function renderBookImage() {
   if (!S.currentBook) return;
-  // Native Feistel colour map — mosaic Go lands on a book whose cells already
-  // match the projection (locate), so no full-flat &q= / IndexedDB handoff.
-  const img = book_image(S.z, S.n, S.currentBook.index, S.alphabetId);
   const cv = el("bookImageCanvas");
-  cv.width = img.width;
-  cv.height = img.height;
+  let width;
+  let height;
+  let pixels;
+  if (S.currentBook.imageRgba?.length) {
+    // Uploaded Babelgram — exact colours (destination accent would recolour it).
+    width = S.currentBook.imageW;
+    height = S.currentBook.imageH;
+    pixels = S.currentBook.imageRgba;
+  } else {
+    // With a search flat, embed cells; virgin book_image alone is a different book.
+    const flat = S.currentBook.searchHighlight;
+    const img = flat
+      ? book_image_search(S.z, S.n, S.currentBook.index, S.alphabetId, flat)
+      : book_image(S.z, S.n, S.currentBook.index, S.alphabetId);
+    width = img.width;
+    height = img.height;
+    pixels = img.pixels;
+  }
+  cv.width = width;
+  cv.height = height;
   const data = new ImageData(
-    new Uint8ClampedArray(img.pixels),
-    img.width,
-    img.height,
+    new Uint8ClampedArray(pixels),
+    width,
+    height,
   );
   cv.getContext("2d").putImageData(data, 0, 0);
   el("imageTitle").textContent = S.currentBook.title;
   el("imageMeta").textContent =
-    `gallery (${S.z}, ${S.n}) · shelf ${S.currentBook.index} · whole book · ${img.width}×${img.height}`;
+    `gallery (${S.z}, ${S.n}) · shelf ${S.currentBook.index} · whole book · ${width}×${height}`;
 }
 
 /**
  * Open the page reader, then the whole-book colour PNG dialog on top.
- * Mosaic / Babelgram links use this with a short `&b=&img=1` permalink.
+ * Short `&b=&img=1` permalinks open virgin maps; pass `searchHighlight` for
+ * in-session Babelgram / full-book embed (too large for `&q=`).
+ * Pass `imageRgba` to show exact upload pixels (cross-universe Babelgram).
  */
-export function openBookImage(bookIndex, title = null) {
-  openBook(bookIndex, title, 1);
+export function openBookImage(
+  bookIndex,
+  title = null,
+  searchHighlight = null,
+  searchPageSpan = 1,
+  { imageRgba = null, imageW = 0, imageH = 0 } = {},
+) {
+  openBook(
+    bookIndex,
+    title,
+    1,
+    searchHighlight,
+    searchHighlight ? searchPageSpan : 1,
+    { imageRgba, imageW, imageH },
+  );
   renderBookImage();
   openModal("imageModal");
   syncUrl();

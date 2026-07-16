@@ -303,4 +303,11 @@ export function wireAboutTabs() {
   document.querySelectorAll(".about-tab").forEach((tab) => {
     tab.addEventListener("click", () => selectAboutTab(tab.id));
   });
+  // Guide copy can deep-link to another section (ALPHABETS / BOOKS / SEARCH chips).
+  el("aboutModal")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-about-tab]");
+    if (!btn || !el("aboutModal")?.contains(btn)) return;
+    const tabId = btn.getAttribute("data-about-tab");
+    if (tabId) selectAboutTab(tabId);
+  });
 }

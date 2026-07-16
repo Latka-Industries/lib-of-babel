@@ -120,46 +120,53 @@ fn wrong_accent_fit_is_noticeably_worse() {
     );
 }
 
-/// Regression: decode stamped origin in `ORIGIN_U`, locate flat in `SEARCH_U`.
+/// Regression: same flat locates elsewhere in another universe, and embed is required.
+///
+/// Keep the phrase short — full-book `book_image` + `book_image_search` in debug
+/// is multi-minute and already covered by the round-trip / cross-universe fit tests.
 #[test]
 fn stamped_export_cross_universe_locate_is_deterministic() {
+    use crate::page::{PageAddr, PageRender, page_text};
+    use crate::search::search_offset;
+
     let _g = lock_universe();
     const ORIGIN_U: u64 = 0x65ddeb89a4f13970;
     const SEARCH_U: u64 = 0xff27a58496aad39e;
-    let alphabet_id = 29u32;
-    let z = 1821850405008930592i64;
-    let n = 6062579508229335740i64;
-    let book = 22u32;
+    let alphabet_id = DEFAULT_ALPHABET;
+    let flat = "stamped babelgram export";
 
-    set_universe(ORIGIN_U);
-    let img = book_image(z, n, book, alphabet_id);
-    let pixels = img.pixels();
-    let ab = alphabet(alphabet_id);
-    let space_idx = alphabet_space_idx(ab);
-    let (hue, chroma, light) = accent_for(z, n, ORIGIN_U);
-    let palette = build_glyph_palette(ab, hue, chroma, light);
-    let (indices, mosaic) = project_indices(&pixels, &palette, space_idx, 0.0, false);
-    assert!(fit_percent(&pixels, &mosaic) > 99.9);
-
-    let flat = indices_to_flat(&indices, ab);
-    let hit = locate_mosaic_flat(&flat, alphabet_id, SEARCH_U).expect("locate");
-    assert_eq!(hit.location.page, 0);
-    assert!(hit.page_span >= 1);
-    // Content-style coords differ across universes for the same flat.
-    let hit0 = locate_mosaic_flat(&flat, alphabet_id, ORIGIN_U).expect("origin");
+    let hit = locate_mosaic_flat(flat, alphabet_id, SEARCH_U).expect("locate");
+    let hit0 = locate_mosaic_flat(flat, alphabet_id, ORIGIN_U).expect("origin");
     assert_ne!(
         (hit.location.z, hit.location.n, hit.location.book_index),
-        (hit0.location.z, hit0.location.n, hit0.location.book_index)
+        (hit0.location.z, hit0.location.n, hit0.location.book_index),
+        "same flat must land elsewhere in another universe"
     );
+    assert!(hit.page_span >= 1);
 
     set_universe(SEARCH_U);
-    let native = book_image(
-        hit.location.z,
-        hit.location.n,
-        hit.location.book_index,
+    let loc = hit.location;
+    let addr = PageAddr::new(
+        loc.z,
+        loc.n,
+        loc.book_index,
+        loc.page,
         alphabet_id,
+        SEARCH_U,
     );
-    assert_ne!(native.pixels(), pixels);
+    let virgin = page_text(&PageRender::new(addr));
+    let embedded = page_text(&PageRender::new(addr).with_search(flat, loc.page));
+    assert_ne!(
+        virgin, embedded,
+        "virgin page at locate coords must differ — embed is required"
+    );
+    let page_flat: String = embedded.chars().filter(|c| *c != '\n').collect();
+    let off = search_offset(flat, flat.len());
+    assert_eq!(
+        &page_flat[off..off + flat.len()],
+        flat,
+        "embed must place the flat on the located page"
+    );
 }
 
 #[test]

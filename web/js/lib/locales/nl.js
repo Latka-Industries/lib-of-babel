@@ -43,7 +43,6 @@ export const nl = {
   "common.close": "sluiten",
   "common.go": "gaan",
   "common.link": "link",
-  "common.you": "jij",
   "common.copied": "gekopieerd!",
 
   "about.subtitle": "een bewandelbare Bibliotheek van Babel",
@@ -51,6 +50,7 @@ export const nl = {
   "about.tab.alphabets": "alfabetten",
   "about.tab.wander": "dwalen",
   "about.tab.books": "boeken",
+  "about.tab.search": "zoeken",
   "about.tab.more": "meer",
   "about.tabsLabel": "Gidssecties",
   "about.alphabets.h": "Alfabetlenzen",
@@ -91,15 +91,16 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <h4>Zo dwaal je</h4>
 <ul>
 <li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd> of <kbd>?</kbd> openen deze gids altijd.</li>
-<li>De kop-<b>thema</b>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
+<li>De kop-<span class="ui">thema</span>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
 <li>Gebruik de <b>minikaart</b> — klik een uitgangs-hash. <kbd>pijltjestoetsen</kbd> lopen gangen en trappen (tenzij een dialoog open is).</li>
-<li>Klik <b>galerij&nbsp;(z,&nbsp;n)</b> om ergens te <b>springen</b>.</li>
+<li>Klik <span class="ui">galerij&nbsp;(z,&nbsp;n)</span> om ergens te springen.</li>
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
-<li>Typ een <b>universum</b>naam of gooi <b>&#9860;</b>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
-<li>Het <b>alfabet</b>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.</li>
-<li><b>acties…</b> → <b>link kopiëren</b> (of voet-<b>hash</b>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
-<li><b>acties…</b> → <b>zoeken…</b> — <b>tekst</b> of <b>Babelgram</b>; spring ernaartoe (zie <b>meer</b>).</li>
-<li><b>dwaaltochten</b> (voet, laatste {max}) — recente stappen met universum + alfabet; <b>tocht exporteren</b> bewaart het hele pad als JSON.</li>
+<li>Typ een <span class="ui">universum</span>naam of gooi <span class="ui">&#9860;</span>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
+<li>Het <span class="ui">alfabet</span>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALFABETTEN</button></li>
+<li>Klik een gekleurde rug op een wand om een boek te openen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOEKEN</button></li>
+<li><span class="ui">acties…</span> → <span class="ui">link kopiëren</span> (of voet-<span class="ui">hash</span>) voor een permalink; <code>&amp;a=</code> herstelt je lens.</li>
+<li><span class="ui">acties…</span> → <span class="ui">zoeken…</span> — <span class="ui">tekst</span> of <span class="ui">Babelgram</span>; spring ernaartoe.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">ZOEKEN</button></li>
+<li><span class="ui">dwaaltochten</span> (voet, laatste {max}) — recente stappen met universum + alfabet; <span class="ui">tocht exporteren</span> bewaart het hele pad als JSON.</li>
 </ul>`,
 
   "about.books": `
@@ -107,46 +108,71 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <ul>
 <li>Klik een gekleurde rug; <kbd>←</kbd> <kbd>→</kbd> bladeren zolang de lezer open is.</li>
 <li>De rug die je laatst sloot is <b>rood</b> omlijnd, zodat je hem terugvindt.</li>
-<li><b>kleur</b> tekent de pagina als een teken-kleurenkaart — elk symbool een vierkant, getint door de galerij-hash.</li>
-<li><b>link</b> kopieert een permalink naar dit boek op deze pagina.</li>
-<li><b>opslaan…</b> → <b>boek lenen</b> — volledige tekst (~1,3&nbsp;MB .txt)</li>
-<li><b>opslaan…</b> → <b>boekbeeld</b> — heel boek als PNG-kleurenkaart</li>
+<li><span class="ui">kleur</span> tekent de pagina als een teken-kleurenkaart — elk symbool een vierkant, getint door de galerij-hash.</li>
+<li><span class="ui">link</span> kopieert een permalink naar dit boek op deze pagina.</li>
+<li><span class="ui">opslaan…</span> → <span class="ui">boek lenen</span> — volledige tekst (~1,3&nbsp;MB .txt)</li>
+<li><span class="ui">opslaan…</span> → <span class="ui">boekbeeld</span> — heel boek als PNG-kleurenkaart</li>
 </ul>`,
 
-  "about.more": `
-<h4>De cijfers in de voet</h4>
+  "about.search": `
+<h4>op inhoud</h4>
 <p class="dim">
-<b>galerij (z, n)</b> is je coördinaat. <b>hash</b> is de
-<b>BLAKE3</b>-vingerafdruk van de kamer — permalink en bewijs voor deze plek in dit
-universum. Hij verandert <b>niet</b> als je van alfabet wisselt; de lens herschrijft
-alleen wat de planken zeggen. <b>Dwaaltochten</b> houdt je laatste
-{max} stappen (universum + alfabetlens bevroren);
-de kamer-hash van elke stap leeft in het volledige spoor. <b>acties…</b> biedt ook
-<b>tocht controleren</b> en <b>nieuwe tocht</b>.
-</p>
-<h4>Zoeken op inhoud</h4>
-<p class="dim">
-Onder <b>acties…</b> → <b>zoeken…</b> blijf op het tabblad <b>tekst</b> met
-<b>inhoud</b>. Plak een zin (tot één heel boek — ~1,3&nbsp;miljoen
+Onder <span class="ui">acties…</span> → <span class="ui">zoeken…</span> blijf op het tabblad <span class="ui">tekst</span> met
+<span class="ui">inhoud</span>. Plak een zin (tot één heel boek — ~1,3&nbsp;miljoen
 tekens); de bibliotheek noemt galerij, plank, boek en pagina(’s) waar die al leeft —
 en opent hem. Lange zinnen lopen door opeenvolgende pagina’s.
 Zoeken gebruikt de <b>huidige alfabetlens</b> en blijft in het universum waar je staat.
 Ongeldige tekens worden rood gemarkeerd.
 </p>
-<h4>Zoeken op titel</h4>
+<h4>op titel</h4>
 <p class="dim">
-Zelfde <b>tekst</b>-tab — kies <b>titel</b> i.p.v. <b>inhoud</b>. Voer tot
-<b>24 tekens</b> in (actieve lensregels). Die tekenreeks is een
+Zelfde <span class="ui">tekst</span>-tab — kies <span class="ui">titel</span> i.p.v. <span class="ui">inhoud</span>. Voer tot
+<b>24 tekens</b> (actieve lensregels). Die tekenreeks is een
 <b>ruglabel</b>: de bibliotheek springt naar de galerij en plank waar die
 titel onder het huidige alfabet hoort, toont hem op de rug, en opent
 pagina&nbsp;1.
 </p>
-<h4>Zoeken op Babelgram</h4>
+<h4>op Babelgram</h4>
 <p class="dim">
-Tab <b>Babelgram</b>: gestempelde PNG van <b>opslaan… → boekbeeld</b>
-(exact kleurenrooster, <code>lob:babel</code>-stempel) → locate →
-<b>ga erheen</b> / korte boekbeeld-link (zelfde universum = export; anders projectief).
+Tab <span class="ui">Babelgram</span>: gestempelde PNG van <span class="ui">opslaan…</span> → <span class="ui">boekbeeld</span>.
+<b>Zelfde universum</b> als de export → dat <b>exacte boek</b>.
+<b>Ander universum</b> → dezelfde <b>Babelgram-afdruk</b> op een nieuw adres,
+maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> opent een nieuw tabblad.
 (Willekeurige foto→mozaïek is tijdelijk uit.)
+</p>`,
+
+  "about.more": `
+<h4>De cijfers in de voet</h4>
+<p class="dim">
+<span class="ui">galerij (z, n)</span> is je coördinaat. <span class="ui">hash</span> is de
+<b>BLAKE3</b>-vingerafdruk van de kamer — permalink en bewijs voor deze plek in dit
+universum. Hij verandert <b>niet</b> als je van alfabet wisselt; de lens herschrijft
+alleen wat de planken zeggen. <span class="ui">dwaaltochten</span> houdt je laatste
+{max} stappen (universum + alfabetlens bevroren) — ook
+<span class="ui">universum</span>-wissels in dezelfde galerij (◇), zonder gangzet;
+de kamer-hash van elke stap leeft in het volledige spoor.
+</p>
+<h4>Tocht exporteren &amp; controleren</h4>
+<p class="dim">
+<span class="ui">acties…</span> → <span class="ui">tocht exporteren</span> downloadt je hele pad als JSON
+(kamers, hashes, universums, lenzen). <span class="ui">tocht controleren</span> loopt een
+geëxporteerd bestand na en bewijst elke stap. <span class="ui">nieuwe tocht</span> wist het spoor
+en begint opnieuw in deze browser.
+</p>
+<h4>Wat in deze browser blijft</h4>
+<p class="dim">
+De Bibliotheek zelf wordt nooit gedownload — alleen je <b>pad</b>,
+<span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Babelgram-<span class="ui">ga erheen</span>
+naar een ander universum kan de afdruk kort lokaal in <b>deze</b> browser
+doorgeven zodat het nieuwe tabblad hem opent; <span class="ui">link kopiëren</span> blijft
+alleen het adres.
+</p>
+<h4>Links delen</h4>
+<p class="dim">
+Een permalink bevat galerij <b>(z,&nbsp;n)</b>, kamer-<b>hash</b>, alfabet
+<code>&amp;a=</code>, optioneel universum <code>&amp;u=</code>, soms boekpagina
+of een zoekzin. Zelfde adres → altijd dezelfde kamer. De lens wisselen houdt
+de hash; alleen de planken herschrijven zich.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -176,11 +202,10 @@ Tab <b>Babelgram</b>: gestempelde PNG van <b>opslaan… → boekbeeld</b>
   "search.tab.image": "foto",
   "search.headBabel": "zoeken op Babelgram",
   "search.metaBabel":
-    "Upload een gestempelde PNG van opslaan → boekbeeld (exact raster). Decodeer → locate → open boekkleurenkaart.",
-  "search.hintBabel":
-    "alleen gestempelde Babelgram-PNG · 1:1 · zelfde universum → exportgalerij · ander universum → projectieve locate",
+    "Zelfde universum → exact exportboek. Ander universum → dezelfde Babelgram-afdruk, andere inhoud.",
+  "search.hintBabel": "",
   "search.babel.honesty":
-    "Vereist een PNG van opslaan → boekbeeld (herkomst-chunk). Pixels blijven 1:1. Zelfde universum als de export → terug naar die galerij en dat boek. Een ander universum projecteert de cellen naar een nieuw adres (~100% decode in beide gevallen).",
+    "Upload een gestempelde PNG van opslaan → boekbeeld (1:1-rooster + lob:babel). Zelfde universum als de export → dat exacte boek. Ander universum → dezelfde Babelgram-afdruk op een nieuw adres, maar andere boekinhoud. ga erheen opent een nieuw tabblad. Kopieerlink is alleen het adres (geen afdruk-handoff).",
   "search.babel.find": "boek vinden",
   "search.babel.progress": "Babelgram decoderen…",
   "search.babel.upload": "Babelgram-PNG uploaden",
@@ -192,7 +217,7 @@ Tab <b>Babelgram</b>: gestempelde PNG van <b>opslaan… → boekbeeld</b>
     "Verkeerde maat ({sw}×{sh}). Babelgrams moeten precies {w}×{h} zijn — opnieuw exporteren via opslaan → boekbeeld.",
   "search.babel.needExact": "upload eerst een exacte {w}×{h} Babelgram-PNG",
   "search.babel.notBabel":
-    "Geen Babelgram-boekbeeld-PNG (ontbreekt lob:babel-stempel). Opnieuw exporteren via opslaan → boekbeeld.",
+    "Geen Babelgram-boekbeeld-PNG. Opnieuw exporteren via opslaan → boekbeeld.",
   "search.babel.nameMismatch":
     "bestandsnaam-coördinaten komen niet overeen met de PNG-stempel",
   "search.babel.originLine":
@@ -201,15 +226,37 @@ Tab <b>Babelgram</b>: gestempelde PNG van <b>opslaan… → boekbeeld</b>
   "search.babel.originNote":
     "Locate-bestemming verschilt van de export-oorsprong (zelfde cellen → nieuwe coördinaten; ander universum → andere coördinaten).",
   "search.babel.originNoteSame":
-    "Zelfde universum als de export — gaan opent de gestempelde galerij en het boek.",
+    "Zelfde universum als de export — dit is het exacte boek. ga erheen opent een nieuw tabblad.",
   "search.babel.originNoteOther":
-    "Ander universum dan de export — cellen worden hier projectief gelokaliseerd (bestemming ≠ stempel-oorsprong).",
+    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. ga erheen opent een nieuw tabblad met die afdruk. Kopieerlink is alleen het adres.",
   "search.babel.resultsIntro":
     "Babelgram-locate in {universe} (seed {seed}) — exacte accentdecode:",
   "search.babel.resultsIntroSame":
-    "Babelgram-round-trip in {universe} (seed {seed}) — terug naar export:",
+    "Exact boek in {universe} (seed {seed}) — zelfde universum als de export:",
   "search.babel.resultsIntroOther":
-    "Babelgram-locate in {universe} (seed {seed}) — projectief (export was een ander universum):",
+    "Zelfde Babelgram-afdruk in {universe} (seed {seed}):",
+  "search.babel.thumbAlt": "geüploade Babelgram",
+  "search.babel.diffAlt": "decode-verschil (|upload − reprojectie|)",
+  "search.babel.exactOk": "exacte decode",
+  "search.babel.seal": "inhoudszegel {seal}",
+  "search.babel.diffCaption": "diff",
+  "search.babel.metric.rms": "rms {n}%",
+  "search.babel.metric.mae": "mae {n}",
+  "search.babel.metric.corr": "corr {n}",
+  "search.babel.tip.rms":
+    "Root-mean-square RGB-fit van upload vs. stempel-accent-reprojectie. fit% = 100 × (1 − √(gemiddelde((ΔR²+ΔG²+ΔB²)/3) / 255²)). Ideaal ≈ 100%.",
+  "search.babel.tip.mae":
+    "Gemiddelde absolute RGB-fout: gemiddelde((|ΔR|+|ΔG|+|ΔB|)/3) op schaal 0–255. Ideaal ≈ 0.",
+  "search.babel.tip.corr":
+    "Pearson-correlatie van gepaarde RGB-samples tussen upload en reprojectie. Ideaal ≈ 1.",
+  "search.babel.tip.diff":
+    "Pixelgewijs |upload − reprojectie| onder stempelaccent. Ideaal: bijna zwart (alles nul).",
+  "search.babel.tip.seal":
+    "Korte SHA-256 van de gedecodeerde boektekst. Zelfde afdruk ⇒ zelfde zegel in elk universum.",
+  "search.babel.tip.exactOk":
+    "Decode lijkt exact: rms ≥ 99,9%, mae < 0,5 en corr ≥ 0,999.",
+  "search.babel.confirmHint":
+    "Beelden zijn ruizig — vertrouw rms % (~100), mae (~0), corr (~1), zwarte diff en inhoudszegel.",
   "search.label": "zoeken",
   "search.kindTitle": "zoek rugtitels of pagina-inhoud",
   "search.kindContent": "inhoud",

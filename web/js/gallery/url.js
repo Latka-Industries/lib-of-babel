@@ -21,7 +21,7 @@ export function permalink(
   page = null,
   uni = S.universeName,
   searchQuery = null,
-  { image = false } = {},
+  { image = false, embedId = null } = {},
 ) {
   const base = `${location.origin}${location.pathname}`;
   const proof = String(hash ?? "").slice(0, 16);
@@ -33,6 +33,8 @@ export function permalink(
   if (uni) frag += `&u=${encodeURIComponent(uni)}`;
   frag += `&a=${alpha}`;
   if (image) frag += `&img=1`;
+  // Short-lived same-browser handoff for full-book Babelgram embed (not shareable).
+  if (embedId) frag += `&be=${encodeURIComponent(embedId)}`;
   return `${base}${frag}`;
 }
 
@@ -101,6 +103,7 @@ export function parsePermalink() {
       q: p.get("q"), // search phrase (search-by-content permalinks)
       u: p.get("u"), // universe name, or null for the default universe
       img: p.get("img") === "1",
+      be: p.get("be"), // babel embed handoff id (IndexedDB; same browser only)
     };
   } catch {
     return null; // malformed coordinates
