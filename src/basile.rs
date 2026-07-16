@@ -80,6 +80,45 @@ fn pair_gallery(z: &BigInt, n: &BigInt) -> BigUint {
     (&sum * (&sum + BigUint::one())) / BigUint::from(2u32) + nn
 }
 
+/// `pair_gallery(z, n) % m` without building the full Cantor square when `m` is odd.
+///
+/// Content-search rooms have multi-thousand-digit `(z, n)`. Pairing those 700× for
+/// spines is the gallery lag; reducing mod the (small) title modulus once is enough.
+fn pair_gallery_mod(z: &BigInt, n: &BigInt, m: &BigUint) -> BigUint {
+    if m.is_zero() {
+        return BigUint::zero();
+    }
+    // T(s)=s(s+1)/2 mod m is determined by s mod m only when 2 is invertible (m odd).
+    if m.bit(0) {
+        let zz = zigzag_mod(z, m);
+        let nn = zigzag_mod(n, m);
+        let sum = (&zz + &nn) % m;
+        let inv2 = mod_inverse(&BigUint::from(2u32), m);
+        let tri = ((&sum * (&sum + BigUint::one())) % m * inv2) % m;
+        (tri + nn) % m
+    } else {
+        pair_gallery(z, n) % m
+    }
+}
+
+fn zigzag_mod(i: &BigInt, m: &BigUint) -> BigUint {
+    match i.sign() {
+        Sign::Minus => {
+            let mag = i.magnitude() % m;
+            let two_mag = (BigUint::from(2u32) * mag) % m;
+            if two_mag.is_zero() {
+                m - BigUint::one()
+            } else {
+                two_mag - BigUint::one()
+            }
+        }
+        Sign::NoSign | Sign::Plus => {
+            let z = i.to_biguint().unwrap_or_default() % m;
+            (BigUint::from(2u32) * z) % m
+        }
+    }
+}
+
 fn unpair_gallery(idx: &BigUint) -> (BigInt, BigInt) {
     let disc = BigUint::from(8u32) * idx + BigUint::one();
     let root = disc.sqrt();
@@ -95,6 +134,10 @@ fn u64_from_big(x: &BigUint) -> u64 {
 }
 
 /// Linear page index: `page + PAGES * (book + BOOKS * pair(z,n))`.
+///
+/// Reference packing for tests / round-trips. Hot paths use [`pair_gallery_mod`]
+/// so huge content-search coordinates stay cheap.
+#[cfg(test)]
 #[must_use]
 pub fn pack_page_index(z: &BigInt, n: &BigInt, book_index: u32, page: u32) -> BigUint {
     let g = pair_gallery(z, n);
@@ -257,7 +300,12 @@ pub fn page_symbols_at(key: &PageKey, alpha_len: u32) -> [u16; PAGE_CONTENT_SYMB
         alpha_len,
         PAGE_CONTENT_SYMBOLS,
     );
-    let addr = pack_page_index(&key.z, &key.n, key.book_index, key.page) % &n;
+    let g = pair_gallery_mod(&key.z, &key.n, &n);
+    let addr = (BigUint::from(key.page % PAGES_PER_BOOK)
+        + BigUint::from(PAGES_PER_BOOK)
+            * (BigUint::from(key.book_index % BOOKS_PER_GALLERY)
+                + BigUint::from(BOOKS_PER_GALLERY) * g))
+        % &n;
     let content = (addr * c) % n;
     let digits = int_to_digits(content, alpha_len, PAGE_CONTENT_SYMBOLS);
     digits_u16_to_page(&digits)
@@ -317,15 +365,41 @@ pub fn title_symbols_at(
     alpha_len: u32,
 ) -> [u16; TITLE_LEN] {
     let (c, _i, modulus) = scramble_params(universe_seed, alphabet_id, alpha_len, TITLE_LEN);
-    let g = pair_gallery(z, n);
+    let g = pair_gallery_mod(z, n, &modulus);
+    title_symbols_from_g(book_index, &g, &c, &modulus, alpha_len)
+}
+
+fn title_symbols_from_g(
+    book_index: u32,
+    g_mod: &BigUint,
+    c: &BigUint,
+    modulus: &BigUint,
+    alpha_len: u32,
+) -> [u16; TITLE_LEN] {
     let addr = (BigUint::from(book_index % BOOKS_PER_GALLERY)
-        + BigUint::from(BOOKS_PER_GALLERY) * g)
-        % &modulus;
+        + BigUint::from(BOOKS_PER_GALLERY) * g_mod)
+        % modulus;
     let content = (addr * c) % modulus;
     let digits = int_to_digits(content, alpha_len, TITLE_LEN);
     let mut out = [0u16; TITLE_LEN];
     out.copy_from_slice(&digits[..TITLE_LEN]);
     out
+}
+
+/// All 700 spine title symbol rows for a gallery — pairs `(z, n)` **once**.
+#[must_use]
+pub fn title_symbols_for_gallery(
+    z: &BigInt,
+    n: &BigInt,
+    universe_seed: u64,
+    alphabet_id: u32,
+    alpha_len: u32,
+) -> Vec<[u16; TITLE_LEN]> {
+    let (c, _i, modulus) = scramble_params(universe_seed, alphabet_id, alpha_len, TITLE_LEN);
+    let g = pair_gallery_mod(z, n, &modulus);
+    (0..BOOKS_PER_GALLERY)
+        .map(|i| title_symbols_from_g(i, &g, &c, &modulus, alpha_len))
+        .collect()
 }
 
 /// Deterministic filler digit stream for padding (invertible as part of the page).
@@ -397,6 +471,52 @@ mod tests {
         let syms = title_symbols_at(&z, &n, book, 0, 29, alpha);
         let back = invert_title_symbols(&syms, 0, 29, alpha);
         assert_eq!(back, (z, n, book));
+    }
+
+    #[test]
+    fn pair_gallery_mod_matches_full_pair() {
+        let coords = [
+            (BigInt::from(0), BigInt::from(0)),
+            (BigInt::from(12), BigInt::from(-7)),
+            (BigInt::from(-1), BigInt::from(1)),
+            (
+                BigInt::parse_bytes(b"999999999999999999999999999999", 10).unwrap(),
+                BigInt::from(-42),
+            ),
+        ];
+        // Odd moduli (2 invertible) and one even fallback.
+        let moduli = [
+            BigUint::from(29u32).pow(24u32),
+            BigUint::from(10007u32),
+            BigUint::from(64u32),
+        ];
+        for (z, n) in &coords {
+            for m in &moduli {
+                assert_eq!(
+                    pair_gallery_mod(z, n, m),
+                    pair_gallery(z, n) % m,
+                    "z={z} n={n} m={m}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn gallery_titles_match_per_book_at_huge_coords() {
+        let mut page = [0u16; PAGE_CONTENT_SYMBOLS];
+        for (i, s) in page.iter_mut().enumerate() {
+            *s = ((i * 17) % 29) as u16;
+        }
+        let key = invert_page_symbols(&page, 0, 29, 29);
+        let batch = title_symbols_for_gallery(&key.z, &key.n, 0, 29, 29);
+        assert_eq!(batch.len(), BOOKS_PER_GALLERY as usize);
+        for (i, row) in batch.iter().enumerate() {
+            let one = title_symbols_at(&key.z, &key.n, i as u32, 0, 29, 29);
+            assert_eq!(row, &one, "book {i}");
+        }
+        let titles = crate::gallery::gallery_titles(&key.z, &key.n, 29, 0, None);
+        let spine0 = crate::search::spine_title_at(&key.z, &key.n, 0, 29, 0);
+        assert_eq!(titles[0], spine0);
     }
 }
 
