@@ -31,14 +31,16 @@ import { syncUrl } from "../gallery/url.js";
 import {
   gallery_titles_json,
   book_text_for,
-  book_image,
-  book_image_search,
   page_text_for,
   search_page_embed_for,
   get_universe,
 } from "../lib/wasm.js";
 import { babelExportFilename, injectBabelChunk } from "../lib/png-babel.js";
 import { titleEmbedFlat } from "./search.js";
+import { generateBookImageRgba } from "./book-image-pool.js";
+
+/** Bumps when a newer render starts — drop stale worker results. */
+let bookImageRenderGen = 0;
 
 // the page's characters rewrapped into the near-square divisor pair (64×50) so
 // the colour map reads as a block rather than a 2:1 sliver. Looks like colour
@@ -349,27 +351,45 @@ export function downloadBook() {
   downloadBlob(new Blob([body], { type: "text/plain;charset=utf-8" }), name);
 }
 
-export function renderBookImage() {
+export async function renderBookImage() {
   if (!S.currentBook) return;
   const cv = el("bookImageCanvas");
+  const gen = ++bookImageRenderGen;
+  const book = S.currentBook;
+  // Title immediately — don't leave the HTML em-dash while workers run.
+  el("imageTitle").textContent = book.title;
+  const imageMeta = el("imageMeta");
+  imageMeta.textContent = `gallery ${formatCoordDisplay(S.z, S.n)} · shelf ${book.index} · rendering…`;
+  imageMeta.title = `gallery ${formatCoordFull(S.z, S.n)}`;
+
   let width;
   let height;
   let pixels;
-  if (S.currentBook.imageRgba?.length) {
+  if (book.imageRgba?.length) {
     // Uploaded Babelgram — exact colours (destination accent would recolour it).
-    width = S.currentBook.imageW;
-    height = S.currentBook.imageH;
-    pixels = S.currentBook.imageRgba;
+    width = book.imageW;
+    height = book.imageH;
+    pixels = book.imageRgba;
   } else {
-    // With a search flat, embed cells; virgin book_image alone is a different book.
-    const flat = S.currentBook.searchHighlight;
-    const img = flat
-      ? book_image_search(String(S.z), String(S.n), S.currentBook.index, S.alphabetId, flat)
-      : book_image(String(S.z), String(S.n), S.currentBook.index, S.alphabetId);
+    // Virgin map via worker pool (THI-144), else chunked main-thread pages.
+    const img = await generateBookImageRgba({
+      z: S.z,
+      n: S.n,
+      book: book.index,
+      alphabetId: S.alphabetId,
+      universe: get_universe(),
+      onProgress: ({ done, total }) => {
+        if (gen !== bookImageRenderGen || S.currentBook !== book) return;
+        imageMeta.textContent =
+          `gallery ${formatCoordDisplay(S.z, S.n)} · shelf ${book.index} · rendering ${done}/${total}…`;
+      },
+    });
+    if (gen !== bookImageRenderGen || S.currentBook !== book) return;
     width = img.width;
     height = img.height;
     pixels = img.pixels;
   }
+  if (gen !== bookImageRenderGen || !S.currentBook) return;
   cv.width = width;
   cv.height = height;
   const data = new ImageData(
@@ -379,7 +399,6 @@ export function renderBookImage() {
   );
   cv.getContext("2d").putImageData(data, 0, 0);
   el("imageTitle").textContent = S.currentBook.title;
-  const imageMeta = el("imageMeta");
   imageMeta.textContent =
     `gallery ${formatCoordDisplay(S.z, S.n)} · shelf ${S.currentBook.index} · whole book · ${width}×${height}`;
   imageMeta.title = `gallery ${formatCoordFull(S.z, S.n)}`;
@@ -406,13 +425,9 @@ export function openBookImage(
     searchHighlight ? searchPageSpan : 1,
     { imageRgba, imageW, imageH },
   );
-  // Shell first — virgin book_image can be slow at huge Basile coords.
+  // Shell first — virgin book_image uses workers (still can take a beat).
   openModal("imageModal");
-  try {
-    renderBookImage();
-  } catch (err) {
-    console.error(err);
-  }
+  void renderBookImage().catch((err) => console.error(err));
   syncUrl();
 }
 

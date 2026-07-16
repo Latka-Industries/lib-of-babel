@@ -334,7 +334,7 @@ export function wireControls() {
   wireDropdownMenu("saveMenu", {
     txt: downloadBook,
     img: () => {
-      renderBookImage();
+      void renderBookImage().catch((err) => console.error(err));
       openModal("imageModal");
     },
   });

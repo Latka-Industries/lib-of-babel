@@ -11,6 +11,7 @@ export {
   search_page_embed_for,
   book_image,
   book_image_dims,
+  book_image_pages,
   book_image_search,
   room_accent,
   mosaic_project,
