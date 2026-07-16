@@ -15,7 +15,7 @@ import {
 } from "../lib/util.js";
 import { t, getLocale } from "../lib/i18n.js";
 import { formatAlphabetSymbolLabel } from "../lib/constants.js";
-import { permalink } from "../gallery/url.js";
+import { permalink, bookOpenShareUrl } from "../gallery/url.js";
 import {
   readBabelMeta,
   parseBabelFilename,
@@ -38,6 +38,45 @@ import {
 } from "./search.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
+const BOOK_OPEN_KEY = (id) => `book-open:${id}`;
+
+function newHandoffId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Same-browser handoff so paste truncation cannot drop &b=&img=1.
+ * Optional `imageRgba` skips slow virgin `book_image` on open. */
+async function stashBookOpen(
+  hit,
+  {
+    universe = S.universeName,
+    image = true,
+    imageRgba = null,
+    imageW = 0,
+    imageH = 0,
+  } = {},
+) {
+  const id = newHandoffId();
+  const payload = {
+    z: String(hit.z),
+    n: String(hit.n),
+    b: Number(hit.book),
+    a: hit.alphabet ?? S.alphabetId,
+    u: universe ?? "",
+    img: !!image,
+    imageW: imageW || 0,
+    imageH: imageH || 0,
+  };
+  if (imageRgba?.length) {
+    // Own a JS copy before IDB clone (WASM getters already copy; stay defensive).
+    payload.imageRgba =
+      imageRgba instanceof Uint8Array
+        ? imageRgba.slice()
+        : new Uint8Array(imageRgba);
+  }
+  await kvSet(BOOK_OPEN_KEY(id), payload);
+  return id;
+}
 
 /** @type {"photo"|"babel"} */
 let mosaicMode = PHOTO_SEARCH_TAB_ENABLED ? "photo" : "babel";
@@ -652,22 +691,47 @@ function yieldToUi() {
   });
 }
 
+/** Full address fallback when IndexedDB handoff is unavailable. */
 function photoPermalink(hit) {
   const z = BigInt(hit.z);
   const n = BigInt(hit.n);
   const alphabet = hit.alphabet ?? S.alphabetId;
   const hash = node_hash_hex(String(z), String(n));
-  return permalink(z, n, hash, alphabet, hit.book, 1, S.universeName, null, {
+  return permalink(z, n, hash, alphabet, Number(hit.book), 1, S.universeName, null, {
     image: true,
   });
 }
 
-function goToPhotoHit(hit) {
+/** Prefer short `&bo=` share — full Basile z/n blow past clipboard / paste limits. */
+async function photoShareUrl(hit, proof = {}) {
+  const bookOpenId = await stashBookOpen(hit, {
+    imageRgba: proof.bookRgba || null,
+    imageW: proof.diffW || 0,
+    imageH: proof.diffH || 0,
+  });
+  return bookOpenShareUrl(bookOpenId, {
+    book: hit.book,
+    image: true,
+    alpha: hit.alphabet ?? S.alphabetId,
+  });
+}
+
+async function goToPhotoHit(hit, proof = {}) {
   if (!hit) return;
   try {
-    window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
+    window.open(
+      await photoShareUrl(hit, proof),
+      "_blank",
+      "noopener,noreferrer",
+    );
   } catch (err) {
     console.error(err);
+    // Fallback: full permalink if IndexedDB handoff fails.
+    try {
+      window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
+    } catch (err2) {
+      console.error(err2);
+    }
   }
 }
 
@@ -757,13 +821,22 @@ function paintPhotoHits(box, hits, proof = {}) {
     paintCanvas(bookThumb, proof.bookRgba, proof.diffW, proof.diffH, 72);
   }
   const handlers = {
-    go: () => goToPhotoHit(hit),
+    go: () => {
+      void goToPhotoHit(hit, proof);
+    },
     link: (_ev, btn) => {
-      try {
-        copyText(photoPermalink(hit), btn, t("common.copied"));
-      } catch (err) {
-        console.error(err);
-      }
+      void (async () => {
+        try {
+          await copyText(await photoShareUrl(hit, proof), btn, t("common.copied"));
+        } catch (err) {
+          console.error(err);
+          try {
+            await copyText(photoPermalink(hit), btn, t("common.copied"));
+          } catch (err2) {
+            console.error(err2);
+          }
+        }
+      })();
     },
   };
   if (canCompare) {
@@ -801,6 +874,7 @@ function formatMetricTriplet(r) {
   return { rms, mae, corr, isExact };
 }
 
+/** Full address fallback when IndexedDB handoff is unavailable. */
 function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
   const z = BigInt(hit.z);
   const n = BigInt(hit.n);
@@ -808,14 +882,14 @@ function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
   // Prefer stamped export name on same-universe round-trip; else current session.
   const uni =
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
-  return permalink(z, n, hash, hit.alphabet, hit.book, 1, uni, null, {
+  return permalink(z, n, hash, hit.alphabet, Number(hit.book), 1, uni, null, {
     image: true,
     embedId,
   });
 }
 
 async function stashBabelEmbed({ flat, pageSpan, imageRgba, imageW, imageH }) {
-  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const id = newHandoffId();
   await kvSet(BABEL_EMBED_KEY(id), {
     flat,
     pageSpan,
@@ -957,12 +1031,26 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
         void goToBabelHit(hit, sameUniverse, flat);
       },
       link: (_ev, btn) => {
-        try {
-          // Address-only — no embed handoff (shareable / durable).
-          copyText(babelPermalink(hit, { sameUniverse }), btn, t("common.copied"));
-        } catch (err) {
-          console.error(err);
-        }
+        void (async () => {
+          try {
+            await copyText(
+              await babelShareUrl(hit, { sameUniverse }),
+              btn,
+              t("common.copied"),
+            );
+          } catch (err) {
+            console.error(err);
+            try {
+              await copyText(
+                babelPermalink(hit, { sameUniverse }),
+                btn,
+                t("common.copied"),
+              );
+            } catch (err2) {
+              console.error(err2);
+            }
+          }
+        })();
       },
     };
     if (canCompare) {
@@ -974,7 +1062,27 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
   });
 }
 
-/** Open hit in a new tab. Other-universe embeds use a short-lived IndexedDB handoff. */
+async function babelShareUrl(hit, { sameUniverse = false, embedId = null } = {}) {
+  const uni =
+    sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
+  // Cache upload / reproject pixels so open skips virgin book_image.
+  const bookOpenId = await stashBookOpen(hit, {
+    universe: uni,
+    imageRgba: reshaped?.rgba || null,
+    imageW: reshaped?.w || 0,
+    imageH: reshaped?.h || 0,
+  });
+  // Prefer short handoff — full Basile address is multi-KB.
+  let url = bookOpenShareUrl(bookOpenId, {
+    book: hit.book,
+    image: true,
+    alpha: hit.alphabet ?? S.alphabetId,
+  });
+  // Other-universe print payload still needs &be= on the short link.
+  if (embedId) url += `&be=${encodeURIComponent(embedId)}`;
+  return url;
+}
+
 async function goToBabelHit(hit, sameUniverse = false, flat = null) {
   if (!hit) return;
   try {
@@ -989,10 +1097,22 @@ async function goToBabelHit(hit, sameUniverse = false, flat = null) {
         imageH: reshaped.h,
       });
     }
-    const url = babelPermalink(hit, { sameUniverse, embedId });
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(
+      await babelShareUrl(hit, { sameUniverse, embedId }),
+      "_blank",
+      "noopener,noreferrer",
+    );
   } catch (err) {
     console.error(err);
+    try {
+      window.open(
+        babelPermalink(hit, { sameUniverse }),
+        "_blank",
+        "noopener,noreferrer",
+      );
+    } catch (err2) {
+      console.error(err2);
+    }
   }
 }
 

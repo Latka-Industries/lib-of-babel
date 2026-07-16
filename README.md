@@ -42,8 +42,8 @@ Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [do
 - [ ] Custom alphabet picker — user-defined glyph sets beyond the built-in registry
 - [ ] More UI locale packs — es/fr/… beyond DE/NL
 - [ ] Generative audio per gallery
-- [x] Babelgram search — stamped book-image PNG → locate; same-universe exact book / other-universe print handoff (`&be=`); `&img=1` copy link
-- [x] Photo→mosaic search (alphabet lens + rms / mae / corr ranking)
+- [x] Babelgram search — stamped book-image PNG → locate; same-universe exact book / other-universe print; short `&bo=` go+copy (RGBA cache); `&be=` print flat on other-universe go
+- [x] Photo→mosaic search (alphabet lens + rms / mae / corr ranking; `&bo=` handoff caches scored book RGBA)
 
 ## License
 

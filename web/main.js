@@ -94,6 +94,15 @@ async function openBookFromPermalink(link) {
         return;
       }
     }
+    // Mosaic / Babelgram `&bo=` cache — skip virgin book_image when present.
+    if (link.imageRgba?.length) {
+      openBookImage(link.b, null, null, 1, {
+        imageRgba: link.imageRgba,
+        imageW: link.imageW || 0,
+        imageH: link.imageH || 0,
+      });
+      return;
+    }
     openBookImage(link.b);
     return;
   }
@@ -104,6 +113,38 @@ async function openBookFromPermalink(link) {
     link.q || null,
     link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
   );
+}
+
+/** Merge same-browser `&bo=` book-open handoff (survives paste truncation). */
+async function applyBookOpenHandoff(link) {
+  if (!link?.bo) return link;
+  const key = `book-open:${link.bo}`;
+  try {
+    const payload = await kvGet(key);
+    await kvDel(key).catch(() => {});
+    if (!payload || payload.b == null) return link;
+    const rgba = payload.imageRgba
+      ? payload.imageRgba instanceof Uint8Array
+        ? payload.imageRgba
+        : new Uint8Array(payload.imageRgba)
+      : null;
+    // Handoff is authoritative — full Basile z/n never fit reliably in the hash.
+    return {
+      ...link,
+      z: payload.z != null ? BigInt(payload.z) : link.z,
+      n: payload.n != null ? BigInt(payload.n) : link.n,
+      b: Number(payload.b),
+      a: payload.a ?? link.a ?? null,
+      u: payload.u ?? link.u ?? null,
+      img: payload.img !== false,
+      p: link.p ?? 1,
+      imageRgba: rgba,
+      imageW: payload.imageW || 0,
+      imageH: payload.imageH || 0,
+    };
+  } catch {
+    return link;
+  }
 }
 
 async function boot() {
@@ -120,6 +161,7 @@ async function boot() {
   // Permalink (#z=..&n=.. or #q=&find=) takes priority — unless it's our own
   // session refresh (coords + universe already match the saved trail).
   let link = parsePermalink();
+  link = await applyBookOpenHandoff(link);
 
   S.alphabetId =
     link && link.a != null
@@ -209,10 +251,17 @@ async function boot() {
     link.n != null &&
     Number.isInteger(link.b) &&
     link.b >= 0 &&
-    link.b < TOTAL_BOOKS &&
-    S.z === link.z &&
-    S.n === link.n
+    link.b < TOTAL_BOOKS
   ) {
+    // Prefer link coords when present (handoff / truncated paste may disagree
+    // with an older IndexedDB shelf until we jump).
+    if (S.z !== link.z || S.n !== link.n) {
+      S.z = link.z;
+      S.n = link.n;
+      resetTrail();
+      await persist();
+      render();
+    }
     await openBookFromPermalink(link);
     openedBook = true;
   }

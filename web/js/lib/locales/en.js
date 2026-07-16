@@ -137,7 +137,8 @@ opens page&nbsp;1.
 <span class="ui">Babelgram</span> tab: upload a stamped PNG from <span class="ui">save…</span> → <span class="ui">book image</span>.
 <b>Same universe</b> as the export → find that <b>exact book</b>.
 <b>Other universe</b> → same <b>Babelgram print</b> at a new address, but
-<b>different book contents</b>. <span class="ui">go there</span> opens a new tab.
+<b>different book contents</b>. <span class="ui">go there</span> / <span class="ui">copy link</span>
+use a short same-browser handoff (opens the colour map without regenerating it).
 <span class="ui">check diff</span> wipes <b>reproject</b> (stamp-accent decode) against the
 <b>diff</b> (|upload − reproject|) — exact decode makes the diff side near-black.
 </p>
@@ -147,7 +148,8 @@ opens page&nbsp;1.
 grid, projected onto the <b>current alphabet lens</b> — either the <b>letter colour map</b>
 (Babelgram-style) or a <b>luma ramp</b> — then ranked by
 <b>rms % / mae / corr</b>. Pick a hit —
-<span class="ui">go there</span> opens a new tab.
+<span class="ui">go there</span> / <span class="ui">copy link</span> open the book + colour map
+in a new tab via a short same-browser handoff.
 </p>`,
 
   "about.more": `
@@ -171,9 +173,10 @@ starts fresh in this browser.
 <h4>What stays in this browser</h4>
 <p class="dim">
 The Library itself is never downloaded — only your <b>path</b>, <span class="ui">theme</span>
-preference, and a “seen the guide” flag live here. Babelgram <span class="ui">go there</span> to another
-universe may hand the print through short-lived local storage in <b>this</b>
-browser so the new tab can open it; <span class="ui">copy link</span> stays address-only.
+preference, and a “seen the guide” flag live here. Photo / Babelgram
+<span class="ui">go there</span> and <span class="ui">copy link</span> stash a short-lived handoff
+in <b>this</b> browser (coords + colour-map pixels) so the new tab can open without
+regenerating the whole-book image; other-universe Babelgram go may also hand the print flat.
 </p>
 <h4>Sharing links</h4>
 <p class="dim">
@@ -227,7 +230,7 @@ keeps the hash; only the shelves rewrite.
     "Same universe → exact export book. Other universe → same Babelgram print, different contents.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Upload a stamped PNG from save → book image (1:1 grid + lob:babel stamp). Same universe as the export → that exact book. Other universe → same Babelgram print at a new address, but different book contents. go there opens a new tab. Copy link is address-only (no print handoff).",
+    "Upload a stamped PNG from save → book image (1:1 grid + lob:babel stamp). Same universe as the export → that exact book. Other universe → same Babelgram print at a new address, but different book contents. go there / copy link use a short same-browser handoff (cached colour map). Other-universe go also hands the print flat locally.",
   "search.babel.find": "find book",
   "search.babel.progress": "decoding Babelgram…",
   "search.babel.upload": "upload Babelgram PNG",
@@ -250,7 +253,7 @@ keeps the hash; only the shelves rewrite.
   "search.babel.originNoteSame":
     "Same universe as the export — this is the exact book. go there opens it in a new tab.",
   "search.babel.originNoteOther":
-    "Other universe — same Babelgram print at a new address, different book contents. go there opens a new tab with that print. Copy link is address-only.",
+    "Other universe — same Babelgram print at a new address, different book contents. go there opens a new tab with that print (local handoff). copy link uses the same short same-browser handoff.",
   "search.babel.resultsIntro":
     "Babelgram locate in {universe} (seed {seed}) — exact accent decode:",
   "search.babel.resultsIntroSame":
@@ -309,7 +312,7 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.progressScore": "scoring book map {i} / {n}…",
   "search.mosaic.upload": "upload image",
   "search.mosaic.honesty":
-    "Maps the photo onto the current alphabet as a colour mosaic (letters or luma ramp), then ranks destinations by rms % (~100), mae (~0), and corr (~1).",
+    "Maps the photo onto the current alphabet as a colour mosaic (letters or luma ramp), then ranks destinations by rms % (~100), mae (~0), and corr (~1). go there / copy link open the book + colour map in a new tab via a short same-browser handoff (caches the scored map so open skips regenerating it).",
   "search.mosaic.bookTextIntro":
     "Book text ({n} chars). Copy, or put it in content search and hit find.",
   "search.mosaic.toSearch": "put in content search",

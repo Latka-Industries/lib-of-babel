@@ -52,8 +52,11 @@ Universe renames / dice rolls at the same `(z, n)` append a wander step (`◇`).
 Permalinks: room links need `z`/`n` (compact `c…` encoding when huge) plus optional
 `u`, `a`, `book`, `page`, `img=1`, `gv`. Search shares use `#q=&find=content|title`
 (boot re-locates; no huge coords in the hash). Shareable `&q=` is soft-capped;
-mosaic / full-book flats stay out of the URL. Same-browser Babelgram print handoff
-may add short-lived `&be=` (IndexedDB key; not for sharing). Legacy / missing `gv`
+mosaic / full-book flats stay out of the URL. Photo / Babelgram **go there** and
+**copy link** prefer short same-browser `&bo=` (IndexedDB: Basile coords + optional
+RGBA cache so open skips virgin `book_image`). Other-universe Babelgram **go there**
+may also add short-lived `&be=` for the print flat. Param order puts `bo` / `img` /
+`b` before huge `z`/`n` so truncation still opens the book. Legacy / missing `gv`
 opens the migrate modal.
 
 ## UI notes
