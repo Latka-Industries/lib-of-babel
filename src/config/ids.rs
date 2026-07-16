@@ -91,7 +91,7 @@ pub struct AlphabetIds {
     pub arabic: u32,
     /// Persian — 36 glyphs; id `70`.
     pub persian: u32,
-    /// NKo — 36 glyphs; id `71`.
+    /// `NKo` — 36 glyphs; id `71`.
     pub nko: u32,
     /// Amharic — 234 glyphs; id `234`.
     pub amharic: u32,
