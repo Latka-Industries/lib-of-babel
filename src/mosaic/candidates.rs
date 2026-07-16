@@ -205,11 +205,14 @@ fn json_results(hits: &[JsonHit<'_>]) -> String {
 
 /// Babel locate → small results JSON + full-book flat as a real JS string
 /// (flat must not ride inside JSON — ~1.3M cells breaks parse / memory).
-/// `diff_pixels` is `|upload − reproject|` under the stamp accent (exact → black).
+///
+/// `reproject_pixels` is the stamp-accent mosaic decode; `diff_pixels` is
+/// `|upload − reproject|` (exact → near-black).
 #[wasm_bindgen]
 pub struct BabelLocateResult {
     results_json: String,
     flat: String,
+    reproject_pixels: Vec<u8>,
     diff_pixels: Vec<u8>,
     width: u32,
     height: u32,
@@ -227,6 +230,12 @@ impl BabelLocateResult {
     #[must_use]
     pub fn flat(&self) -> String {
         self.flat.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn reproject_pixels(&self) -> Vec<u8> {
+        self.reproject_pixels.clone()
     }
 
     #[wasm_bindgen(getter)]
@@ -414,7 +423,8 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
 ///
 /// On success: [`BabelLocateResult`] with `results_json` =
 /// `{ ok, results:[{ percent, z, n, book, page, page_span, … }] }`, `flat` for in-session
-/// embed, and `diff_pixels` = `|upload − stamp-accent reproject|` (exact decode → black).
+/// embed, `reproject_pixels` = stamp-accent mosaic, and `diff_pixels` =
+/// `|upload − reproject|` (exact decode → near-black).
 ///
 /// # Errors
 ///
@@ -471,6 +481,7 @@ pub fn mosaic_babel_json(
     Ok(BabelLocateResult {
         results_json,
         flat,
+        reproject_pixels: mosaic,
         diff_pixels,
         width,
         height,

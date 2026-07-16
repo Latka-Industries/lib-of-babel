@@ -240,6 +240,7 @@
   align-items: center;
 }
 .mosaic-hit-thumb {
+  display: block;
   width: 72px;
   height: auto;
   image-rendering: pixelated;
@@ -252,8 +253,60 @@
   color: var(--muted);
   line-height: 1;
 }
+.babel-compare-modal {
+  max-width: min(36rem, 96vw);
+}
+.babel-compare-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: stretch;
+  padding: 0.5rem 1.25rem 1.15rem;
+  box-sizing: border-box;
+}
+.babel-compare-body canvas {
+  /* Size to bitmap aspect — no forced width/black letterbox “bumpers”. */
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(70vh, 28rem);
+  margin: 0 auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 1px solid var(--line);
+  background: transparent;
+}
+.babel-compare-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0 0.15rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  box-sizing: border-box;
+}
+.babel-compare-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-variant-numeric: tabular-nums;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.babel-compare-slider input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--ink);
+}
 .mosaic-hit-body { min-width: 0; flex: 1; }
-.mosaic-hit-main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.mosaic-hit-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.45rem;
+}
 .mosaic-hit-metrics {
   display: flex;
   flex-wrap: wrap;

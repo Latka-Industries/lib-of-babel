@@ -9,6 +9,7 @@ import {
   findActionRow,
   wireFindActions,
   formatUniverseLabel,
+  openModal,
 } from "../lib/util.js";
 import { t, getLocale } from "../lib/i18n.js";
 import { formatAlphabetSymbolLabel } from "../lib/constants.js";
@@ -55,6 +56,13 @@ let lastBitmap = null;
 let babelMeta = null;
 /** Soft parse of the upload filename (for confirmation UI). */
 let babelNameMeta = null;
+/**
+ * Last Babel locate proof frames for the compare wipe.
+ * reproject = stamp-accent mosaic; diff = `|upload − reproject|`.
+ * @type {{ reprojectRgba: Uint8Array, diffRgba: Uint8Array, w: number, h: number, wipeOut?: Uint8Array } | null}
+ */
+let babelCompareFrames = null;
+let babelCompareWired = false;
 
 function dims() {
   const d = book_image_dims();
@@ -153,6 +161,70 @@ function paintCanvas(canvasEl, rgba, w, h, maxCss = 280) {
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, dw, dh);
   ctx.drawImage(off, 0, 0, dw, dh);
+}
+
+/** Horizontal wipe: left of split = reproject, right = diff. t∈[0,1] moves the cut. */
+function paintBabelCompareWipe(t) {
+  const frames = babelCompareFrames;
+  const canvasEl = el("babelCompareCanvas");
+  if (!frames || !canvasEl) return;
+  const { reprojectRgba, diffRgba, w, h } = frames;
+  if (
+    !reprojectRgba?.length ||
+    !diffRgba?.length ||
+    reprojectRgba.length !== diffRgba.length
+  ) {
+    return;
+  }
+  const u = Math.max(0, Math.min(1, Number(t) || 0));
+  // Slider left = reproject, right = diff.
+  const cut = Math.round((1 - u) * w);
+  if (!frames.wipeOut || frames.wipeOut.length !== reprojectRgba.length) {
+    frames.wipeOut = new Uint8Array(reprojectRgba.length);
+  }
+  const out = frames.wipeOut;
+  for (let y = 0; y < h; y++) {
+    const row = y * w * 4;
+    for (let x = 0; x < w; x++) {
+      const i = row + x * 4;
+      const src = x < cut ? reprojectRgba : diffRgba;
+      out[i] = src[i];
+      out[i + 1] = src[i + 1];
+      out[i + 2] = src[i + 2];
+      out[i + 3] = 255;
+    }
+  }
+  // Hairline at the wipe edge so the cut stays visible on near-black diffs.
+  if (cut > 0 && cut < w) {
+    for (let y = 0; y < h; y++) {
+      const i = (y * w + cut) * 4;
+      out[i] = 255;
+      out[i + 1] = 255;
+      out[i + 2] = 255;
+      out[i + 3] = 255;
+    }
+  }
+  paintCanvas(canvasEl, out, w, h, 420);
+}
+
+function ensureBabelCompareWired() {
+  if (babelCompareWired) return;
+  const range = el("babelCompareRange");
+  if (!range) return;
+  babelCompareWired = true;
+  const onInput = () => paintBabelCompareWipe(Number(range.value) / 100);
+  range.addEventListener("input", onInput);
+  range.addEventListener("change", onInput);
+}
+
+function openBabelCompare() {
+  if (!babelCompareFrames) return;
+  ensureBabelCompareWired();
+  const range = el("babelCompareRange");
+  // Start mid-wipe so both sides are obvious.
+  if (range) range.value = "50";
+  paintBabelCompareWipe(0.5);
+  openModal("babelCompareModal");
 }
 
 function clearPreviewCanvases() {
@@ -405,16 +477,19 @@ function paintModeResult() {
   if (!box) return;
   const payload = modeResults[mosaicMode];
   if (!payload) {
+    babelCompareFrames = null;
     box.innerHTML = "";
     box.classList.remove("show");
     return;
   }
   if (payload.progress) {
+    babelCompareFrames = null;
     box.innerHTML = `<p class="find-dim">${escapeHtml(payload.progress)}</p>`;
     box.classList.add("show");
     return;
   }
   if (payload.error) {
+    babelCompareFrames = null;
     box.innerHTML = `<p class="find-dim search-error">${escapeHtml(payload.error)}</p>`;
     box.classList.add("show");
     return;
@@ -422,6 +497,7 @@ function paintModeResult() {
   if (mosaicMode === "babel" && payload.hits) {
     paintBabelHits(box, payload.hits, !!payload.sameUniverse, payload.flat || null, {
       seal: payload.seal || null,
+      reprojectRgba: payload.reprojectRgba || null,
       diffRgba: payload.diffRgba || null,
       diffW: payload.diffW || 0,
       diffH: payload.diffH || 0,
@@ -526,6 +602,13 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
         t("search.babel.tip.seal"),
       )}">${escapeHtml(t("search.babel.seal", { seal: proof.seal }))}</div>`
     : "";
+  const canCompare = !!(
+    proof.reprojectRgba?.length &&
+    proof.diffRgba?.length &&
+    proof.diffW &&
+    proof.diffH &&
+    proof.reprojectRgba.length === proof.diffRgba.length
+  );
   const rows = hits
     .map((r, i) => {
       const pctNum = Number(r.percent);
@@ -579,14 +662,6 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
               t("search.babel.thumbAlt"),
             )}"></canvas>
           </div>
-          <div class="mosaic-hit-thumb-wrap">
-            <canvas class="mosaic-hit-thumb mosaic-hit-thumb-diff" width="72" height="58" aria-label="${escapeHtml(
-              t("search.babel.diffAlt"),
-            )}"></canvas>
-            <span class="mosaic-hit-thumb-cap" tabindex="0" data-tip="${escapeHtml(
-              t("search.babel.tip.diff"),
-            )}">${escapeHtml(t("search.babel.diffCaption"))}</span>
-          </div>
         </div>
         <div class="mosaic-hit-body">
           <div class="mosaic-hit-main">
@@ -603,6 +678,9 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
           ${findActionRow([
             { id: "go", label: t("search.go") },
             { id: "link", label: t("actions.copy") },
+            ...(canCompare
+              ? [{ id: "diff", label: t("search.babel.compare.checkDiff") }]
+              : []),
           ]).replace(
             'class="find-row find-actions"',
             `class="find-row find-actions" data-i="${i}"`,
@@ -613,6 +691,14 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
     .join("");
   box.innerHTML = `<p class="find-dim">${escapeHtml(intro)}</p>${rows}`;
   box.classList.add("show");
+  babelCompareFrames = canCompare
+    ? {
+        reprojectRgba: proof.reprojectRgba,
+        diffRgba: proof.diffRgba,
+        w: proof.diffW,
+        h: proof.diffH,
+      }
+    : null;
   box.querySelectorAll(".mosaic-hit").forEach((row) => {
     const i = Number(row.dataset.i);
     const hit = hits[i];
@@ -620,11 +706,7 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
     if (srcThumb && reshaped?.rgba) {
       paintCanvas(srcThumb, reshaped.rgba, reshaped.w, reshaped.h, 72);
     }
-    const diffThumb = row.querySelector("canvas.mosaic-hit-thumb-diff");
-    if (diffThumb && proof.diffRgba?.length && proof.diffW && proof.diffH) {
-      paintCanvas(diffThumb, proof.diffRgba, proof.diffW, proof.diffH, 72);
-    }
-    wireFindActions(row, {
+    const handlers = {
       go: () => {
         void goToBabelHit(hit, sameUniverse, flat);
       },
@@ -636,7 +718,13 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
           console.error(err);
         }
       },
-    });
+    };
+    if (canCompare) {
+      handlers.diff = () => {
+        openBabelCompare();
+      };
+    }
+    wireFindActions(row, handlers);
   });
 }
 
@@ -666,6 +754,7 @@ async function goToBabelHit(hit, sameUniverse = false, flat = null) {
 export function clearMosaicResults() {
   modeResults.photo = null;
   modeResults.babel = null;
+  babelCompareFrames = null;
   paintModeResult();
 }
 
@@ -742,6 +831,7 @@ async function runBabelLocate(modeAtStart, findBtn) {
     }
     const flat = locate.flat;
     const resultsJson = locate.results_json;
+    const reprojectRgba = locate.reproject_pixels;
     const diffRgba = locate.diff_pixels;
     const diffW = locate.width;
     const diffH = locate.height;
@@ -767,7 +857,7 @@ async function runBabelLocate(modeAtStart, findBtn) {
     const seal = await contentSeal(flat);
     if (mosaicMode !== modeAtStart) return;
     const sameUniverse = BigInt(get_universe()) === BigInt(babelMeta.u);
-    const proof = { flat, seal, diffRgba, diffW, diffH };
+    const proof = { flat, seal, reprojectRgba, diffRgba, diffW, diffH };
     if (sameUniverse) {
       const base = decoded.results[0];
       setModeResult({

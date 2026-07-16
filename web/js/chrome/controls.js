@@ -166,6 +166,7 @@ export function wireControls() {
     ["closeVerify", "verifyModal"],
     ["closeBook", "bookModal"],
     ["closeImage", "imageModal"],
+    ["closeBabelCompare", "babelCompareModal"],
   ]);
   refreshLocaleChrome();
   wireAboutTabs();
