@@ -280,7 +280,7 @@ keeps the hash; only the shelves rewrite.
   "search.kindTitle": "search spine titles or page content",
   "search.kindContent": "content",
   "search.kindTitleOpt": "title",
-  "search.placeholderContent": "forgive me for i have sinned",
+  "search.placeholderContent": "sit on a pan otis",
   "search.placeholderTitle": "crimson spine",
   "search.find": "find",
   "search.count": "{n} / {max}",
