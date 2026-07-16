@@ -181,9 +181,7 @@ fn build_photo_palette(opts: &MosaicOpts) -> (usize, Vec<[u8; 3]>) {
     let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
     let palette = match opts.palette_kind {
-        PhotoPaletteKind::Luma => {
-            build_photo_luma_palette(ab, opts.hue, opts.chroma, opts.light)
-        }
+        PhotoPaletteKind::Luma => build_photo_luma_palette(ab, opts.hue, opts.chroma, opts.light),
         PhotoPaletteKind::Glyph => build_glyph_palette(ab, opts.hue, opts.chroma, opts.light),
     };
     (space_idx, palette)
