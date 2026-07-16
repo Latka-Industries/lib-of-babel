@@ -32,7 +32,8 @@ pub use gallery::{
     node_hash_bytes,
 };
 pub use mosaic::{
-    MosaicImage, mosaic_babel_json, mosaic_candidates_json, mosaic_flat_for, mosaic_project,
+    BabelLocateResult, MosaicImage, mosaic_babel_json, mosaic_candidates_json, mosaic_flat_for,
+    mosaic_project,
 };
 pub use page::{PageAddr, PageRender, book_text, page_symbols, page_text};
 pub use search::{

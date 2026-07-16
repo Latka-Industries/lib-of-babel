@@ -99,7 +99,7 @@
         <div id="walls" class="walls"><div class="loading" data-i18n="loading.building">building library…</div></div>
       </div>
       <div class="footer">
-        <button id="historyBtn" class="history-btn">wanderings · 0/500</button>
+        <button id="historyBtn" class="history-btn">wanderings · 0/1000</button>
         <div class="footer-locus" aria-label="room">
           <span class="stat">
             <span class="stat-label" data-i18n="footer.gallery">gallery</span>
@@ -157,14 +157,19 @@
       </div>
       <div class="about-tabs" role="tablist" data-i18n-aria-label="about.tabsLabel" aria-label="About sections">
         <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview" data-i18n="about.tab.overview">overview</button>
-        <button type="button" class="about-tab" role="tab" id="aboutTab-alphabets" aria-selected="false" aria-controls="aboutPanel-alphabets" tabindex="-1" data-i18n="about.tab.alphabets">alphabets</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1" data-i18n="about.tab.wander">wander</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-alphabets" aria-selected="false" aria-controls="aboutPanel-alphabets" tabindex="-1" data-i18n="about.tab.alphabets">alphabets</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1" data-i18n="about.tab.books">books</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-search" aria-selected="false" aria-controls="aboutPanel-search" tabindex="-1" data-i18n="about.tab.search">search</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1" data-i18n="about.tab.more">more</button>
       </div>
       <div class="about-body">
         <div class="about-panel active" role="tabpanel" id="aboutPanel-overview" aria-labelledby="aboutTab-overview">
           <div data-i18n-html="about.overview"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
+          <div data-i18n-html="about.wander"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-alphabets" aria-labelledby="aboutTab-alphabets" hidden>
@@ -173,12 +178,12 @@
           <div id="aboutAlphabetList"></div>
         </div>
 
-        <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
-          <div data-i18n-html="about.wander"></div>
-        </div>
-
         <div class="about-panel" role="tabpanel" id="aboutPanel-books" aria-labelledby="aboutTab-books" hidden>
           <div data-i18n-html="about.books"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-search" aria-labelledby="aboutTab-search" hidden>
+          <div data-i18n-html="about.search"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
@@ -271,7 +276,7 @@
         </div>
         <div class="search-panel" role="tabpanel" id="searchPanel-mosaic" aria-labelledby="searchTab-babel" hidden>
           <div id="searchMosaicPanel" class="mosaic-panel">
-            <p class="find-dim" id="mosaicHonesty" data-i18n="search.babel.honesty">Needs a PNG from save → book image (provenance chunk). Pixels stay 1:1.</p>
+            <p class="find-dim" id="mosaicHonesty" data-i18n="search.babel.honesty">Same universe → exact export book. Other universe → same Babelgram print, different contents.</p>
             <div class="find-row">
               <label class="mosaic-file-label">
                 <span id="mosaicUploadLabel" data-i18n="search.babel.upload">upload Babelgram PNG</span>
@@ -338,7 +343,7 @@
             </div>
             <div class="find-row">
               <button type="button" id="mosaicFind" data-i18n="search.babel.find">find book</button>
-              <span class="find-dim" id="mosaicHint" data-i18n="search.hintBabel">stamped Babelgram PNG only · 1:1 · same universe → export gallery · other universe → projective locate</span>
+              <span class="find-dim" id="mosaicHint" data-i18n="search.hintBabel"></span>
             </div>
             <div class="find-result" id="mosaicResult"></div>
           </div>

@@ -23,7 +23,7 @@ mod score;
 mod tests;
 
 pub use api::{MosaicImage, mosaic_flat_for, mosaic_project};
-pub use candidates::{mosaic_babel_json, mosaic_candidates_json};
+pub use candidates::{BabelLocateResult, mosaic_babel_json, mosaic_candidates_json};
 
 // Re-export internals into this module so `tests` can `use super::…`.
 #[cfg(test)]

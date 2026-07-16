@@ -215,14 +215,132 @@
   min-height: 8rem;
 }
 .mosaic-hit {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
   border-top: 1px solid var(--line);
   padding: 0.65rem 0 0.25rem;
   margin-top: 0.5rem;
+  overflow: visible;
+}
+#mosaicResult.find-result {
+  overflow: visible;
 }
 .mosaic-hit:first-of-type { border-top: none; margin-top: 0.25rem; }
+.mosaic-hit-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.mosaic-hit-thumb-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  align-items: center;
+}
+.mosaic-hit-thumb {
+  width: 72px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 1px solid var(--line);
+  background: #000;
+}
+.mosaic-hit-thumb-cap {
+  font-size: 0.65rem;
+  color: var(--muted);
+  line-height: 1;
+}
+.mosaic-hit-body { min-width: 0; flex: 1; }
 .mosaic-hit-main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
-.mosaic-hit-pct { font-size: 1.25rem; font-weight: 700; }
+.mosaic-hit-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.mosaic-hit-metric {
+  position: relative;
+  cursor: help;
+  user-select: none;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 88%, var(--ink));
+  color: var(--ink);
+  line-height: 1.2;
+}
+.mosaic-hit-metric[data-tip]::after,
+.mosaic-hit-thumb-cap[data-tip]::after,
+.mosaic-hit-ok[data-tip]::after,
+.mosaic-hit-seal[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  width: max(100%, 14rem);
+  max-width: min(20rem, 75vw);
+  z-index: 30;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-weight: 400;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  box-shadow: 0 8px 22px color-mix(in oklab, #000 35%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+.mosaic-hit-metric[data-tip]:hover::after,
+.mosaic-hit-metric[data-tip]:focus-visible::after,
+.mosaic-hit-thumb-cap[data-tip]:hover::after,
+.mosaic-hit-thumb-cap[data-tip]:focus-visible::after,
+.mosaic-hit-ok[data-tip]:hover::after,
+.mosaic-hit-ok[data-tip]:focus-visible::after,
+.mosaic-hit-seal[data-tip]:hover::after,
+.mosaic-hit-seal[data-tip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+.mosaic-hit-thumb-cap {
+  position: relative;
+  cursor: help;
+}
 .mosaic-hit-label { color: var(--muted); font-size: 0.8rem; }
+.mosaic-hit-ok {
+  position: relative;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ok, #2a7a4b);
+  cursor: help;
+}
+.mosaic-hit-seal {
+  position: relative;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  word-break: break-all;
+  cursor: help;
+  width: fit-content;
+  max-width: 100%;
+}
 
 .jump-body {
   display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
@@ -268,13 +386,17 @@
 .history-list { padding: 0.5rem 0.75rem 0.75rem; max-height: 70vh; overflow: auto; }
 .hrow {
   display: grid;
-  grid-template-columns: 2.6rem minmax(5rem, 1.2fr) 1.4rem minmax(4rem, 0.9fr) 2.4rem auto 2rem;
+  grid-template-columns: 2.6rem minmax(5rem, 1.2fr) 1.4rem minmax(4rem, 0.9fr) 2.4rem auto auto;
   align-items: center; gap: 0.45rem;
   padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line);
   font-size: 12px; cursor: pointer; border-radius: 6px;
 }
 .hrow .copy {
-  padding: 0.1rem 0.35rem; font-size: 11px; line-height: 1.4;
+  justify-self: end;
+  padding: 0.15rem 0.45rem;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
   opacity: 0.75;
 }
 .hrow:hover .copy, .hrow .copy:focus { opacity: 1; }
@@ -288,7 +410,6 @@
   color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .hrow .hh { font-variant-ligatures: none; white-space: nowrap; }
-.hrow .you { color: var(--accent); }
 dialog {
   color: var(--ink);
   border: 1px solid var(--line); border-radius: 10px;
@@ -556,6 +677,7 @@ pre.page mark.search-hit {
   text-decoration: underline; text-underline-offset: 3px;
 }
 .about-body kbd,
+.about-body .ui,
 .about-body .alpha-family-rail,
 .about-body .alpha-family-select,
 .about-body .alpha-shift-btn,
@@ -575,6 +697,44 @@ pre.page mark.search-hit {
 .about-body kbd {
   background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
   padding: 0 0.35rem; font-size: 0.85em;
+}
+/* Inline stand-in for real controls (buttons, menus, tabs, options). */
+.about-body .ui {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.1em;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85em;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.about-body button.ui {
+  cursor: pointer;
+}
+.about-body button.ui:hover,
+.about-body button.ui:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.about-body button.about-goto-tab {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-deep);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.about-body button.about-goto-tab:hover,
+.about-body button.about-goto-tab:focus-visible {
+  background: color-mix(in oklab, var(--accent) 82%, var(--ink));
+  border-color: color-mix(in oklab, var(--accent) 82%, var(--ink));
+  color: var(--bg-deep);
 }
 .about-body .dim { color: var(--muted); }
 .about-body a { color: var(--accent-link); }

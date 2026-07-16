@@ -198,7 +198,7 @@ export function renderHistory() {
       `<span class="move">${MOVE_ARROW[e.move] ?? e.move}</span>` +
       `<span class="uni" title="universe at visit">${uniLabel}</span>` +
       `<span class="alpha" title="alphabet lens at visit">${alphaLabel}</span>` +
-      `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}${isCurrent ? ` <span class="you">${t("common.you")}</span>` : ""}</span>`;
+      `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}</span>`;
     row.title =
       `gallery (${e.z}, ${e.n}) · ${uniLabel}` +
       (alpha !== null ? ` · ${formatAlphabetSymbolLabel(alpha)}` : "") +

@@ -24,7 +24,7 @@ Canonical dimensions:
 | **Books** | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view. |
 | **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
 | **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
-| **Wanderings** | Last 500 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). |
+| **Wanderings** | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). |
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |

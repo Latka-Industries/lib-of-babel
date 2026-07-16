@@ -23,6 +23,7 @@ import {
   randomUniverseName,
   persist,
   markLastPickedUp,
+  recordStep,
 } from "../gallery/state.js";
 import { currentUrl, syncUrl } from "../gallery/url.js";
 import { render, renderHistory } from "../gallery/view.js";
@@ -296,12 +297,13 @@ export function wireControls() {
     },
   );
 
-  // Universe switch: same coords, new library; trail kept across universes.
+  // Universe switch: same coords, new library — counts as a wander step (◇).
   const enterUniverse = (name) => {
     const next = (name || "").trim();
     if (next === S.universeName) return;
     freezeTrailLenses();
     applyUniverse(next);
+    recordStep("universe");
     afterLensChange("clear");
   };
   el("universe").addEventListener("change", (ev) => enterUniverse(ev.target.value));

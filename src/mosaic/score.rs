@@ -7,6 +7,58 @@ pub(crate) fn fit_percent(src: &[u8], mosaic: &[u8]) -> f64 {
     fit_rgb_percent(src, mosaic, 1)
 }
 
+/// Mean absolute RGB error in 0..255 (exact babel decode → ~0).
+pub(crate) fn rgb_mean_abs_diff(src: &[u8], mosaic: &[u8]) -> f64 {
+    let n = src.len().min(mosaic.len()) / 4;
+    if n == 0 {
+        return 0.0;
+    }
+    let mut sum = 0.0;
+    for i in 0..n {
+        let o = i * 4;
+        sum += f64::from(src[o].abs_diff(mosaic[o]));
+        sum += f64::from(src[o + 1].abs_diff(mosaic[o + 1]));
+        sum += f64::from(src[o + 2].abs_diff(mosaic[o + 2]));
+    }
+    sum / (n as f64 * 3.0)
+}
+
+/// Pearson correlation over paired RGB samples (exact babel decode → ~1).
+pub(crate) fn rgb_pearson_corr(src: &[u8], mosaic: &[u8]) -> f64 {
+    let n = src.len().min(mosaic.len()) / 4;
+    if n == 0 {
+        return 1.0;
+    }
+    let mut sum_src = 0.0;
+    let mut sum_mos = 0.0;
+    let mut sum_src_sq = 0.0;
+    let mut sum_mos_sq = 0.0;
+    let mut sum_cross = 0.0;
+    let mut count = 0.0;
+    for i in 0..n {
+        let o = i * 4;
+        for c in 0..3 {
+            let x = f64::from(src[o + c]);
+            let y = f64::from(mosaic[o + c]);
+            sum_src += x;
+            sum_mos += y;
+            sum_src_sq += x * x;
+            sum_mos_sq += y * y;
+            sum_cross += x * y;
+            count += 1.0;
+        }
+    }
+    let mean_src = sum_src / count;
+    let mean_mos = sum_mos / count;
+    let cov = sum_cross / count - mean_src * mean_mos;
+    let var_src = sum_src_sq / count - mean_src * mean_src;
+    let var_mos = sum_mos_sq / count - mean_mos * mean_mos;
+    if var_src <= f64::EPSILON || var_mos <= f64::EPSILON {
+        return if cov.abs() <= f64::EPSILON { 1.0 } else { 0.0 };
+    }
+    (cov / (var_src.sqrt() * var_mos.sqrt())).clamp(-1.0, 1.0)
+}
+
 fn rms_norm(sum_sq: f64, count: usize) -> f64 {
     if count == 0 {
         return 0.0;
