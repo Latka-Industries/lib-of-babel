@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 use crate::config::alphabet;
 
 use super::flat::indices_to_flat;
-use super::project::{PhotoPaletteKind, project_photo, project_photo_preview};
+use super::project::{MosaicOpts, project_photo, project_photo_preview};
 
 /// Mosaic image returned to JS (`putImageData` + fit metrics).
 #[wasm_bindgen]
@@ -58,6 +58,17 @@ impl MosaicImage {
     }
 }
 
+fn mosaic_image(width: u32, height: u32, pixels: Vec<u8>) -> MosaicImage {
+    MosaicImage {
+        width,
+        height,
+        percent: 0.0,
+        mae: 0.0,
+        corr: 0.0,
+        pixels,
+    }
+}
+
 /// Project a book-grid RGBA buffer onto the alphabet palette (full resolution).
 ///
 /// Fit metrics on the returned image are left at zero — callers that need
@@ -70,6 +81,7 @@ impl MosaicImage {
 /// Returns a string `JsValue` when `src_rgba` is not the full-book colour grid
 /// length (`book_cell_count() * 4`).
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_project(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -80,25 +92,18 @@ pub fn mosaic_project(
     dither: bool,
     palette_kind: u32,
 ) -> Result<MosaicImage, JsValue> {
-    let (width, height, _indices, mosaic) = project_photo(
-        src_rgba,
+    let opts = MosaicOpts::from_wasm(
         alphabet_id,
         hue,
         chroma,
         light,
         space_threshold,
         dither,
-        PhotoPaletteKind::from_u32(palette_kind),
-    )
-    .map_err(|e| JsValue::from_str(&e))?;
-    Ok(MosaicImage {
-        width,
-        height,
-        percent: 0.0,
-        mae: 0.0,
-        corr: 0.0,
-        pixels: mosaic,
-    })
+        palette_kind,
+    );
+    let (width, height, _indices, mosaic) =
+        project_photo(src_rgba, &opts).map_err(|e| JsValue::from_str(&e))?;
+    Ok(mosaic_image(width, height, mosaic))
 }
 
 /// Downsampled projection for responsive mosaic knobs (`factor` ≥ 1).
@@ -111,6 +116,7 @@ pub fn mosaic_project(
 /// Returns a string `JsValue` when `src_rgba` is not the full-book colour grid
 /// length (`book_cell_count() * 4`).
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_project_preview(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -122,26 +128,18 @@ pub fn mosaic_project_preview(
     palette_kind: u32,
     factor: u32,
 ) -> Result<MosaicImage, JsValue> {
-    let (width, height, mosaic) = project_photo_preview(
-        src_rgba,
+    let opts = MosaicOpts::from_wasm(
         alphabet_id,
         hue,
         chroma,
         light,
         space_threshold,
         dither,
-        PhotoPaletteKind::from_u32(palette_kind),
-        factor.max(1) as usize,
-    )
-    .map_err(|e| JsValue::from_str(&e))?;
-    Ok(MosaicImage {
-        width,
-        height,
-        percent: 0.0,
-        mae: 0.0,
-        corr: 0.0,
-        pixels: mosaic,
-    })
+        palette_kind,
+    );
+    let (width, height, mosaic) = project_photo_preview(src_rgba, &opts, factor.max(1) as usize)
+        .map_err(|e| JsValue::from_str(&e))?;
+    Ok(mosaic_image(width, height, mosaic))
 }
 
 /// Build the embeddable cell string for a mosaic projection (no space-collapse).
@@ -153,6 +151,7 @@ pub fn mosaic_project_preview(
 /// Returns a string `JsValue` when `src_rgba` is not the full-book colour grid
 /// length (`book_cell_count() * 4`).
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_flat_for(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -163,16 +162,16 @@ pub fn mosaic_flat_for(
     dither: bool,
     palette_kind: u32,
 ) -> Result<String, JsValue> {
-    let (_w, _h, indices, _mosaic) = project_photo(
-        src_rgba,
+    let opts = MosaicOpts::from_wasm(
         alphabet_id,
         hue,
         chroma,
         light,
         space_threshold,
         dither,
-        PhotoPaletteKind::from_u32(palette_kind),
-    )
-    .map_err(|e| JsValue::from_str(&e))?;
-    Ok(indices_to_flat(&indices, alphabet(alphabet_id)))
+        palette_kind,
+    );
+    let (_w, _h, indices, _mosaic) =
+        project_photo(src_rgba, &opts).map_err(|e| JsValue::from_str(&e))?;
+    Ok(indices_to_flat(&indices, alphabet(opts.alphabet_id)))
 }

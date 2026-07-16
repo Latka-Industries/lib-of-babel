@@ -23,6 +23,63 @@ impl PhotoPaletteKind {
     }
 }
 
+/// Shared knobs for photo→alphabet projection / candidate search.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct MosaicOpts {
+    pub alphabet_id: u32,
+    pub hue: f64,
+    pub chroma: f64,
+    pub light: f64,
+    pub space_threshold: f64,
+    pub dither: bool,
+    pub palette_kind: PhotoPaletteKind,
+}
+
+impl MosaicOpts {
+    #[must_use]
+    pub(crate) fn new(
+        alphabet_id: u32,
+        hue: f64,
+        chroma: f64,
+        light: f64,
+        space_threshold: f64,
+        dither: bool,
+        palette_kind: PhotoPaletteKind,
+    ) -> Self {
+        Self {
+            alphabet_id,
+            hue,
+            chroma,
+            light,
+            space_threshold: space_threshold.clamp(0.0, 255.0),
+            dither,
+            palette_kind,
+        }
+    }
+
+    /// Pack flat wasm-bindgen args (`palette_kind`: `0` luma, `1` glyph).
+    #[must_use]
+    pub(crate) fn from_wasm(
+        alphabet_id: u32,
+        hue: f64,
+        chroma: f64,
+        light: f64,
+        space_threshold: f64,
+        dither: bool,
+        palette_kind: u32,
+    ) -> Self {
+        Self::new(
+            alphabet_id,
+            hue,
+            chroma,
+            light,
+            space_threshold,
+            dither,
+            PhotoPaletteKind::from_u32(palette_kind),
+        )
+    }
+}
+
 /// Alphabet packs keep space at `len - 3` (before `.` and `,`).
 pub(crate) fn alphabet_space_idx(ab: &[&str]) -> usize {
     ab.len() - 3
@@ -120,18 +177,14 @@ pub(crate) fn ensure_book_rgba(src: &[u8]) -> Result<(u32, u32), String> {
     Ok((w, h))
 }
 
-fn build_photo_palette(
-    alphabet_id: u32,
-    hue: f64,
-    chroma: f64,
-    light: f64,
-    palette_kind: PhotoPaletteKind,
-) -> (usize, Vec<[u8; 3]>) {
-    let ab = alphabet(alphabet_id);
+fn build_photo_palette(opts: &MosaicOpts) -> (usize, Vec<[u8; 3]>) {
+    let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
-    let palette = match palette_kind {
-        PhotoPaletteKind::Luma => build_photo_luma_palette(ab, hue, chroma, light),
-        PhotoPaletteKind::Glyph => build_glyph_palette(ab, hue, chroma, light),
+    let palette = match opts.palette_kind {
+        PhotoPaletteKind::Luma => {
+            build_photo_luma_palette(ab, opts.hue, opts.chroma, opts.light)
+        }
+        PhotoPaletteKind::Glyph => build_glyph_palette(ab, opts.hue, opts.chroma, opts.light),
     };
     (space_idx, palette)
 }
@@ -139,49 +192,32 @@ fn build_photo_palette(
 /// Project a validated book-grid buffer onto an alphabet colour map.
 pub(crate) fn project_photo(
     src: &[u8],
-    alphabet_id: u32,
-    hue: f64,
-    chroma: f64,
-    light: f64,
-    space_threshold: f64,
-    dither: bool,
-    palette_kind: PhotoPaletteKind,
+    opts: &MosaicOpts,
 ) -> Result<(u32, u32, Vec<u16>, Vec<u8>), String> {
     let (width, height) = ensure_book_rgba(src)?;
-    let (space_idx, palette) = build_photo_palette(alphabet_id, hue, chroma, light, palette_kind);
-    let (indices, mosaic) = project_indices(
-        src,
-        &palette,
-        space_idx,
-        space_threshold.clamp(0.0, 255.0),
-        dither,
-    );
+    let (space_idx, palette) = build_photo_palette(opts);
+    let (indices, mosaic) =
+        project_indices(src, &palette, space_idx, opts.space_threshold, opts.dither);
     Ok((width, height, indices, mosaic))
 }
 
 /// Downsampled projection for live UI knobs (same palette policy as [`project_photo`]).
 pub(crate) fn project_photo_preview(
     src: &[u8],
-    alphabet_id: u32,
-    hue: f64,
-    chroma: f64,
-    light: f64,
-    space_threshold: f64,
-    dither: bool,
-    palette_kind: PhotoPaletteKind,
+    opts: &MosaicOpts,
     factor: usize,
 ) -> Result<(u32, u32, Vec<u8>), String> {
     let (bw, bh) = ensure_book_rgba(src)?;
     let (coarse, cw, ch) = downsample_rgba(src, bw as usize, bh as usize, factor.max(1));
-    let (space_idx, palette) = build_photo_palette(alphabet_id, hue, chroma, light, palette_kind);
+    let (space_idx, palette) = build_photo_palette(opts);
     let (_indices, mosaic) = project_indices_sized(
         &coarse,
         cw,
         ch,
         &palette,
         space_idx,
-        space_threshold.clamp(0.0, 255.0),
-        dither,
+        opts.space_threshold,
+        opts.dither,
     );
     Ok((cw as u32, ch as u32, mosaic))
 }

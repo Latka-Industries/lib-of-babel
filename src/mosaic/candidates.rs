@@ -12,7 +12,8 @@ use crate::universe::universe as active_universe;
 
 use super::flat::{indices_to_flat, locate_mosaic_flat};
 use super::project::{
-    PhotoPaletteKind, alphabet_space_idx, ensure_book_rgba, project_indices, project_indices_sized,
+    MosaicOpts, PhotoPaletteKind, alphabet_space_idx, ensure_book_rgba, project_indices,
+    project_indices_sized,
 };
 use super::score::{downsample_rgba, fit_percent, rgb_fit_triple};
 
@@ -321,19 +322,12 @@ struct LocateHit {
 }
 
 /// Coarse downsample sweep → keep top distinct packs (+ space variants).
-fn coarse_candidate_packs(
-    src_rgba: &[u8],
-    ab: &[&str],
-    hue: f64,
-    chroma: f64,
-    light: f64,
-    space: f64,
-    dither: bool,
-    palette_kind: PhotoPaletteKind,
-) -> Vec<CandidatePack> {
+fn coarse_candidate_packs(src_rgba: &[u8], opts: &MosaicOpts) -> Vec<CandidatePack> {
+    let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
     let (bw, bh) = book_grid_dims();
     let (coarse_src, cw, ch) = downsample_rgba(src_rgba, bw as usize, bh as usize, COARSE_FACTOR);
+    let palette_kind = opts.palette_kind;
 
     let mut coarse: Vec<(f64, CandidatePack)> =
         Vec::with_capacity(1 + COARSE_HUE_STEPS * COARSE_CHROMA.len() * COARSE_LIGHT.len());
@@ -343,11 +337,11 @@ fn coarse_candidate_packs(
     };
 
     push_coarse(CandidatePack {
-        hue,
-        chroma,
-        light,
-        space_threshold: space,
-        dither,
+        hue: opts.hue,
+        chroma: opts.chroma,
+        light: opts.light,
+        space_threshold: opts.space_threshold,
+        dither: opts.dither,
         label: "current",
     });
     for step in 0..COARSE_HUE_STEPS {
@@ -358,8 +352,8 @@ fn coarse_candidate_packs(
                     hue: h,
                     chroma: c,
                     light: l,
-                    space_threshold: space,
-                    dither,
+                    space_threshold: opts.space_threshold,
+                    dither: opts.dither,
                     label: "coarse",
                 });
             }
@@ -549,6 +543,7 @@ pub fn mosaic_babel_json(
 /// Returns `{ ok, packs:[{hue,chroma,light,space_threshold,dither,label}] }`.
 #[wasm_bindgen]
 #[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_candidate_packs_json(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -562,17 +557,16 @@ pub fn mosaic_candidate_packs_json(
     if ensure_book_rgba(src_rgba).is_err() {
         return ERR_BOOK_GRID.into();
     }
-    let kind = PhotoPaletteKind::from_u32(palette_kind);
-    let packs = coarse_candidate_packs(
-        src_rgba,
-        alphabet(alphabet_id),
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
         hue,
         chroma,
         light,
-        space_threshold.clamp(0.0, 255.0),
+        space_threshold,
         dither,
-        kind,
+        palette_kind,
     );
+    let packs = coarse_candidate_packs(src_rgba, &opts);
     let mut out = String::from(r#"{"ok":true,"packs":["#);
     for (i, p) in packs.iter().enumerate() {
         if i > 0 {
@@ -603,6 +597,7 @@ pub fn mosaic_candidate_packs_json(
 /// Returns `{ ok, results:[hit] }` or `{ ok:false, error }`.
 #[wasm_bindgen]
 #[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_candidate_eval_json(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -617,19 +612,28 @@ pub fn mosaic_candidate_eval_json(
     if ensure_book_rgba(src_rgba).is_err() {
         return ERR_BOOK_GRID.into();
     }
-    let pack = CandidatePack {
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
         hue,
         chroma,
         light,
-        space_threshold: space_threshold.clamp(0.0, 255.0),
+        space_threshold,
         dither,
+        palette_kind,
+    );
+    let pack = CandidatePack {
+        hue: opts.hue,
+        chroma: opts.chroma,
+        light: opts.light,
+        space_threshold: opts.space_threshold,
+        dither: opts.dither,
         label: "eval",
     };
     // Label is owned by the caller string — stash into LocateHit via evaluate.
     let mode = EvalMode::Photo {
-        palette: PhotoPaletteKind::from_u32(palette_kind),
+        palette: opts.palette_kind,
     };
-    let Some(mut ev) = evaluate_pack(src_rgba, alphabet_id, &pack, mode) else {
+    let Some(mut ev) = evaluate_pack(src_rgba, opts.alphabet_id, &pack, mode) else {
         return r#"{"ok":false,"error":"could not locate mosaic"}"#.into();
     };
     if !label.is_empty() {
@@ -653,7 +657,7 @@ pub fn mosaic_candidate_eval_json(
         page: loc.page,
         page_span: ev.locate.page_span,
     };
-    hits_to_json(std::slice::from_ref(&hit), alphabet_id)
+    hits_to_json(std::slice::from_ref(&hit), opts.alphabet_id)
 }
 
 /// Top mosaic destinations for an uploaded book-grid image (blocking; prefer chunked API).
@@ -667,6 +671,7 @@ pub fn mosaic_candidate_eval_json(
 /// space_threshold, dither, label, alphabet }] }` (`percent` is RMS fit %).
 #[wasm_bindgen]
 #[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_candidates_json(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -680,17 +685,16 @@ pub fn mosaic_candidates_json(
     if ensure_book_rgba(src_rgba).is_err() {
         return ERR_BOOK_GRID.into();
     }
-    let kind = PhotoPaletteKind::from_u32(palette_kind);
-    let packs = coarse_candidate_packs(
-        src_rgba,
-        alphabet(alphabet_id),
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
         hue,
         chroma,
         light,
-        space_threshold.clamp(0.0, 255.0),
+        space_threshold,
         dither,
-        kind,
+        palette_kind,
     );
-    let hits = fine_locate_hits(src_rgba, alphabet_id, &packs, kind);
-    hits_to_json(&hits, alphabet_id)
+    let packs = coarse_candidate_packs(src_rgba, &opts);
+    let hits = fine_locate_hits(src_rgba, opts.alphabet_id, &packs, opts.palette_kind);
+    hits_to_json(&hits, opts.alphabet_id)
 }
