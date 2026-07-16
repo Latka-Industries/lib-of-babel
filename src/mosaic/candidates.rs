@@ -12,19 +12,19 @@ use crate::universe::universe as active_universe;
 
 use super::flat::{indices_to_flat, locate_mosaic_flat};
 use super::project::{
-    alphabet_space_idx, ensure_book_rgba, project_indices, project_indices_sized,
+    MosaicOpts, PhotoPaletteKind, alphabet_space_idx, ensure_book_rgba, project_indices,
+    project_indices_sized,
 };
-use super::score::{
-    downsample_rgba, fit_percent, fit_perceptual_percent, rgb_mean_abs_diff, rgb_pearson_corr,
-};
+use super::score::{downsample_rgba, fit_percent, rgb_fit_triple};
 
 /// Coarse photo search: subsample every Nth cell, sweep hue × chroma × light.
 pub(crate) const COARSE_FACTOR: usize = 8;
-const COARSE_HUE_STEPS: usize = 18;
-const COARSE_CHROMA: [f64; 4] = [0.06, 0.11, 0.16, 0.22];
-const COARSE_LIGHT: [f64; 4] = [0.48, 0.58, 0.68, 0.78];
-const COARSE_KEEP: usize = 6;
-const FINE_TOP: usize = 5;
+/// Kept modest so the UI can stay responsive (each fine locate is a full book).
+const COARSE_HUE_STEPS: usize = 12;
+const COARSE_CHROMA: [f64; 3] = [0.08, 0.15, 0.22];
+const COARSE_LIGHT: [f64; 3] = [0.50, 0.66, 0.78];
+const COARSE_KEEP: usize = 4;
+const FINE_TOP: usize = 4;
 
 const ERR_BOOK_GRID: &str = r#"{"ok":false,"error":"image must match the full-book colour grid"}"#;
 
@@ -50,34 +50,70 @@ impl CandidatePack {
 }
 
 #[derive(Clone, Copy)]
-enum FitMode {
-    /// Babelgram / stamped export — reading glyph palette + exact RGB.
-    GlyphRgb,
-    /// Photo find — luma-ramp palette + perceptual score.
-    PhotoPerceptual,
+enum EvalMode {
+    /// Babelgram / stamped export — glyph palette + exact RGB rank.
+    BabelExact,
+    /// Photo find — luma or glyph palette + joint rms/mae/corr rank.
+    Photo { palette: PhotoPaletteKind },
+}
+
+struct PackEval {
+    /// Displayed RMS % (Babelgram UI).
+    rms_percent: f64,
+    mae: f64,
+    corr: f64,
+    /// Sort key — joint multi-metric for photo; same as rms for babel exact.
+    rank_percent: f64,
+    label: String,
+    locate: LocateResult,
+    flat: String,
+    mosaic: Vec<u8>,
 }
 
 fn evaluate_pack(
     src: &[u8],
     alphabet_id: u32,
     pack: &CandidatePack,
-    mode: FitMode,
-) -> Option<(f64, String, LocateResult, String, Vec<u8>)> {
+    mode: EvalMode,
+) -> Option<PackEval> {
     let ab = alphabet(alphabet_id);
     let space_idx = alphabet_space_idx(ab);
     let space = pack.space_threshold.clamp(0.0, 255.0);
     let palette = match mode {
-        FitMode::GlyphRgb => build_glyph_palette(ab, pack.hue, pack.chroma, pack.light),
-        FitMode::PhotoPerceptual => build_photo_luma_palette(ab, pack.hue, pack.chroma, pack.light),
+        EvalMode::BabelExact
+        | EvalMode::Photo {
+            palette: PhotoPaletteKind::Glyph,
+        } => build_glyph_palette(ab, pack.hue, pack.chroma, pack.light),
+        EvalMode::Photo {
+            palette: PhotoPaletteKind::Luma,
+        } => build_photo_luma_palette(ab, pack.hue, pack.chroma, pack.light),
     };
     let (indices, mosaic) = project_indices(src, &palette, space_idx, space, pack.dither);
-    let percent = match mode {
-        FitMode::GlyphRgb => fit_percent(src, &mosaic),
-        FitMode::PhotoPerceptual => fit_perceptual_percent(src, &mosaic, 1),
+    let triple = rgb_fit_triple(src, &mosaic, 1);
+    let (rms_percent, mae, corr, rank_percent) = match mode {
+        EvalMode::BabelExact => {
+            let rms = fit_percent(src, &mosaic);
+            (rms, triple.mae, triple.corr, rms)
+        }
+        EvalMode::Photo { .. } => (
+            triple.rms_percent,
+            triple.mae,
+            triple.corr,
+            triple.rank_percent(),
+        ),
     };
     let flat = indices_to_flat(&indices, ab);
-    let hit = locate_mosaic_flat(&flat, alphabet_id, active_universe()).ok()?;
-    Some((percent, pack.label.to_string(), hit, flat, mosaic))
+    let locate = locate_mosaic_flat(&flat, alphabet_id, active_universe()).ok()?;
+    Some(PackEval {
+        rms_percent,
+        mae,
+        corr,
+        rank_percent,
+        label: pack.label.to_string(),
+        locate,
+        flat,
+        mosaic,
+    })
 }
 
 /// Per-pixel `|src − mosaic|` (alpha forced opaque). Exact babel decode → near black.
@@ -95,15 +131,19 @@ fn rgba_abs_diff(src: &[u8], mosaic: &[u8]) -> Vec<u8> {
     out
 }
 
-fn score_coarse_luma(
+fn score_coarse_photo(
     coarse_src: &[u8],
     cw: usize,
     ch: usize,
     ab: &[&str],
     space_idx: usize,
     pack: &CandidatePack,
+    palette_kind: PhotoPaletteKind,
 ) -> f64 {
-    let palette = build_photo_luma_palette(ab, pack.hue, pack.chroma, pack.light);
+    let palette = match palette_kind {
+        PhotoPaletteKind::Luma => build_photo_luma_palette(ab, pack.hue, pack.chroma, pack.light),
+        PhotoPaletteKind::Glyph => build_glyph_palette(ab, pack.hue, pack.chroma, pack.light),
+    };
     let (_ix, mosaic) = project_indices_sized(
         coarse_src,
         cw,
@@ -113,7 +153,7 @@ fn score_coarse_luma(
         pack.space_threshold,
         false,
     );
-    fit_perceptual_percent(coarse_src, &mosaic, 1)
+    rgb_fit_triple(coarse_src, &mosaic, 1).rank_percent()
 }
 
 fn by_percent_desc(a: f64, b: f64) -> Ordering {
@@ -121,10 +161,11 @@ fn by_percent_desc(a: f64, b: f64) -> Ordering {
 }
 
 struct JsonHit<'a> {
+    /// RMS fit % (display).
     percent: f64,
-    /// Mean abs RGB error 0..255 (babel exact only).
+    /// Mean abs RGB error 0..255.
     mae: f64,
-    /// Pearson RGB correlation (babel exact only).
+    /// Pearson RGB correlation.
     corr: f64,
     z: &'a num_bigint::BigInt,
     n: &'a num_bigint::BigInt,
@@ -170,11 +211,14 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
         let _ = write!(
             out,
             concat!(
-                "{{\"percent\":{:.2},\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
+                "{{\"percent\":{:.2},\"mae\":{:.3},\"corr\":{:.4},",
+                "\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
                 "\"page_span\":{},\"hue\":{:.3},\"chroma\":{:.4},\"light\":{:.4},",
                 "\"space_threshold\":{:.2},\"dither\":{},\"label\":{},\"alphabet\":{}}}"
             ),
             h.percent,
+            h.mae,
+            h.corr,
             h.z,
             h.n,
             h.book,
@@ -258,7 +302,12 @@ impl BabelLocateResult {
 }
 
 struct LocateHit {
+    /// Displayed RMS fit %.
     percent: f64,
+    mae: f64,
+    corr: f64,
+    /// Joint sort key (rms/mae/corr).
+    rank: f64,
     hue: f64,
     chroma: f64,
     light: f64,
@@ -273,32 +322,26 @@ struct LocateHit {
 }
 
 /// Coarse downsample sweep → keep top distinct packs (+ space variants).
-fn coarse_candidate_packs(
-    src_rgba: &[u8],
-    ab: &[&str],
-    hue: f64,
-    chroma: f64,
-    light: f64,
-    space: f64,
-    dither: bool,
-) -> Vec<CandidatePack> {
+fn coarse_candidate_packs(src_rgba: &[u8], opts: &MosaicOpts) -> Vec<CandidatePack> {
+    let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
     let (bw, bh) = book_grid_dims();
     let (coarse_src, cw, ch) = downsample_rgba(src_rgba, bw as usize, bh as usize, COARSE_FACTOR);
+    let palette_kind = opts.palette_kind;
 
     let mut coarse: Vec<(f64, CandidatePack)> =
         Vec::with_capacity(1 + COARSE_HUE_STEPS * COARSE_CHROMA.len() * COARSE_LIGHT.len());
     let mut push_coarse = |pack: CandidatePack| {
-        let pct = score_coarse_luma(&coarse_src, cw, ch, ab, space_idx, &pack);
+        let pct = score_coarse_photo(&coarse_src, cw, ch, ab, space_idx, &pack, palette_kind);
         coarse.push((pct, pack));
     };
 
     push_coarse(CandidatePack {
-        hue,
-        chroma,
-        light,
-        space_threshold: space,
-        dither,
+        hue: opts.hue,
+        chroma: opts.chroma,
+        light: opts.light,
+        space_threshold: opts.space_threshold,
+        dither: opts.dither,
         label: "current",
     });
     for step in 0..COARSE_HUE_STEPS {
@@ -309,8 +352,8 @@ fn coarse_candidate_packs(
                     hue: h,
                     chroma: c,
                     light: l,
-                    space_threshold: space,
-                    dither,
+                    space_threshold: opts.space_threshold,
+                    dither: opts.dither,
                     label: "coarse",
                 });
             }
@@ -337,61 +380,66 @@ fn coarse_candidate_packs(
         packs.push(pack);
     }
 
-    if let Some(best) = packs.first().cloned() {
-        for (space_mul, label) in [(0.6_f64, "space low"), (1.4_f64, "space high")] {
-            packs.push(CandidatePack {
-                space_threshold: (best.space_threshold * space_mul).clamp(0.0, 255.0),
-                label,
-                ..best
-            });
-        }
-    }
+    // No space-threshold variants — they change the mosaic→locate destination
+    // but the virgin book colour map ignores space, so they confuse book-fit ranking.
     packs
 }
 
 /// Full-res locate for coarse survivors; keep best pack per destination.
-fn fine_locate_hits(src: &[u8], alphabet_id: u32, packs: &[CandidatePack]) -> Vec<LocateHit> {
+fn fine_locate_hits(
+    src: &[u8],
+    alphabet_id: u32,
+    packs: &[CandidatePack],
+    palette_kind: PhotoPaletteKind,
+) -> Vec<LocateHit> {
+    let mode = EvalMode::Photo {
+        palette: palette_kind,
+    };
     let mut hits: Vec<LocateHit> = Vec::new();
     for pack in packs {
-        let Some((percent, label, res, _flat, _mosaic)) =
-            evaluate_pack(src, alphabet_id, pack, FitMode::PhotoPerceptual)
-        else {
+        let Some(ev) = evaluate_pack(src, alphabet_id, pack, mode) else {
             continue;
         };
-        let loc = &res.location;
+        let loc = &ev.locate.location;
         if let Some(existing) = hits
             .iter_mut()
             .find(|h| h.z == loc.z && h.n == loc.n && h.book == loc.book_index)
         {
-            if percent > existing.percent {
-                existing.percent = percent;
+            if ev.rank_percent > existing.rank {
+                existing.percent = ev.rms_percent;
+                existing.mae = ev.mae;
+                existing.corr = ev.corr;
+                existing.rank = ev.rank_percent;
                 existing.hue = pack.hue;
                 existing.chroma = pack.chroma;
                 existing.light = pack.light;
                 existing.space_threshold = pack.space_threshold;
                 existing.dither = pack.dither;
-                existing.label = label;
+                existing.label = ev.label;
                 existing.page = loc.page;
-                existing.page_span = res.page_span;
+                existing.page_span = ev.locate.page_span;
             }
             continue;
         }
         hits.push(LocateHit {
-            percent,
+            percent: ev.rms_percent,
+            mae: ev.mae,
+            corr: ev.corr,
+            rank: ev.rank_percent,
             hue: pack.hue,
             chroma: pack.chroma,
             light: pack.light,
             space_threshold: pack.space_threshold,
             dither: pack.dither,
-            label,
+            label: ev.label,
             z: loc.z.clone(),
             n: loc.n.clone(),
             book: loc.book_index,
             page: loc.page,
-            page_span: res.page_span,
+            page_span: ev.locate.page_span,
         });
     }
-    hits.sort_by(|a, b| by_percent_desc(a.percent, b.percent));
+    hits.sort_by(|a, b| by_percent_desc(a.rank, b.rank));
     hits.truncate(FINE_TOP);
     hits
 }
@@ -401,8 +449,8 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
         .iter()
         .map(|h| JsonHit {
             percent: h.percent,
-            mae: 0.0,
-            corr: 0.0,
+            mae: h.mae,
+            corr: h.corr,
             z: &h.z,
             n: &h.n,
             book: h.book,
@@ -452,53 +500,178 @@ pub fn mosaic_babel_json(
         dither: false,
         label: "babel exact",
     };
-    let Some((percent, label, res, flat, mosaic)) =
-        evaluate_pack(src_rgba, alphabet_id, &pack, FitMode::GlyphRgb)
-    else {
+    let Some(ev) = evaluate_pack(src_rgba, alphabet_id, &pack, EvalMode::BabelExact) else {
         return Err(JsValue::from_str("could not locate babel mosaic"));
     };
     let (width, height) = book_grid_dims();
-    let diff_pixels = rgba_abs_diff(src_rgba, &mosaic);
-    let mae = rgb_mean_abs_diff(src_rgba, &mosaic);
-    let corr = rgb_pearson_corr(src_rgba, &mosaic);
-    let loc = &res.location;
+    let diff_pixels = rgba_abs_diff(src_rgba, &ev.mosaic);
+    let mae = ev.mae;
+    let corr = ev.corr;
+    let loc = &ev.locate.location;
     let results_json = json_results(&[JsonHit {
-        percent,
+        percent: ev.rms_percent,
         mae,
         corr,
         z: &loc.z,
         n: &loc.n,
         book: loc.book_index,
         page: loc.page,
-        page_span: res.page_span,
+        page_span: ev.locate.page_span,
         hue,
         chroma,
         light,
         space_threshold: 0.0,
         dither: false,
-        label: &label,
+        label: &ev.label,
         alphabet_id,
         babel_exact: true,
     }]);
     Ok(BabelLocateResult {
         results_json,
-        flat,
-        reproject_pixels: mosaic,
+        flat: ev.flat,
+        reproject_pixels: ev.mosaic,
         diff_pixels,
         width,
         height,
     })
 }
 
-/// Top mosaic destinations for an uploaded book-grid image.
+/// Coarse palette packs only (no full-book locate) — cheap enough for one frame.
 ///
-/// Coarse downsample sweep over hue × chroma × light, then full-res locate for
-/// survivors. Scores use perceptual fit (luma + structure).
+/// `palette_kind`: `0` = luma ramp, `1` = glyph / letter colour map.
 ///
-/// Returns JSON `{ ok, results:[{ percent, z, n, book, page, page_span, hue, chroma, light,
-/// space_threshold, dither, label, alphabet }] }`.
+/// Returns `{ ok, packs:[{hue,chroma,light,space_threshold,dither,label}] }`.
 #[wasm_bindgen]
 #[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
+pub fn mosaic_candidate_packs_json(
+    src_rgba: &[u8],
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    space_threshold: f64,
+    dither: bool,
+    palette_kind: u32,
+) -> String {
+    if ensure_book_rgba(src_rgba).is_err() {
+        return ERR_BOOK_GRID.into();
+    }
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
+        hue,
+        chroma,
+        light,
+        space_threshold,
+        dither,
+        palette_kind,
+    );
+    let packs = coarse_candidate_packs(src_rgba, &opts);
+    let mut out = String::from(r#"{"ok":true,"packs":["#);
+    for (i, p) in packs.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        let _ = write!(
+            out,
+            concat!(
+                "{{\"hue\":{:.3},\"chroma\":{:.4},\"light\":{:.4},",
+                "\"space_threshold\":{:.2},\"dither\":{},\"label\":{}}}"
+            ),
+            p.hue,
+            p.chroma,
+            p.light,
+            p.space_threshold,
+            p.dither,
+            json_string_literal(p.label),
+        );
+    }
+    out.push_str("]}");
+    out
+}
+
+/// Full-res project + locate for one mosaic pack (call from JS with yields between).
+///
+/// `palette_kind`: `0` = luma ramp, `1` = glyph / letter colour map.
+///
+/// Returns `{ ok, results:[hit] }` or `{ ok:false, error }`.
+#[wasm_bindgen]
+#[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
+pub fn mosaic_candidate_eval_json(
+    src_rgba: &[u8],
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    space_threshold: f64,
+    dither: bool,
+    palette_kind: u32,
+    label: &str,
+) -> String {
+    if ensure_book_rgba(src_rgba).is_err() {
+        return ERR_BOOK_GRID.into();
+    }
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
+        hue,
+        chroma,
+        light,
+        space_threshold,
+        dither,
+        palette_kind,
+    );
+    let pack = CandidatePack {
+        hue: opts.hue,
+        chroma: opts.chroma,
+        light: opts.light,
+        space_threshold: opts.space_threshold,
+        dither: opts.dither,
+        label: "eval",
+    };
+    // Label is owned by the caller string — stash into LocateHit via evaluate.
+    let mode = EvalMode::Photo {
+        palette: opts.palette_kind,
+    };
+    let Some(mut ev) = evaluate_pack(src_rgba, opts.alphabet_id, &pack, mode) else {
+        return r#"{"ok":false,"error":"could not locate mosaic"}"#.into();
+    };
+    if !label.is_empty() {
+        ev.label = label.to_string();
+    }
+    let loc = &ev.locate.location;
+    let hit = LocateHit {
+        percent: ev.rms_percent,
+        mae: ev.mae,
+        corr: ev.corr,
+        rank: ev.rank_percent,
+        hue: pack.hue,
+        chroma: pack.chroma,
+        light: pack.light,
+        space_threshold: pack.space_threshold,
+        dither: pack.dither,
+        label: ev.label,
+        z: loc.z.clone(),
+        n: loc.n.clone(),
+        book: loc.book_index,
+        page: loc.page,
+        page_span: ev.locate.page_span,
+    };
+    hits_to_json(std::slice::from_ref(&hit), opts.alphabet_id)
+}
+
+/// Top mosaic destinations for an uploaded book-grid image (blocking; prefer chunked API).
+///
+/// Coarse downsample sweep over hue × chroma × light, then full-res locate for
+/// survivors. Scores use joint rms / mae / corr (photo↔alphabet mosaic).
+///
+/// `palette_kind`: `0` = luma ramp, `1` = glyph / letter colour map.
+///
+/// Returns JSON `{ ok, results:[{ percent, mae, corr, z, n, book, page, page_span, hue, chroma, light,
+/// space_threshold, dither, label, alphabet }] }` (`percent` is RMS fit %).
+#[wasm_bindgen]
+#[must_use]
+#[allow(clippy::too_many_arguments)] // flat wasm-bindgen ABI; packs into [`MosaicOpts`]
 pub fn mosaic_candidates_json(
     src_rgba: &[u8],
     alphabet_id: u32,
@@ -507,19 +680,21 @@ pub fn mosaic_candidates_json(
     light: f64,
     space_threshold: f64,
     dither: bool,
+    palette_kind: u32,
 ) -> String {
     if ensure_book_rgba(src_rgba).is_err() {
         return ERR_BOOK_GRID.into();
     }
-    let packs = coarse_candidate_packs(
-        src_rgba,
-        alphabet(alphabet_id),
+    let opts = MosaicOpts::from_wasm(
+        alphabet_id,
         hue,
         chroma,
         light,
-        space_threshold.clamp(0.0, 255.0),
+        space_threshold,
         dither,
+        palette_kind,
     );
-    let hits = fine_locate_hits(src_rgba, alphabet_id, &packs);
-    hits_to_json(&hits, alphabet_id)
+    let packs = coarse_candidate_packs(src_rgba, &opts);
+    let hits = fine_locate_hits(src_rgba, opts.alphabet_id, &packs, opts.palette_kind);
+    hits_to_json(&hits, opts.alphabet_id)
 }

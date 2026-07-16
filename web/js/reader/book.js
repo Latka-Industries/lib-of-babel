@@ -180,9 +180,10 @@ export function openBook(
         S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
     }
   }
+  // Show the dialog before spine title / page WASM so deep links feel instant.
   S.currentBook = {
     index: bookIndex,
-    title: title || titleForIndex(bookIndex) || `book ${bookIndex}`,
+    title: title || `book ${bookIndex}`,
     text,
     page,
     searchHighlight: highlight,
@@ -196,6 +197,13 @@ export function openBook(
   };
   el("bookTitle").textContent = S.currentBook.title;
   if (!el("bookModal").open) el("bookModal").showModal();
+  if (!title) {
+    const resolved = titleForIndex(bookIndex);
+    if (resolved) {
+      S.currentBook.title = resolved;
+      el("bookTitle").textContent = resolved;
+    }
+  }
   renderBookPage();
 }
 
@@ -398,8 +406,13 @@ export function openBookImage(
     searchHighlight ? searchPageSpan : 1,
     { imageRgba, imageW, imageH },
   );
-  renderBookImage();
+  // Shell first — virgin book_image can be slow at huge Basile coords.
   openModal("imageModal");
+  try {
+    renderBookImage();
+  } catch (err) {
+    console.error(err);
+  }
   syncUrl();
 }
 

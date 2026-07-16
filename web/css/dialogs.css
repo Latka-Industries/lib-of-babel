@@ -155,6 +155,12 @@
   align-self: center;
   cursor: default;
 }
+.mosaic-knob select {
+  width: 100%;
+  margin: 0;
+  font: inherit;
+  font-size: 0.85em;
+}
 .mosaic-knob.mosaic-check input[type="checkbox"] {
   justify-self: start;
   width: auto;

@@ -103,7 +103,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Das <span class="ui">Alphabet</span>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETE</button></li>
 <li>Klicken Sie auf einen farbigen Rücken an einer Wand, um ein Buch zu öffnen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BÜCHER</button></li>
 <li><span class="ui">Aktionen…</span> → <span class="ui">Link kopieren</span> (oder Fußzeilen-<span class="ui">Hash</span>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
-<li><span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> — <span class="ui">Text</span> oder <span class="ui">Babelgram</span>; hinspringen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SUCHE</button></li>
+<li><span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> — <span class="ui">Text</span>, <span class="ui">Foto</span> oder <span class="ui">Babelgram</span>; hinspringen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SUCHE</button></li>
 <li><span class="ui">Wanderungen</span> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <span class="ui">Reise exportieren</span> speichert den gesamten Weg als JSON.</li>
 </ul>`,
 
@@ -141,10 +141,20 @@ dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken u
 Tab <span class="ui">Babelgram</span>: gestempeltes PNG von <span class="ui">Speichern…</span> → <span class="ui">Buchbild</span>.
 <b>Gleiches Universum</b> wie der Export → genau <b>dieses Buch</b>.
 <b>Anderes Universum</b> → gleicher <b>Babelgram-Druck</b> an neuer Adresse,
-aber <b>anderer Buchinhalt</b>. <span class="ui">Dorthin</span> öffnet einen neuen Tab.
+aber <b>anderer Buchinhalt</b>. <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span>
+nutzen einen kurzen Handoff im selben Browser (Farbkarte ohne Neuaufbau).
 <span class="ui">Diff prüfen</span> wischt <b>Reprojektion</b> (Stempel-Akzent-Dekodierung)
 gegen <b>Diff</b> (|Upload − Reprojektion|) — bei exakter Dekodierung ist die Diff-Seite
-nahezu schwarz. (Beliebiges Foto→Mosaik ist vorübergehend aus.)
+nahezu schwarz.
+</p>
+<h4>nach Foto-Mosaik</h4>
+<p class="dim">
+Tab <span class="ui">Foto</span>: beliebiges Bild hochladen. Es wird auf das Ganzbuch-Farbgitter
+gestreckt, auf die <b>aktuelle Alphabet-Linse</b> projiziert — entweder die
+<b>Buchstaben-Farbkarte</b> (Babelgram-Stil) oder eine <b>Luma-Rampe</b> — und nach
+<b>rms % / mae / korr</b> gerankt. Treffer wählen —
+<span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> öffnen Buch + Farbkarte
+in einem neuen Tab über einen kurzen Handoff im selben Browser.
 </p>`,
 
   "about.more": `
@@ -169,9 +179,10 @@ beginnt in diesem Browser neu.
 <p class="dim">
 Die Bibliothek selbst wird nie heruntergeladen — nur Ihr <b>Weg</b>, die
 <span class="ui">Thema</span>-Einstellung und ein „Leitfaden gesehen“-Flag bleiben hier.
-Babelgram-<span class="ui">Dorthin</span> in ein anderes Universum kann den Druck kurz lokal in
-<b>diesem</b> Browser übergeben, damit der neue Tab ihn öffnet; <span class="ui">Link kopieren</span>
-bleibt nur die Adresse.
+Foto- / Babelgram-<span class="ui">Dorthin</span> und <span class="ui">Link kopieren</span> legen
+einen kurzlebigen Handoff in <b>diesem</b> Browser ab (Koordinaten + Farbkarte), damit der
+neue Tab ohne Neuaufbau des Ganzbuch-Bildes öffnet; Babelgram-Dorthin in ein anderes
+Universum kann zusätzlich den Druck übergeben.
 </p>
 <h4>Links teilen</h4>
 <p class="dim">
@@ -198,7 +209,10 @@ hält den Hash; nur die Regale schreiben sich um.
     "Dieser Link stammt aus einer älteren Bibliotheksversion. Wir können dieselbe Suchphrase unter dem aktuellen Generator platzieren (möglicherweise ein anderes Regal).",
   "legacy.gv.bodyRelocated":
     "Dieser Link stammt aus einer älteren Bibliotheksversion. Wir haben Ihre Suchphrase unter dem aktuellen Generator neu verortet — dieselben Worte, möglicherweise ein neues Regal.",
+  "legacy.gv.bodyJourney":
+    "In diesem Browser liegen noch Wanderungen von Generator v{old}. Raum-Hashes und Seitentext können von v{cur} abweichen. Weiter behält dieses Regal und startet eine neue Spur — oder lokale Daten löschen und neu laden.",
   "legacy.gv.continue": "Weiter",
+  "legacy.gv.wipe": "Lokale Daten löschen & neu laden",
   "legacy.gv.skipSession": "Diese Sitzung nicht mehr anzeigen",
 
   "search.head": "Suche",
@@ -206,13 +220,13 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.headTitle": "Suche nach Titel",
   "search.headMosaic": "Suche nach Farbmosaik",
   "search.metaText":
-    "Eine Phrase in der Bibliothek finden oder ein Babelgram-Buchbild öffnen.",
+    "Eine Phrase finden, ein Foto-Mosaik matchen oder ein Babelgram-Buchbild öffnen.",
   "search.metaContent":
     "Geben Sie eine Phrase ein — die Bibliothek findet, wo sie bereits existiert (mit Leerzeichen auf eine volle Seite aufgefüllt).",
   "search.metaTitle":
     "Geben Sie einen Rücken-Titel ein — die Bibliothek findet Galerie und Regal.",
   "search.metaMosaic":
-    "Bild hochladen, Mosaik einstellen, Buchtext erzeugen und in die Inhaltssuche einfügen.",
+    "Bild hochladen → Alphabet-Mosaik → Bücher nach rms / mae / korr ranken.",
   "search.tabsLabel": "Suchmodus",
   "search.tab.text": "Text",
   "search.tab.photo": "Foto",
@@ -223,7 +237,7 @@ hält den Hash; nur die Regale schreiben sich um.
     "Gleiches Universum → genau das Export-Buch. Anderes Universum → gleicher Babelgram-Druck, anderer Inhalt.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Laden Sie ein gestempeltes PNG von Speichern → Buchbild hoch (1:1-Gitter + lob:babel). Gleiches Universum wie der Export → genau dieses Buch. Anderes Universum → gleicher Babelgram-Druck an neuer Adresse, aber anderer Buchinhalt. Dorthin öffnet einen neuen Tab. Kopierter Link ist nur die Adresse (kein Druck-Handoff).",
+    "Laden Sie ein gestempeltes PNG von Speichern → Buchbild hoch (1:1-Gitter + lob:babel). Gleiches Universum wie der Export → genau dieses Buch. Anderes Universum → gleicher Babelgram-Druck an neuer Adresse, aber anderer Buchinhalt. Dorthin / Link kopieren nutzen einen kurzen Handoff im selben Browser (gecachte Farbkarte). Dorthin in ein anderes Universum übergibt den Druck zusätzlich lokal.",
   "search.babel.find": "Buch finden",
   "search.babel.progress": "Babelgram wird dekodiert…",
   "search.babel.upload": "Babelgram-PNG hochladen",
@@ -246,7 +260,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.babel.originNoteSame":
     "Gleiches Universum wie der Export — genau dieses Buch. Dorthin öffnet einen neuen Tab.",
   "search.babel.originNoteOther":
-    "Anderes Universum — gleicher Babelgram-Druck an neuer Adresse, anderer Buchinhalt. Dorthin öffnet einen neuen Tab mit diesem Druck. Kopierter Link ist nur die Adresse.",
+    "Anderes Universum — gleicher Babelgram-Druck an neuer Adresse, anderer Buchinhalt. Dorthin öffnet einen neuen Tab mit diesem Druck (lokaler Handoff). Link kopieren nutzt denselben kurzen Handoff im selben Browser.",
   "search.babel.resultsIntro":
     "Babelgram-Locate in {universe} (Seed {seed}) — exakte Akzent-Dekodierung:",
   "search.babel.resultsIntroSame":
@@ -296,17 +310,25 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.hintTitle":
     "nutzt die aktuelle Alphabet-Linse · bis {n} Rückentitel-Zellen",
   "search.hintMosaic":
-    "Ganzbuch-Farbgitter · aktuelle Regler → Glyphen-Text → in Inhaltssuche einfügen",
-  "search.mosaic.find": "Buchtext erzeugen",
-  "search.mosaic.searching": "schreibe…",
-  "search.mosaic.progress": "Glyphen projizieren…",
+    "Ganzbuch-Farbgitter · aktuelles Alphabet → Mosaik → Top-Treffer nach rms / mae / korr",
+  "search.mosaic.find": "Treffer finden",
+  "search.mosaic.searching": "suche…",
+  "search.mosaic.progress": "Mosaike projizieren + ranken…",
+  "search.mosaic.progressPacks": "Paletten-Packs scannen…",
+  "search.mosaic.progressLocate": "Pack {i} / {n} lokalisieren…",
+  "search.mosaic.progressScore": "Buchkarte {i} / {n} bewerten…",
   "search.mosaic.upload": "Bild hochladen",
   "search.mosaic.honesty":
-    "Bildhelligkeit wird auf eine Luma-Rampe des aktuellen Alphabets gelegt; danach Buchtext — in die Inhaltssuche einfügen.",
+    "Bild auf das aktuelle Alphabet-Mosaik legen (Buchstabenfarben oder Luma-Rampe), dann Ziele nach rms % (~100), mae (~0) und korr (~1) ranken. Dorthin / Link kopieren öffnen Buch + Farbkarte in einem neuen Tab über einen kurzen Handoff im selben Browser (gecachte Karte — kein Neuaufbau beim Öffnen).",
   "search.mosaic.bookTextIntro":
     "Buchtext ({n} Zeichen). Kopieren, oder in die Inhaltssuche legen und Finden.",
   "search.mosaic.toSearch": "in Inhaltssuche legen",
   "search.mosaic.noText": "Buchtext aus diesem Bild nicht erzeugbar",
+  "search.mosaic.noHits": "keine Mosaik-Treffer für dieses Bild",
+  "search.mosaic.resultsIntro":
+    "Top {n} Alphabet-Mosaik-Treffer (sortiert nach rms / mae / korr):",
+  "search.mosaic.resultsIntroBest": "Bester Mosaik-Treffer:",
+  "search.mosaic.thumbAlt": "Buch-Farbkarte am Treffer",
   "search.mosaic.original": "Original (Buchgitter)",
   "search.mosaic.preview": "Mosaik-Vorschau",
   "search.mosaic.fitPct": "Passung {n}%",
@@ -315,6 +337,11 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.mosaic.gridHint":
     "Jedes Bild wird auf das Ganzbuch-Farbgitter ({w}×{h}) gestreckt.",
   "search.mosaic.badImage": "Bild konnte nicht gelesen werden",
+  "search.mosaic.palette": "Palette",
+  "search.mosaic.palette.glyph": "Buchstaben",
+  "search.mosaic.palette.luma": "Luma-Rampe",
+  "search.mosaic.tip.palette":
+    "Buchstaben = Babelgram-Glyphenfarben. Luma-Rampe = Helligkeitsleiter (strukturtreu).",
   "search.mosaic.dither": "Dither",
   "search.mosaic.brightness": "Helligkeit",
   "search.mosaic.contrast": "Kontrast",

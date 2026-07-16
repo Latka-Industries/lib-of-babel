@@ -28,9 +28,9 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | Room: compact `(z, n)` (`c…` base64url when huge) + optional `u` / `a` / `book` / `page` / `img=1` / `gv`. Search shares: short `#q=&find=content\|title` (re-locate on boot). Babelgram handoff: `&be=` (IndexedDB; not shareable). |
+| **Permalinks** | Room: compact `(z, n)` (`c…` base64url when huge) + optional `u` / `a` / `book` / `page` / `img=1` / `gv`. Search shares: short `#q=&find=content\|title` (re-locate on boot). Mosaic / Babelgram go+copy: short `&bo=` (IndexedDB coords + optional RGBA; same-browser). Other-universe Babelgram print: `&be=` (IndexedDB). |
 | **Stack** | Rust → WASM core + static web frontend. |
-| **Persistence** | IndexedDB trail (+ brief Babelgram print handoffs); JSON export of path + per-node hashes. |
+| **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
 
 ## The generation chain (never store text)
 
@@ -56,10 +56,9 @@ a million steps ~50 MB. Text is never stored.
 
 ## Search (`generator_version` 9)
 
-**actions… → search…** — **text** (content / title) or **Babelgram** (stamped book-image
-PNG), under the active alphabet and universe. Arbitrary **photo → mosaic** is implemented
-in core (`src/mosaic/`) but the UI tab is gated off (`PHOTO_SEARCH_TAB_ENABLED` in
-`web/js/reader/search.js`) until the luma path feels right.
+**actions… → search…** — **text** (content / title), **photo** (alphabet mosaic ranked
+by rms / mae / corr), or **Babelgram** (stamped book-image PNG), under the active
+alphabet and universe.
 
 **Content (true Basile):** pad the phrase into a full page (deterministic offset + filler)
 → invert the page integer (`content × I mod |Σ|^3200`) → virgin page at those coords
@@ -74,14 +73,22 @@ jump and open at page 1.
 
 **Babelgram:** stamped PNG from save → book image (exact colour grid, `tEXt lob:babel`
 plus optional universe name). Exact accent decode reports **rms % / mae / corr** (and a
-diff thumb). Locate inverts virgin page 0 of the projected flat. **go there** opens a
-new tab; other-universe print handoff is same-browser IndexedDB (`&be=`). **copy link** is
-address-only (`&img=1`, no print payload).
+diff thumb). Locate inverts virgin page 0 of the projected flat. **go there** / **copy link**
+use a short same-browser `&bo=` handoff (coords + cached RGBA in IndexedDB so open skips
+virgin `book_image`). Other-universe **go there** also stashes the print flat under `&be=`.
+
+**Photo mosaic:** stretch any image to the full-book colour grid → project onto the
+active alphabet (**letter** colours or **luma ramp**) → coarse pack sweep → locate →
+re-rank the virgin book colour map vs upload by **rms / mae / corr**. **go there** /
+**copy link** use the same `&bo=` handoff and cache the scored book RGBA (skip regenerating
+`book_image` on open). Cold virgin maps still pay full generation — see THI-144 for worker
+parallelization. Live knobs use a downsampled preview; Find runs the full search.
 
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text
 title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)         ──virgin──▶  spine
 babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)
+photo:    image   ──mosaic packs──▶  flat  ──locate──▶  (z, n, book)  ──re-rank──▶  best fit
 ```
 
 Page generation is the reverse of search: `content = (addr × C) mod |Σ|^3200`.
