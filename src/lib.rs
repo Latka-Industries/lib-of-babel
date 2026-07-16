@@ -38,7 +38,7 @@ pub use mosaic::{
 pub use page::{PageAddr, PageRender, book_text, page_symbols, page_text};
 pub use search::{
     LocateError, LocateResult, PageLocation, TitleLocateResult, locate_page, locate_title,
-    search_offset, search_page_segment, search_page_span, text_to_symbols,
+    search_offset, search_page_segment, search_page_span, spine_title_at, text_to_symbols,
 };
 pub use wasm_api::*;
 

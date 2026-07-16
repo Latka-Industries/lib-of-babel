@@ -62,8 +62,18 @@ pub fn gallery_titles(
     title_embed: Option<&str>,
 ) -> Vec<String> {
     let _ = title_embed; // highlight is UI-side; spines are always virgin Basile titles
-    (0..BOOKS_PER_GALLERY)
-        .map(|i| crate::search::spine_title_at(z, n, i, alphabet_id, universe_seed))
+    let ab = crate::config::alphabet(alphabet_id);
+    let alpha_len = ab.len() as u32;
+    let rows =
+        crate::basile::title_symbols_for_gallery(z, n, universe_seed, alphabet_id, alpha_len);
+    rows.into_iter()
+        .map(|syms| {
+            let mut out = String::with_capacity(crate::config::TITLE_LEN * 4);
+            for &s in &syms {
+                out.push_str(ab[s as usize]);
+            }
+            out.trim().to_string()
+        })
         .collect()
 }
 
