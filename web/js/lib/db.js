@@ -31,3 +31,15 @@ export async function kvSet(key, val) {
     tx.onerror = () => reject(tx.error);
   });
 }
+
+export async function kvDel(key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db
+      .transaction(STORE, "readwrite")
+      .objectStore(STORE)
+      .delete(key);
+    tx.onsuccess = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}

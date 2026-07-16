@@ -10,7 +10,7 @@ export const BOOKS_PER_SHELF = 35;
 export const TOTAL_BOOKS = WALLS * SHELVES_PER_WALL * BOOKS_PER_SHELF; // 700
 
 /** Wanderings popup: last N trail steps. Full trail is unbounded (IndexedDB). */
-export const WINDOW_MAX = 500;
+export const WINDOW_MAX = 1000;
 export const PAGES_PER_BOOK = 410;
 export const LINES_PER_PAGE = 40;
 export const CHARS_PER_LINE = 80;
@@ -26,7 +26,15 @@ export const I64_MAX = 9223372036854775807n;
 export const DB_NAME = "lib-of-babel";
 export const STORE = "kv";
 
-export const MOVE_ARROW = { 0: "◁", 1: "▷", 2: "▲", 3: "▼", null: "•", jump: "⤳" };
+export const MOVE_ARROW = {
+  0: "◁",
+  1: "▷",
+  2: "▲",
+  3: "▼",
+  null: "•",
+  jump: "⤳",
+  universe: "◇", // same coords, different library
+};
 
 /**
  * UI metadata for built-in lenses. Glyph cells: `alphabetCells(id)` → WASM.

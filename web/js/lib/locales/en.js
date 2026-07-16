@@ -43,7 +43,6 @@ export const en = {
   "common.close": "close",
   "common.go": "go",
   "common.link": "link",
-  "common.you": "you",
   "common.copied": "copied!",
 
   "about.subtitle": "a walkable Library of Babel",
@@ -51,6 +50,7 @@ export const en = {
   "about.tab.alphabets": "alphabets",
   "about.tab.wander": "wander",
   "about.tab.books": "books",
+  "about.tab.search": "search",
   "about.tab.more": "more",
   "about.tabsLabel": "About sections",
   "about.alphabets.h": "Alphabet lenses",
@@ -91,15 +91,16 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <h4>How to wander</h4>
 <ul>
 <li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd>, or <kbd>?</kbd> open this guide anytime.</li>
-<li>The header <b>theme</b> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
+<li>The header <span class="ui">theme</span> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
 <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
-<li>Click <b>gallery&nbsp;(z,&nbsp;n)</b> to <b>jump</b> anywhere on the lattice.</li>
+<li>Click <span class="ui">gallery&nbsp;(z,&nbsp;n)</span> to jump anywhere on the lattice.</li>
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
-<li>Type a <b>universe</b> name or roll <b>&#9860;</b> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
-<li>The <b>alphabet</b> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.</li>
-<li><b>actions…</b> → <b>copy link</b> (or click the footer <b>hash</b>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
-<li><b>actions…</b> → <b>search…</b> — <b>text</b> or <b>Babelgram</b>; jump there (see <b>more</b> tab).</li>
-<li><b>wanderings</b> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <b>export journey</b> saves the full path as JSON.</li>
+<li>Type a <span class="ui">universe</span> name or roll <span class="ui">&#9860;</span> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
+<li>The <span class="ui">alphabet</span> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETS</button></li>
+<li>Click any colored spine on a wall to open a book.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOOKS</button></li>
+<li><span class="ui">actions…</span> → <span class="ui">copy link</span> (or click the footer <span class="ui">hash</span>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
+<li><span class="ui">actions…</span> → <span class="ui">search…</span> — <span class="ui">text</span> or <span class="ui">Babelgram</span>; jump there.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SEARCH</button></li>
+<li><span class="ui">wanderings</span> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <span class="ui">export journey</span> saves the full path as JSON.</li>
 </ul>`,
 
   "about.books": `
@@ -107,47 +108,70 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <ul>
 <li>Click any colored spine to open it; <kbd>←</kbd> <kbd>→</kbd> turn pages while the reader is open.</li>
 <li>The spine you last closed is outlined in <b>red</b> so you can find it again on this shelf.</li>
-<li><b>color</b> redraws the page as a character-colour map — each symbol a square, tinted by the gallery hash.</li>
-<li><b>link</b> copies a permalink to this book at the current page.</li>
-<li><b>save…</b> → <b>borrow book</b> — full text export (~1.3&nbsp;MB .txt)</li>
-<li><b>save…</b> → <b>book image</b> — whole book as a PNG colour map</li>
+<li><span class="ui">color</span> redraws the page as a character-colour map — each symbol a square, tinted by the gallery hash.</li>
+<li><span class="ui">link</span> copies a permalink to this book at the current page.</li>
+<li><span class="ui">save…</span> → <span class="ui">borrow book</span> — full text export (~1.3&nbsp;MB .txt)</li>
+<li><span class="ui">save…</span> → <span class="ui">book image</span> — whole book as a PNG colour map</li>
 </ul>`,
 
-  "about.more": `
-<h4>The numbers in the footer</h4>
+  "about.search": `
+<h4>by content</h4>
 <p class="dim">
-<b>gallery (z, n)</b> is your coordinate. <b>hash</b> is the room's
-<b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
-universe. It does <b>not</b> change when you switch alphabet; the lens only
-rewrites what the shelves say. <b>Wanderings</b> keeps your last
-{max} steps (universe + alphabet lens frozen per visit);
-every step's room hash lives in the full trail. <b>actions…</b> also
-offers <b>verify journey</b> and <b>new walk</b>.
-</p>
-<h4>Search by content</h4>
-<p class="dim">
-In <b>actions…</b> → <b>search…</b>, stay on the <b>text</b> tab with
-<b>content</b>. Paste any phrase (up to one full book — ~1.3&nbsp;million
+In <span class="ui">actions…</span> → <span class="ui">search…</span>, stay on the <span class="ui">text</span> tab with
+<span class="ui">content</span>. Paste any phrase (up to one full book — ~1.3&nbsp;million
 characters) and the library returns the gallery, shelf, book, and page(s) where
 it already lives — then opens it. Long phrases span consecutive pages in the
 same volume. Search uses the <b>current alphabet lens</b> and stays in the
 universe you are standing in. Invalid characters are highlighted in red.
 </p>
-<h4>Search by title</h4>
+<h4>by title</h4>
 <p class="dim">
-Same <b>text</b> tab — choose <b>title</b> instead of <b>content</b>. Enter up to
+Same <span class="ui">text</span> tab — choose <span class="ui">title</span> instead of <span class="ui">content</span>. Enter up to
 <b>24 characters</b> (active lens rules). That string is treated as a
 <b>spine label</b>: the library jumps to the gallery and shelf where that
 title sits under the current alphabet, shows it on that book’s spine, and
 opens page&nbsp;1.
 </p>
-<h4>Search by Babelgram</h4>
+<h4>by Babelgram</h4>
 <p class="dim">
-<b>Babelgram</b> tab: upload a stamped PNG from <b>save… → book image</b>
-(exact colour grid, <code>lob:babel</code> stamp) → decode/locate →
-<b>go there</b> / copy a short book-image link. Same universe returns to the
-export; another universe is projective. (Arbitrary photo→mosaic is temporarily
-off.)
+<span class="ui">Babelgram</span> tab: upload a stamped PNG from <span class="ui">save…</span> → <span class="ui">book image</span>.
+<b>Same universe</b> as the export → find that <b>exact book</b>.
+<b>Other universe</b> → same <b>Babelgram print</b> at a new address, but
+<b>different book contents</b>. <span class="ui">go there</span> opens a new tab.
+(Arbitrary photo→mosaic is temporarily off.)
+</p>`,
+
+  "about.more": `
+<h4>The numbers in the footer</h4>
+<p class="dim">
+<span class="ui">gallery (z, n)</span> is your coordinate. <span class="ui">hash</span> is the room's
+<b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
+universe. It does <b>not</b> change when you switch alphabet; the lens only
+rewrites what the shelves say. <span class="ui">wanderings</span> keeps your last
+{max} steps (universe + alphabet lens frozen per visit) — including
+<span class="ui">universe</span> switches at the same gallery (◇), with no hallway move;
+every step's room hash lives in the full trail.
+</p>
+<h4>Journey export &amp; verify</h4>
+<p class="dim">
+<span class="ui">actions…</span> → <span class="ui">export journey</span> downloads your full path as JSON
+(rooms, hashes, universes, lenses). <span class="ui">verify journey</span> re-walks an exported
+file and proves each step still matches. <span class="ui">new walk</span> clears the trail and
+starts fresh in this browser.
+</p>
+<h4>What stays in this browser</h4>
+<p class="dim">
+The Library itself is never downloaded — only your <b>path</b>, <span class="ui">theme</span>
+preference, and a “seen the guide” flag live here. Babelgram <span class="ui">go there</span> to another
+universe may hand the print through short-lived local storage in <b>this</b>
+browser so the new tab can open it; <span class="ui">copy link</span> stays address-only.
+</p>
+<h4>Sharing links</h4>
+<p class="dim">
+A permalink encodes gallery <b>(z,&nbsp;n)</b>, room <b>hash</b>, alphabet
+<code>&amp;a=</code>, optional universe <code>&amp;u=</code>, and sometimes book
+page or a search phrase. Same address → same room forever. Changing the lens
+keeps the hash; only the shelves rewrite.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -177,11 +201,10 @@ off.)
   "search.tab.image": "photo",
   "search.headBabel": "search by Babelgram",
   "search.metaBabel":
-    "Upload a stamped PNG from save → book image (exact grid). Decode → locate → open that book’s colour map.",
-  "search.hintBabel":
-    "stamped Babelgram PNG only · 1:1 · same universe → export gallery · other universe → projective locate",
+    "Same universe → exact export book. Other universe → same Babelgram print, different contents.",
+  "search.hintBabel": "",
   "search.babel.honesty":
-    "Needs a PNG from save → book image (provenance chunk). Pixels stay 1:1. Same universe as the export → return to that gallery and book. A different universe projects the cells to a new address (~100% decode either way).",
+    "Upload a stamped PNG from save → book image (1:1 grid + lob:babel stamp). Same universe as the export → that exact book. Other universe → same Babelgram print at a new address, but different book contents. go there opens a new tab. Copy link is address-only (no print handoff).",
   "search.babel.find": "find book",
   "search.babel.progress": "decoding Babelgram…",
   "search.babel.upload": "upload Babelgram PNG",
@@ -193,7 +216,7 @@ off.)
     "Wrong size ({sw}×{sh}). Babelgrams must be exactly {w}×{h} — re-export from save → book image.",
   "search.babel.needExact": "upload an exact {w}×{h} Babelgram PNG first",
   "search.babel.notBabel":
-    "Not a Babelgram book-image PNG (missing lob:babel stamp). Re-export from save → book image.",
+    "Not a Babelgram book-image PNG. Re-export from save → book image.",
   "search.babel.nameMismatch":
     "filename coords do not match the PNG stamp",
   "search.babel.originLine":
@@ -202,15 +225,37 @@ off.)
   "search.babel.originNote":
     "Locate destination differs from export origin by design (same cells → new coords; other universe → other coords).",
   "search.babel.originNoteSame":
-    "Same universe as the export — go opens the stamped gallery and book.",
+    "Same universe as the export — this is the exact book. go there opens it in a new tab.",
   "search.babel.originNoteOther":
-    "You are in a different universe than the export — cells are located projectively here (destination ≠ stamp origin).",
+    "Other universe — same Babelgram print at a new address, different book contents. go there opens a new tab with that print. Copy link is address-only.",
   "search.babel.resultsIntro":
     "Babelgram locate in {universe} (seed {seed}) — exact accent decode:",
   "search.babel.resultsIntroSame":
-    "Babelgram round-trip in {universe} (seed {seed}) — return to export:",
+    "Exact book in {universe} (seed {seed}) — same universe as the export:",
   "search.babel.resultsIntroOther":
-    "Babelgram locate in {universe} (seed {seed}) — projective (export was another universe):",
+    "Same Babelgram print in {universe} (seed {seed}):",
+  "search.babel.thumbAlt": "uploaded Babelgram",
+  "search.babel.diffAlt": "decode difference (|upload − reproject|)",
+  "search.babel.exactOk": "exact decode",
+  "search.babel.seal": "content seal {seal}",
+  "search.babel.diffCaption": "diff",
+  "search.babel.metric.rms": "rms {n}%",
+  "search.babel.metric.mae": "mae {n}",
+  "search.babel.metric.corr": "corr {n}",
+  "search.babel.tip.rms":
+    "Root-mean-square RGB fit of upload vs stamp-accent reproject. fit% = 100 × (1 − √(mean((ΔR²+ΔG²+ΔB²)/3) / 255²)). Ideal ≈ 100%.",
+  "search.babel.tip.mae":
+    "Mean absolute RGB error: mean((|ΔR|+|ΔG|+|ΔB|)/3) on a 0–255 scale. Ideal ≈ 0.",
+  "search.babel.tip.corr":
+    "Pearson correlation of paired RGB samples between upload and reproject. Ideal ≈ 1.",
+  "search.babel.tip.diff":
+    "Pixelwise |upload − reproject| under the stamp accent. Ideal: near-black (all zeros).",
+  "search.babel.tip.seal":
+    "Short SHA-256 of the decoded book text. Same print ⇒ same seal in every universe.",
+  "search.babel.tip.exactOk":
+    "Decode looks exact: rms ≥ 99.9%, mae < 0.5, and corr ≥ 0.999.",
+  "search.babel.confirmHint":
+    "Pics are noisy — trust rms % (~100), mae (~0), corr (~1), black diff, and content seal.",
   "search.label": "search",
   "search.kindTitle": "search spine titles or page content",
   "search.kindContent": "content",
