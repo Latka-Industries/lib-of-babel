@@ -38,6 +38,7 @@ import {
   renderBookImage,
   saveBookImage,
   clearBookSearchHighlight,
+  warmPageGenerator,
 } from "../reader/book.js";
 import {
   syncSearchInput,
@@ -285,6 +286,10 @@ export function wireControls() {
     persist();
     render();
     reopenCurrentBook(reopenHighlight);
+    // Basile C/I/N is per-alphabet; warm off the UI thread so the first open is snappy.
+    const warm = () => warmPageGenerator();
+    if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 800 });
+    else setTimeout(warm, 0);
   }
 
   // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.

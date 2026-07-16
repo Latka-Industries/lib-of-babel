@@ -286,7 +286,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.kindTitle": "Rücken-Titel oder Seiteninhalt suchen",
   "search.kindContent": "Inhalt",
   "search.kindTitleOpt": "Titel",
-  "search.placeholderContent": "Verzeihen Sie mir, denn ich habe gesündigt",
+  "search.placeholderContent": "ein reittier nie",
   "search.placeholderTitle": "Karmesinrücken",
   "search.find": "Finden",
   "search.count": "{n} / {max}",

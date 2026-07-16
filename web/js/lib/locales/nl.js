@@ -281,7 +281,7 @@ de hash; alleen de planken herschrijven zich.
   "search.kindTitle": "zoek rugtitels of pagina-inhoud",
   "search.kindContent": "inhoud",
   "search.kindTitleOpt": "titel",
-  "search.placeholderContent": "vergeef me want ik heb gezondigd",
+  "search.placeholderContent": "een meetsysteem nee",
   "search.placeholderTitle": "karmozijnen rug",
   "search.find": "vinden",
   "search.count": "{n} / {max}",

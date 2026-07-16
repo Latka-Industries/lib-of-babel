@@ -526,7 +526,7 @@ mod tests {
 
     #[test]
     fn locate_is_deterministic() {
-        let phrase = "forgive me for i have sinned";
+        let phrase = "sit on a pan otis";
         let a = locate_page(phrase, 29, 0).expect("locate");
         let b = locate_page(phrase, 29, 0).expect("locate");
         assert_eq!(a, b);

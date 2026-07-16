@@ -142,6 +142,15 @@ function pageTextForBook(bookIndex, pageIndex, searchQuery = "", searchStartPage
   );
 }
 
+/** Prime Basile scramble params for the active lens (first page is otherwise ~0.5s). */
+export function warmPageGenerator() {
+  try {
+    page_text_for(String(S.z), String(S.n), 0, 0, S.alphabetId, "", -1);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function openBook(
   bookIndex,
   title,
@@ -160,11 +169,9 @@ export function openBook(
       ? raw
       : flattenSearchQuery(raw, S.alphabetId)
     : null;
-  // Skip full-book flatten on search opens — Basile rooms can be huge BigInts;
-  // page_text_for is enough for the reader; borrow generates on demand.
-  const text = highlight
-    ? ""
-    : book_text_for(String(S.z), String(S.n), bookIndex, S.alphabetId);
+  // Never preload 410 Basile pages — page_text_for is enough for the reader;
+  // borrow / save generate the full flat on demand (cost scales with |Σ|).
+  const text = "";
   if (viewMode === "color" || viewMode === "text") {
     S.viewMode = viewMode;
     const toggle = el("viewToggle");
