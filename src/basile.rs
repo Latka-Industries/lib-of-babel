@@ -74,20 +74,20 @@ fn unzigzag(u: &BigUint) -> BigInt {
 }
 
 fn pair_gallery(z: &BigInt, n: &BigInt) -> BigUint {
-    let a = zigzag(z);
-    let b = zigzag(n);
-    let s = &a + &b;
-    (&s * (&s + BigUint::one())) / BigUint::from(2u32) + b
+    let zz = zigzag(z);
+    let nn = zigzag(n);
+    let sum = &zz + &nn;
+    (&sum * (&sum + BigUint::one())) / BigUint::from(2u32) + nn
 }
 
 fn unpair_gallery(idx: &BigUint) -> (BigInt, BigInt) {
     let disc = BigUint::from(8u32) * idx + BigUint::one();
-    let sqrt = disc.sqrt();
-    let w = (sqrt - BigUint::one()) / BigUint::from(2u32);
-    let t = (&w * (&w + BigUint::one())) / BigUint::from(2u32);
-    let b = idx - &t;
-    let a = &w - &b;
-    (unzigzag(&a), unzigzag(&b))
+    let root = disc.sqrt();
+    let triangle = (root - BigUint::one()) / BigUint::from(2u32);
+    let base = (&triangle * (&triangle + BigUint::one())) / BigUint::from(2u32);
+    let nn = idx - &base;
+    let zz = &triangle - &nn;
+    (unzigzag(&zz), unzigzag(&nn))
 }
 
 fn u64_from_big(x: &BigUint) -> u64 {
@@ -228,7 +228,7 @@ pub fn int_to_digits(mut n: BigUint, alpha_len: u32, len: usize) -> Vec<u16> {
     } else {
         let base = BigUint::from(alpha_len);
         let mut out = vec![0u16; len];
-        for slot in out.iter_mut() {
+        for slot in &mut out {
             if n.is_zero() {
                 break;
             }
