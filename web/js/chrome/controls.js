@@ -37,6 +37,7 @@ import {
   downloadBook,
   renderBookImage,
   saveBookImage,
+  clearBookSearchHighlight,
 } from "../reader/book.js";
 import {
   syncSearchInput,
@@ -269,7 +270,7 @@ export function wireControls() {
       showVerify({ ok: false, reason: "that file isn't valid JSON" });
       return;
     }
-    showVerify(verifyJourney(journey), file.name);
+    showVerify(verifyJourney(journey), file.name, journey);
   });
   el("hash").addEventListener("click", (ev) =>
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
@@ -337,6 +338,9 @@ export function wireControls() {
     ev.currentTarget.textContent =
       S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
     renderBookPage();
+  });
+  el("clearBookSearch")?.addEventListener("click", () => {
+    clearBookSearchHighlight();
   });
   el("saveImage").addEventListener("click", saveBookImage);
   wireEnter("pageJump", jumpPage);

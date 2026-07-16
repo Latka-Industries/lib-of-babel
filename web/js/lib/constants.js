@@ -19,7 +19,8 @@ export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newl
 export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK; // one full book
 export const TITLE_LEN = 24; // spine title length (mirror src/config/)
 
-// i64 bounds, so big coordinate jumps stay in the lattice the WASM core accepts.
+// Legacy i64 bounds (Feistel-era UI clamp). Random walks still use a friendly
+// range; Basile search jumps use unbounded BigInt and must not clamp to these.
 export const I64_MIN = -9223372036854775808n;
 export const I64_MAX = 9223372036854775807n;
 

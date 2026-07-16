@@ -2,7 +2,14 @@
 // taking it home (full text, or the whole-book colour image from WASM).
 
 import { S } from "../gallery/state.js";
-import { el, escapeHtml, downloadBlob, openModal } from "../lib/util.js";
+import {
+  el,
+  escapeHtml,
+  downloadBlob,
+  openModal,
+  formatCoordDisplay,
+  formatCoordFull,
+} from "../lib/util.js";
 import { buildAlphabetPalette, SPACE_CELL_HEX } from "../lib/color.js";
 import {
   flattenSearchQuery,
@@ -32,7 +39,6 @@ import {
 } from "../lib/wasm.js";
 import { babelExportFilename, injectBabelChunk } from "../lib/png-babel.js";
 import { titleEmbedFlat } from "./search.js";
-
 
 // the page's characters rewrapped into the near-square divisor pair (64×50) so
 // the colour map reads as a block rather than a 2:1 sliver. Looks like colour
@@ -103,16 +109,22 @@ function renderBookCanvas(pageText, highlightStart = -1, highlightLen = 0) {
       k >= highlightStart &&
       k < highlightStart + highlightLen
     ) {
-      ctx.strokeStyle = "rgba(201, 162, 39, 0.95)";
+      ctx.fillStyle = "rgba(201, 162, 39, 0.45)";
+      ctx.fillRect(x, y, cellPx, cellPx);
+      ctx.strokeStyle = "rgba(201, 162, 39, 1)";
       ctx.lineWidth = 2;
-      ctx.strokeRect(x + 1, y + 1, cellPx - 2, cellPx - 2);
+      ctx.strokeRect(x + 0.5, y + 0.5, cellPx - 1, cellPx - 1);
     }
   }
 }
 
 function titleForIndex(i) {
   try {
-    return JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()))[i] || null;
+    return (
+      JSON.parse(
+        gallery_titles_json(String(S.z), String(S.n), S.alphabetId, titleEmbedFlat()),
+      )[i] || null
+    );
   } catch {
     return null;
   }
@@ -120,8 +132,8 @@ function titleForIndex(i) {
 
 function pageTextForBook(bookIndex, pageIndex, searchQuery = "", searchStartPage = -1) {
   return page_text_for(
-    S.z,
-    S.n,
+    String(S.z),
+    String(S.n),
     bookIndex,
     pageIndex,
     S.alphabetId,
@@ -148,9 +160,11 @@ export function openBook(
       ? raw
       : flattenSearchQuery(raw, S.alphabetId)
     : null;
-  const text = longEmbed
+  // Skip full-book flatten on search opens — Basile rooms can be huge BigInts;
+  // page_text_for is enough for the reader; borrow generates on demand.
+  const text = highlight
     ? ""
-    : book_text_for(S.z, S.n, bookIndex, S.alphabetId);
+    : book_text_for(String(S.z), String(S.n), bookIndex, S.alphabetId);
   if (viewMode === "color" || viewMode === "text") {
     S.viewMode = viewMode;
     const toggle = el("viewToggle");
@@ -196,6 +210,17 @@ export function reopenCurrentBook(highlightMode = "clear") {
   openBook(b.index, null, b.page + 1, highlight, span);
 }
 
+/**
+ * Drop search highlight / `&q=` while keeping the same virgin page open.
+ */
+export function clearBookSearchHighlight() {
+  if (!S.currentBook?.searchHighlight) return;
+  S.currentBook.searchHighlight = null;
+  S.currentBook.searchStartPage = null;
+  S.currentBook.searchPageSpan = null;
+  renderBookPage();
+}
+
 export function renderBookPage() {
   if (!S.currentBook) return;
   const p = S.currentBook.page;
@@ -209,13 +234,20 @@ export function renderBookPage() {
     ? search_page_embed_for(S.currentBook.searchHighlight, S.alphabetId, pageInSpan) || null
     : null;
 
-  el("bookMeta").textContent =
-    `gallery (${S.z}, ${S.n}) · shelf index ${S.currentBook.index}` +
+  const meta = el("bookMeta");
+  meta.textContent =
+    `gallery ${formatCoordDisplay(S.z, S.n)} · shelf index ${S.currentBook.index}` +
     (onSearchPage
       ? S.currentBook.searchPageSpan > 1
         ? ` · search match (${S.currentBook.searchStartPage + 1}–${S.currentBook.searchStartPage + S.currentBook.searchPageSpan})`
         : " · search match"
       : "");
+  meta.title = `gallery ${formatCoordFull(S.z, S.n)}`;
+  const clearBtn = el("clearBookSearch");
+  if (clearBtn) {
+    const hasSearch = S.currentBook.searchHighlight != null;
+    clearBtn.hidden = !hasSearch;
+  }
   el("pageInd").textContent = t("book.pageInd", {
     page: p + 1,
     total: PAGES_PER_BOOK,
@@ -296,7 +328,10 @@ export function downloadBook() {
       .replace(/^-+|-+$/g, "")
       .slice(0, 40) || "book";
   const name = `babel-${S.z}_${S.n}-shelf${S.currentBook.index}-${safe}.txt`;
-  downloadBlob(new Blob([S.currentBook.text], { type: "text/plain;charset=utf-8" }), name);
+  const body =
+    S.currentBook.text ||
+    book_text_for(String(S.z), String(S.n), S.currentBook.index, S.alphabetId);
+  downloadBlob(new Blob([body], { type: "text/plain;charset=utf-8" }), name);
 }
 
 export function renderBookImage() {
@@ -314,8 +349,8 @@ export function renderBookImage() {
     // With a search flat, embed cells; virgin book_image alone is a different book.
     const flat = S.currentBook.searchHighlight;
     const img = flat
-      ? book_image_search(S.z, S.n, S.currentBook.index, S.alphabetId, flat)
-      : book_image(S.z, S.n, S.currentBook.index, S.alphabetId);
+      ? book_image_search(String(S.z), String(S.n), S.currentBook.index, S.alphabetId, flat)
+      : book_image(String(S.z), String(S.n), S.currentBook.index, S.alphabetId);
     width = img.width;
     height = img.height;
     pixels = img.pixels;
@@ -329,8 +364,10 @@ export function renderBookImage() {
   );
   cv.getContext("2d").putImageData(data, 0, 0);
   el("imageTitle").textContent = S.currentBook.title;
-  el("imageMeta").textContent =
-    `gallery (${S.z}, ${S.n}) · shelf ${S.currentBook.index} · whole book · ${width}×${height}`;
+  const imageMeta = el("imageMeta");
+  imageMeta.textContent =
+    `gallery ${formatCoordDisplay(S.z, S.n)} · shelf ${S.currentBook.index} · whole book · ${width}×${height}`;
+  imageMeta.title = `gallery ${formatCoordFull(S.z, S.n)}`;
 }
 
 /**

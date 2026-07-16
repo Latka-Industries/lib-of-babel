@@ -38,16 +38,32 @@ export function escapeHtml(s) {
     .replace(/>/g, "&gt;");
 }
 
-/** Long integer → `1234…789` for compact header display (full value in title). */
-export function truncateMiddle(value, { head = 4, tail = 3, minLen = 10 } = {}) {
+/**
+ * Long integer → scientific form for UI (`-1.234×10^312`).
+ * Short values stay decimal.
+ */
+export function formatBigIntScientific(
+  value,
+  { digits = 4, minLen = 12 } = {},
+) {
   const s = String(value);
-  if (s.length < minLen) return s;
-  return `${s.slice(0, head)}…${s.slice(-tail)}`;
+  const neg = s.startsWith("-");
+  const body = neg ? s.slice(1) : s;
+  if (!/^\d+$/.test(body) || body.length < minLen) return s;
+  const exp = body.length - 1;
+  const frac = body.slice(1, digits).replace(/0+$/, "");
+  const mant = frac ? `${body[0]}.${frac}` : body[0];
+  return `${neg ? "-" : ""}${mant}×10^${exp}`;
 }
 
-/** Gallery coordinate label for the footer — middle-truncates each axis when long. */
+/** Gallery `(z, n)` for UI — scientific when axes are huge. */
 export function formatCoordDisplay(z, n) {
-  return `(${truncateMiddle(z)}, ${truncateMiddle(n)})`;
+  return `(${formatBigIntScientific(z)}, ${formatBigIntScientific(n)})`;
+}
+
+/** Full exact `(z, n)` for tooltips / title attributes. */
+export function formatCoordFull(z, n) {
+  return `(${z}, ${n})`;
 }
 
 /** Fallback when `navigator.clipboard` is missing or blocked (file://, some dialogs). */

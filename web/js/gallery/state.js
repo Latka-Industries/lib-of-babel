@@ -185,7 +185,7 @@ export function syncLensControls() {
 }
 
 export function recordStep(move) {
-  const hash = node_hash_hex(S.z, S.n);
+  const hash = node_hash_hex(String(S.z), String(S.n));
   const entry = {
     z: S.z.toString(),
     n: S.n.toString(),
