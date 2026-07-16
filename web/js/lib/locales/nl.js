@@ -146,8 +146,8 @@ maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> opent een nieuw
 Tab <span class="ui">foto</span>: upload een willekeurig beeld. Het wordt uitgerekt naar het
 volboek-kleurrooster, geprojecteerd op de <b>huidige alfabetlens</b> — de
 <b>letterkleurenkaart</b> (Babelgram-stijl) of een <b>luma-helling</b> — en gerankt op
-<b>rms % / mae / corr</b>. Kies een treffer en
-<span class="ui">ga erheen</span>.
+<b>rms % / mae / corr</b>. Kies een treffer —
+<span class="ui">ga erheen</span> opent een nieuw tabblad.
 </p>`,
 
   "about.more": `

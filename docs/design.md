@@ -79,8 +79,8 @@ address-only (`&img=1`, no print payload).
 
 **Photo mosaic:** stretch any image to the full-book colour grid → project onto the
 active alphabet (**letter** colours or **luma ramp**) → coarse pack sweep → locate →
-re-rank the virgin book colour map vs upload by **rms / mae / corr**. Live knobs use a
-downsampled preview; Find runs the full search.
+re-rank the virgin book colour map vs upload by **rms / mae / corr**. **go there** opens
+a new tab (`&img=1`). Live knobs use a downsampled preview; Find runs the full search.
 
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text

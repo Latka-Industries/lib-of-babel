@@ -36,8 +36,6 @@ import {
   PHOTO_SEARCH_TAB_ENABLED,
   selectSearchTab,
 } from "./search.js";
-import { jumpTo } from "../gallery/nav.js";
-import { openBookImage } from "./book.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
 
@@ -666,15 +664,11 @@ function photoPermalink(hit) {
 
 function goToPhotoHit(hit) {
   if (!hit) return;
-  applyUniverseFromInput(el("universe")?.value);
-  const alphabet = hit.alphabet ?? S.alphabetId;
-  if (alphabet !== S.alphabetId) {
-    S.alphabetId = alphabet;
-    syncLensControls();
+  try {
+    window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
+  } catch (err) {
+    console.error(err);
   }
-  jumpTo(String(hit.z), String(hit.n));
-  openBookImage(hit.book, null);
-  el("searchModal")?.close();
 }
 
 function paintPhotoHits(box, hits, proof = {}) {

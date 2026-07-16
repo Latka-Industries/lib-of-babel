@@ -146,8 +146,8 @@ opens page&nbsp;1.
 <span class="ui">photo</span> tab: upload any image. It is stretched to the full-book colour
 grid, projected onto the <b>current alphabet lens</b> — either the <b>letter colour map</b>
 (Babelgram-style) or a <b>luma ramp</b> — then ranked by
-<b>rms % / mae / corr</b>. Pick a hit and
-<span class="ui">go there</span>.
+<b>rms % / mae / corr</b>. Pick a hit —
+<span class="ui">go there</span> opens a new tab.
 </p>`,
 
   "about.more": `

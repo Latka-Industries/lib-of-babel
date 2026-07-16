@@ -151,8 +151,8 @@ nahezu schwarz.
 Tab <span class="ui">Foto</span>: beliebiges Bild hochladen. Es wird auf das Ganzbuch-Farbgitter
 gestreckt, auf die <b>aktuelle Alphabet-Linse</b> projiziert — entweder die
 <b>Buchstaben-Farbkarte</b> (Babelgram-Stil) oder eine <b>Luma-Rampe</b> — und nach
-<b>rms % / mae / korr</b> gerankt. Treffer wählen und
-<span class="ui">Dorthin</span>.
+<b>rms % / mae / korr</b> gerankt. Treffer wählen —
+<span class="ui">Dorthin</span> öffnet einen neuen Tab.
 </p>`,
 
   "about.more": `
