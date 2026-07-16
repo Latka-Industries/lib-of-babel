@@ -1,19 +1,23 @@
-//! Search-by-content and search-by-title: reverse lookup, validation, and embed planning.
+//! Search-by-content and search-by-title: Basile invert + pad planning.
 
 use core::fmt::Write;
 
+use num_bigint::BigInt;
+
+use crate::basile::{filler_digits, invert_page_symbols, invert_title_symbols, title_symbols_at};
 use crate::config::{
-    BOOKS_PER_GALLERY, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
-    TITLE_LEN, alphabet,
+    GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, TITLE_LEN, alphabet,
 };
-use crate::search_segment::{count_cells, flatten_to_cells, text_to_cell_indices};
+use crate::search_segment::{
+    count_cells, flatten_to_cells, text_to_cell_indices, text_to_cell_indices_n,
+};
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PageLocation {
     pub universe_seed: u64,
-    pub z: i64,
-    pub n: i64,
+    pub z: BigInt,
+    pub n: BigInt,
     pub book_index: u32,
     pub page: u32,
     pub alphabet_id: u32,
@@ -22,9 +26,9 @@ pub struct PageLocation {
 /// Search hit — may span consecutive pages in one book.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LocateResult {
-    /// First page of the embedded phrase.
+    /// First page of the padded / placed phrase.
     pub location: PageLocation,
-    /// Number of consecutive pages occupied.
+    /// Number of consecutive pages in the padded layout.
     pub page_span: u32,
     /// Cell count after normalization (alphabet symbols).
     pub char_count: usize,
@@ -51,61 +55,7 @@ fn normalize_search_text(text: &str) -> String {
     text.to_lowercase()
 }
 
-pub(crate) fn coords_from_phrase(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
-    let mut h = blake3::Hasher::new();
-    h.update(b"lob:search:coords");
-    h.update(&GENERATOR_VERSION.to_le_bytes());
-    h.update(&universe_seed.to_le_bytes());
-    h.update(&alphabet_id.to_le_bytes());
-    h.update(text.as_bytes());
-    let digest = h.finalize();
-    let bytes = digest.as_bytes();
-    PageLocation {
-        universe_seed,
-        z: i64::from_le_bytes(bytes[0..8].try_into().unwrap()),
-        n: i64::from_le_bytes(bytes[8..16].try_into().unwrap()),
-        book_index: u32::from_le_bytes(bytes[16..20].try_into().unwrap()) % BOOKS_PER_GALLERY,
-        page: u32::from_le_bytes(bytes[20..24].try_into().unwrap()) % PAGES_PER_BOOK,
-        alphabet_id,
-    }
-}
-
-/// Coordinates of the book whose spine bears a normalized title string.
-pub fn title_coords_from_query(text: &str, alphabet_id: u32, universe_seed: u64) -> PageLocation {
-    let mut h = blake3::Hasher::new();
-    h.update(b"lob:search:title:coords");
-    h.update(&GENERATOR_VERSION.to_le_bytes());
-    h.update(&universe_seed.to_le_bytes());
-    h.update(&alphabet_id.to_le_bytes());
-    h.update(text.as_bytes());
-    let digest = h.finalize();
-    let bytes = digest.as_bytes();
-    PageLocation {
-        universe_seed,
-        z: i64::from_le_bytes(bytes[0..8].try_into().unwrap()),
-        n: i64::from_le_bytes(bytes[8..16].try_into().unwrap()),
-        book_index: u32::from_le_bytes(bytes[16..20].try_into().unwrap()) % BOOKS_PER_GALLERY,
-        page: 0,
-        alphabet_id,
-    }
-}
-
-/// True when `(z, n, book_index)` is the canonical home for normalized `flat`.
-pub fn title_embeds_at(
-    z: i64,
-    n: i64,
-    book_index: u32,
-    flat: &str,
-    alphabet_id: u32,
-    universe_seed: u64,
-) -> bool {
-    let loc = title_coords_from_query(flat, alphabet_id, universe_seed);
-    loc.z == z && loc.n == n && loc.book_index == book_index
-}
-
-/// Deterministic column offset for embedding a phrase on its first page.
-///
-/// Returns `0` when `phrase_len >= PAGE_CONTENT_SYMBOLS` (phrase starts at column 0).
+/// Deterministic column offset for placing a short phrase on its first page.
 #[must_use]
 pub fn search_offset(text: &str, phrase_len: usize) -> usize {
     debug_assert!(phrase_len <= PAGE_CONTENT_SYMBOLS);
@@ -195,7 +145,8 @@ pub fn search_page_segment(
 ///
 /// # Errors
 ///
-/// Returns an error if any character is outside the selected alphabet.
+/// Returns an error string when `text` contains a character that is not a cell
+/// of the alphabet identified by `alphabet_id`.
 pub fn text_to_symbols(text: &str, alphabet_id: u32) -> Result<Vec<u16>, String> {
     let ab = alphabet(alphabet_id);
     text_to_cell_indices(text, ab)
@@ -207,17 +158,44 @@ fn flatten_search_text(text: &str, alphabet_id: u32) -> Result<String, LocateErr
     flatten_to_cells(text, ab).map_err(LocateError::InvalidChars)
 }
 
-/// Reverse lookup: phrase → coordinates in the given universe (may span pages).
+/// Canonical padded **first** page for a flat query (enough to Basile-invert).
 ///
-/// Long / full-book phrases are clamped so the embed always fits in
-/// [`PAGES_PER_BOOK`] pages (a hash-derived start page alone can land too late —
-/// mosaic paste used to fail with “only N remain”).
+/// Only the cells that land on page 0 are materialised — full-book flats no longer
+/// force a 1.3M-symbol convert before invert.
+fn build_padded_page0(
+    flat: &str,
+    alphabet_id: u32,
+) -> Result<[u16; PAGE_CONTENT_SYMBOLS], LocateError> {
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u32;
+    let (off, start, len) = search_page_segment(flat, alphabet_id, 0)
+        .ok_or_else(|| LocateError::Message("search text is empty".into()))?;
+    // Need indices `[0, start+len)` so the page-0 slice is addressable.
+    let need = start + len;
+    let query = text_to_cell_indices_n(flat, ab, Some(need)).map_err(|(_, sample)| {
+        LocateError::Message(format!("invalid character '{sample}' for this alphabet"))
+    })?;
+    if start + len > query.len() {
+        return Err(LocateError::Message("search segment out of range".into()));
+    }
+    let filler = filler_digits(flat, alpha_len, PAGE_CONTENT_SYMBOLS);
+    let mut page = [0u16; PAGE_CONTENT_SYMBOLS];
+    page.copy_from_slice(&filler[..PAGE_CONTENT_SYMBOLS]);
+    page[off..off + len].copy_from_slice(&query[start..start + len]);
+    Ok(page)
+}
+
+/// Reverse lookup: phrase → coordinates (Basile invert of padded page 0).
+///
+/// The virgin page at the returned address contains the padded query (short
+/// queries: query @ offset + filler). Multi-page: page 0 matches the first
+/// padded block; `page_span` drives UI highlight across following pages.
 ///
 /// # Errors
 ///
-/// Returns [`LocateError::InvalidChars`] when the phrase contains characters
-/// outside the selected alphabet. Returns [`LocateError::Message`] when the
-/// phrase is empty or exceeds one book's capacity.
+/// Returns [`LocateError::InvalidChars`] when the query uses symbols outside
+/// the alphabet, or [`LocateError::Message`] for empty text, over-long text
+/// (beyond one book), or an unmaterialisable page-0 segment.
 pub fn locate_page(
     text: &str,
     alphabet_id: u32,
@@ -237,26 +215,37 @@ pub fn locate_page(
     }
     let page_span = search_page_span(&flat, alphabet_id);
     debug_assert!((1..=PAGES_PER_BOOK).contains(&page_span));
-    let mut location = coords_from_phrase(&flat, alphabet_id, universe_seed);
-    // Clamp start so span fits. Full book → page 0; shorter multi-page → latest
-    // legal start that still leaves enough room (keeps some hash variety).
+    let page0 = build_padded_page0(&flat, alphabet_id)?;
+    let alpha_len = ab.len() as u32;
+    let key = invert_page_symbols(&page0, universe_seed, alphabet_id, alpha_len);
+
+    // Prefer the inverted page; if the span would run past the book end, shift
+    // start back so navigation stays in-book (virgin page 0 may then differ —
+    // only happens when invert lands in the last `span-1` pages).
     let max_start = PAGES_PER_BOOK - page_span;
-    if location.page > max_start {
-        location.page = max_start;
-    }
+    let page = key.page.min(max_start);
+
     Ok(LocateResult {
-        location,
+        location: PageLocation {
+            universe_seed,
+            z: key.z,
+            n: key.n,
+            book_index: key.book_index,
+            page,
+            alphabet_id,
+        },
         page_span,
         char_count,
     })
 }
 
-/// Reverse lookup: spine title → book coordinates in the given universe.
+/// Reverse lookup: spine title → book coordinates (Basile invert of padded title).
 ///
 /// # Errors
 ///
-/// Same alphabet rules as [`locate_page`], with a maximum length of [`TITLE_LEN`]
-/// cells after normalization.
+/// Returns [`LocateError::InvalidChars`] when the title uses symbols outside
+/// the alphabet, or [`LocateError::Message`] for empty text or titles longer
+/// than [`TITLE_LEN`] characters.
 pub fn locate_title(
     text: &str,
     alphabet_id: u32,
@@ -268,20 +257,44 @@ pub fn locate_title(
         return Err(LocateError::Message("search text is empty".into()));
     }
     let ab = alphabet(alphabet_id);
-    let char_count = count_cells(&flat, ab);
+    let alpha_len = ab.len() as u32;
+    let query = text_to_symbols(&flat, alphabet_id).map_err(LocateError::Message)?;
+    let char_count = query.len();
     if char_count > TITLE_LEN {
         return Err(LocateError::Message(format!(
             "title too long (max {TITLE_LEN} characters)"
         )));
     }
-    let location = title_coords_from_query(&flat, alphabet_id, universe_seed);
+    let mut symbols = filler_digits(&flat, alpha_len, TITLE_LEN);
+    let off = if char_count >= TITLE_LEN {
+        0
+    } else {
+        let max_off = TITLE_LEN - char_count;
+        let mut h = blake3::Hasher::new();
+        h.update(b"lob:search:title:offset");
+        h.update(&GENERATOR_VERSION.to_le_bytes());
+        h.update(flat.as_bytes());
+        let digest = h.finalize();
+        let mut prefix = [0u8; 8];
+        prefix.copy_from_slice(&digest.as_bytes()[0..8]);
+        (u64::from_le_bytes(prefix) as usize) % (max_off + 1)
+    };
+    symbols[off..off + char_count].copy_from_slice(&query);
+    let (z, n, book_index) = invert_title_symbols(&symbols, universe_seed, alphabet_id, alpha_len);
     Ok(TitleLocateResult {
-        location,
+        location: PageLocation {
+            universe_seed,
+            z,
+            n,
+            book_index,
+            page: 0,
+            alphabet_id,
+        },
         char_count,
     })
 }
 
-/// Lowercase a search query (matches frontend + embed path).
+/// Lowercase a search query (matches frontend path).
 pub fn normalize_query(text: &str) -> String {
     normalize_search_text(text)
 }
@@ -315,4 +328,29 @@ pub fn json_string_literal(s: &str) -> String {
 /// Escape a short invalid sample as a JSON string literal.
 pub fn json_char_literal(c: &str) -> String {
     json_string_literal(c)
+}
+
+/// Spine title string at `(z, n, book)` under the Basile title map.
+#[must_use]
+pub fn spine_title_at(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> String {
+    let ab = alphabet(alphabet_id);
+    let syms = title_symbols_at(
+        z,
+        n,
+        book_index,
+        universe_seed,
+        alphabet_id,
+        ab.len() as u32,
+    );
+    let mut out = String::with_capacity(TITLE_LEN * 4);
+    for &s in &syms {
+        out.push_str(ab[s as usize]);
+    }
+    out.trim().to_string()
 }

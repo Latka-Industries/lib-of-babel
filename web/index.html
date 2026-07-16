@@ -264,7 +264,7 @@
             <div class="search-editor" id="searchEditor">
               <div class="search-backdrop" id="searchBackdrop" aria-hidden="true"></div>
               <textarea id="searchInput" rows="6" spellcheck="false"
-                data-i18n-placeholder="search.placeholderContent" placeholder="forgive me for i have sinned"></textarea>
+                data-i18n-placeholder="search.placeholderContent" placeholder="sit on a pan otis"></textarea>
             </div>
           </div>
           <div class="find-row search-find-row">
@@ -408,6 +408,10 @@
       <canvas id="bookCanvas" class="page-canvas" hidden></canvas>
       <div class="book-nav">
         <button type="button" id="viewToggle" data-i18n="book.viewColor" data-i18n-title="book.viewTitle" title="switch between text and a character-color view of the page">color</button>
+        <button type="button" id="clearBookSearch" hidden
+          data-i18n="book.clearSearch"
+          data-i18n-title="book.clearSearchTitle"
+          title="clear the search highlight (page text stays)">clear mark</button>
         <span class="grow grow-start"></span>
         <span class="page-turn">
           <button type="button" id="prevPage" data-i18n-aria-label="book.prev" aria-label="‹ prev">
@@ -474,6 +478,22 @@
           <input id="babelCompareRange" type="range" min="0" max="100" step="1" value="50"
             data-i18n-aria-label="search.babel.compare.sliderAria" aria-label="wipe between reproject and diff" />
         </label>
+      </div>
+    </dialog>
+
+    <dialog id="legacyGvModal">
+      <div class="book-head">
+        <div class="book-head-text">
+          <h3 data-i18n="legacy.gv.title">older library link</h3>
+          <small id="legacyGvBody" data-i18n="legacy.gv.bodyAddress">This link is from an older library version. Page text at these coordinates is not the same. We can take you to the closest equivalent in the current library.</small>
+        </div>
+        <div class="book-head-actions">
+          <button type="button" id="closeLegacyGv" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
+      </div>
+      <div class="legacy-gv-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;padding:0.75rem 1rem 1rem;">
+        <button type="button" id="legacyGvContinue" class="primary" data-i18n="legacy.gv.continue">Continue</button>
+        <button type="button" id="legacyGvSkip" data-i18n="legacy.gv.skipSession">Don't show again this session</button>
       </div>
     </dialog>
 

@@ -546,10 +546,14 @@ pre.page {
   unicode-bidi: plaintext;
 }
 pre.page mark.search-hit {
-  background: color-mix(in oklab, var(--accent) 38%, transparent);
+  background: color-mix(in oklab, var(--accent) 72%, var(--panel));
   color: var(--ink);
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
+  font-weight: 700;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--accent) 90%, transparent),
+    0 0 12px color-mix(in oklab, var(--accent) 45%, transparent);
+  padding: 0 0.12em;
 }
 .page-canvas {
   display: block;

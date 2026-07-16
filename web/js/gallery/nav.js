@@ -2,7 +2,7 @@
 
 import { S, recordStep, persist, journeySnapshot } from "./state.js";
 import { downloadBlob } from "../lib/util.js";
-import { neighbor, randomCoord, clampI64 } from "../lib/lattice.js";
+import { neighbor, randomCoord } from "../lib/lattice.js";
 import { render } from "./view.js";
 
 export function resetTrail({ randomCoords = false } = {}) {
@@ -20,11 +20,12 @@ export function step(move) {
   render();
 }
 
-// jump to an arbitrary coordinate (big leaps across the lattice)
+// jump to an arbitrary coordinate (big leaps across the lattice).
+// Basile locate returns unbounded BigInt coords — do not clamp to i64.
 export function jumpTo(zStr, nStr) {
   const parse = (s) => {
     const t = String(s).trim();
-    return /^-?\d+$/.test(t) ? clampI64(BigInt(t)) : null;
+    return /^-?\d+$/.test(t) ? BigInt(t) : null;
   };
   const zv = parse(zStr);
   const nv = parse(nStr);

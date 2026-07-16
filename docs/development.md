@@ -8,7 +8,7 @@ alphabet ids in [alphabets.md](alphabets.md).
 ```text
 lib-of-babel/
 ├── src/          Rust → WASM generator
-│                 (config, Feistel, gallery, page, search, color, mosaic/, universe, wasm_api)
+│                 (config, basile, gallery, page, search, color, mosaic/, universe, wasm_api)
 ├── web/
 │   ├── css/      chrome + reader styles
 │   ├── fonts/
@@ -17,7 +17,7 @@ lib-of-babel/
 │   └── js/       static ESM UI
 │       ├── lib/      util, color, lattice, wasm, db, constants, i18n
 │       ├── chrome/   controls, dropdown, theme, favicon, alphabet-picker
-│       ├── gallery/  view, nav, state, url, sigil
+│       ├── gallery/  view, nav, state, url, sigil, migrate
 │       ├── reader/   book, search, search-query, mosaic-search, verify
 │       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
@@ -49,9 +49,12 @@ Open <http://127.0.0.1:8777/index.html>.
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
 Universe renames / dice rolls at the same `(z, n)` append a wander step (`◇`).
-Permalinks: `z`, `n` required; optional `u`, `a`, `book`, `page`, `q`, `img=1`.
-Shareable `&q=` is soft-capped; mosaic / full-book flats stay out of the URL.
-Same-browser Babelgram print handoff may add short-lived `&be=` (IndexedDB key; not for sharing).
+Permalinks: room links need `z`/`n` (compact `c…` encoding when huge) plus optional
+`u`, `a`, `book`, `page`, `img=1`, `gv`. Search shares use `#q=&find=content|title`
+(boot re-locates; no huge coords in the hash). Shareable `&q=` is soft-capped;
+mosaic / full-book flats stay out of the URL. Same-browser Babelgram print handoff
+may add short-lived `&be=` (IndexedDB key; not for sharing). Legacy / missing `gv`
+opens the migrate modal.
 
 ## UI notes
 
@@ -71,17 +74,17 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 
 | Export | Purpose |
 | --- | --- |
-| `generator_version()` | Schema stamp for verify/export (currently **8**) |
+| `generator_version()` | Schema stamp for verify/export/permalinks (currently **9**) |
 | `books_per_gallery()` | Constant `700` |
 | `default_alphabet()` | Default lens id (`29` = Basile) |
-| `alphabet_symbols_json(a)` / `alphabet_len(a)` | Feistel cell list / count (UI cache) |
+| `alphabet_symbols_json(a)` / `alphabet_len(a)` | Alphabet cell list / count (UI cache) |
 | `max_title_len()` | Spine title length cap (`24`) |
 | `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis (`""` / blank → `0`) |
-| `gallery_titles_json(z, n, a, title_embed)` | 700 spines; optional title-search embed |
+| `gallery_titles_json(z, n, a, title_embed)` | 700 spines (virgin Basile titles; `title_embed` ignored) |
 | `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 |
-| `page_text_for(…, search_query, search_start_page)` | One page (`search_start_page = -1` = no embed) |
+| `page_text_for(…, search_query, search_start_page)` | One virgin page (`search_*` args ignored; highlight is UI-only) |
 | `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
-| `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
-| `book_text_for` / `book_image` / `book_image_search` / `book_image_dims` / `room_accent` | Full text, RGBA colour map (optionally with search embed), grid size, or origin-room OKLCH knobs |
+| `search_page_span_for` / `search_page_embed_for` | Multi-page highlight helpers |
+| `book_text_for` / `book_image` / `book_image_search` / `book_image_dims` / `room_accent` | Full text, RGBA colour map (search flat ignored), grid size, or origin-room OKLCH knobs |
 | `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate (`BabelLocateResult`: flat, `reproject_pixels`, `diff_pixels`, metrics) |
 | `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |

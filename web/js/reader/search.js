@@ -15,6 +15,8 @@ import {
   copyText,
   escapeHtml,
   formatUniverseLabel,
+  formatCoordDisplay,
+  formatCoordFull,
   findActionRow,
   wireFindActions,
 } from "../lib/util.js";
@@ -26,7 +28,7 @@ import {
 import { locate_page_json, locate_title_json, node_hash_hex } from "../lib/wasm.js";
 import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
-import { permalink, shareableSearchQuery } from "../gallery/url.js";
+import { permalink, findPermalink } from "../gallery/url.js";
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));
@@ -345,16 +347,26 @@ export function locateTitle(text, alphabetId = S.alphabetId) {
   return locateWith(locate_title_json, text, alphabetId);
 }
 
+/** Coerce locate JSON `z`/`n` (string or number) to BigInt. */
 function asBigInt(v) {
-  return typeof v === "bigint" ? v : BigInt(v);
+  if (typeof v === "bigint") return v;
+  return BigInt(typeof v === "string" || typeof v === "number" ? v : String(v));
 }
 
-/** Permalink for a search hit (content hits include `q`; title hits open book page 1). */
+/** Permalink for a search hit — short `#q=&find=` (re-locate on open). */
 export function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
+  const short = findPermalink(
+    query,
+    kind === "title" ? "title" : "content",
+    result.alphabet,
+    S.universeName,
+  );
+  if (short) return short;
+  // Query too long for &q= — fall back to compact coord link (no phrase).
   const z = asBigInt(result.z);
   const n = asBigInt(result.n);
-  const hash = node_hash_hex(z, n);
+  const hash = node_hash_hex(String(z), String(n));
   return permalink(
     z,
     n,
@@ -363,7 +375,7 @@ export function searchPermalink(result, query, kind = "content") {
     result.book,
     kind === "title" ? 1 : result.page,
     S.universeName,
-    kind === "content" ? shareableSearchQuery(query) : null,
+    null,
   );
 }
 
@@ -408,8 +420,10 @@ export function renderSearchResult(result, box, kind = "content") {
         });
 
   box.innerHTML =
-    `<div class="find-big">${safe(
-      t("search.result.gallery", { z: result.z, n: result.n }),
+    `<div class="find-big" title="${safe(formatCoordFull(result.z, result.n))}">${safe(
+      t("search.result.gallery", {
+        coords: formatCoordDisplay(result.z, result.n),
+      }),
     )}</div>` +
     `<div class="find-dim">` +
     t("search.result.coords", {

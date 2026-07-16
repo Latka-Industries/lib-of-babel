@@ -37,6 +37,8 @@ import {
   downloadBook,
   renderBookImage,
   saveBookImage,
+  clearBookSearchHighlight,
+  warmPageGenerator,
 } from "../reader/book.js";
 import {
   syncSearchInput,
@@ -269,7 +271,7 @@ export function wireControls() {
       showVerify({ ok: false, reason: "that file isn't valid JSON" });
       return;
     }
-    showVerify(verifyJourney(journey), file.name);
+    showVerify(verifyJourney(journey), file.name, journey);
   });
   el("hash").addEventListener("click", (ev) =>
     copyText(ev.currentTarget.dataset.full || "", ev.currentTarget),
@@ -284,6 +286,10 @@ export function wireControls() {
     persist();
     render();
     reopenCurrentBook(reopenHighlight);
+    // Basile C/I/N is per-alphabet; warm off the UI thread so the first open is snappy.
+    const warm = () => warmPageGenerator();
+    if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 800 });
+    else setTimeout(warm, 0);
   }
 
   // Alphabet is a lens on the same room: spines/text rewrite, hash + trail stay.
@@ -337,6 +343,9 @@ export function wireControls() {
     ev.currentTarget.textContent =
       S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
     renderBookPage();
+  });
+  el("clearBookSearch")?.addEventListener("click", () => {
+    clearBookSearchHighlight();
   });
   el("saveImage").addEventListener("click", saveBookImage);
   wireEnter("pageJump", jumpPage);

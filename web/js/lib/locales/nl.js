@@ -184,6 +184,17 @@ de hash; alleen de planken herschrijven zich.
 
   "verify.title": "tocht controleren",
   "verify.meta": "zet een geëxporteerde tocht neer om hem na te lopen en te bewijzen",
+  "verify.openLastRoom": "Laatste kamer openen in de huidige bibliotheek",
+
+  "legacy.gv.title": "oudere bibliotheeklink",
+  "legacy.gv.bodyAddress":
+    "Deze link komt uit een oudere bibliotheekversie. De paginatekst op deze coördinaten is niet hetzelfde — we houden hetzelfde plankadres in de huidige bibliotheek.",
+  "legacy.gv.bodyQuery":
+    "Deze link komt uit een oudere bibliotheekversie. We kunnen dezelfde zoekzin onder de huidige generator plaatsen (mogelijk een andere plank).",
+  "legacy.gv.bodyRelocated":
+    "Deze link komt uit een oudere bibliotheekversie. We hebben je zoekzin opnieuw gelokaliseerd onder de huidige generator — dezelfde woorden, mogelijk een nieuwe plank.",
+  "legacy.gv.continue": "Doorgaan",
+  "legacy.gv.skipSession": "Niet meer tonen deze sessie",
 
   "search.head": "zoeken",
   "search.headContent": "zoeken op inhoud",
@@ -223,7 +234,7 @@ de hash; alleen de planken herschrijven zich.
   "search.babel.nameMismatch":
     "bestandsnaam-coördinaten komen niet overeen met de PNG-stempel",
   "search.babel.originLine":
-    "export-oorsprong · {universe} (seed {u}) · galerij ({z}, {n}) · boek {book} · {alphabet}",
+    "export-oorsprong · {universe} (seed {u}) · galerij {coords} · boek {book} · {alphabet}",
   "search.babel.universeUnknown": "seed {seed}",
   "search.babel.originNote":
     "Locate-bestemming verschilt van de export-oorsprong (zelfde cellen → nieuwe coördinaten; ander universum → andere coördinaten).",
@@ -270,7 +281,7 @@ de hash; alleen de planken herschrijven zich.
   "search.kindTitle": "zoek rugtitels of pagina-inhoud",
   "search.kindContent": "inhoud",
   "search.kindTitleOpt": "titel",
-  "search.placeholderContent": "vergeef me want ik heb gezondigd",
+  "search.placeholderContent": "een meetsysteem nee",
   "search.placeholderTitle": "karmozijnen rug",
   "search.find": "vinden",
   "search.count": "{n} / {max}",
@@ -325,7 +336,7 @@ de hash; alleen de planken herschrijven zich.
   "search.mosaic.needImage": "upload eerst een beeld",
   "search.mosaic.hitBook": "boek {book}",
   "search.go": "ga erheen",
-  "search.result.gallery": "galerij ({z}, {n})",
+  "search.result.gallery": "galerij {coords}",
   "search.result.coords":
     "universum {universe} · wand {wall} · plank {shelf} · boek {book} · {detail}",
   "search.result.page": "pagina {n}",
@@ -359,6 +370,8 @@ de hash; alleen de planken herschrijven zich.
   "book.viewTitle": "wisselen tussen tekst en teken-kleurweergave van de pagina",
   "book.viewColor": "kleur",
   "book.viewText": "tekst",
+  "book.clearSearch": "markering weg",
+  "book.clearSearchTitle": "zoekmarkering wissen — de paginatekst blijft",
   "book.prev": "‹ vorige",
   "book.next": "volgende ›",
   "book.pageInd": "pagina {page} / {total}",
