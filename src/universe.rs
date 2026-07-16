@@ -1,8 +1,14 @@
 //! Active universe seed — global WASM state so JS call signatures stay coordinate-only.
 
 use core::sync::atomic::{AtomicU64, Ordering};
+#[cfg(test)]
+use std::sync::{Mutex, MutexGuard};
 
 static UNIVERSE: AtomicU64 = AtomicU64::new(0);
+
+/// Serializes tests that call [`set_universe`] (process-global).
+#[cfg(test)]
+static TEST_UNIVERSE_LOCK: Mutex<()> = Mutex::new(());
 
 /// Current universe seed used by WASM exports (default `0`).
 #[inline]
@@ -18,6 +24,14 @@ pub fn set_universe(universe_seed: u64) {
 /// Alias for [`universe`] — matches the WASM export name.
 pub fn get_universe() -> u64 {
     universe()
+}
+
+/// Hold while a test mutates or depends on the process-global universe.
+#[cfg(test)]
+pub fn lock_for_tests() -> MutexGuard<'static, ()> {
+    TEST_UNIVERSE_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 /// Map a memorable universe name to a stable seed. Empty/whitespace → `0`.

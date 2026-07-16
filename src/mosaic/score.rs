@@ -101,8 +101,8 @@ fn rgb_mean_abs_diff_strided(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
 }
 
 fn rgb_pearson_corr_strided(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
-    let n = src.len().min(mosaic.len()) / 4;
-    if n == 0 {
+    let pixel_count = src.len().min(mosaic.len()) / 4;
+    if pixel_count == 0 {
         return 1.0;
     }
     let step = stride.max(1);
@@ -112,20 +112,20 @@ fn rgb_pearson_corr_strided(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
     let mut sum_mos_sq = 0.0;
     let mut sum_cross = 0.0;
     let mut count = 0.0;
-    let mut i = 0;
-    while i < n {
-        let o = i * 4;
-        for c in 0..3 {
-            let x = f64::from(src[o + c]);
-            let y = f64::from(mosaic[o + c]);
-            sum_src += x;
-            sum_mos += y;
-            sum_src_sq += x * x;
-            sum_mos_sq += y * y;
-            sum_cross += x * y;
+    let mut pix = 0;
+    while pix < pixel_count {
+        let byte = pix * 4;
+        for channel in 0..3 {
+            let src_ch = f64::from(src[byte + channel]);
+            let mos_ch = f64::from(mosaic[byte + channel]);
+            sum_src += src_ch;
+            sum_mos += mos_ch;
+            sum_src_sq += src_ch * src_ch;
+            sum_mos_sq += mos_ch * mos_ch;
+            sum_cross += src_ch * mos_ch;
             count += 1.0;
         }
-        i += step;
+        pix += step;
     }
     if count <= 0.0 {
         return 1.0;

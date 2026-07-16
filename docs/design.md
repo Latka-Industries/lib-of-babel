@@ -81,8 +81,9 @@ virgin `book_image`). Other-universe **go there** also stashes the print flat un
 active alphabet (**letter** colours or **luma ramp**) → coarse pack sweep → locate →
 re-rank the virgin book colour map vs upload by **rms / mae / corr**. **go there** /
 **copy link** use the same `&bo=` handoff and cache the scored book RGBA (skip regenerating
-`book_image` on open). Cold virgin maps still pay full generation — see THI-144 for worker
-parallelization. Live knobs use a downsampled preview; Find runs the full search.
+`book_image` on open). Cold virgin maps use a Web Worker pool (page-range strips → stitch;
+N workers ≈ N× WASM instances). Live knobs use a downsampled preview; Find runs the full
+search.
 
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text

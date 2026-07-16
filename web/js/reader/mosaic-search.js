@@ -23,7 +23,6 @@ import {
 import { kvSet } from "../lib/db.js";
 import {
   book_image_dims,
-  book_image,
   mosaic_project_preview,
   mosaic_candidate_packs_json,
   mosaic_candidate_eval_json,
@@ -36,6 +35,7 @@ import {
   PHOTO_SEARCH_TAB_ENABLED,
   selectSearchTab,
 } from "./search.js";
+import { generateBookImageRgba } from "./book-image-pool.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
 const BOOK_OPEN_KEY = (id) => `book-open:${id}`;
@@ -1221,27 +1221,29 @@ function runPhotoCandidates(modeAtStart, findBtn) {
         if (mosaicMode !== modeAtStart) return;
         const hit = located[i];
         const alphabet = hit.alphabet ?? S.alphabetId;
-        let bookImg = null;
-        try {
-          bookImg = book_image(String(hit.z), String(hit.n), hit.book, alphabet);
-          const bookRgba = bookImg.pixels;
-          const fit = rgbFitTriple(reshaped.rgba, bookRgba);
-          const scored = {
-            ...hit,
-            percent: fit.percent,
-            mae: fit.mae,
-            corr: fit.corr,
-            _rank: fit.rank,
-          };
-          if (!best || fit.rank > best._rank) {
-            best = scored;
-            bestBookRgba = bookRgba;
-            bestW = bookImg.width;
-            bestH = bookImg.height;
-            bestDiff = rgbaAbsDiff(reshaped.rgba, bookRgba);
-          }
-        } finally {
-          bookImg?.free?.();
+        const bookImg = await generateBookImageRgba({
+          z: hit.z,
+          n: hit.n,
+          book: hit.book,
+          alphabetId: alphabet,
+          universe: get_universe(),
+        });
+        if (mosaicMode !== modeAtStart) return;
+        const bookRgba = bookImg.pixels;
+        const fit = rgbFitTriple(reshaped.rgba, bookRgba);
+        const scored = {
+          ...hit,
+          percent: fit.percent,
+          mae: fit.mae,
+          corr: fit.corr,
+          _rank: fit.rank,
+        };
+        if (!best || fit.rank > best._rank) {
+          best = scored;
+          bestBookRgba = bookRgba;
+          bestW = bookImg.width;
+          bestH = bookImg.height;
+          bestDiff = rgbaAbsDiff(reshaped.rgba, bookRgba);
         }
       }
 

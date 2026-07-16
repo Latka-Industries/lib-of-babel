@@ -22,7 +22,7 @@ mod wasm_api;
 
 pub use color::{
     BookImage, book_cell_count, book_grid_dims, book_image, book_image_at, book_image_dims,
-    book_image_search, room_accent, room_accent_at,
+    book_image_pages, book_image_pages_at, book_image_search, room_accent, room_accent_at,
 };
 pub use config::{
     BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_SEARCH_CHARS, alphabet,
@@ -81,9 +81,14 @@ mod tests {
     #[test]
     fn gallery_titles_json_escapes_quotes() {
         use crate::search::json_string_literal;
+        use crate::universe::{lock_for_tests, set_universe};
+
         assert_eq!(json_string_literal(r#"a"b\c"#), r#""a\"b\\c""#);
         assert_eq!(json_string_literal("line\nbreak"), r#""line\nbreak""#);
 
+        // gallery_titles_json reads process-global universe — lock vs mosaic tests.
+        let _g = lock_for_tests();
+        set_universe(0);
         let titles = gallery_titles(&bi(0), &bi(0), 48, 0, None);
         assert!(
             titles.iter().any(|t| t.contains('"')),
@@ -463,6 +468,23 @@ mod tests {
             book_image_at(&bi(2), &bi(-3), 17, 25).pixels(),
             img.pixels()
         );
+    }
+
+    #[test]
+    fn book_image_pages_concat_matches_full() {
+        use crate::color::{book_image_at, book_image_pages_at};
+        use crate::config::PAGES_PER_BOOK;
+        use crate::universe::{lock_for_tests, set_universe};
+
+        let _g = lock_for_tests();
+        set_universe(0);
+        let full = book_image_at(&bi(2), &bi(-3), 17, 29);
+        let mut concat = Vec::new();
+        // Uneven splits — same stitch workers use.
+        for (start, end) in [(0, 100), (100, 250), (250, PAGES_PER_BOOK)] {
+            concat.extend(book_image_pages_at(&bi(2), &bi(-3), 17, 29, start, end));
+        }
+        assert_eq!(concat, full.pixels());
     }
 
     #[test]
