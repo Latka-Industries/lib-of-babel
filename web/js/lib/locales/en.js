@@ -183,6 +183,17 @@ keeps the hash; only the shelves rewrite.
 
   "verify.title": "verify journey",
   "verify.meta": "drop in an exported journey to re-walk and prove it",
+  "verify.openLastRoom": "Open last room in current library",
+
+  "legacy.gv.title": "older library link",
+  "legacy.gv.bodyAddress":
+    "This link is from an older library version. Page text at these coordinates is not the same — we kept the same shelf address in the current library.",
+  "legacy.gv.bodyQuery":
+    "This link is from an older library version. We can place the same search phrase under the current generator (it may live on a different shelf).",
+  "legacy.gv.bodyRelocated":
+    "This link is from an older library version. We re-located your search phrase under the current generator — same words, possibly a new shelf.",
+  "legacy.gv.continue": "Continue",
+  "legacy.gv.skipSession": "Don't show again this session",
 
   "search.head": "search",
   "search.headContent": "search by content",
@@ -191,7 +202,7 @@ keeps the hash; only the shelves rewrite.
   "search.metaText":
     "Find a phrase already in the library, or open a Babelgram book image.",
   "search.metaContent":
-    "Type a phrase — the library finds where it already exists (space-padded to a full page).",
+    "Type a phrase — the library inverts it to the page where those glyphs already live (padded to a full page).",
   "search.metaTitle":
     "Type a spine title — the library finds the gallery and shelf where it belongs.",
   "search.metaMosaic":
@@ -222,7 +233,7 @@ keeps the hash; only the shelves rewrite.
   "search.babel.nameMismatch":
     "filename coords do not match the PNG stamp",
   "search.babel.originLine":
-    "export origin · {universe} (seed {u}) · gallery ({z}, {n}) · book {book} · {alphabet}",
+    "export origin · {universe} (seed {u}) · gallery {coords} · book {book} · {alphabet}",
   "search.babel.universeUnknown": "seed {seed}",
   "search.babel.originNote":
     "Locate destination differs from export origin by design (same cells → new coords; other universe → other coords).",
@@ -324,7 +335,7 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.needImage": "upload an image first",
   "search.mosaic.hitBook": "book {book}",
   "search.go": "go there",
-  "search.result.gallery": "gallery ({z}, {n})",
+  "search.result.gallery": "gallery {coords}",
   "search.result.coords":
     "universe {universe} · wall {wall} · shelf {shelf} · book {book} · {detail}",
   "search.result.page": "page {n}",
@@ -358,6 +369,8 @@ keeps the hash; only the shelves rewrite.
   "book.viewTitle": "switch between text and a character-color view of the page",
   "book.viewColor": "color",
   "book.viewText": "text",
+  "book.clearSearch": "clear mark",
+  "book.clearSearchTitle": "clear the search highlight — the page text stays",
   "book.prev": "‹ prev",
   "book.next": "next ›",
   "book.pageInd": "page {page} / {total}",

@@ -23,13 +23,26 @@ pub fn match_cell_at(ab: &[&str], text: &str, from: usize) -> Option<(usize, usi
 
 /// Walk `text`, skipping newlines, yielding matched cell indices.
 ///
-/// On the first unmatched scalar, returns `Err` with the byte offset and a
-/// one-scalar sample of the invalid text.
+/// When `max_cells` is `Some(n)`, stops after `n` cells (remaining text is not
+/// validated). On the first unmatched scalar, returns `Err` with the byte offset
+/// and a one-scalar sample of the invalid text.
 pub fn text_to_cell_indices(text: &str, ab: &[&str]) -> Result<Vec<u16>, (usize, String)> {
+    text_to_cell_indices_n(text, ab, None)
+}
+
+/// Like [`text_to_cell_indices`], but stops after `max_cells` when set.
+pub fn text_to_cell_indices_n(
+    text: &str,
+    ab: &[&str],
+    max_cells: Option<usize>,
+) -> Result<Vec<u16>, (usize, String)> {
     let mut out = Vec::new();
     let mut i = 0;
     let bytes = text.as_bytes();
     while i < bytes.len() {
+        if max_cells.is_some_and(|n| out.len() >= n) {
+            break;
+        }
         let ch = text[i..].chars().next().unwrap();
         let ch_len = ch.len_utf8();
         if ch == '\n' || ch == '\r' {

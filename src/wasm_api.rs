@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION};
 use crate::gallery::{
-    book_index_to_shelf, gallery_titles, neighbor, node_fingerprint, node_hash_bytes,
+    book_index_to_shelf, gallery_titles, neighbor, node_fingerprint, node_hash_bytes, parse_coord,
 };
 use crate::page::{PageAddr, PageRender, book_text, page_text};
 use crate::search::{
@@ -132,13 +132,16 @@ pub fn universe_seed_for(name: &str) -> u64 {
 #[must_use]
 /// JSON array of 700 spine titles for gallery `(z, n)`.
 /// Pass `title_embed` (normalized) to show a title-search hit on its canonical spine.
-pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32, title_embed: &str) -> String {
+/// `z` / `n` are decimal strings (JS `String(bigint)`).
+pub fn gallery_titles_json(z: &str, n: &str, alphabet_id: u32, title_embed: &str) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
     let embed = if title_embed.is_empty() {
         None
     } else {
         Some(title_embed)
     };
-    let titles = gallery_titles(z, n, alphabet_id, active_universe(), embed);
+    let titles = gallery_titles(&z, &n, alphabet_id, active_universe(), embed);
     let mut s = String::from("[");
     for (i, t) in titles.iter().enumerate() {
         if i > 0 {
@@ -155,15 +158,19 @@ pub fn gallery_titles_json(z: i64, n: i64, alphabet_id: u32, title_embed: &str) 
 #[must_use]
 /// 16-hex-digit prefix of the **room** BLAKE3 fingerprint (header hash).
 /// Stable across alphabet lenses; only `(universe, z, n)` matter.
-pub fn node_hash_hex(z: i64, n: i64) -> String {
-    format!("{:016x}", node_fingerprint(z, n, active_universe()))
+pub fn node_hash_hex(z: &str, n: &str) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    format!("{:016x}", node_fingerprint(&z, &n, active_universe()))
 }
 
 #[wasm_bindgen]
 #[must_use]
 /// Full 256-bit room fingerprint as 64 hex digits.
-pub fn node_hash_full_hex(z: i64, n: i64) -> String {
-    let b = node_hash_bytes(z, n, active_universe());
+pub fn node_hash_full_hex(z: &str, n: &str) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    let b = node_hash_bytes(&z, &n, active_universe());
     let mut s = String::with_capacity(64);
     for byte in b {
         let _ = write!(s, "{byte:02x}");
@@ -174,29 +181,33 @@ pub fn node_hash_full_hex(z: i64, n: i64) -> String {
 #[wasm_bindgen]
 #[must_use]
 /// Full text of one book (410 pages). Expensive — only call when downloading.
-pub fn book_text_for(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> String {
-    book_text(z, n, book_index, alphabet_id, active_universe())
+pub fn book_text_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    book_text(&z, &n, book_index, alphabet_id, active_universe())
 }
 
 #[wasm_bindgen]
 #[must_use]
 /// One formatted page. Pass `search_start_page = -1` for no search embed.
 pub fn page_text_for(
-    z: i64,
-    n: i64,
+    z: &str,
+    n: &str,
     book_index: u32,
     page: u32,
     alphabet_id: u32,
     search_query: &str,
     search_start_page: i32,
 ) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
     let q = if search_query.is_empty() {
         None
     } else {
         Some(search_query)
     };
     let hit_start = u32::try_from(search_start_page).ok();
-    let mut req = PageRender::new(PageAddr::new(
+    let req = PageRender::new(PageAddr::new(
         z,
         n,
         book_index,
@@ -204,9 +215,7 @@ pub fn page_text_for(
         alphabet_id,
         active_universe(),
     ));
-    if let (Some(full), Some(start)) = (q, hit_start) {
-        req = req.with_search(full, start);
-    }
+    let _ = (q, hit_start); // highlight is UI-only; virgin page text is Basile
     page_text(&req)
 }
 
@@ -231,6 +240,7 @@ pub fn search_page_embed_for(text: &str, alphabet_id: u32, page_in_span: u32) ->
 #[wasm_bindgen]
 #[must_use]
 /// Reverse lookup: phrase → JSON hit `{ ok, z, n, book, page, … }` or validation error.
+/// `z` / `n` in the success payload are JSON strings (decimal) for JS `BigInt`.
 pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
     match locate_page(text, alphabet_id, active_universe()) {
         Ok(res) => {
@@ -270,8 +280,10 @@ pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
 
 #[wasm_bindgen]
 #[must_use]
-/// Neighbor coordinate as JSON `[z, n]` for move `mv` (0–3).
-pub fn neighbor_json(z: i64, n: i64, mv: u8) -> String {
-    let (nz, nn) = neighbor(z, n, mv);
-    format!("[{nz},{nn}]")
+/// Neighbor coordinate as JSON `["z","n"]` (decimal strings) for move `mv` (0–3).
+pub fn neighbor_json(z: &str, n: &str, mv: u8) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    let (nz, nn) = neighbor(&z, &n, mv);
+    format!(r#"["{nz}","{nn}"]"#)
 }

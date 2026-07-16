@@ -126,8 +126,8 @@ struct JsonHit<'a> {
     mae: f64,
     /// Pearson RGB correlation (babel exact only).
     corr: f64,
-    z: i64,
-    n: i64,
+    z: &'a num_bigint::BigInt,
+    n: &'a num_bigint::BigInt,
     book: u32,
     page: u32,
     page_span: u32,
@@ -265,8 +265,8 @@ struct LocateHit {
     space_threshold: f64,
     dither: bool,
     label: String,
-    z: i64,
-    n: i64,
+    z: num_bigint::BigInt,
+    n: num_bigint::BigInt,
     book: u32,
     page: u32,
     page_span: u32,
@@ -359,8 +359,10 @@ fn fine_locate_hits(src: &[u8], alphabet_id: u32, packs: &[CandidatePack]) -> Ve
             continue;
         };
         let loc = &res.location;
-        let key = (loc.z, loc.n, loc.book_index);
-        if let Some(existing) = hits.iter_mut().find(|h| (h.z, h.n, h.book) == key) {
+        if let Some(existing) = hits
+            .iter_mut()
+            .find(|h| h.z == loc.z && h.n == loc.n && h.book == loc.book_index)
+        {
             if percent > existing.percent {
                 existing.percent = percent;
                 existing.hue = pack.hue;
@@ -382,8 +384,8 @@ fn fine_locate_hits(src: &[u8], alphabet_id: u32, packs: &[CandidatePack]) -> Ve
             space_threshold: pack.space_threshold,
             dither: pack.dither,
             label,
-            z: loc.z,
-            n: loc.n,
+            z: loc.z.clone(),
+            n: loc.n.clone(),
             book: loc.book_index,
             page: loc.page,
             page_span: res.page_span,
@@ -401,8 +403,8 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
             percent: h.percent,
             mae: 0.0,
             corr: 0.0,
-            z: h.z,
-            n: h.n,
+            z: &h.z,
+            n: &h.n,
             book: h.book,
             page: h.page,
             page_span: h.page_span,
@@ -464,8 +466,8 @@ pub fn mosaic_babel_json(
         percent,
         mae,
         corr,
-        z: loc.z,
-        n: loc.n,
+        z: &loc.z,
+        n: &loc.n,
         book: loc.book_index,
         page: loc.page,
         page_span: res.page_span,

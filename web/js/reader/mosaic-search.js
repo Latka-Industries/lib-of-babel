@@ -9,6 +9,8 @@ import {
   findActionRow,
   wireFindActions,
   formatUniverseLabel,
+  formatCoordDisplay,
+  formatCoordFull,
   openModal,
 } from "../lib/util.js";
 import { t, getLocale } from "../lib/i18n.js";
@@ -359,8 +361,7 @@ function formatOriginLine(meta) {
   return t("search.babel.originLine", {
     universe,
     u: seed,
-    z: String(meta.z),
-    n: String(meta.n),
+    coords: formatCoordDisplay(meta.z, meta.n),
     book: String(Number(meta.b) + 1),
     alphabet: formatAlphabetSymbolLabel(meta.a, t),
   });
@@ -536,7 +537,7 @@ function paintPhotoBookText(box, flat) {
 function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
   const z = BigInt(hit.z);
   const n = BigInt(hit.n);
-  const hash = node_hash_hex(z, n);
+  const hash = node_hash_hex(String(z), String(n));
   // Prefer stamped export name on same-universe round-trip; else current session.
   const uni =
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
@@ -669,8 +670,10 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
             ${label}
             ${exact}
           </div>
-          <div class="find-dim">${escapeHtml(
-            t("search.result.gallery", { z: r.z, n: r.n }),
+          <div class="find-dim" title="${escapeHtml(formatCoordFull(r.z, r.n))}">${escapeHtml(
+            t("search.result.gallery", {
+              coords: formatCoordDisplay(r.z, r.n),
+            }),
           )} · ${escapeHtml(
             t("search.mosaic.hitBook", { book: String(Number(r.book) + 1) }),
           )} · ${escapeHtml(formatAlphabetSymbolLabel(r.alphabet, t))}</div>
@@ -810,7 +813,7 @@ async function runBabelLocate(modeAtStart, findBtn) {
       S.alphabetId = alphabetId;
       syncLensControls();
     }
-    const accent = room_accent(babelMeta.z, babelMeta.n, babelMeta.u);
+    const accent = room_accent(String(babelMeta.z), String(babelMeta.n), babelMeta.u);
     let locate;
     try {
       locate = mosaic_babel_json(

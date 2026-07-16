@@ -4,21 +4,42 @@
 //! `(universe, z, n, generator_version)`. Alphabet is a **lens**: it rewrites
 //! spines and pages at the same address without changing the room hash or sigil.
 
-use crate::config::{
-    BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL, alphabet,
-};
-use crate::prng::{book_title, mix2, splitmix64};
+use num_bigint::BigInt;
+use num_traits::Zero;
+
+use crate::config::{BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL};
+use crate::prng::mix2;
+
+/// Parse a decimal `BigInt` coordinate from WASM/JS (`"123"` / `"-7"`).
+#[must_use]
+pub fn parse_coord(s: &str) -> BigInt {
+    BigInt::parse_bytes(s.trim().as_bytes(), 10).unwrap_or_else(BigInt::zero)
+}
+
+fn hash_coord_bytes(h: &mut blake3::Hasher, label: &[u8], v: &BigInt) {
+    let bytes = v.to_signed_bytes_le();
+    h.update(label);
+    h.update(&(bytes.len() as u64).to_le_bytes());
+    h.update(&bytes);
+}
 
 /// Seed for the gallery at coordinate `(z, n)` within a universe.
 ///
 /// Alphabet is intentionally not mixed in — it is a view lens over this room.
+/// Coordinates are hashed as signed little-endian `BigInt` bytes (not cast to i64).
 #[inline]
 #[must_use]
-pub fn gallery_seed(z_coord: i64, n_coord: i64, universe_seed: u64) -> u64 {
-    let coord_mix = mix2(z_coord as u64, n_coord as u64);
-    let version_mix =
-        splitmix64(coord_mix ^ (GENERATOR_VERSION as u64).wrapping_mul(0xA5A5_5A5A_F0F0_0F0F));
-    splitmix64(version_mix ^ universe_seed.wrapping_mul(0xC2B2_AE3D_27D4_EB4F))
+pub fn gallery_seed(z_coord: &BigInt, n_coord: &BigInt, universe_seed: u64) -> u64 {
+    let mut h = blake3::Hasher::new();
+    h.update(b"lob:gallery:seed:1");
+    h.update(&GENERATOR_VERSION.to_le_bytes());
+    h.update(&universe_seed.to_le_bytes());
+    hash_coord_bytes(&mut h, b"z", z_coord);
+    hash_coord_bytes(&mut h, b"n", n_coord);
+    let digest = h.finalize();
+    let mut prefix = [0u8; 8];
+    prefix.copy_from_slice(&digest.as_bytes()[0..8]);
+    u64::from_le_bytes(prefix)
 }
 
 /// Seed for one book, addressed within a gallery by its flat shelf index.
@@ -30,27 +51,19 @@ pub fn book_seed(gallery_seed: u64, book_index: u32) -> u64 {
 
 /// The 700 spine titles for a gallery, in shelf order.
 ///
-/// When `title_embed` is set, the canonical book for that normalized title shows
-/// the searched string on its spine (mirrors content-search embed).
+/// When `title_embed` is set, the canonical book for that title still uses the
+/// Basile spine map (the searched string is a substring of the virgin title).
 #[must_use]
 pub fn gallery_titles(
-    z: i64,
-    n: i64,
+    z: &BigInt,
+    n: &BigInt,
     alphabet_id: u32,
     universe_seed: u64,
     title_embed: Option<&str>,
 ) -> Vec<String> {
-    let gs = gallery_seed(z, n, universe_seed);
-    let ab = alphabet(alphabet_id);
+    let _ = title_embed; // highlight is UI-side; spines are always virgin Basile titles
     (0..BOOKS_PER_GALLERY)
-        .map(|i| {
-            if let Some(flat) = title_embed
-                && crate::search::title_embeds_at(z, n, i, flat, alphabet_id, universe_seed)
-            {
-                return flat.to_string();
-            }
-            book_title(book_seed(gs, i), ab)
-        })
+        .map(|i| crate::search::spine_title_at(z, n, i, alphabet_id, universe_seed))
         .collect()
 }
 
@@ -59,14 +72,14 @@ pub fn gallery_titles(
 /// Hashes the 700 book-slot seeds (derived from room identity). Text under a
 /// given alphabet is a separate projection and does not enter this digest.
 #[must_use]
-pub fn node_hash_bytes(z: i64, n: i64, universe_seed: u64) -> [u8; 32] {
+pub fn node_hash_bytes(z: &BigInt, n: &BigInt, universe_seed: u64) -> [u8; 32] {
     let gs = gallery_seed(z, n, universe_seed);
     let mut h = blake3::Hasher::new();
     h.update(b"lob:room:1");
     h.update(&GENERATOR_VERSION.to_le_bytes());
     h.update(&universe_seed.to_le_bytes());
-    h.update(&z.to_le_bytes());
-    h.update(&n.to_le_bytes());
+    hash_coord_bytes(&mut h, b"z", z);
+    hash_coord_bytes(&mut h, b"n", n);
     for i in 0..BOOKS_PER_GALLERY {
         h.update(&book_seed(gs, i).to_le_bytes());
     }
@@ -75,7 +88,7 @@ pub fn node_hash_bytes(z: i64, n: i64, universe_seed: u64) -> [u8; 32] {
 
 /// 64-bit prefix of the full fingerprint — compact header hash and palette seed.
 #[must_use]
-pub fn node_fingerprint(z: i64, n: i64, universe_seed: u64) -> u64 {
+pub fn node_fingerprint(z: &BigInt, n: &BigInt, universe_seed: u64) -> u64 {
     let hash = node_hash_bytes(z, n, universe_seed);
     let mut prefix = [0u8; 8];
     prefix.copy_from_slice(&hash[0..8]);
@@ -96,11 +109,11 @@ pub fn book_index_to_shelf(book_index: u32) -> (u32, u32, u32) {
 
 /// Returns the neighbor coordinate for a move: 0=left, 1=right, 2=up, 3=down.
 #[must_use]
-pub fn neighbor(z: i64, n: i64, mv: u8) -> (i64, i64) {
+pub fn neighbor(z: &BigInt, n: &BigInt, mv: u8) -> (BigInt, BigInt) {
     match mv {
-        0 => (z, n - 1),
-        1 => (z, n + 1),
-        2 => (z + 1, n),
-        _ => (z - 1, n),
+        0 => (z.clone(), n - 1),
+        1 => (z.clone(), n + 1),
+        2 => (z + 1, n.clone()),
+        _ => (z - 1, n.clone()),
     }
 }

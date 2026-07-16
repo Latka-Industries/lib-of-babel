@@ -28,7 +28,7 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q` / `img=1`, with gallery hash as proof. Short-lived same-browser Babelgram handoff uses `&be=` (IndexedDB; not shareable). |
+| **Permalinks** | Room: compact `(z, n)` (`c…` base64url when huge) + optional `u` / `a` / `book` / `page` / `img=1` / `gv`. Search shares: short `#q=&find=content\|title` (re-locate on boot). Babelgram handoff: `&be=` (IndexedDB; not shareable). |
 | **Stack** | Rust → WASM core + static web frontend. |
 | **Persistence** | IndexedDB trail (+ brief Babelgram print handoffs); JSON export of path + per-node hashes. |
 
@@ -36,8 +36,8 @@ Canonical dimensions:
 
 ```text
 (universe, z, n)              ──hash──▶  gallery_seed   (room identity)
-gallery_seed + wall/shelf/i   ──hash──▶  book_seed
-book_seed + page + alphabet   ──Feistel──▶  one page (3200 symbols; invertible)
+gallery_seed + wall/shelf/i   ──hash──▶  book_seed (titles / room hash only)
+(universe, z, n, book, page)  ──Basile──▶  one page (3200 symbols; invertible)
 410 pages                     ──join──▶  the full book
 700 book-slot seeds           ─BLAKE3─▶  node_hash  (room fingerprint; alphabet-free)
 ```
@@ -45,42 +45,44 @@ book_seed + page + alphabet   ──Feistel──▶  one page (3200 symbols; in
 Same inputs forever → same books. Open a book → generate → render → discard.
 
 **The generator is the schema.** Alphabet, PRNG, hash, dimensions, and seeding order are
-frozen and versioned. Exports stamp `generator_version` (currently **8**); a core change
-invalidates old proofs.
+frozen and versioned. Exports and permalinks stamp `generator_version` / `&gv=` (currently
+**9**); a core change invalidates old proofs. Missing or mismatched `gv` on a deep link
+triggers a migrate warning (closest equivalent: re-locate if `&q=`, else keep coords).
 
 ## What gets stored (it's tiny)
 
 Per step ≈ **50 bytes** (`z`, `n`, `move`, `node_hash`). An hour of walking is ~180 KB;
 a million steps ~50 MB. Text is never stored.
 
-## Search (`generator_version` 8)
+## Search (`generator_version` 9)
 
 **actions… → search…** — **text** (content / title) or **Babelgram** (stamped book-image
 PNG), under the active alphabet and universe. Arbitrary **photo → mosaic** is implemented
 in core (`src/mosaic/`) but the UI tab is gated off (`PHOTO_SEARCH_TAB_ENABLED` in
 `web/js/reader/search.js`) until the luma path feels right.
 
-**Content:** validate → BLAKE3 to `(z, n, book, page)` → Basile-style embed (long phrases
-span pages) → open. Up to one full book (~1.3M characters). Shareable `&q=` is soft-capped
-(long / full-book flats stay out of the URL).
+**Content (true Basile):** pad the phrase into a full page (deterministic offset + filler)
+→ invert the page integer (`content × I mod |Σ|^3200`) → virgin page at those coords
+**is** the padded phrase (no post-hoc embed). Highlight is UI-only (**clear mark** drops
+`&q=` without changing glyphs). Multi-page: virgin page 0 holds the start (page-level
+map; consecutive book-level bijection deferred). Coordinates are unbounded `BigInt`;
+the UI shows scientific notation for huge axes. Share links prefer `#q=&find=content`
+(boot re-locates) so the hash stays short.
 
-**Title:** same rules, max **24** characters → `(z, n, book)` → embed on the canonical
-spine → jump and open at page 1.
+**Title:** pad to **24** cells → invert title map → virgin spine contains the phrase →
+jump and open at page 1.
 
 **Babelgram:** stamped PNG from save → book image (exact colour grid, `tEXt lob:babel`
 plus optional universe name). Exact accent decode reports **rms % / mae / corr** (and a
-diff thumb). **Same universe** as the export → that exact book. **Other universe** → same
-Babelgram **print** at a new address, but **different book contents**. **go there** opens a
+diff thumb). Locate inverts virgin page 0 of the projected flat. **go there** opens a
 new tab; other-universe print handoff is same-browser IndexedDB (`&be=`). **copy link** is
 address-only (`&img=1`, no print payload).
 
 ```text
-content:  phrase  ──validate──▶  flat  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
-title:    title   ──validate──▶  flat  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine
+content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text
+title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)         ──virgin──▶  spine
 babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)
-                  ├── same universe ──▶  export book
-                  └── other universe ──▶  new address + print handoff (&be=)
 ```
 
-Feistel page mapping is invertible, so **search-by-content** is the reverse of reading.
+Page generation is the reverse of search: `content = (addr × C) mod |Σ|^3200`.
 WASM entry points: `locate_page_json` / `locate_title_json` / `mosaic_*` (see [development.md](development.md)).
