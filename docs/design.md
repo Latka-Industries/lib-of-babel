@@ -24,13 +24,13 @@ Canonical dimensions:
 | **Books** | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view. |
 | **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
 | **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
-| **Wanderings** | Last 500 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). |
+| **Wanderings** | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). Universe switches at the same gallery count as steps (`◇`); hallway/stair/jump unchanged. |
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q` / `img=1`, with gallery hash as proof. |
+| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q` / `img=1`, with gallery hash as proof. Short-lived same-browser Babelgram handoff uses `&be=` (IndexedDB; not shareable). |
 | **Stack** | Rust → WASM core + static web frontend. |
-| **Persistence** | IndexedDB trail; JSON export of path + per-node hashes. |
+| **Persistence** | IndexedDB trail (+ brief Babelgram print handoffs); JSON export of path + per-node hashes. |
 
 ## The generation chain (never store text)
 
@@ -68,13 +68,18 @@ span pages) → open. Up to one full book (~1.3M characters). Shareable `&q=` is
 spine → jump and open at page 1.
 
 **Babelgram:** stamped PNG from save → book image (exact colour grid, `tEXt lob:babel`
-plus optional universe name). Exact accent decode → locate → go / short `&img=1` permalink
-(same universe returns to the export book; other universe is projective).
+plus optional universe name). Exact accent decode reports **rms % / mae / corr** (and a
+diff thumb). **Same universe** as the export → that exact book. **Other universe** → same
+Babelgram **print** at a new address, but **different book contents**. **go there** opens a
+new tab; other-universe print handoff is same-browser IndexedDB (`&be=`). **copy link** is
+address-only (`&img=1`, no print payload).
 
 ```text
 content:  phrase  ──validate──▶  flat  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
 title:    title   ──validate──▶  flat  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine
-babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)   ──&img=1──▶  colour map
+babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)
+                  ├── same universe ──▶  export book
+                  └── other universe ──▶  new address + print handoff (&be=)
 ```
 
 Feistel page mapping is invertible, so **search-by-content** is the reverse of reading.

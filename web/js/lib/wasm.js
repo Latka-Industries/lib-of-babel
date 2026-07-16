@@ -17,6 +17,7 @@ export {
   mosaic_flat_for,
   mosaic_candidates_json,
   mosaic_babel_json,
+  BabelLocateResult,
   locate_page_json,
   locate_title_json,
   max_title_len,

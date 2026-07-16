@@ -7,7 +7,7 @@
 
 import { init, generator_version, default_alphabet, search_page_span_for } from "./js/lib/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/lib/constants.js";
-import { kvGet } from "./js/lib/db.js";
+import { kvGet, kvDel } from "./js/lib/db.js";
 import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
 import { parsePermalink } from "./js/gallery/url.js";
 import { render } from "./js/gallery/view.js";
@@ -19,6 +19,38 @@ import {
   hasSeenAbout,
   markSeenAbout,
 } from "./js/about/about.js";
+
+async function openBookFromPermalink(link) {
+  if (link.img) {
+    if (link.be) {
+      const key = `babel-embed:${link.be}`;
+      const payload = await kvGet(key);
+      await kvDel(key).catch(() => {});
+      if (payload?.flat) {
+        const rgba = payload.imageRgba
+          ? payload.imageRgba instanceof Uint8Array
+            ? payload.imageRgba
+            : new Uint8Array(payload.imageRgba)
+          : null;
+        openBookImage(link.b, null, payload.flat, payload.pageSpan || 1, {
+          imageRgba: rgba,
+          imageW: payload.imageW || 0,
+          imageH: payload.imageH || 0,
+        });
+        return;
+      }
+    }
+    openBookImage(link.b);
+    return;
+  }
+  openBook(
+    link.b,
+    null,
+    link.p || 1,
+    link.q || null,
+    link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
+  );
+}
 
 async function boot() {
   await init();
@@ -81,17 +113,7 @@ async function boot() {
     S.z === link.z &&
     S.n === link.n
   ) {
-    if (link.img) {
-      openBookImage(link.b);
-    } else {
-      openBook(
-        link.b,
-        null,
-        link.p || 1,
-        link.q || null,
-        link.q ? search_page_span_for(link.q, S.alphabetId) : 1,
-      );
-    }
+    await openBookFromPermalink(link);
     openedBook = true;
   }
 

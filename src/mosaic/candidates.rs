@@ -14,7 +14,9 @@ use super::flat::{indices_to_flat, locate_mosaic_flat};
 use super::project::{
     alphabet_space_idx, ensure_book_rgba, project_indices, project_indices_sized,
 };
-use super::score::{downsample_rgba, fit_percent, fit_perceptual_percent};
+use super::score::{
+    downsample_rgba, fit_percent, fit_perceptual_percent, rgb_mean_abs_diff, rgb_pearson_corr,
+};
 
 /// Coarse photo search: subsample every Nth cell, sweep hue × chroma × light.
 pub(crate) const COARSE_FACTOR: usize = 8;
@@ -60,7 +62,7 @@ fn evaluate_pack(
     alphabet_id: u32,
     pack: &CandidatePack,
     mode: FitMode,
-) -> Option<(f64, String, LocateResult)> {
+) -> Option<(f64, String, LocateResult, String, Vec<u8>)> {
     let ab = alphabet(alphabet_id);
     let space_idx = alphabet_space_idx(ab);
     let space = pack.space_threshold.clamp(0.0, 255.0);
@@ -75,7 +77,22 @@ fn evaluate_pack(
     };
     let flat = indices_to_flat(&indices, ab);
     let hit = locate_mosaic_flat(&flat, alphabet_id, active_universe()).ok()?;
-    Some((percent, pack.label.to_string(), hit))
+    Some((percent, pack.label.to_string(), hit, flat, mosaic))
+}
+
+/// Per-pixel `|src − mosaic|` (alpha forced opaque). Exact babel decode → near black.
+fn rgba_abs_diff(src: &[u8], mosaic: &[u8]) -> Vec<u8> {
+    let n = src.len().min(mosaic.len());
+    let mut out = vec![0u8; n];
+    let mut i = 0;
+    while i + 3 < n {
+        out[i] = src[i].abs_diff(mosaic[i]);
+        out[i + 1] = src[i + 1].abs_diff(mosaic[i + 1]);
+        out[i + 2] = src[i + 2].abs_diff(mosaic[i + 2]);
+        out[i + 3] = 255;
+        i += 4;
+    }
+    out
 }
 
 fn score_coarse_luma(
@@ -105,6 +122,10 @@ fn by_percent_desc(a: f64, b: f64) -> Ordering {
 
 struct JsonHit<'a> {
     percent: f64,
+    /// Mean abs RGB error 0..255 (babel exact only).
+    mae: f64,
+    /// Pearson RGB correlation (babel exact only).
+    corr: f64,
     z: i64,
     n: i64,
     book: u32,
@@ -126,11 +147,14 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
         let _ = write!(
             out,
             concat!(
-                "{{\"percent\":{:.4},\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
+                "{{\"percent\":{:.4},\"mae\":{:.6},\"corr\":{:.6},",
+                "\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
                 "\"page_span\":{},\"hue\":{:.6},\"chroma\":{:.6},\"light\":{:.6},",
                 "\"space_threshold\":0,\"dither\":false,\"label\":{},\"alphabet\":{}}}"
             ),
             h.percent,
+            h.mae,
+            h.corr,
             h.z,
             h.n,
             h.book,
@@ -177,6 +201,51 @@ fn json_results(hits: &[JsonHit<'_>]) -> String {
     }
     out.push_str("]}");
     out
+}
+
+/// Babel locate → small results JSON + full-book flat as a real JS string
+/// (flat must not ride inside JSON — ~1.3M cells breaks parse / memory).
+/// `diff_pixels` is `|upload − reproject|` under the stamp accent (exact → black).
+#[wasm_bindgen]
+pub struct BabelLocateResult {
+    results_json: String,
+    flat: String,
+    diff_pixels: Vec<u8>,
+    width: u32,
+    height: u32,
+}
+
+#[wasm_bindgen]
+impl BabelLocateResult {
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn results_json(&self) -> String {
+        self.results_json.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn flat(&self) -> String {
+        self.flat.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn diff_pixels(&self) -> Vec<u8> {
+        self.diff_pixels.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn height(&self) -> u32 {
+        self.height
+    }
 }
 
 struct LocateHit {
@@ -275,7 +344,7 @@ fn coarse_candidate_packs(
 fn fine_locate_hits(src: &[u8], alphabet_id: u32, packs: &[CandidatePack]) -> Vec<LocateHit> {
     let mut hits: Vec<LocateHit> = Vec::new();
     for pack in packs {
-        let Some((percent, label, res)) =
+        let Some((percent, label, res, _flat, _mosaic)) =
             evaluate_pack(src, alphabet_id, pack, FitMode::PhotoPerceptual)
         else {
             continue;
@@ -321,6 +390,8 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
         .iter()
         .map(|h| JsonHit {
             percent: h.percent,
+            mae: 0.0,
+            corr: 0.0,
             z: h.z,
             n: h.n,
             book: h.book,
@@ -341,19 +412,25 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
 
 /// Exact babel-export decode: one pack (`space=0`, no dither) → locate in the active universe.
 ///
-/// Returns JSON `{ ok, results:[{ percent, z, n, book, page, page_span, hue, chroma, light,
-/// space_threshold, dither, label, alphabet }] }` with a single hit when decode succeeds.
+/// On success: [`BabelLocateResult`] with `results_json` =
+/// `{ ok, results:[{ percent, z, n, book, page, page_span, … }] }`, `flat` for in-session
+/// embed, and `diff_pixels` = `|upload − stamp-accent reproject|` (exact decode → black).
+///
+/// # Errors
+///
+/// String `JsValue` when the buffer is not the book grid, or locate fails.
 #[wasm_bindgen]
-#[must_use]
 pub fn mosaic_babel_json(
     src_rgba: &[u8],
     alphabet_id: u32,
     hue: f64,
     chroma: f64,
     light: f64,
-) -> String {
+) -> Result<BabelLocateResult, JsValue> {
     if ensure_book_rgba(src_rgba).is_err() {
-        return ERR_BOOK_GRID.into();
+        return Err(JsValue::from_str(
+            "image must match the full-book colour grid",
+        ));
     }
     let pack = CandidatePack {
         hue,
@@ -363,14 +440,20 @@ pub fn mosaic_babel_json(
         dither: false,
         label: "babel exact",
     };
-    let Some((percent, label, res)) =
+    let Some((percent, label, res, flat, mosaic)) =
         evaluate_pack(src_rgba, alphabet_id, &pack, FitMode::GlyphRgb)
     else {
-        return r#"{"ok":false,"error":"could not locate babel mosaic"}"#.into();
+        return Err(JsValue::from_str("could not locate babel mosaic"));
     };
+    let (width, height) = book_grid_dims();
+    let diff_pixels = rgba_abs_diff(src_rgba, &mosaic);
+    let mae = rgb_mean_abs_diff(src_rgba, &mosaic);
+    let corr = rgb_pearson_corr(src_rgba, &mosaic);
     let loc = &res.location;
-    json_results(&[JsonHit {
+    let results_json = json_results(&[JsonHit {
         percent,
+        mae,
+        corr,
         z: loc.z,
         n: loc.n,
         book: loc.book_index,
@@ -384,7 +467,14 @@ pub fn mosaic_babel_json(
         label: &label,
         alphabet_id,
         babel_exact: true,
-    }])
+    }]);
+    Ok(BabelLocateResult {
+        results_json,
+        flat,
+        diff_pixels,
+        width,
+        height,
+    })
 }
 
 /// Top mosaic destinations for an uploaded book-grid image.

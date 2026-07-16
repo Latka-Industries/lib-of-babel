@@ -48,18 +48,21 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run clean` | remove `target/` and `web/pkg` |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
+Universe renames / dice rolls at the same `(z, n)` append a wander step (`◇`).
 Permalinks: `z`, `n` required; optional `u`, `a`, `book`, `page`, `q`, `img=1`.
 Shareable `&q=` is soft-capped; mosaic / full-book flats stay out of the URL.
+Same-browser Babelgram print handoff may add short-lived `&be=` (IndexedDB key; not for sharing).
 
 ## UI notes
 
 - In-app guide: brand **LIB·OF·BABEL**, footer **? · Help**, or keyboard **?** (first visit opens About once)
+- About tabs: **overview → wander → alphabets → books → search → more**. Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH**). Control names in the prose use panel chips (`.ui`).
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
-- Search modes shipped in UI: **text** (content / title), **Babelgram** (exact-size stamped book-image PNG → locate)
+- Search modes shipped in UI: **text** (content / title), **Babelgram** (exact-size stamped book-image PNG → locate; metrics + **go there** / copy link)
 - Photo→mosaic tab exists in code but is **off** (`PHOTO_SEARCH_TAB_ENABLED = false` in `web/js/reader/search.js`); core stays in `src/mosaic/`
 - Lens registry for the UI lives in `web/js/lib/constants.js` (kept in sync with Rust via tests)
 - Chrome: Overpass Mono; About prose: Lato
-- Mobile header sheet ≤860px; footer = wanderings + gallery/hash/steps
+- Mobile header sheet ≤860px; footer = wanderings (last 1000) + gallery/hash/steps
 - Theme toggle remembers preference (OS default if unset)
 
 ## WASM API (frontend ↔ core)
@@ -80,5 +83,5 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 | `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
 | `search_page_span_for` / `search_page_embed_for` | Multi-page layout helpers |
 | `book_text_for` / `book_image` / `book_image_search` / `book_image_dims` / `room_accent` | Full text, RGBA colour map (optionally with search embed), grid size, or origin-room OKLCH knobs |
-| `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate |
+| `mosaic_project` / `mosaic_flat_for` / `mosaic_candidates_json` / `mosaic_babel_json` | Photo→palette preview / flat / candidate packs (photo UI gated off); exact Babelgram locate (returns flat + decode metrics for UI) |
 | `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |

@@ -47,7 +47,6 @@ export const de = {
   "common.close": "Schließen",
   "common.go": "Los",
   "common.link": "Link",
-  "common.you": "Sie",
   "common.copied": "Kopiert!",
 
   "about.subtitle": "eine begehbare Bibliothek von Babel",
@@ -55,6 +54,7 @@ export const de = {
   "about.tab.alphabets": "Alphabete",
   "about.tab.wander": "Wandern",
   "about.tab.books": "Bücher",
+  "about.tab.search": "Suche",
   "about.tab.more": "Mehr",
   "about.tabsLabel": "Abschnitte",
   "about.alphabets.h": "Alphabet-Linsen",
@@ -95,15 +95,16 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <h4>So wandern Sie</h4>
 <ul>
 <li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Hilfe</kbd> oder <kbd>?</kbd> öffnen diesen Leitfaden jederzeit.</li>
-<li>Die Kopfzeilen-<b>Thema</b>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
+<li>Die Kopfzeilen-<span class="ui">Thema</span>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
 <li>Nutzen Sie die <b>Minikarte</b> — klicken Sie auf einen Ausgangs-Hash. Mit den <kbd>Pfeiltasten</kbd> gehen Sie Flure und Treppen (außer bei offenem Dialog).</li>
-<li>Klicken Sie auf <b>Galerie&nbsp;(z,&nbsp;n)</b>, um irgendwohin zu <b>springen</b>.</li>
+<li>Klicken Sie auf <span class="ui">Galerie&nbsp;(z,&nbsp;n)</span>, um irgendwohin zu springen.</li>
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
-<li>Geben Sie einen <b>Universum</b>-Namen ein oder würfeln Sie mit <b>&#9860;</b>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
-<li>Das <b>Alphabet</b>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.</li>
-<li><b>Aktionen…</b> → <b>Link kopieren</b> (oder Fußzeilen-<b>Hash</b>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
-<li><b>Aktionen…</b> → <b>Suchen…</b> — <b>Text</b> oder <b>Babelgram</b>; hinspringen (siehe <b>Mehr</b>).</li>
-<li><b>Wanderungen</b> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <b>Reise exportieren</b> speichert den gesamten Weg als JSON.</li>
+<li>Geben Sie einen <span class="ui">Universum</span>-Namen ein oder würfeln Sie mit <span class="ui">&#9860;</span>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
+<li>Das <span class="ui">Alphabet</span>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETE</button></li>
+<li>Klicken Sie auf einen farbigen Rücken an einer Wand, um ein Buch zu öffnen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BÜCHER</button></li>
+<li><span class="ui">Aktionen…</span> → <span class="ui">Link kopieren</span> (oder Fußzeilen-<span class="ui">Hash</span>) für einen Permalink; <code>&amp;a=</code> stellt die Linse wieder her.</li>
+<li><span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> — <span class="ui">Text</span> oder <span class="ui">Babelgram</span>; hinspringen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SUCHE</button></li>
+<li><span class="ui">Wanderungen</span> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <span class="ui">Reise exportieren</span> speichert den gesamten Weg als JSON.</li>
 </ul>`,
 
   "about.books": `
@@ -111,46 +112,71 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <ul>
 <li>Klicken Sie auf einen farbigen Rücken; mit <kbd>←</kbd> <kbd>→</kbd> blättern Sie, solange der Leser offen ist.</li>
 <li>Der zuletzt geschlossene Rücken ist <b>rot</b> umrandet, damit Sie ihn wiederfinden.</li>
-<li><b>Farbe</b> zeichnet die Seite als Zeichen-Farbkarte — jedes Symbol ein Quadrat, getönt vom Galerie-Hash.</li>
-<li><b>Link</b> kopiert einen Permalink zu diesem Buch auf dieser Seite.</li>
-<li><b>Speichern…</b> → <b>Buch ausleihen</b> — voller Text (~1,3&nbsp;MB .txt)</li>
-<li><b>Speichern…</b> → <b>Buchbild</b> — ganzes Buch als PNG-Farbkarte</li>
+<li><span class="ui">Farbe</span> zeichnet die Seite als Zeichen-Farbkarte — jedes Symbol ein Quadrat, getönt vom Galerie-Hash.</li>
+<li><span class="ui">Link</span> kopiert einen Permalink zu diesem Buch auf dieser Seite.</li>
+<li><span class="ui">Speichern…</span> → <span class="ui">Buch ausleihen</span> — voller Text (~1,3&nbsp;MB .txt)</li>
+<li><span class="ui">Speichern…</span> → <span class="ui">Buchbild</span> — ganzes Buch als PNG-Farbkarte</li>
 </ul>`,
 
-  "about.more": `
-<h4>Die Zahlen in der Fußzeile</h4>
+  "about.search": `
+<h4>nach Inhalt</h4>
 <p class="dim">
-<b>Galerie (z, n)</b> ist Ihre Koordinate. <b>Hash</b> ist der
-<b>BLAKE3</b>-Fingerabdruck des Raums — Permalink und Beweis für diesen Ort in diesem
-Universum. Er ändert sich <b>nicht</b>, wenn Sie das Alphabet wechseln; die Linse schreibt
-nur um, was die Regale sagen. <b>Wanderungen</b> hält Ihre letzten
-{max} Schritte (Universum + Alphabet-Linse eingefroren);
-der Raum-Hash jedes Schritts lebt in der vollen Spur. <b>Aktionen…</b> bietet auch
-<b>Reise prüfen</b> und <b>Neuer Gang</b>.
-</p>
-<h4>Suche nach Inhalt</h4>
-<p class="dim">
-Unter <b>Aktionen…</b> → <b>Suchen…</b> bleiben Sie auf dem Tab <b>Text</b> mit
-<b>Inhalt</b>. Fügen Sie eine Phrase ein (bis zu einem ganzen Buch — ~1,3&nbsp;Millionen
+Unter <span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> bleiben Sie auf dem Tab <span class="ui">Text</span> mit
+<span class="ui">Inhalt</span>. Fügen Sie eine Phrase ein (bis zu einem ganzen Buch — ~1,3&nbsp;Millionen
 Zeichen); die Bibliothek nennt Galerie, Regal, Buch und Seite(n), wo sie
 bereits lebt — und öffnet sie. Lange Phrasen spannen aufeinanderfolgende Seiten.
 Die Suche nutzt die <b>aktuelle Alphabet-Linse</b> und bleibt im Universum, in dem Sie stehen.
 Ungültige Zeichen werden rot markiert.
 </p>
-<h4>Suche nach Titel</h4>
+<h4>nach Titel</h4>
 <p class="dim">
-Derselbe <b>Text</b>-Tab — wählen Sie <b>Titel</b> statt <b>Inhalt</b>. Geben Sie bis zu
+Derselbe <span class="ui">Text</span>-Tab — wählen Sie <span class="ui">Titel</span> statt <span class="ui">Inhalt</span>. Geben Sie bis zu
 <b>24 Zeichen</b> ein (aktive Linsenregeln). Die Zeichenkette gilt als
 <b>Rückenbeschriftung</b>: die Bibliothek springt zur Galerie und zum Regal, wo
 dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken und
 öffnet Seite&nbsp;1.
 </p>
-<h4>Suche nach Babelgram</h4>
+<h4>nach Babelgram</h4>
 <p class="dim">
-Tab <b>Babelgram</b>: gestempeltes PNG von <b>Speichern… → Buchbild</b>
-(exaktes Farbraster, <code>lob:babel</code>-Stempel) → Locate →
-<b>Dorthin</b> / kurzen Buchbild-Link (gleiches Universum = Export; sonst projektiv).
+Tab <span class="ui">Babelgram</span>: gestempeltes PNG von <span class="ui">Speichern…</span> → <span class="ui">Buchbild</span>.
+<b>Gleiches Universum</b> wie der Export → genau <b>dieses Buch</b>.
+<b>Anderes Universum</b> → gleicher <b>Babelgram-Druck</b> an neuer Adresse,
+aber <b>anderer Buchinhalt</b>. <span class="ui">Dorthin</span> öffnet einen neuen Tab.
 (Beliebiges Foto→Mosaik ist vorübergehend aus.)
+</p>`,
+
+  "about.more": `
+<h4>Die Zahlen in der Fußzeile</h4>
+<p class="dim">
+<span class="ui">Galerie (z, n)</span> ist Ihre Koordinate. <span class="ui">Hash</span> ist der
+<b>BLAKE3</b>-Fingerabdruck des Raums — Permalink und Beweis für diesen Ort in diesem
+Universum. Er ändert sich <b>nicht</b>, wenn Sie das Alphabet wechseln; die Linse schreibt
+nur um, was die Regale sagen. <span class="ui">Wanderungen</span> hält Ihre letzten
+{max} Schritte (Universum + Alphabet-Linse eingefroren) — auch
+<span class="ui">Universum</span>-Wechsel in derselben Galerie (◇), ohne Flurzug;
+der Raum-Hash jedes Schritts lebt in der vollen Spur.
+</p>
+<h4>Reise exportieren &amp; prüfen</h4>
+<p class="dim">
+<span class="ui">Aktionen…</span> → <span class="ui">Reise exportieren</span> speichert Ihren ganzen Weg als JSON
+(Räume, Hashes, Universen, Linsen). <span class="ui">Reise prüfen</span> geht eine exportierte
+Datei nach und beweist jeden Schritt. <span class="ui">Neuer Gang</span> löscht die Spur und
+beginnt in diesem Browser neu.
+</p>
+<h4>Was in diesem Browser bleibt</h4>
+<p class="dim">
+Die Bibliothek selbst wird nie heruntergeladen — nur Ihr <b>Weg</b>, die
+<span class="ui">Thema</span>-Einstellung und ein „Leitfaden gesehen“-Flag bleiben hier.
+Babelgram-<span class="ui">Dorthin</span> in ein anderes Universum kann den Druck kurz lokal in
+<b>diesem</b> Browser übergeben, damit der neue Tab ihn öffnet; <span class="ui">Link kopieren</span>
+bleibt nur die Adresse.
+</p>
+<h4>Links teilen</h4>
+<p class="dim">
+Ein Permalink enthält Galerie <b>(z,&nbsp;n)</b>, Raum-<b>Hash</b>, Alphabet
+<code>&amp;a=</code>, optional Universum <code>&amp;u=</code>, manchmal Buchseite
+oder eine Suchphrase. Gleiche Adresse → immer derselbe Raum. Die Linse zu wechseln
+hält den Hash; nur die Regale schreiben sich um.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -181,11 +207,10 @@ Tab <b>Babelgram</b>: gestempeltes PNG von <b>Speichern… → Buchbild</b>
   "search.tab.image": "Foto",
   "search.headBabel": "Suche nach Babelgram",
   "search.metaBabel":
-    "Gestempeltes PNG von Speichern → Buchbild (exaktes Gitter). Dekodieren → Locate → Buch-Farbkarte öffnen.",
-  "search.hintBabel":
-    "nur gestempeltes Babelgram-PNG · 1:1 · gleiches Universum → Export-Galerie · anderes Universum → projektives Locate",
+    "Gleiches Universum → genau das Export-Buch. Anderes Universum → gleicher Babelgram-Druck, anderer Inhalt.",
+  "search.hintBabel": "",
   "search.babel.honesty":
-    "Braucht ein PNG von Speichern → Buchbild (Provenienz-Chunk). Pixel bleiben 1:1. Gleiches Universum wie der Export → zurück zu dieser Galerie und diesem Buch. Anderes Universum projiziert die Zellen auf eine neue Adresse (~100 % Dekodierung in beiden Fällen).",
+    "Laden Sie ein gestempeltes PNG von Speichern → Buchbild hoch (1:1-Gitter + lob:babel). Gleiches Universum wie der Export → genau dieses Buch. Anderes Universum → gleicher Babelgram-Druck an neuer Adresse, aber anderer Buchinhalt. Dorthin öffnet einen neuen Tab. Kopierter Link ist nur die Adresse (kein Druck-Handoff).",
   "search.babel.find": "Buch finden",
   "search.babel.progress": "Babelgram wird dekodiert…",
   "search.babel.upload": "Babelgram-PNG hochladen",
@@ -197,7 +222,7 @@ Tab <b>Babelgram</b>: gestempeltes PNG von <b>Speichern… → Buchbild</b>
     "Falsche Größe ({sw}×{sh}). Babelgrams müssen exakt {w}×{h} sein — neu exportieren unter Speichern → Buchbild.",
   "search.babel.needExact": "zuerst ein exaktes {w}×{h} Babelgram-PNG hochladen",
   "search.babel.notBabel":
-    "Kein Babelgram-Buchbild-PNG (fehlt lob:babel-Stempel). Neu exportieren unter Speichern → Buchbild.",
+    "Kein Babelgram-Buchbild-PNG. Neu exportieren unter Speichern → Buchbild.",
   "search.babel.nameMismatch":
     "Dateiname-Koordinaten stimmen nicht mit dem PNG-Stempel überein",
   "search.babel.originLine":
@@ -206,15 +231,37 @@ Tab <b>Babelgram</b>: gestempeltes PNG von <b>Speichern… → Buchbild</b>
   "search.babel.originNote":
     "Locate-Ziel weicht vom Export-Ursprung ab (gleiche Zellen → neue Koordinaten; anderes Universum → andere Koordinaten).",
   "search.babel.originNoteSame":
-    "Gleiches Universum wie der Export — Gehen öffnet die gestempelte Galerie und das Buch.",
+    "Gleiches Universum wie der Export — genau dieses Buch. Dorthin öffnet einen neuen Tab.",
   "search.babel.originNoteOther":
-    "Anderes Universum als der Export — Zellen werden hier projektiv lokalisiert (Ziel ≠ Stempel-Ursprung).",
+    "Anderes Universum — gleicher Babelgram-Druck an neuer Adresse, anderer Buchinhalt. Dorthin öffnet einen neuen Tab mit diesem Druck. Kopierter Link ist nur die Adresse.",
   "search.babel.resultsIntro":
     "Babelgram-Locate in {universe} (Seed {seed}) — exakte Akzent-Dekodierung:",
   "search.babel.resultsIntroSame":
-    "Babelgram-Round-Trip in {universe} (Seed {seed}) — zurück zum Export:",
+    "Genaues Buch in {universe} (Seed {seed}) — gleiches Universum wie der Export:",
   "search.babel.resultsIntroOther":
-    "Babelgram-Locate in {universe} (Seed {seed}) — projektiv (Export war ein anderes Universum):",
+    "Gleicher Babelgram-Druck in {universe} (Seed {seed}):",
+  "search.babel.thumbAlt": "hochgeladenes Babelgram",
+  "search.babel.diffAlt": "Dekodierungsdifferenz (|Upload − Reprojektion|)",
+  "search.babel.exactOk": "exakte Dekodierung",
+  "search.babel.seal": "Inhalts-Siegel {seal}",
+  "search.babel.diffCaption": "Diff",
+  "search.babel.metric.rms": "rms {n}%",
+  "search.babel.metric.mae": "mae {n}",
+  "search.babel.metric.corr": "korr {n}",
+  "search.babel.tip.rms":
+    "Quadratischer Mittelwert (RMS) der RGB-Abweichung Upload vs. Stempel-Akzent-Reprojektion. fit% = 100 × (1 − √(Mittel((ΔR²+ΔG²+ΔB²)/3) / 255²)). Ideal ≈ 100%.",
+  "search.babel.tip.mae":
+    "Mittlerer absoluter RGB-Fehler: Mittel((|ΔR|+|ΔG|+|ΔB|)/3) auf Skala 0–255. Ideal ≈ 0.",
+  "search.babel.tip.corr":
+    "Pearson-Korrelation gepaarter RGB-Proben zwischen Upload und Reprojektion. Ideal ≈ 1.",
+  "search.babel.tip.diff":
+    "Pixelweise |Upload − Reprojektion| unter Stempel-Akzent. Ideal: nahezu schwarz (alles null).",
+  "search.babel.tip.seal":
+    "Kurzer SHA-256 des dekodierten Buchtexts. Gleicher Druck ⇒ gleiches Siegel in jedem Universum.",
+  "search.babel.tip.exactOk":
+    "Dekodierung wirkt exakt: rms ≥ 99,9 %, mae < 0,5 und korr ≥ 0,999.",
+  "search.babel.confirmHint":
+    "Bilder sind verrauscht — vertrauen Sie rms % (~100), MAE (~0), Korr (~1), schwarzem Diff und Inhalts-Siegel.",
   "search.label": "Suche",
   "search.kindTitle": "Rücken-Titel oder Seiteninhalt suchen",
   "search.kindContent": "Inhalt",
