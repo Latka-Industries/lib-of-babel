@@ -82,7 +82,7 @@ pub(crate) fn build_glyph_palette(
     for (i, cell) in ab.iter().enumerate() {
         if *cell == " " {
             palette[i] = SPACE_RGB;
-        } else if cell.chars().any(|c| c.is_alphabetic()) {
+        } else if cell.chars().any(char::is_alphabetic) {
             let h = index_hash(i as u32, 0xA11E_77E5);
             let hue = (accent_hue + f64::from(h % 360)).rem_euclid(360.0);
             let chroma = accent_chroma * (0.82 + 0.18 * f64::from((h >> 8) & 0xff) / 255.0);
