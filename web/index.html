@@ -454,6 +454,29 @@
       <div class="image-wrap"><canvas id="bookImageCanvas"></canvas></div>
     </dialog>
 
+    <dialog id="babelCompareModal" class="babel-compare-modal">
+      <div class="book-head">
+        <div class="book-head-text">
+          <h3 data-i18n="search.babel.compare.title">compare</h3>
+          <small data-i18n="search.babel.compare.hint">wipe reproject ↔ diff — exact decode makes the diff side near-black</small>
+        </div>
+        <div class="book-head-actions">
+          <button type="button" id="closeBabelCompare" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
+      </div>
+      <div class="babel-compare-body">
+        <canvas id="babelCompareCanvas" width="200" height="200" aria-label="compare"></canvas>
+        <label class="babel-compare-slider">
+          <span class="babel-compare-ends">
+            <span data-i18n="search.babel.compare.result">reproject</span>
+            <span data-i18n="search.babel.compare.diff">diff</span>
+          </span>
+          <input id="babelCompareRange" type="range" min="0" max="100" step="1" value="50"
+            data-i18n-aria-label="search.babel.compare.sliderAria" aria-label="wipe between reproject and diff" />
+        </label>
+      </div>
+    </dialog>
+
     <script type="module" src="./main.js"></script>
   </body>
 </html>

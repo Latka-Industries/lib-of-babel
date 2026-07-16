@@ -138,6 +138,8 @@ Tab <span class="ui">Babelgram</span>: gestempelde PNG van <span class="ui">opsl
 <b>Zelfde universum</b> als de export → dat <b>exacte boek</b>.
 <b>Ander universum</b> → dezelfde <b>Babelgram-afdruk</b> op een nieuw adres,
 maar <b>andere boekinhoud</b>. <span class="ui">ga erheen</span> opent een nieuw tabblad.
+<span class="ui">check diff</span> veegt <b>reprojectie</b> (stempel-accentdecode) tegen
+<b>diff</b> (|upload − reprojectie|) — bij exacte decode is de diff-kant bijna zwart.
 (Willekeurige foto→mozaïek is tijdelijk uit.)
 </p>`,
 
@@ -240,6 +242,13 @@ de hash; alleen de planken herschrijven zich.
   "search.babel.exactOk": "exacte decode",
   "search.babel.seal": "inhoudszegel {seal}",
   "search.babel.diffCaption": "diff",
+  "search.babel.compare.title": "vergelijken",
+  "search.babel.compare.hint":
+    "veeg reprojectie ↔ diff — bij exacte decode is de diff-kant bijna zwart",
+  "search.babel.compare.result": "reprojectie",
+  "search.babel.compare.diff": "diff",
+  "search.babel.compare.sliderAria": "veeg tussen reprojectie en diff",
+  "search.babel.compare.checkDiff": "check diff",
   "search.babel.metric.rms": "rms {n}%",
   "search.babel.metric.mae": "mae {n}",
   "search.babel.metric.corr": "corr {n}",
@@ -256,7 +265,7 @@ de hash; alleen de planken herschrijven zich.
   "search.babel.tip.exactOk":
     "Decode lijkt exact: rms ≥ 99,9%, mae < 0,5 en corr ≥ 0,999.",
   "search.babel.confirmHint":
-    "Beelden zijn ruizig — vertrouw rms % (~100), mae (~0), corr (~1), zwarte diff en inhoudszegel.",
+    "Beelden zijn ruizig — vertrouw rms % (~100), mae (~0), corr (~1), bijna-zwarte diff-veeg en inhoudszegel.",
   "search.label": "zoeken",
   "search.kindTitle": "zoek rugtitels of pagina-inhoud",
   "search.kindContent": "inhoud",
