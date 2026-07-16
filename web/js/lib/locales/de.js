@@ -189,6 +189,17 @@ hält den Hash; nur die Regale schreiben sich um.
   "verify.title": "Reise prüfen",
   "verify.meta":
     "Legen Sie eine exportierte Reise ab, um sie nachzugehen und zu prüfen",
+  "verify.openLastRoom": "Letzten Raum in der aktuellen Bibliothek öffnen",
+
+  "legacy.gv.title": "Älterer Bibliothekslink",
+  "legacy.gv.bodyAddress":
+    "Dieser Link stammt aus einer älteren Bibliotheksversion. Der Seitentext an diesen Koordinaten ist nicht derselbe — die Regaladresse in der aktuellen Bibliothek bleibt gleich.",
+  "legacy.gv.bodyQuery":
+    "Dieser Link stammt aus einer älteren Bibliotheksversion. Wir können dieselbe Suchphrase unter dem aktuellen Generator platzieren (möglicherweise ein anderes Regal).",
+  "legacy.gv.bodyRelocated":
+    "Dieser Link stammt aus einer älteren Bibliotheksversion. Wir haben Ihre Suchphrase unter dem aktuellen Generator neu verortet — dieselben Worte, möglicherweise ein neues Regal.",
+  "legacy.gv.continue": "Weiter",
+  "legacy.gv.skipSession": "Diese Sitzung nicht mehr anzeigen",
 
   "search.head": "Suche",
   "search.headContent": "Suche nach Inhalt",
@@ -228,7 +239,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.babel.nameMismatch":
     "Dateiname-Koordinaten stimmen nicht mit dem PNG-Stempel überein",
   "search.babel.originLine":
-    "Export-Ursprung · {universe} (Seed {u}) · Galerie ({z}, {n}) · Buch {book} · {alphabet}",
+    "Export-Ursprung · {universe} (Seed {u}) · Galerie {coords} · Buch {book} · {alphabet}",
   "search.babel.universeUnknown": "Seed {seed}",
   "search.babel.originNote":
     "Locate-Ziel weicht vom Export-Ursprung ab (gleiche Zellen → neue Koordinaten; anderes Universum → andere Koordinaten).",
@@ -275,7 +286,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.kindTitle": "Rücken-Titel oder Seiteninhalt suchen",
   "search.kindContent": "Inhalt",
   "search.kindTitleOpt": "Titel",
-  "search.placeholderContent": "Verzeihen Sie mir, denn ich habe gesündigt",
+  "search.placeholderContent": "ein reittier nie",
   "search.placeholderTitle": "Karmesinrücken",
   "search.find": "Finden",
   "search.count": "{n} / {max}",
@@ -330,7 +341,7 @@ hält den Hash; nur die Regale schreiben sich um.
   "search.mosaic.needImage": "zuerst ein Bild hochladen",
   "search.mosaic.hitBook": "Buch {book}",
   "search.go": "Dorthin",
-  "search.result.gallery": "Galerie ({z}, {n})",
+  "search.result.gallery": "Galerie {coords}",
   "search.result.coords":
     "Universum {universe} · Wand {wall} · Regal {shelf} · Buch {book} · {detail}",
   "search.result.page": "Seite {n}",
@@ -364,6 +375,8 @@ hält den Hash; nur die Regale schreiben sich um.
   "book.viewTitle": "Zwischen Text und Zeichen-Farbansicht der Seite wechseln",
   "book.viewColor": "Farbe",
   "book.viewText": "Text",
+  "book.clearSearch": "Markierung weg",
+  "book.clearSearchTitle": "Suchmarkierung entfernen — der Seitentext bleibt",
   "book.prev": "‹ Zurück",
   "book.next": "Weiter ›",
   "book.pageInd": "Seite {page} / {total}",

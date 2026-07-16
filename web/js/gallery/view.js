@@ -9,7 +9,7 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, formatCoordDisplay, formatUniverseLabel, galleryIsTouch } from "../lib/util.js";
+import { el, copyText, formatCoordDisplay, formatCoordFull, formatUniverseLabel, galleryIsTouch } from "../lib/util.js";
 import { hueFromString, hashHue, hashAccentColor } from "../lib/color.js";
 import { neighbor } from "../lib/lattice.js";
 import {
@@ -50,7 +50,7 @@ function renderMinimap(curHash, accentHue) {
   const accent = accentHsl(accentHue);
   const exit = (mv) => {
     const [nz, nn] = neighbor(S.z, S.n, mv);
-    const h = node_hash_hex(nz, nn);
+    const h = node_hash_hex(String(nz), String(nn));
     return { h, color: hashAccentColor(h) };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
@@ -77,11 +77,12 @@ function renderMinimap(curHash, accentHue) {
 }
 
 export function render() {
-  const titles = JSON.parse(gallery_titles_json(S.z, S.n, S.alphabetId, titleEmbedFlat()));
-  const hash = node_hash_hex(S.z, S.n);
-  const fullCoord = `(${S.z}, ${S.n})`;
+  const titles = JSON.parse(
+    gallery_titles_json(String(S.z), String(S.n), S.alphabetId, titleEmbedFlat()),
+  );
+  const hash = node_hash_hex(String(S.z), String(S.n));
   el("coord").textContent = formatCoordDisplay(S.z, S.n);
-  el("coord").title = `${fullCoord} — click to jump`;
+  el("coord").title = `${formatCoordFull(S.z, S.n)} — click to jump`;
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, S.trail.length - 1));
@@ -192,15 +193,17 @@ export function renderHistory() {
     const alphaLabel = alpha === null ? "—" : alphabetShortLabel(alpha);
     const row = document.createElement("div");
     row.className = "hrow" + (isCurrent ? " current" : "");
+    const coords = formatCoordDisplay(e.z, e.n);
+    const coordsFull = formatCoordFull(e.z, e.n);
     row.innerHTML =
       `<span class="step">${startIdx + i}</span>` +
-      `<span class="coord">(${e.z}, ${e.n})</span>` +
+      `<span class="coord" title="${coordsFull}">${coords}</span>` +
       `<span class="move">${MOVE_ARROW[e.move] ?? e.move}</span>` +
       `<span class="uni" title="universe at visit">${uniLabel}</span>` +
       `<span class="alpha" title="alphabet lens at visit">${alphaLabel}</span>` +
       `<span class="hh" style="color:${hashAccentColor(e.hash)}">${e.hash.slice(0, 12)}</span>`;
     row.title =
-      `gallery (${e.z}, ${e.n}) · ${uniLabel}` +
+      `gallery ${coordsFull} · ${uniLabel}` +
       (alpha !== null ? ` · ${formatAlphabetSymbolLabel(alpha)}` : "") +
       ` — ${e.hash}`;
     row.addEventListener("click", () => {

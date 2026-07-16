@@ -1,15 +1,27 @@
 // lib-of-babel — the librarian (boot).
 // Generation lives in WASM (deterministic); this file loads it, restores the
 // session, and hands off to ./js/chrome/controls.js for DOM wiring.
-// Modules: lib/{constants,wasm,util,db,color,lattice,i18n} · gallery/{state,url,view,nav}
+// Modules: lib/{constants,wasm,util,db,color,lattice,i18n} · gallery/{state,url,view,nav,migrate}
 //          · reader/{book,search,verify} · about · chrome/{controls,dropdown,theme}
 // Text is never stored — only the trail of {z, n, move, hash} in IndexedDB.
 
-import { init, generator_version, default_alphabet, search_page_span_for } from "./js/lib/wasm.js";
+import {
+  init,
+  generator_version,
+  default_alphabet,
+  search_page_span_for,
+  locate_page_json,
+  locate_title_json,
+} from "./js/lib/wasm.js";
 import { TOTAL_BOOKS, WINDOW_MAX } from "./js/lib/constants.js";
 import { kvGet, kvDel } from "./js/lib/db.js";
 import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
 import { parsePermalink } from "./js/gallery/url.js";
+import {
+  isLegacyPermalink,
+  migrateLegacyLink,
+  showLegacyMigrateModal,
+} from "./js/gallery/migrate.js";
 import { render } from "./js/gallery/view.js";
 import { newWalk, resetTrail } from "./js/gallery/nav.js";
 import { openBook, openBookImage } from "./js/reader/book.js";
@@ -19,6 +31,47 @@ import {
   hasSeenAbout,
   markSeenAbout,
 } from "./js/about/about.js";
+
+/**
+ * Resolve `#q=&find=` (or legacy `#q=` with coords) by re-locating under the
+ * live generator. Basile addresses are too large for reliable hash URLs.
+ */
+function resolveSearchPermalink(link) {
+  if (!link?.q) return link;
+  const kind = link.find === "title" ? "title" : "content";
+  const alphabetId = link.a != null ? link.a : S.alphabetId;
+  try {
+    const raw =
+      kind === "title"
+        ? locate_title_json(link.q, alphabetId)
+        : locate_page_json(link.q, alphabetId);
+    const hit = JSON.parse(raw);
+    if (!hit?.ok) return link;
+    if (kind === "title") {
+      S.titleEmbed = {
+        flat: link.q,
+        z: String(hit.z),
+        n: String(hit.n),
+        book: hit.book,
+      };
+    } else {
+      S.titleEmbed = null;
+    }
+    return {
+      ...link,
+      z: BigInt(hit.z),
+      n: BigInt(hit.n),
+      b: hit.book,
+      p: kind === "title" ? 1 : hit.page,
+      a: hit.alphabet ?? alphabetId,
+      q: kind === "content" ? link.q : null,
+      find: kind,
+      img: false,
+    };
+  } catch {
+    return link;
+  }
+}
 
 async function openBookFromPermalink(link) {
   if (link.img) {
@@ -63,9 +116,9 @@ async function boot() {
   const savedOk =
     saved && saved.current && Array.isArray(saved.trail) && saved.trail.length;
 
-  // Permalink (#z=..&n=..) takes priority — unless it's our own session refresh
-  // (coords + universe already match the saved trail).
-  const link = parsePermalink();
+  // Permalink (#z=..&n=.. or #q=&find=) takes priority — unless it's our own
+  // session refresh (coords + universe already match the saved trail).
+  let link = parsePermalink();
 
   S.alphabetId =
     link && link.a != null
@@ -78,14 +131,39 @@ async function boot() {
     link && link.u != null ? link.u : savedOk && saved.universe ? saved.universe : "",
   );
 
+  // Search shares (and any &q= link): re-locate — Basile z/n in the hash are
+  // huge and often truncate; the query is the source of truth.
+  if (link?.q) {
+    link = resolveSearchPermalink(link);
+    if (link.a != null) S.alphabetId = link.a;
+  }
+
   const isOwnRefresh =
     link &&
+    link.z != null &&
+    link.n != null &&
     savedOk &&
     saved.current.z === link.z.toString() &&
     saved.current.n === link.n.toString() &&
-    (saved.universe || "") === S.universeName;
+    (saved.universe || "") === S.universeName &&
+    (saved.generator_version == null || saved.generator_version === S.gv);
 
-  if (link && !isOwnRefresh) {
+  if (link && isLegacyPermalink(link, S.gv) && !isOwnRefresh) {
+    const migrated = await migrateLegacyLink(link);
+    await showLegacyMigrateModal({
+      hasQuery: !!link.q,
+      relocated: migrated.relocated,
+    });
+    link = {
+      ...link,
+      z: migrated.z,
+      n: migrated.n,
+      b: migrated.b,
+      p: migrated.p,
+      q: migrated.q,
+      gv: S.gv,
+    };
+  } else if (link && link.z != null && link.n != null && !isOwnRefresh) {
     S.z = link.z;
     S.n = link.n;
     resetTrail();
@@ -107,6 +185,8 @@ async function boot() {
   let openedBook = false;
   if (
     link &&
+    link.z != null &&
+    link.n != null &&
     Number.isInteger(link.b) &&
     link.b >= 0 &&
     link.b < TOTAL_BOOKS &&

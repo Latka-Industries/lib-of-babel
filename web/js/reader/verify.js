@@ -113,7 +113,7 @@ export function verifyJourney(j) {
       }
 
       const uni = stepUniverse(e, rootUniverse) ?? rootUniverse;
-      const h = withUniverse(uni, () => node_hash_hex(z, n));
+      const h = withUniverse(uni, () => node_hash_hex(String(z), String(n)));
       if (h !== e.hash) {
         return {
           ...base,
@@ -132,8 +132,12 @@ export function verifyJourney(j) {
   }
 }
 
+/** @type {object|null} */
+let lastJourneyForMigrate = null;
+
 /** Render a verifyJourney result into #verifyModal. */
-export function showVerify(r, fileName) {
+export function showVerify(r, fileName, journey = null) {
+  lastJourneyForMigrate = journey;
   el("verifyMeta").textContent = fileName
     ? fileName
     : "re-walked in WASM against this build";
@@ -160,6 +164,19 @@ export function showVerify(r, fileName) {
     `<span class="badge">${r.ok ? "✓" : "✕"}</span>` +
     `<span>${r.ok ? "verified" : "rejected"}</span></div>` +
     `<p class="verify-reason">${escapeHtml(r.reason)}</p>` +
-    facts;
+    facts +
+    (r.ok
+      ? ""
+      : String(r.reason || "").includes("generator version mismatch")
+        ? `<p class="verify-migrate"><button type="button" id="verifyOpenLastRoom">${escapeHtml(t("verify.openLastRoom"))}</button></p>`
+        : "");
   openModal("verifyModal");
+  const migrateBtn = el("verifyOpenLastRoom");
+  if (migrateBtn && lastJourneyForMigrate) {
+    migrateBtn.onclick = async () => {
+      const { openLastRoomFromJourney } = await import("../gallery/migrate.js");
+      await openLastRoomFromJourney(lastJourneyForMigrate);
+      el("verifyModal")?.close();
+    };
+  }
 }

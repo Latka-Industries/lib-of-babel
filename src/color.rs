@@ -5,10 +5,12 @@
 //! - **Punct / digits / symbols** sit on a short muted arc opposite the accent.
 //! - **Space** is a fixed near-black (not on the wheel).
 
+use num_bigint::BigInt;
 use wasm_bindgen::prelude::*;
 
 use crate::config::{CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK, alphabet};
 use crate::gallery::node_fingerprint;
+use crate::gallery::parse_coord;
 use crate::page::{PageAddr, PageRender, page_symbols};
 use crate::universe::universe;
 
@@ -180,36 +182,49 @@ impl BookImage {
 #[wasm_bindgen]
 #[must_use]
 /// Render a whole book as an RGBA image (gallery palette keyed by fingerprint).
-pub fn book_image(z: i64, n: i64, book_index: u32, alphabet_id: u32) -> BookImage {
-    book_image_inner(z, n, book_index, alphabet_id, None)
+/// `z` / `n` are decimal strings (JS `String(bigint)`).
+pub fn book_image(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> BookImage {
+    book_image_inner(
+        &parse_coord(z),
+        &parse_coord(n),
+        book_index,
+        alphabet_id,
+        None,
+    )
 }
 
 /// Same as [`book_image`], but embeds a full-book search string (mosaic / content hit).
 #[wasm_bindgen]
 #[must_use]
 pub fn book_image_search(
-    z: i64,
-    n: i64,
+    z: &str,
+    n: &str,
     book_index: u32,
     alphabet_id: u32,
     search_flat: &str,
 ) -> BookImage {
     let flat = search_flat.trim();
     book_image_inner(
-        z,
-        n,
+        &parse_coord(z),
+        &parse_coord(n),
         book_index,
         alphabet_id,
         if flat.is_empty() { None } else { Some(flat) },
     )
 }
 
+/// Native helper for tests / mosaic (`BigInt` coords).
+#[must_use]
+pub fn book_image_at(z: &BigInt, n: &BigInt, book_index: u32, alphabet_id: u32) -> BookImage {
+    book_image_inner(z, n, book_index, alphabet_id, None)
+}
+
 fn book_image_inner(
-    z: i64,
-    n: i64,
+    z: &BigInt,
+    n: &BigInt,
     book_index: u32,
     alphabet_id: u32,
-    search_flat: Option<&str>,
+    _search_flat: Option<&str>,
 ) -> BookImage {
     let ab = alphabet(alphabet_id);
     let len = ab.len();
@@ -227,17 +242,14 @@ fn book_image_inner(
     let mut pixels = vec![0u8; total * 4];
     let mut px_idx = 0;
     for page in 0..PAGES_PER_BOOK {
-        let mut req = PageRender::new(PageAddr::new(
-            z,
-            n,
+        let req = PageRender::new(PageAddr::new(
+            z.clone(),
+            n.clone(),
             book_index,
             page,
             alphabet_id,
             universe(),
         ));
-        if let Some(flat) = search_flat {
-            req = req.with_search(flat, 0);
-        }
         let state = page_symbols(&req);
         for &sym in &state {
             let idx = sym as usize;
@@ -271,10 +283,16 @@ pub fn book_image_dims() -> Vec<u32> {
 }
 
 /// Gallery accent OKLCH knobs for `(z, n)` in `universe_seed` — same formulas as [`book_image`].
-/// Returns `[hue, chroma, lightness]`.
+/// Returns `[hue, chroma, lightness]`. `z` / `n` are decimal strings.
 #[wasm_bindgen]
 #[must_use]
-pub fn room_accent(z: i64, n: i64, universe_seed: u64) -> Vec<f64> {
+pub fn room_accent(z: &str, n: &str, universe_seed: u64) -> Vec<f64> {
+    room_accent_at(&parse_coord(z), &parse_coord(n), universe_seed)
+}
+
+/// Native helper for tests / mosaic (`BigInt` coords).
+#[must_use]
+pub fn room_accent_at(z: &BigInt, n: &BigInt, universe_seed: u64) -> Vec<f64> {
     let fp = node_fingerprint(z, n, universe_seed);
     let hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
