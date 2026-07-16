@@ -1,12 +1,8 @@
 //! Active universe seed — global WASM state so JS call signatures stay coordinate-only.
 
 use core::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Mutex, MutexGuard};
 
 static UNIVERSE: AtomicU64 = AtomicU64::new(0);
-
-/// Serializes tests that call [`set_universe`] (process-global).
-static TEST_UNIVERSE_LOCK: Mutex<()> = Mutex::new(());
 
 /// Current universe seed used by WASM exports (default `0`).
 #[inline]
@@ -24,14 +20,6 @@ pub fn get_universe() -> u64 {
     universe()
 }
 
-/// Hold while a test mutates or depends on the process-global universe.
-#[cfg(test)]
-pub fn lock_for_tests() -> MutexGuard<'static, ()> {
-    TEST_UNIVERSE_LOCK
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-}
-
 /// Map a memorable universe name to a stable seed. Empty/whitespace → `0`.
 pub fn universe_seed_for(name: &str) -> u64 {
     let t = name.trim();
@@ -46,3 +34,21 @@ pub fn universe_seed_for(name: &str) -> u64 {
     let b = blake3::hash(t.as_bytes());
     u64::from_be_bytes(b.as_bytes()[..8].try_into().unwrap())
 }
+
+#[cfg(test)]
+mod test_lock {
+    use std::sync::{Mutex, MutexGuard};
+
+    /// Serializes tests that call [`super::set_universe`] (process-global).
+    static TEST_UNIVERSE_LOCK: Mutex<()> = Mutex::new(());
+
+    /// Hold while a test mutates or depends on the process-global universe.
+    pub fn lock_for_tests() -> MutexGuard<'static, ()> {
+        TEST_UNIVERSE_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+#[cfg(test)]
+pub use test_lock::lock_for_tests;
