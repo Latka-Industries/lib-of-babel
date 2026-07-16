@@ -235,7 +235,7 @@
       <div class="book-head">
         <div class="book-head-text">
           <h3 id="searchHead" data-i18n="search.head">search</h3>
-          <small id="searchMeta" data-i18n="search.metaText">Find a phrase already in the library, or open a Babelgram book image.</small>
+          <small id="searchMeta" data-i18n="search.metaText">Find a phrase, match a photo mosaic, or open a Babelgram book image.</small>
         </div>
         <div class="book-head-actions">
           <button type="button" id="closeSearch" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
@@ -244,7 +244,7 @@
       <div class="search-tabs" role="tablist" data-i18n-aria-label="search.tabsLabel" aria-label="Search mode">
         <button type="button" class="search-tab" role="tab" id="searchTab-text"
           aria-selected="true" aria-controls="searchPanel-text" data-i18n="search.tab.text">text</button>
-        <!-- Photo mosaic tab: kept in DOM; gated by PHOTO_SEARCH_TAB_ENABLED in search.js -->
+        <!-- Photo mosaic tab: visibility gated by PHOTO_SEARCH_TAB_ENABLED in search.js -->
         <button type="button" class="search-tab" role="tab" id="searchTab-photo" hidden disabled
           aria-selected="false" aria-controls="searchPanel-mosaic" tabindex="-1" data-i18n="search.tab.photo">photo</button>
         <button type="button" class="search-tab" role="tab" id="searchTab-babel"
@@ -313,6 +313,14 @@
                 <div class="mosaic-knobs mosaic-knobs-mosaic" id="mosaicKnobs"
                   data-i18n-aria-label="search.mosaic.knobsMosaic" aria-label="Mosaic palette">
                   <p class="mosaic-knobs-head" data-i18n="search.mosaic.knobsMosaic">mosaic palette</p>
+                  <label class="mosaic-knob mosaic-palette-kind">
+                    <span data-i18n="search.mosaic.palette" data-i18n-tip="search.mosaic.tip.palette"
+                      data-tip="Glyph = letter colour map (Babelgram). Luma = brightness ramp.">palette</span>
+                    <select id="mosaicPaletteKind">
+                      <option value="1" selected data-i18n="search.mosaic.palette.glyph">letters</option>
+                      <option value="0" data-i18n="search.mosaic.palette.luma">luma ramp</option>
+                    </select>
+                  </label>
                   <label class="mosaic-knob">
                     <span data-i18n="search.mosaic.hue" data-i18n-tip="search.mosaic.tip.hue"
                       data-tip="Rotates the glyph colour wheel used to paint the mosaic">hue</span>
@@ -493,6 +501,7 @@
       </div>
       <div class="legacy-gv-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;padding:0.75rem 1rem 1rem;">
         <button type="button" id="legacyGvContinue" class="primary" data-i18n="legacy.gv.continue">Continue</button>
+        <button type="button" id="legacyGvWipe" data-i18n="legacy.gv.wipe">Wipe local data &amp; refresh</button>
         <button type="button" id="legacyGvSkip" data-i18n="legacy.gv.skipSession">Don't show again this session</button>
       </div>
     </dialog>

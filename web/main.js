@@ -19,6 +19,7 @@ import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
 import { parsePermalink } from "./js/gallery/url.js";
 import {
   isLegacyPermalink,
+  isStaleJourney,
   migrateLegacyLink,
   showLegacyMigrateModal,
 } from "./js/gallery/migrate.js";
@@ -150,10 +151,14 @@ async function boot() {
 
   if (link && isLegacyPermalink(link, S.gv) && !isOwnRefresh) {
     const migrated = await migrateLegacyLink(link);
-    await showLegacyMigrateModal({
+    const choice = await showLegacyMigrateModal({
+      kind: "link",
       hasQuery: !!link.q,
       relocated: migrated.relocated,
+      oldGv: link.gv != null ? Number(link.gv) : null,
+      curGv: S.gv,
     });
+    if (choice?.action === "wipe") return; // page reloads
     link = {
       ...link,
       z: migrated.z,
@@ -166,6 +171,21 @@ async function boot() {
   } else if (link && link.z != null && link.n != null && !isOwnRefresh) {
     S.z = link.z;
     S.n = link.n;
+    resetTrail();
+    await persist();
+    render();
+  } else if (savedOk && isStaleJourney(saved, S.gv)) {
+    const choice = await showLegacyMigrateModal({
+      kind: "journey",
+      oldGv: saved.generator_version,
+      curGv: S.gv,
+    });
+    if (choice?.action === "wipe") return; // page reloads
+    // Continue / skip: keep shelf address, drop the old trail hashes.
+    S.z = BigInt(saved.current.z);
+    S.n = BigInt(saved.current.n);
+    if (saved.universe) applyUniverse(saved.universe);
+    if (saved.alphabet != null) S.alphabetId = saved.alphabet;
     resetTrail();
     await persist();
     render();

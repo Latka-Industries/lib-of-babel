@@ -7,58 +7,6 @@ pub(crate) fn fit_percent(src: &[u8], mosaic: &[u8]) -> f64 {
     fit_rgb_percent(src, mosaic, 1)
 }
 
-/// Mean absolute RGB error in 0..255 (exact babel decode → ~0).
-pub(crate) fn rgb_mean_abs_diff(src: &[u8], mosaic: &[u8]) -> f64 {
-    let n = src.len().min(mosaic.len()) / 4;
-    if n == 0 {
-        return 0.0;
-    }
-    let mut sum = 0.0;
-    for i in 0..n {
-        let o = i * 4;
-        sum += f64::from(src[o].abs_diff(mosaic[o]));
-        sum += f64::from(src[o + 1].abs_diff(mosaic[o + 1]));
-        sum += f64::from(src[o + 2].abs_diff(mosaic[o + 2]));
-    }
-    sum / (n as f64 * 3.0)
-}
-
-/// Pearson correlation over paired RGB samples (exact babel decode → ~1).
-pub(crate) fn rgb_pearson_corr(src: &[u8], mosaic: &[u8]) -> f64 {
-    let n = src.len().min(mosaic.len()) / 4;
-    if n == 0 {
-        return 1.0;
-    }
-    let mut sum_src = 0.0;
-    let mut sum_mos = 0.0;
-    let mut sum_src_sq = 0.0;
-    let mut sum_mos_sq = 0.0;
-    let mut sum_cross = 0.0;
-    let mut count = 0.0;
-    for i in 0..n {
-        let o = i * 4;
-        for c in 0..3 {
-            let x = f64::from(src[o + c]);
-            let y = f64::from(mosaic[o + c]);
-            sum_src += x;
-            sum_mos += y;
-            sum_src_sq += x * x;
-            sum_mos_sq += y * y;
-            sum_cross += x * y;
-            count += 1.0;
-        }
-    }
-    let mean_src = sum_src / count;
-    let mean_mos = sum_mos / count;
-    let cov = sum_cross / count - mean_src * mean_mos;
-    let var_src = sum_src_sq / count - mean_src * mean_src;
-    let var_mos = sum_mos_sq / count - mean_mos * mean_mos;
-    if var_src <= f64::EPSILON || var_mos <= f64::EPSILON {
-        return if cov.abs() <= f64::EPSILON { 1.0 } else { 0.0 };
-    }
-    (cov / (var_src.sqrt() * var_mos.sqrt())).clamp(-1.0, 1.0)
-}
-
 fn rms_norm(sum_sq: f64, count: usize) -> f64 {
     if count == 0 {
         return 0.0;
@@ -94,7 +42,107 @@ pub(crate) fn fit_rgb_percent(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
     fit_from_loss(rms_norm(sum / 3.0, count))
 }
 
+/// Photo↔mosaic triple used for ranking and Babelgram confirm UI.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct RgbFitTriple {
+    /// RMS fit % — ideal ≈ 100.
+    pub rms_percent: f64,
+    /// Mean abs RGB error 0..255 — ideal ≈ 0.
+    pub mae: f64,
+    /// Pearson correlation — ideal ≈ 1.
+    pub corr: f64,
+}
+
+impl RgbFitTriple {
+    /// Joint 0..100 rank score (higher better). Near-equal weight on the three ideals.
+    #[must_use]
+    pub(crate) fn rank_percent(self) -> f64 {
+        let rms_term = (self.rms_percent / 100.0).clamp(0.0, 1.0);
+        let mae_term = (1.0 - (self.mae / 255.0).clamp(0.0, 1.0)).clamp(0.0, 1.0);
+        // Negative corr is anti-structure — treat as zero for ranking.
+        let corr_term = self.corr.clamp(0.0, 1.0);
+        (100.0 * (0.40 * rms_term + 0.30 * mae_term + 0.30 * corr_term)).clamp(0.0, 100.0)
+    }
+}
+
+/// Exact RGB RMS + MAE + Pearson on `src` vs `mosaic` (optional stride for coarse).
+pub(crate) fn rgb_fit_triple(src: &[u8], mosaic: &[u8], stride: usize) -> RgbFitTriple {
+    let rms_percent = fit_rgb_percent(src, mosaic, stride);
+    let mae = rgb_mean_abs_diff_strided(src, mosaic, stride);
+    let corr = rgb_pearson_corr_strided(src, mosaic, stride);
+    RgbFitTriple {
+        rms_percent,
+        mae,
+        corr,
+    }
+}
+
+fn rgb_mean_abs_diff_strided(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
+    let n = src.len().min(mosaic.len()) / 4;
+    if n == 0 {
+        return 0.0;
+    }
+    let step = stride.max(1);
+    let mut sum = 0.0;
+    let mut count = 0usize;
+    let mut i = 0;
+    while i < n {
+        let o = i * 4;
+        sum += f64::from(src[o].abs_diff(mosaic[o]));
+        sum += f64::from(src[o + 1].abs_diff(mosaic[o + 1]));
+        sum += f64::from(src[o + 2].abs_diff(mosaic[o + 2]));
+        count += 1;
+        i += step;
+    }
+    if count == 0 {
+        return 0.0;
+    }
+    sum / (count as f64 * 3.0)
+}
+
+fn rgb_pearson_corr_strided(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
+    let n = src.len().min(mosaic.len()) / 4;
+    if n == 0 {
+        return 1.0;
+    }
+    let step = stride.max(1);
+    let mut sum_src = 0.0;
+    let mut sum_mos = 0.0;
+    let mut sum_src_sq = 0.0;
+    let mut sum_mos_sq = 0.0;
+    let mut sum_cross = 0.0;
+    let mut count = 0.0;
+    let mut i = 0;
+    while i < n {
+        let o = i * 4;
+        for c in 0..3 {
+            let x = f64::from(src[o + c]);
+            let y = f64::from(mosaic[o + c]);
+            sum_src += x;
+            sum_mos += y;
+            sum_src_sq += x * x;
+            sum_mos_sq += y * y;
+            sum_cross += x * y;
+            count += 1.0;
+        }
+        i += step;
+    }
+    if count <= 0.0 {
+        return 1.0;
+    }
+    let mean_src = sum_src / count;
+    let mean_mos = sum_mos / count;
+    let cov = sum_cross / count - mean_src * mean_mos;
+    let var_src = sum_src_sq / count - mean_src * mean_src;
+    let var_mos = sum_mos_sq / count - mean_mos * mean_mos;
+    if var_src <= f64::EPSILON || var_mos <= f64::EPSILON {
+        return if cov.abs() <= f64::EPSILON { 1.0 } else { 0.0 };
+    }
+    (cov / (var_src.sqrt() * var_mos.sqrt())).clamp(-1.0, 1.0)
+}
+
 /// Photo ranking: luma-heavy colour error + horizontal edge structure.
+#[allow(dead_code)] // kept for A/B / legacy tests while THI-143 uses rgb_fit_triple
 pub(crate) fn fit_perceptual_percent(src: &[u8], mosaic: &[u8], stride: usize) -> f64 {
     let n = src.len() / 4;
     if n == 0 {

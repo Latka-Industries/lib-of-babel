@@ -1,9 +1,27 @@
 //! Quantize RGBA onto an alphabet palette (with optional dither).
 
-use crate::color::{book_cell_count, book_grid_dims, build_photo_luma_palette};
+use crate::color::{
+    book_cell_count, book_grid_dims, build_glyph_palette, build_photo_luma_palette,
+};
 use crate::config::alphabet;
 
 use super::lab::{build_nearest_lut, clamp_channel, nearest_index};
+use super::score::downsample_rgba;
+
+/// Which alphabet colour map to project the photo onto.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum PhotoPaletteKind {
+    /// Lightness ramp (structure-first greys).
+    Luma,
+    /// Reading glyph colours (per-letter hues — Babelgram stamp map).
+    Glyph,
+}
+
+impl PhotoPaletteKind {
+    pub(crate) fn from_u32(v: u32) -> Self {
+        if v == 0 { Self::Luma } else { Self::Glyph }
+    }
+}
 
 /// Alphabet packs keep space at `len - 3` (before `.` and `,`).
 pub(crate) fn alphabet_space_idx(ab: &[&str]) -> usize {
@@ -102,8 +120,24 @@ pub(crate) fn ensure_book_rgba(src: &[u8]) -> Result<(u32, u32), String> {
     Ok((w, h))
 }
 
-/// Photo-luma palette project on a validated book-grid buffer.
-pub(crate) fn project_photo_luma(
+fn build_photo_palette(
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    palette_kind: PhotoPaletteKind,
+) -> (usize, Vec<[u8; 3]>) {
+    let ab = alphabet(alphabet_id);
+    let space_idx = alphabet_space_idx(ab);
+    let palette = match palette_kind {
+        PhotoPaletteKind::Luma => build_photo_luma_palette(ab, hue, chroma, light),
+        PhotoPaletteKind::Glyph => build_glyph_palette(ab, hue, chroma, light),
+    };
+    (space_idx, palette)
+}
+
+/// Project a validated book-grid buffer onto an alphabet colour map.
+pub(crate) fn project_photo(
     src: &[u8],
     alphabet_id: u32,
     hue: f64,
@@ -111,11 +145,10 @@ pub(crate) fn project_photo_luma(
     light: f64,
     space_threshold: f64,
     dither: bool,
+    palette_kind: PhotoPaletteKind,
 ) -> Result<(u32, u32, Vec<u16>, Vec<u8>), String> {
     let (width, height) = ensure_book_rgba(src)?;
-    let ab = alphabet(alphabet_id);
-    let space_idx = alphabet_space_idx(ab);
-    let palette = build_photo_luma_palette(ab, hue, chroma, light);
+    let (space_idx, palette) = build_photo_palette(alphabet_id, hue, chroma, light, palette_kind);
     let (indices, mosaic) = project_indices(
         src,
         &palette,
@@ -124,4 +157,31 @@ pub(crate) fn project_photo_luma(
         dither,
     );
     Ok((width, height, indices, mosaic))
+}
+
+/// Downsampled projection for live UI knobs (same palette policy as [`project_photo`]).
+pub(crate) fn project_photo_preview(
+    src: &[u8],
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+    space_threshold: f64,
+    dither: bool,
+    palette_kind: PhotoPaletteKind,
+    factor: usize,
+) -> Result<(u32, u32, Vec<u8>), String> {
+    let (bw, bh) = ensure_book_rgba(src)?;
+    let (coarse, cw, ch) = downsample_rgba(src, bw as usize, bh as usize, factor.max(1));
+    let (space_idx, palette) = build_photo_palette(alphabet_id, hue, chroma, light, palette_kind);
+    let (_indices, mosaic) = project_indices_sized(
+        &coarse,
+        cw,
+        ch,
+        &palette,
+        space_idx,
+        space_threshold.clamp(0.0, 255.0),
+        dither,
+    );
+    Ok((cw as u32, ch as u32, mosaic))
 }

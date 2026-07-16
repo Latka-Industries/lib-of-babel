@@ -1,8 +1,9 @@
-// Generator-version migrate — soft landing when a permalink/`gv` is stale or missing.
+// Generator-version migrate — soft landing when a permalink/`gv` or IndexedDB trail is stale.
 
 import { S, persist } from "../gallery/state.js";
 import { el, openModal } from "../lib/util.js";
 import { t, applyI18n } from "../lib/i18n.js";
+import { wipeLocalDataAndReload } from "../lib/db.js";
 import { generator_version, locate_page_json, node_hash_hex } from "../lib/wasm.js";
 import { permalink, syncUrl } from "../gallery/url.js";
 import { resetTrail } from "../gallery/nav.js";
@@ -20,6 +21,13 @@ export function isLegacyPermalink(link, curGv) {
   if (link.gv == null || link.gv === "") return true;
   const g = Number(link.gv);
   return Number.isFinite(g) && g !== curGv;
+}
+
+/** Saved wanderings trail from an older generator build. */
+export function isStaleJourney(saved, curGv) {
+  if (skipThisSession) return false;
+  if (!saved || saved.generator_version == null) return false;
+  return saved.generator_version !== curGv;
 }
 
 /**
@@ -76,50 +84,72 @@ export async function migrateLegacyLink(link) {
 }
 
 /**
- * Show the legacy warning; always resolves after Continue / dismiss.
- * @param {{ relocated: boolean, hasQuery: boolean }} opts
+ * Show the legacy / stale-data warning.
+ * Resolves `{ action: "continue"|"skip"|"wipe" }` (wipe reloads the page).
+ *
+ * @param {{
+ *   kind?: "link"|"journey",
+ *   relocated?: boolean,
+ *   hasQuery?: boolean,
+ *   oldGv?: number|null,
+ *   curGv?: number|null,
+ * }} opts
  */
-export function showLegacyMigrateModal(opts) {
+export function showLegacyMigrateModal(opts = {}) {
   return new Promise((resolve) => {
     const dlg = el("legacyGvModal");
     if (!dlg) {
-      resolve();
+      resolve({ action: "continue" });
       return;
     }
     const body = el("legacyGvBody");
     if (body) {
-      const key = opts.hasQuery
-        ? opts.relocated
+      let key = "legacy.gv.bodyAddress";
+      if (opts.kind === "journey") {
+        key = "legacy.gv.bodyJourney";
+      } else if (opts.hasQuery) {
+        key = opts.relocated
           ? "legacy.gv.bodyRelocated"
-          : "legacy.gv.bodyQuery"
-        : "legacy.gv.bodyAddress";
-      body.textContent = t(key);
+          : "legacy.gv.bodyQuery";
+      }
+      body.textContent = t(key, {
+        old: opts.oldGv != null ? String(opts.oldGv) : "?",
+        cur: opts.curGv != null ? String(opts.curGv) : String(generator_version()),
+      });
     }
     applyI18n(dlg);
 
-    const onDone = (skip) => {
-      if (skip) skipThisSession = true;
+    const onDone = (action) => {
+      if (action === "skip") skipThisSession = true;
       dlg.close();
       cleanup();
-      resolve();
+      resolve({ action });
     };
     const cont = el("legacyGvContinue");
     const skip = el("legacyGvSkip");
+    const wipe = el("legacyGvWipe");
     const close = el("closeLegacyGv");
-    const onCont = () => onDone(false);
-    const onSkip = () => onDone(true);
+    const onCont = () => onDone("continue");
+    const onSkip = () => onDone("skip");
+    const onWipe = () => {
+      cleanup();
+      // Does not resolve — page navigates away.
+      void wipeLocalDataAndReload();
+    };
     const cleanup = () => {
       cont?.removeEventListener("click", onCont);
       skip?.removeEventListener("click", onSkip);
+      wipe?.removeEventListener("click", onWipe);
       close?.removeEventListener("click", onSkip);
       dlg.removeEventListener("cancel", onCancel);
     };
     const onCancel = (e) => {
       e.preventDefault();
-      onDone(false);
+      onDone("continue");
     };
     cont?.addEventListener("click", onCont);
     skip?.addEventListener("click", onSkip);
+    wipe?.addEventListener("click", onWipe);
     close?.addEventListener("click", onSkip);
     dlg.addEventListener("cancel", onCancel);
     openModal("legacyGvModal");

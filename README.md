@@ -43,7 +43,7 @@ Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [do
 - [ ] More UI locale packs — es/fr/… beyond DE/NL
 - [ ] Generative audio per gallery
 - [x] Babelgram search — stamped book-image PNG → locate; same-universe exact book / other-universe print handoff (`&be=`); `&img=1` copy link
-- [ ] Photo→mosaic search tab (core kept; UI gated off until luma path feels right)
+- [x] Photo→mosaic search (alphabet lens + rms / mae / corr ranking)
 
 ## License
 

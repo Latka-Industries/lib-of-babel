@@ -56,10 +56,9 @@ a million steps ~50 MB. Text is never stored.
 
 ## Search (`generator_version` 9)
 
-**actions… → search…** — **text** (content / title) or **Babelgram** (stamped book-image
-PNG), under the active alphabet and universe. Arbitrary **photo → mosaic** is implemented
-in core (`src/mosaic/`) but the UI tab is gated off (`PHOTO_SEARCH_TAB_ENABLED` in
-`web/js/reader/search.js`) until the luma path feels right.
+**actions… → search…** — **text** (content / title), **photo** (alphabet mosaic ranked
+by rms / mae / corr), or **Babelgram** (stamped book-image PNG), under the active
+alphabet and universe.
 
 **Content (true Basile):** pad the phrase into a full page (deterministic offset + filler)
 → invert the page integer (`content × I mod |Σ|^3200`) → virgin page at those coords
@@ -78,10 +77,16 @@ diff thumb). Locate inverts virgin page 0 of the projected flat. **go there** op
 new tab; other-universe print handoff is same-browser IndexedDB (`&be=`). **copy link** is
 address-only (`&img=1`, no print payload).
 
+**Photo mosaic:** stretch any image to the full-book colour grid → project onto the
+active alphabet (**letter** colours or **luma ramp**) → coarse pack sweep → locate →
+re-rank the virgin book colour map vs upload by **rms / mae / corr**. Live knobs use a
+downsampled preview; Find runs the full search.
+
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text
 title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)         ──virgin──▶  spine
 babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)
+photo:    image   ──mosaic packs──▶  flat  ──locate──▶  (z, n, book)  ──re-rank──▶  best fit
 ```
 
 Page generation is the reverse of search: `content = (addr × C) mod |Σ|^3200`.
