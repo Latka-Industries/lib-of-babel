@@ -8,7 +8,9 @@
 use num_bigint::BigInt;
 use wasm_bindgen::prelude::*;
 
-use crate::config::{CHARS_PER_LINE, LINES_PER_PAGE, PAGES_PER_BOOK, alphabet};
+use crate::config::{
+    CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, alphabet,
+};
 use crate::gallery::node_fingerprint;
 use crate::gallery::parse_coord;
 use crate::page::{PageAddr, PageRender, page_symbols};
@@ -219,6 +221,43 @@ pub fn book_image_at(z: &BigInt, n: &BigInt, book_index: u32, alphabet_id: u32) 
     book_image_inner(z, n, book_index, alphabet_id, None)
 }
 
+/// Page-range RGBA strip for worker parallelization (THI-144).
+/// `page_end` is exclusive; clamped to `[0, PAGES_PER_BOOK]`.
+/// Flat cell order matches full [`book_image`] — stitch by byte offset
+/// `page_start * PAGE_CONTENT_SYMBOLS * 4`.
+#[wasm_bindgen]
+#[must_use]
+pub fn book_image_pages(
+    z: &str,
+    n: &str,
+    book_index: u32,
+    alphabet_id: u32,
+    page_start: u32,
+    page_end: u32,
+) -> Vec<u8> {
+    book_image_pages_inner(
+        &parse_coord(z),
+        &parse_coord(n),
+        book_index,
+        alphabet_id,
+        page_start,
+        page_end,
+    )
+}
+
+/// Native helper for tests (`BigInt` coords).
+#[must_use]
+pub fn book_image_pages_at(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    page_start: u32,
+    page_end: u32,
+) -> Vec<u8> {
+    book_image_pages_inner(z, n, book_index, alphabet_id, page_start, page_end)
+}
+
 fn book_image_inner(
     z: &BigInt,
     n: &BigInt,
@@ -226,29 +265,49 @@ fn book_image_inner(
     alphabet_id: u32,
     _search_flat: Option<&str>,
 ) -> BookImage {
+    let pixels = book_image_pages_inner(z, n, book_index, alphabet_id, 0, PAGES_PER_BOOK);
+    let (width, height) = book_grid_dims();
+    BookImage {
+        width,
+        height,
+        pixels,
+    }
+}
+
+fn book_image_pages_inner(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    page_start: u32,
+    page_end: u32,
+) -> Vec<u8> {
+    let start = page_start.min(PAGES_PER_BOOK);
+    let end = page_end.min(PAGES_PER_BOOK).max(start);
+    let page_count = (end - start) as usize;
+    // Snapshot once — parallel tests may mutate the global mid-call.
+    let universe_seed = universe();
+
     let ab = alphabet(alphabet_id);
     let len = ab.len();
     let space_idx = len - 3;
 
-    let fp = node_fingerprint(z, n, universe());
+    let fp = node_fingerprint(z, n, universe_seed);
     let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
     let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
 
-    let total = book_cell_count();
-    let (width, height) = book_grid_dims();
-
-    let mut pixels = vec![0u8; total * 4];
+    let mut pixels = vec![0u8; page_count * PAGE_CONTENT_SYMBOLS * 4];
     let mut px_idx = 0;
-    for page in 0..PAGES_PER_BOOK {
+    for page in start..end {
         let req = PageRender::new(PageAddr::new(
             z.clone(),
             n.clone(),
             book_index,
             page,
             alphabet_id,
-            universe(),
+            universe_seed,
         ));
         let state = page_symbols(&req);
         for &sym in &state {
@@ -267,11 +326,7 @@ fn book_image_inner(
         }
     }
 
-    BookImage {
-        width,
-        height,
-        pixels,
-    }
+    pixels
 }
 
 #[wasm_bindgen]

@@ -44,6 +44,7 @@ Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [do
 - [ ] Generative audio per gallery
 - [x] Babelgram search — stamped book-image PNG → locate; same-universe exact book / other-universe print; short `&bo=` go+copy (RGBA cache); `&be=` print flat on other-universe go
 - [x] Photo→mosaic search (alphabet lens + rms / mae / corr ranking; `&bo=` handoff caches scored book RGBA)
+- [x] Parallel virgin `book_image` via Web Workers (`book_image_pages` strips → stitch; main-thread chunk fallback)
 
 ## License
 
