@@ -2,7 +2,7 @@
 // taking it home (full text, or the whole-book colour image from WASM).
 
 import { S } from "../gallery/state.js";
-import { el, escapeHtml, downloadBlob } from "../lib/util.js";
+import { el, escapeHtml, downloadBlob, openModal } from "../lib/util.js";
 import { buildAlphabetPalette, SPACE_CELL_HEX } from "../lib/color.js";
 import {
   flattenSearchQuery,
@@ -19,8 +19,17 @@ import {
 } from "../lib/constants.js";
 import { t } from "../lib/i18n.js";
 import { syncUrl } from "../gallery/url.js";
-import { gallery_titles_json, book_text_for, book_image, page_text_for, search_page_embed_for } from "../lib/wasm.js";
+import {
+  gallery_titles_json,
+  book_text_for,
+  book_image,
+  page_text_for,
+  search_page_embed_for,
+  get_universe,
+} from "../lib/wasm.js";
+import { babelExportFilename, injectBabelChunk } from "../lib/png-babel.js";
 import { titleEmbedFlat } from "./search.js";
+
 
 // the page's characters rewrapped into the near-square divisor pair (64×50) so
 // the colour map reads as a block rather than a 2:1 sliver. Looks like colour
@@ -124,12 +133,21 @@ export function openBook(
   startPage = 1,
   searchHighlight = null,
   searchPageSpan = 1,
+  { viewMode = null } = {},
 ) {
   const text = book_text_for(S.z, S.n, bookIndex, S.alphabetId);
   const page = Math.min(PAGES_PER_BOOK, Math.max(1, startPage)) - 1;
   const highlight = searchHighlight
     ? flattenSearchQuery(searchHighlight, S.alphabetId)
     : null;
+  if (viewMode === "color" || viewMode === "text") {
+    S.viewMode = viewMode;
+    const toggle = el("viewToggle");
+    if (toggle) {
+      toggle.textContent =
+        S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
+    }
+  }
   S.currentBook = {
     index: bookIndex,
     title: title || titleForIndex(bookIndex) || `book ${bookIndex}`,
@@ -267,6 +285,8 @@ export function downloadBook() {
 
 export function renderBookImage() {
   if (!S.currentBook) return;
+  // Native Feistel colour map — mosaic Go lands on a book whose cells already
+  // match the projection (locate), so no full-flat &q= / IndexedDB handoff.
   const img = book_image(S.z, S.n, S.currentBook.index, S.alphabetId);
   const cv = el("bookImageCanvas");
   cv.width = img.width;
@@ -282,10 +302,36 @@ export function renderBookImage() {
     `gallery (${S.z}, ${S.n}) · shelf ${S.currentBook.index} · whole book · ${img.width}×${img.height}`;
 }
 
+/**
+ * Open the page reader, then the whole-book colour PNG dialog on top.
+ * Mosaic / Babelgram links use this with a short `&b=&img=1` permalink.
+ */
+export function openBookImage(bookIndex, title = null) {
+  openBook(bookIndex, title, 1);
+  renderBookImage();
+  openModal("imageModal");
+  syncUrl();
+}
+
 export function saveBookImage() {
   if (!S.currentBook) return;
-  el("bookImageCanvas").toBlob((blob) => {
+  const meta = {
+    u: get_universe(),
+    name: S.universeName,
+    a: S.alphabetId,
+    z: S.z,
+    n: S.n,
+    b: S.currentBook.index,
+  };
+  const name = babelExportFilename(meta);
+  el("bookImageCanvas").toBlob(async (blob) => {
     if (!blob) return;
-    downloadBlob(blob, `babel-${S.z}_${S.n}-shelf${S.currentBook.index}-colors.png`);
+    try {
+      const stamped = await injectBabelChunk(blob, meta);
+      downloadBlob(stamped, name);
+    } catch (err) {
+      console.error(err);
+      downloadBlob(blob, name);
+    }
   });
 }

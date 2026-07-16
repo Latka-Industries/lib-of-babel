@@ -75,7 +75,24 @@ export function validateSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   return invalid;
 }
 
-/** Flatten search text for chunking — must match Rust flatten_to_cells. */
+/**
+ * Count alphabet cells (newlines skipped). Matches Rust `count_cells` on a flatten.
+ * Invalid scalars are skipped in the count (highlights surface them separately).
+ */
+export function countSearchCells(text, alphabetId = DEFAULT_ALPHABET_ID) {
+  let n = 0;
+  walkCells(text, alphabetId, {
+    onCell: () => {
+      n += 1;
+    },
+  });
+  return n;
+}
+
+/**
+ * Flatten search text for locate / embed — must match Rust `flatten_to_cells`.
+ * Consecutive space cells are kept (full-book mosaics).
+ */
 export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   const invalid = validateSearchQuery(text, alphabetId);
   if (invalid.length) {
@@ -86,9 +103,8 @@ export function flattenSearchQuery(text, alphabetId = DEFAULT_ALPHABET_ID) {
   let out = "";
   walkCells(text, alphabetId, {
     onCell: (cell) => {
-      if (cell === " " && out.endsWith(" ")) return;
       out += cell;
     },
   });
-  return out.trim();
+  return out;
 }

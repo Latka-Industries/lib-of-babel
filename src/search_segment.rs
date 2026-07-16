@@ -49,8 +49,10 @@ pub fn text_to_cell_indices(text: &str, ab: &[&str]) -> Result<Vec<u16>, (usize,
     Ok(out)
 }
 
-/// Flatten search text: longest-match cells, collapse runs of space cells,
-/// trim. Invalid → list of `(byte_offset, sample)`.
+/// Flatten search text: longest-match cells in order (newlines skipped).
+///
+/// Consecutive space cells are **kept** so full-book mosaics stay exact length.
+/// Invalid → list of `(byte_offset, sample)`.
 pub fn flatten_to_cells(text: &str, ab: &[&str]) -> Result<String, Vec<(usize, String)>> {
     let mut out = String::new();
     let mut invalid = Vec::new();
@@ -63,26 +65,18 @@ pub fn flatten_to_cells(text: &str, ab: &[&str]) -> Result<String, Vec<(usize, S
             i += ch_len;
             continue;
         }
-        match match_cell_at(ab, text, i) {
-            Some((idx, cell_len)) => {
-                let cell = ab[idx];
-                if cell == " " && out.ends_with(' ') {
-                    i += cell_len;
-                    continue;
-                }
-                out.push_str(cell);
-                i += cell_len;
-            }
-            None => {
-                invalid.push((i, ch.to_string()));
-                i += ch_len;
-            }
+        if let Some((idx, cell_len)) = match_cell_at(ab, text, i) {
+            out.push_str(ab[idx]);
+            i += cell_len;
+        } else {
+            invalid.push((i, ch.to_string()));
+            i += ch_len;
         }
     }
     if !invalid.is_empty() {
         return Err(invalid);
     }
-    Ok(out.trim().to_string())
+    Ok(out)
 }
 
 /// Count how many alphabet cells are encoded in `flat` (concatenated cells).

@@ -28,7 +28,7 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q`, with gallery hash as proof. |
+| **Permalinks** | `(z, n)` + optional `u` / `a` / `book` / `page` / `q` / `img=1`, with gallery hash as proof. |
 | **Stack** | Rust → WASM core + static web frontend. |
 | **Persistence** | IndexedDB trail; JSON export of path + per-node hashes. |
 
@@ -55,18 +55,27 @@ a million steps ~50 MB. Text is never stored.
 
 ## Search (`generator_version` 8)
 
-**actions… → search…** — content or title, under the active alphabet and universe.
+**actions… → search…** — **text** (content / title) or **Babelgram** (stamped book-image
+PNG), under the active alphabet and universe. Arbitrary **photo → mosaic** is implemented
+in core (`src/mosaic/`) but the UI tab is gated off (`PHOTO_SEARCH_TAB_ENABLED` in
+`web/js/reader/search.js`) until the luma path feels right.
 
 **Content:** validate → BLAKE3 to `(z, n, book, page)` → Basile-style embed (long phrases
-span pages) → open. Up to one full book (~1.3M characters).
+span pages) → open. Up to one full book (~1.3M characters). Shareable `&q=` is soft-capped
+(long / full-book flats stay out of the URL).
 
 **Title:** same rules, max **24** characters → `(z, n, book)` → embed on the canonical
 spine → jump and open at page 1.
 
+**Babelgram:** stamped PNG from save → book image (exact colour grid, `tEXt lob:babel`
+plus optional universe name). Exact accent decode → locate → go / short `&img=1` permalink
+(same universe returns to the export book; other universe is projective).
+
 ```text
 content:  phrase  ──validate──▶  flat  ──BLAKE3──▶  (z, n, book, page)  ──embed──▶  page text
 title:    title   ──validate──▶  flat  ──BLAKE3──▶  (z, n, book)         ──embed──▶  spine
+babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)   ──&img=1──▶  colour map
 ```
 
 Feistel page mapping is invertible, so **search-by-content** is the reverse of reading.
-WASM entry points: `locate_page_json` / `locate_title_json` (see [development.md](development.md)).
+WASM entry points: `locate_page_json` / `locate_title_json` / `mosaic_*` (see [development.md](development.md)).

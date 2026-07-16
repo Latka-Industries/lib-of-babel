@@ -12,6 +12,7 @@ mod color;
 mod config;
 mod feistel;
 mod gallery;
+mod mosaic;
 mod page;
 mod prng;
 mod search;
@@ -19,13 +20,19 @@ mod search_segment;
 mod universe;
 mod wasm_api;
 
-pub use color::{BookImage, book_image};
+pub use color::{
+    BookImage, book_cell_count, book_grid_dims, book_image, book_image_dims, book_image_search,
+    room_accent,
+};
 pub use config::{
     BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_SEARCH_CHARS, alphabet,
 };
 pub use gallery::{
     book_index_to_shelf, book_seed, gallery_seed, gallery_titles, neighbor, node_fingerprint,
     node_hash_bytes,
+};
+pub use mosaic::{
+    MosaicImage, mosaic_babel_json, mosaic_candidates_json, mosaic_flat_for, mosaic_project,
 };
 pub use page::{PageAddr, PageRender, book_text, page_symbols, page_text};
 pub use search::{
@@ -592,6 +599,28 @@ mod tests {
                 b.location.page
             )
         );
+    }
+
+    #[test]
+    fn locate_clamps_long_phrase_to_fit_book() {
+        use crate::config::{MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK};
+        use crate::search::coords_from_phrase;
+        // ~301 pages — used to fail when the hash start page left <301 room.
+        let cells = PAGE_CONTENT_SYMBOLS * 301;
+        let phrase: String = "a".repeat(cells);
+        let raw = coords_from_phrase(&phrase, 29, 0);
+        let res = locate_page(&phrase, 29, 0).expect("long phrase must fit");
+        assert_eq!(res.page_span, 301);
+        assert!(res.location.page + res.page_span <= PAGES_PER_BOOK);
+        assert!(res.location.page <= PAGES_PER_BOOK - 301);
+        if raw.page + 301 > PAGES_PER_BOOK {
+            assert_eq!(res.location.page, PAGES_PER_BOOK - 301);
+        }
+
+        let full: String = "a".repeat(MAX_SEARCH_CHARS);
+        let full_res = locate_page(&full, 29, 0).expect("full book must fit");
+        assert_eq!(full_res.page_span, PAGES_PER_BOOK);
+        assert_eq!(full_res.location.page, 0);
     }
 
     #[test]
