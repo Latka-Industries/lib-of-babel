@@ -21,7 +21,8 @@ lib-of-babel/
 │       ├── reader/   book, search, search-query, mosaic-search, verify
 │       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
-├── scripts/      size guards, sigil sheet, OG share card (`make-og.mjs`)
+├── data/         alphabet packs + baked Basile scramble blob — see [data/README.md](../data/README.md)
+├── scripts/      size guards, sigil sheet, OG share cards (`make-og.mjs`)
 └── .mise.toml    toolchain + build / serve / test tasks
 ```
 
@@ -42,9 +43,11 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve |
 | `mise run serve` | serve `web/` only (no rebuild) |
 | `mise run test` | `cargo test` |
-| `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift |
+| `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift + baked scramble warm |
 | `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
+| `mise run gen-basile-scramble` | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
+| `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing) |
 | `mise run asset-sheet` | prints URL for `web/asset-sheet.html` (dev UI inventory via `mise run serve`; stripped from Pages) |
 | `mise run clean` | remove `target/` and `web/pkg` |
 
@@ -65,9 +68,9 @@ Babelgram **go there** may also add short-lived `&be=` for the print flat. Param
 ## UI notes
 
 - In-app guide: brand **LIB·OF·BABEL**, footer **? · Help**, or keyboard **?** (first visit opens About once)
-- About tabs: **overview → wander → engines → scale → alphabets → books → search → url → more** (engines hosts dual maps + Mbit UI; **scale** is the band table). Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH** / **URL** / **SCALE**). Control names use panel chips (`.ui`); search/dialog tab names use `.ui.ui-tab` (caps); About section jumpers stay `button.about-goto-tab`. Megabit as a unit in body/HTML copy uses `.unit-mbit` (small-caps); section titles stay plain `MBIT` / `MBIT range`. Footer/tooltips stay plain text (`≈6.4 Mbit`) because they use `title` / `textContent`. The asset sheet discovers tokens + chip kinds from CSS / locale recipes.
+- About tabs: **overview → wander → engines → scale → alphabets → books → search → url → more** (engines hosts dual maps + Mbit UI; **scale** is the band table). Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH** / **URL** / **SCALE**). Control names use panel chips (`.ui`); search/dialog tab names use `.ui.ui-tab` (caps); About section jumpers stay `button.about-goto-tab`. Megabit as a unit in body/HTML copy uses `.unit-mbit` (sharp uppercase chip); section titles stay plain `MBIT` / `MBIT range`. Footer/tooltips stay plain text (`≈6.4 Mbit`) because they use `title` / `textContent`. The asset sheet discovers tokens + chip kinds from CSS / locale recipes.
 - Mbit rooms: footer `12345…67890`; hover = scientific + bit width; click **gallery (z, n)** → notice with Axes + **Digits (z, n)**. About → scale table **Comparison** column is analogy only (not “digit count equals book length”). Scalar cells show `≈N` + `.unit-mbit` then `10^…` on a second line.
-- Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html` + `web/og.png` (1200×630, first README mat sigil). Regenerate with `node scripts/make-og.mjs` (needs ImageMagick). Same card for every permalink — crawlers do not run the SPA.
+- Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html`. Two canvases from `node scripts/make-og.mjs` (needs ImageMagick): **`og.png`** — sigil fills the frame (Open Graph / Slack / iMessage thumbnails); **`og-large.png`** — sigil + wordmark + tagline (`twitter:image`). Crawlers do not pick by preview size; this is a platform split, not responsive media.
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
 - Search modes shipped in UI: **text** (content ≤ one page / 3200 cells; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
 - Babelgram stamp/verify: `web/js/lib/png-babel.js` (`lob:babel` v3 `seal` + `h`); save seals from on-screen pixels + current room accent (`book.js`); locate/UI in `mosaic-search.js`. Go/copy stash letter `flat` in `&bo=` (and `&be=` cross-universe). Compact axes shorten in download filenames (`c…`). Round-trip: `node scripts/test-png-babel.mjs`
