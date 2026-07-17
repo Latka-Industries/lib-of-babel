@@ -558,8 +558,8 @@
   vertical-align: baseline;
   position: relative;
   top: -1px;
-  margin-inline: 0.15em;
-  padding: 0.08em 0.35em;
+  margin-inline: 0.08em;
+  padding: 0.08em 0.28em;
   border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--line));
   border-radius: 2px;
   background: color-mix(in oklab, var(--accent) 18%, var(--panel));
