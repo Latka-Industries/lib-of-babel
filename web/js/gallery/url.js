@@ -11,58 +11,16 @@
 import { S } from "./state.js";
 import { el } from "../lib/util.js";
 import { node_hash_hex, generator_version } from "../lib/wasm.js";
+import {
+  encodeCoordParam,
+  decodeCoordParam,
+  coordForWasm,
+} from "../lib/coords.js";
+
+export { encodeCoordParam, decodeCoordParam, coordForWasm };
 
 /** Soft cap so &q= never dumps a multi-page / full-book flat into the hash. */
 const MAX_SHARE_Q_CHARS = 256;
-
-/** Decimal digit length above which coords use compact `c…` encoding. */
-const COMPACT_COORD_DIGITS = 24;
-
-/**
- * Pack a BigInt as `c` + base64url(sign byte + big-endian magnitude).
- * Sign byte: 0 = non-negative, 1 = negative.
- */
-export function encodeCoordParam(value) {
-  const bi = typeof value === "bigint" ? value : BigInt(value);
-  const dec = bi.toString();
-  if (dec.length <= COMPACT_COORD_DIGITS) return dec;
-
-  const neg = bi < 0n;
-  let mag = neg ? -bi : bi;
-  const bytes = [];
-  bytes.push(neg ? 1 : 0);
-  if (mag === 0n) {
-    bytes.push(0);
-  } else {
-    const hex = mag.toString(16);
-    const padded = hex.length % 2 ? `0${hex}` : hex;
-    for (let i = 0; i < padded.length; i += 2) {
-      bytes.push(Number.parseInt(padded.slice(i, i + 2), 16));
-    }
-  }
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  return `c${b64}`;
-}
-
-/** @returns {bigint} */
-export function decodeCoordParam(raw) {
-  const s = String(raw);
-  if (!s.startsWith("c") || s.length < 2) return BigInt(s);
-  let b64 = s.slice(1).replace(/-/g, "+").replace(/_/g, "/");
-  while (b64.length % 4) b64 += "=";
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  if (bytes.length < 1) throw new SyntaxError("empty compact coord");
-  const neg = bytes[0] === 1;
-  let mag = 0n;
-  for (let i = 1; i < bytes.length; i++) {
-    mag = (mag << 8n) | BigInt(bytes[i]);
-  }
-  return neg ? -mag : mag;
-}
 
 /**
  * Short search share: `#q=…&find=content|title&a=&gv=` (no huge z/n).
@@ -161,9 +119,27 @@ export function shareableSearchQuery(query) {
 
 // the link to wherever we are right now (gallery, or gallery + open book/page)
 export function currentUrl() {
+  // Mosaic / Babelgram handoff: keep `#bo=` only — full Basile z/n are megabytes.
+  if (S.bookOpenId && S.currentBook) {
+    const imageOpen = el("imageModal")?.open;
+    return bookOpenShareUrl(S.bookOpenId, {
+      book: S.currentBook.index,
+      image: !!imageOpen || !!S.currentBook.imageRgba,
+      alpha: S.alphabetId,
+    });
+  }
+  const coordsHuge = !!S.coordsHuge;
+
   const imageOpen = el("imageModal")?.open;
   if (imageOpen && S.currentBook) {
-    const hash = node_hash_hex(String(S.z), String(S.n));
+    if (coordsHuge) {
+      // No handoff id — still refuse to dump z/n into the address bar.
+      const base = `${location.origin}${location.pathname}`;
+      return `${base}#img=1&b=${S.currentBook.index}&a=${S.alphabetId}&gv=${S.gv ?? generator_version()}${
+        S.universeName ? `&u=${encodeURIComponent(S.universeName)}` : ""
+      }`;
+    }
+    const hash = node_hash_hex(coordForWasm(S.z), coordForWasm(S.n));
     return permalink(
       S.z,
       S.n,
@@ -182,7 +158,13 @@ export function currentUrl() {
     if (q) {
       return findPermalink(q, "content", S.alphabetId, S.universeName);
     }
-    const hash = node_hash_hex(String(S.z), String(S.n));
+    if (coordsHuge) {
+      const base = `${location.origin}${location.pathname}`;
+      return `${base}#b=${S.currentBook.index}&a=${S.alphabetId}&gv=${S.gv ?? generator_version()}${
+        S.universeName ? `&u=${encodeURIComponent(S.universeName)}` : ""
+      }`;
+    }
+    const hash = node_hash_hex(coordForWasm(S.z), coordForWasm(S.n));
     return permalink(
       S.z,
       S.n,
@@ -194,7 +176,13 @@ export function currentUrl() {
       null,
     );
   }
-  const hash = node_hash_hex(String(S.z), String(S.n));
+  if (coordsHuge) {
+    const base = `${location.origin}${location.pathname}`;
+    return `${base}#a=${S.alphabetId}&gv=${S.gv ?? generator_version()}${
+      S.universeName ? `&u=${encodeURIComponent(S.universeName)}` : ""
+    }`;
+  }
+  const hash = node_hash_hex(coordForWasm(S.z), coordForWasm(S.n));
   return permalink(S.z, S.n, hash);
 }
 

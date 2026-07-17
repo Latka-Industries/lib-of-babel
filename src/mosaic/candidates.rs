@@ -5,7 +5,10 @@ use std::fmt::Write as _;
 
 use wasm_bindgen::prelude::*;
 
-use crate::color::{book_grid_dims, build_glyph_palette, build_photo_luma_palette};
+use crate::color::{
+    book_grid_dims, book_image_book_scope_at, build_glyph_palette, build_photo_luma_palette,
+    room_accent_at,
+};
 use crate::config::alphabet;
 use crate::search::{LocateResult, json_string_literal};
 use crate::universe::universe as active_universe;
@@ -51,23 +54,19 @@ impl CandidatePack {
 
 #[derive(Clone, Copy)]
 enum EvalMode {
-    /// Babelgram / stamped export — glyph palette + exact RGB rank.
-    BabelExact,
     /// Photo find — luma or glyph palette + joint rms/mae/corr rank.
     Photo { palette: PhotoPaletteKind },
 }
 
 struct PackEval {
-    /// Displayed RMS % (Babelgram UI).
+    /// Displayed RMS %.
     rms_percent: f64,
     mae: f64,
     corr: f64,
-    /// Sort key — joint multi-metric for photo; same as rms for babel exact.
+    /// Sort key — joint multi-metric for photo.
     rank_percent: f64,
     label: String,
     locate: LocateResult,
-    flat: String,
-    mosaic: Vec<u8>,
 }
 
 fn evaluate_pack(
@@ -80,8 +79,7 @@ fn evaluate_pack(
     let space_idx = alphabet_space_idx(ab);
     let space = pack.space_threshold.clamp(0.0, 255.0);
     let palette = match mode {
-        EvalMode::BabelExact
-        | EvalMode::Photo {
+        EvalMode::Photo {
             palette: PhotoPaletteKind::Glyph,
         } => build_glyph_palette(ab, pack.hue, pack.chroma, pack.light),
         EvalMode::Photo {
@@ -90,29 +88,15 @@ fn evaluate_pack(
     };
     let (indices, mosaic) = project_indices(src, &palette, space_idx, space, pack.dither);
     let triple = rgb_fit_triple(src, &mosaic, 1);
-    let (rms_percent, mae, corr, rank_percent) = match mode {
-        EvalMode::BabelExact => {
-            let rms = fit_percent(src, &mosaic);
-            (rms, triple.mae, triple.corr, rms)
-        }
-        EvalMode::Photo { .. } => (
-            triple.rms_percent,
-            triple.mae,
-            triple.corr,
-            triple.rank_percent(),
-        ),
-    };
     let flat = indices_to_flat(&indices, ab);
     let locate = locate_mosaic_flat(&flat, alphabet_id, active_universe()).ok()?;
     Some(PackEval {
-        rms_percent,
-        mae,
-        corr,
-        rank_percent,
+        rms_percent: triple.rms_percent,
+        mae: triple.mae,
+        corr: triple.corr,
+        rank_percent: triple.rank_percent(),
         label: pack.label.to_string(),
         locate,
-        flat,
-        mosaic,
     })
 }
 
@@ -184,6 +168,9 @@ struct JsonHit<'a> {
 }
 
 fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
+    // Compact z/n — never emit megadigit decimals into JSON (freezes JS).
+    let z = crate::gallery::format_coord(h.z);
+    let n = crate::gallery::format_coord(h.n);
     if h.babel_exact {
         let _ = write!(
             out,
@@ -191,13 +178,14 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
                 "{{\"percent\":{:.4},\"mae\":{:.6},\"corr\":{:.6},",
                 "\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
                 "\"page_span\":{},\"hue\":{:.6},\"chroma\":{:.6},\"light\":{:.6},",
-                "\"space_threshold\":0,\"dither\":false,\"label\":{},\"alphabet\":{}}}"
+                "\"space_threshold\":0,\"dither\":false,\"label\":{},\"alphabet\":{},",
+                "\"scope\":\"page\"}}"
             ),
             h.percent,
             h.mae,
             h.corr,
-            h.z,
-            h.n,
+            z,
+            n,
             h.book,
             h.page + 1,
             h.page_span,
@@ -214,13 +202,14 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
                 "{{\"percent\":{:.2},\"mae\":{:.3},\"corr\":{:.4},",
                 "\"z\":\"{}\",\"n\":\"{}\",\"book\":{},\"page\":{},",
                 "\"page_span\":{},\"hue\":{:.3},\"chroma\":{:.4},\"light\":{:.4},",
-                "\"space_threshold\":{:.2},\"dither\":{},\"label\":{},\"alphabet\":{}}}"
+                "\"space_threshold\":{:.2},\"dither\":{},\"label\":{},\"alphabet\":{},",
+                "\"scope\":\"book\"}}"
             ),
             h.percent,
             h.mae,
             h.corr,
-            h.z,
-            h.n,
+            z,
+            n,
             h.book,
             h.page + 1,
             h.page_span,
@@ -247,16 +236,20 @@ fn json_results(hits: &[JsonHit<'_>]) -> String {
     out
 }
 
-/// Babel locate → small results JSON + full-book flat as a real JS string
-/// (flat must not ride inside JSON — ~1.3M cells breaks parse / memory).
+/// Babel / photo locate → results JSON + full-book flat + proof frames.
 ///
-/// `reproject_pixels` is the stamp-accent mosaic decode; `diff_pixels` is
-/// `|upload − reproject|` (exact → near-black).
+/// Babel: `reproject_pixels` = stamp-accent mosaic; `diff_pixels` =
+/// `|upload − reproject|` (exact → near-black); `mosaic_pixels` empty.
+///
+/// Photo: `reproject_pixels` = virgin shelf map; `mosaic_pixels` = projected
+/// letters at hit accent; `diff_pixels` = `|mosaic − shelf|`.
 #[wasm_bindgen]
 pub struct BabelLocateResult {
     results_json: String,
     flat: String,
     reproject_pixels: Vec<u8>,
+    /// Photo Find: projected letters painted at hit room accent (preview-like).
+    mosaic_pixels: Vec<u8>,
     diff_pixels: Vec<u8>,
     width: u32,
     height: u32,
@@ -280,6 +273,12 @@ impl BabelLocateResult {
     #[must_use]
     pub fn reproject_pixels(&self) -> Vec<u8> {
         self.reproject_pixels.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn mosaic_pixels(&self) -> Vec<u8> {
+        self.mosaic_pixels.clone()
     }
 
     #[wasm_bindgen(getter)]
@@ -469,16 +468,18 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
     json_results(&json_hits)
 }
 
-/// Exact babel-export decode: one pack (`space=0`, no dither) → locate in the active universe.
+/// Exact babel-export decode: project at stamp accent → **page-linked** invert of
+/// the first page only (same fast path as pre–dual-map). Same-universe UI overrides
+/// coords from the PNG stamp (`scope=page|book`); other-universe rematch uses this
+/// page-0 address (legacy behaviour — not a full book-map Hensel on the UI thread).
 ///
-/// On success: [`BabelLocateResult`] with `results_json` =
-/// `{ ok, results:[{ percent, z, n, book, page, page_span, … }] }`, `flat` for in-session
-/// embed, `reproject_pixels` = stamp-accent mosaic, and `diff_pixels` =
-/// `|upload − reproject|` (exact decode → near-black).
+/// On success: [`BabelLocateResult`] with `results_json`, `flat`,
+/// `reproject_pixels` = stamp-accent mosaic, `diff_pixels` = `|upload − reproject|`
+/// (exact decode → near-black).
 ///
 /// # Errors
 ///
-/// String `JsValue` when the buffer is not the book grid, or locate fails.
+/// String `JsValue` when the buffer is not the book grid.
 #[wasm_bindgen]
 pub fn mosaic_babel_json(
     src_rgba: &[u8],
@@ -487,53 +488,251 @@ pub fn mosaic_babel_json(
     chroma: f64,
     light: f64,
 ) -> Result<BabelLocateResult, JsValue> {
+    use crate::basile::invert_page_symbols;
+    use crate::config::{BOOK_CONTENT_SYMBOLS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK};
+
     if ensure_book_rgba(src_rgba).is_err() {
         return Err(JsValue::from_str(
             "image must match the full-book colour grid",
         ));
     }
-    let pack = CandidatePack {
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u32;
+    let space_idx = alphabet_space_idx(ab);
+    let palette = build_glyph_palette(ab, hue, chroma, light);
+    let (indices, mosaic) = project_indices(src_rgba, &palette, space_idx, 0.0, false);
+    if indices.len() != BOOK_CONTENT_SYMBOLS {
+        return Err(JsValue::from_str("mosaic cell count must equal one book"));
+    }
+    let triple = rgb_fit_triple(src_rgba, &mosaic, 1);
+    let rms = fit_percent(src_rgba, &mosaic);
+    let flat = indices_to_flat(&indices, ab);
+    // Colour-print rematch: invert page 0 only (page map). Never full-book Hensel here.
+    // Same-universe UI then overrides coords from the stamp for exact decode.
+    let mut page0 = [0u16; PAGE_CONTENT_SYMBOLS];
+    page0.copy_from_slice(&indices[..PAGE_CONTENT_SYMBOLS]);
+    let key = invert_page_symbols(&page0, active_universe(), alphabet_id, alpha_len);
+    let (width, height) = book_grid_dims();
+    let diff_pixels = rgba_abs_diff(src_rgba, &mosaic);
+    let results_json = json_results(&[JsonHit {
+        percent: rms,
+        mae: triple.mae,
+        corr: triple.corr,
+        z: &key.z,
+        n: &key.n,
+        book: key.book_index,
+        page: key.page,
+        page_span: PAGES_PER_BOOK,
         hue,
         chroma,
         light,
         space_threshold: 0.0,
         dither: false,
         label: "babel exact",
-    };
-    let Some(ev) = evaluate_pack(src_rgba, alphabet_id, &pack, EvalMode::BabelExact) else {
-        return Err(JsValue::from_str("could not locate babel mosaic"));
-    };
-    let (width, height) = book_grid_dims();
-    let diff_pixels = rgba_abs_diff(src_rgba, &ev.mosaic);
-    let mae = ev.mae;
-    let corr = ev.corr;
-    let loc = &ev.locate.location;
-    let results_json = json_results(&[JsonHit {
-        percent: ev.rms_percent,
-        mae,
-        corr,
-        z: &loc.z,
-        n: &loc.n,
-        book: loc.book_index,
-        page: loc.page,
-        page_span: ev.locate.page_span,
-        hue,
-        chroma,
-        light,
-        space_threshold: 0.0,
-        dither: false,
-        label: &ev.label,
         alphabet_id,
         babel_exact: true,
     }]);
     Ok(BabelLocateResult {
         results_json,
-        flat: ev.flat,
-        reproject_pixels: ev.mosaic,
+        flat,
+        reproject_pixels: mosaic,
+        mosaic_pixels: Vec::new(),
         diff_pixels,
         width,
         height,
     })
+}
+
+/// Partial Find — letter mosaic + book-linked invert (no colour-map paint yet).
+///
+/// Used so the UI can report “finding book…” vs “constructing colour map…”.
+#[wasm_bindgen]
+pub struct FindBookLocate {
+    z: String,
+    n: String,
+    book_index: u32,
+    alphabet_id: u32,
+    flat: String,
+    indices: Vec<u16>,
+    room_hue: f64,
+    room_chroma: f64,
+    room_light: f64,
+}
+
+#[wasm_bindgen]
+impl FindBookLocate {
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn flat(&self) -> String {
+        self.flat.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    #[must_use]
+    pub fn book_index(&self) -> u32 {
+        self.book_index
+    }
+}
+
+/// Photo → letter mosaic → Basile **book-level** invert (address only).
+///
+/// # Errors
+///
+/// String `JsValue` when the buffer is not the book grid.
+#[wasm_bindgen]
+pub fn mosaic_find_book_locate(
+    src_rgba: &[u8],
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+) -> Result<FindBookLocate, JsValue> {
+    use crate::basile::invert_book_symbols;
+    use crate::config::BOOK_CONTENT_SYMBOLS;
+    use crate::gallery::format_coord;
+
+    if ensure_book_rgba(src_rgba).is_err() {
+        return Err(JsValue::from_str(
+            "image must match the full-book colour grid",
+        ));
+    }
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u32;
+    let space_idx = alphabet_space_idx(ab);
+    let universe_seed = active_universe();
+    // Project → invert → re-project under the hit's room accent until the
+    // address stabilises (so letters match the virgin colour map there).
+    let mut proj_hue = hue;
+    let mut proj_chroma = chroma;
+    let mut proj_light = light;
+    let mut indices = Vec::new();
+    let mut z = num_bigint::BigInt::from(0);
+    let mut n = num_bigint::BigInt::from(0);
+    let mut book_index = 0u32;
+    for _ in 0..3 {
+        let palette = build_glyph_palette(ab, proj_hue, proj_chroma, proj_light);
+        let (next, _) = project_indices(src_rgba, &palette, space_idx, 0.0, false);
+        if next.len() != BOOK_CONTENT_SYMBOLS {
+            return Err(JsValue::from_str("mosaic cell count must equal one book"));
+        }
+        indices = next;
+        let (z2, n2, b2) = invert_book_symbols(&indices, universe_seed, alphabet_id, alpha_len);
+        let room = room_accent_at(&z2, &n2, universe_seed);
+        let same_room = (room[0] - proj_hue).abs() < 1e-9
+            && (room[1] - proj_chroma).abs() < 1e-9
+            && (room[2] - proj_light).abs() < 1e-9;
+        z = z2;
+        n = n2;
+        book_index = b2;
+        proj_hue = room[0];
+        proj_chroma = room[1];
+        proj_light = room[2];
+        if same_room {
+            break;
+        }
+    }
+    let flat = indices_to_flat(&indices, ab);
+    Ok(FindBookLocate {
+        z: format_coord(&z),
+        n: format_coord(&n),
+        book_index,
+        alphabet_id,
+        flat,
+        indices,
+        room_hue: proj_hue,
+        room_chroma: proj_chroma,
+        room_light: proj_light,
+    })
+}
+
+/// Build book-scope colour map + metrics for a [`FindBookLocate`].
+///
+/// # Errors
+///
+/// String `JsValue` if coord parse / paint fails.
+#[wasm_bindgen]
+pub fn mosaic_find_book_finish(locate: &FindBookLocate) -> Result<BabelLocateResult, JsValue> {
+    use crate::gallery::parse_coord;
+
+    let z = parse_coord(&locate.z);
+    let n = parse_coord(&locate.n);
+    let book_index = locate.book_index;
+    let alphabet_id = locate.alphabet_id;
+    let ab = alphabet(alphabet_id);
+    // Proof must use book-linked paint (page-linked `book_image` is a different map).
+    let book = book_image_book_scope_at(&z, &n, book_index, alphabet_id);
+    let book_pixels = book.pixels();
+    let room = [locate.room_hue, locate.room_chroma, locate.room_light];
+    let room_palette = build_glyph_palette(ab, room[0], room[1], room[2]);
+    let proof = paint_indices_rgba(&locate.indices, &room_palette);
+    let fit = rgb_fit_triple(&proof, &book_pixels, 1);
+    let (width, height) = book_grid_dims();
+    let diff_pixels = rgba_abs_diff(&proof, &book_pixels);
+    let babel_exact = fit.rms_percent >= 99.9 && fit.mae <= 0.5;
+    let results_json = json_results(&[JsonHit {
+        percent: fit.rms_percent,
+        mae: fit.mae,
+        corr: fit.corr,
+        z: &z,
+        n: &n,
+        book: book_index,
+        page: 0,
+        page_span: crate::config::PAGES_PER_BOOK,
+        hue: room[0],
+        chroma: room[1],
+        light: room[2],
+        space_threshold: 0.0,
+        dither: false,
+        label: "alphabet mosaic (full book)",
+        alphabet_id,
+        babel_exact,
+    }]);
+    Ok(BabelLocateResult {
+        results_json,
+        flat: locate.flat.clone(),
+        reproject_pixels: book_pixels,
+        mosaic_pixels: proof,
+        diff_pixels,
+        width,
+        height,
+    })
+}
+
+/// Photo → alphabet letter mosaic → locate via Basile **book-level** invert.
+///
+/// A full-book letter grid is one virgin book (generator v10). Metrics compare
+/// the mosaic painted with the room accent wheel to that book's colour map —
+/// exact when the projected indices are the virgin symbols.
+///
+/// `hue` / `chroma` / `light` choose which letters the photo quantizes to.
+///
+/// # Errors
+///
+/// String `JsValue` when the buffer is not the book grid, or locate fails.
+#[wasm_bindgen]
+pub fn mosaic_find_book(
+    src_rgba: &[u8],
+    alphabet_id: u32,
+    hue: f64,
+    chroma: f64,
+    light: f64,
+) -> Result<BabelLocateResult, JsValue> {
+    let locate = mosaic_find_book_locate(src_rgba, alphabet_id, hue, chroma, light)?;
+    mosaic_find_book_finish(&locate)
+}
+
+/// Colour glyph indices with a palette (book-grid RGBA).
+fn paint_indices_rgba(indices: &[u16], palette: &[[u8; 3]]) -> Vec<u8> {
+    let mut out = vec![0u8; indices.len() * 4];
+    for (i, &idx) in indices.iter().enumerate() {
+        let rgb = palette[idx as usize];
+        let o = i * 4;
+        out[o] = rgb[0];
+        out[o + 1] = rgb[1];
+        out[o + 2] = rgb[2];
+        out[o + 3] = 255;
+    }
+    out
 }
 
 /// Coarse palette packs only (no full-book locate) — cheap enough for one frame.

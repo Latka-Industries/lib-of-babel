@@ -28,6 +28,7 @@ import {
 import { locate_page_json, locate_title_json, node_hash_hex } from "../lib/wasm.js";
 import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
+import { decodeCoordParam, coordForWasm } from "../lib/coords.js";
 import { permalink, findPermalink } from "../gallery/url.js";
 
 function invalidFromResult(result) {
@@ -65,7 +66,7 @@ function localizeLocateError(error) {
   if (error === "invalid response from generator") {
     return t("search.error.badResponse");
   }
-  let m = /^text too long \(max (\d+) characters — one book\)$/.exec(error);
+  let m = /^text too long \(max (\d+) characters — one page\)$/.exec(error);
   if (m) return t("search.error.tooLong", { n: m[1] });
   m = /^title too long \(max (\d+) characters\)$/.exec(error);
   if (m) return t("search.error.titleTooLong", { n: m[1] });
@@ -347,10 +348,10 @@ export function locateTitle(text, alphabetId = S.alphabetId) {
   return locateWith(locate_title_json, text, alphabetId);
 }
 
-/** Coerce locate JSON `z`/`n` (string or number) to BigInt. */
+/** Coerce locate JSON `z`/`n` (decimal or compact `c…`) to BigInt. */
 function asBigInt(v) {
   if (typeof v === "bigint") return v;
-  return BigInt(typeof v === "string" || typeof v === "number" ? v : String(v));
+  return decodeCoordParam(typeof v === "string" || typeof v === "number" ? v : String(v));
 }
 
 /** Permalink for a search hit — short `#q=&find=` (re-locate on open). */
@@ -366,7 +367,7 @@ export function searchPermalink(result, query, kind = "content") {
   // Query too long for &q= — fall back to compact coord link (no phrase).
   const z = asBigInt(result.z);
   const n = asBigInt(result.n);
-  const hash = node_hash_hex(String(z), String(n));
+  const hash = node_hash_hex(coordForWasm(z), coordForWasm(n));
   return permalink(
     z,
     n,
@@ -457,14 +458,14 @@ export function goToSearchResult(result, query, kind = "content") {
   if (kind === "title") {
     S.titleEmbed = {
       flat: query,
-      z: String(result.z),
-      n: String(result.n),
+      z: result.z,
+      n: result.n,
       book: result.book,
     };
   } else {
     S.titleEmbed = null;
   }
-  jumpTo(String(result.z), String(result.n));
+  jumpTo(result.z, result.n, { scope: "page" });
   openBook(
     result.book,
     kind === "title" ? query : null,

@@ -10,7 +10,7 @@
 //! - [`score`] — RGB + perceptual fit, downsample
 //! - [`flat`] — indices → flat string + locate
 //! - [`api`] — WASM project / flat preview
-//! - [`candidates`] — coarse/fine photo search + babel decode
+//! - [`candidates`] — babel decode, photo `mosaic_find_book`, legacy packs
 
 mod api;
 mod candidates;
@@ -24,8 +24,9 @@ mod tests;
 
 pub use api::{MosaicImage, mosaic_flat_for, mosaic_project, mosaic_project_preview};
 pub use candidates::{
-    BabelLocateResult, mosaic_babel_json, mosaic_candidate_eval_json, mosaic_candidate_packs_json,
-    mosaic_candidates_json,
+    BabelLocateResult, FindBookLocate, mosaic_babel_json, mosaic_candidate_eval_json,
+    mosaic_candidate_packs_json, mosaic_candidates_json, mosaic_find_book, mosaic_find_book_finish,
+    mosaic_find_book_locate,
 };
 
 // Re-export internals into this module so `tests` can `use super::…`.

@@ -1,47 +1,27 @@
-//! Basile-style content ↔ address bijection (generator v9).
+//! Basile-style content ↔ address bijection (generator v11 — dual scopes).
 //!
-//! # Model
+//! # Two bijection scopes
 //!
-//! A **page** is a length-[`PAGE_CONTENT_SYMBOLS`] digit string in base `|Σ|`.
-//! That integer maps bijectively to a page address via
-//! `content = (addr_int * C) mod N` with `N = |Σ|^3200` and
-//! `I = C⁻¹ (mod N)`. `C ≡ 1 (mod |Σ|)` so it stays coprime to `N`.
+//! - **Page-linked** ([`page_symbols_at`] / [`invert_page_symbols`]): every
+//!   possible *page* exists once under `content = (addr * C) mod |Σ|^3200`.
+//!   Wander, spines, short text search, reader `book_image`.
+//! - **Book-linked** ([`book_symbols_at`] / [`invert_book_symbols`]): every
+//!   possible *full book* exists once under
+//!   `content = ((addr + 1) * C) mod |Σ|^BOOK`. Photo Find / Babelgram identity.
 //!
-//! `C` / `I` are keyed by `(GENERATOR_VERSION, universe_seed, alphabet_id)`.
-//!
-//! Short search pads the query into one full page (deterministic offset +
-//! invertible filler), then inverts. Multi-page search pads into `S` consecutive
-//! pages and inverts **each** page under the same map, then solves for a start
-//! address whose consecutive page indices regenerate that stream — which holds
-//! because we **build** the stream as virgin pages of a chosen start address
-//! (filler chooses the free symbols; the query symbols are fixed into place,
-//! and the address is the invert of the completed first page, with subsequent
-//! pages taken as `page_symbols(start+i)` — wait: for arbitrary query text,
-//! consecutive page-level contents are not free).
-//!
-//! Practical multipage rule (v9): build the padded `S`-page symbol stream, then
-//! set the start address to `invert(page_0)` and **define** pages `1..S-1` of
-//! the hit as the remaining stream slices. Those slices are real pages at
-//! *some* addresses; to keep them on `start+1..` we instead generate every page
-//! independently (page-level) and for locate we place the query by constructing
-//! page 0 (pad+invert) and requiring pages `1..` to equal `page_symbols(start+i)`
-//! only when the query was taken from the library. For **search**, we construct
-//! the full padded stream and invert page 0; virgin page 0 contains the start
-//! of the query. Continuation pages are whatever the generator yields; the UI
-//! may still highlight using the query string. Full consecutive reconstruction
-//! for arbitrary multipage text needs book-level encoding (future).
-//!
-//! Titles use the same modular map on [`TITLE_LEN`] digits → `(z, n, book)`.
+//! Same `(z, n, book)` labels under different scopes are different virgin content.
+//! Titles still use [`TITLE_LEN`] digits → `(z, n, book)`.
 
 use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Pow, Signed, Zero};
 
 use crate::config::{
-    BOOKS_PER_GALLERY, GENERATOR_VERSION, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, TITLE_LEN,
+    BOOK_CONTENT_SYMBOLS, BOOKS_PER_GALLERY, GENERATOR_VERSION, PAGE_CONTENT_SYMBOLS,
+    PAGES_PER_BOOK, TITLE_LEN,
 };
 
 /// One page address in a universe + alphabet lens.
@@ -135,10 +115,10 @@ fn u64_from_big(x: &BigUint) -> u64 {
 
 /// Linear page index: `page + PAGES * (book + BOOKS * pair(z,n))`.
 ///
-/// Reference packing for tests / round-trips. Hot paths use [`pair_gallery_mod`]
-/// so huge content-search coordinates stay cheap.
-#[cfg(test)]
+/// Used by page-linked invert. Hot forward paths use [`pair_gallery_mod`]
+/// so huge coordinates stay cheap.
 #[must_use]
+#[allow(dead_code)] // round-trip helper; invert uses [`unpack_page_index`]
 pub fn pack_page_index(z: &BigInt, n: &BigInt, book_index: u32, page: u32) -> BigUint {
     let g = pair_gallery(z, n);
     let book = BigUint::from(book_index % BOOKS_PER_GALLERY);
@@ -184,6 +164,31 @@ fn mod_inverse(a: &BigUint, m: &BigUint) -> BigUint {
     inv.to_biguint().expect("inverse fits in BigUint")
 }
 
+/// `a⁻¹ mod α^len` via Newton/Hensel lifting (extended-gcd on α^len is intractable at book size).
+///
+/// Requires `gcd(a, α) = 1`. Our scramble constant satisfies `C ≡ 1 (mod α)`.
+fn mod_inverse_alpha_pow(a: &BigUint, alpha_len: u32, len: usize) -> BigUint {
+    debug_assert!(len >= 1);
+    debug_assert!((2..=4096).contains(&alpha_len));
+    let alpha = BigUint::from(alpha_len);
+    let mut i = mod_inverse(a, &alpha);
+    let mut lifted = 1usize;
+    while lifted < len {
+        let next = lifted.saturating_mul(2).min(len);
+        let m = modulus(alpha_len, next);
+        let ai = (a * &i) % &m;
+        let two = BigUint::from(2u32);
+        let t = if two >= ai { two - ai } else { &m + two - ai };
+        i = (&i * t) % &m;
+        lifted = next;
+    }
+    debug_assert!({
+        let n = modulus(alpha_len, len);
+        (a * &i) % &n == BigUint::one()
+    });
+    i
+}
+
 /// `(C, I, N)` for a block of `len` symbols — cached (N = α^len is expensive).
 fn scramble_params(
     universe_seed: u64,
@@ -201,7 +206,13 @@ fn scramble_params(
     {
         return hit.clone();
     }
-    let computed = scramble_params_uncached(universe_seed, alphabet_id, alpha_len, len);
+    // Default universe + Basile book map: load from the baked blob (no Hensel warm).
+    let computed =
+        if let Some(baked) = baked_book_scramble(universe_seed, alphabet_id, alpha_len, len) {
+            baked
+        } else {
+            scramble_params_uncached(universe_seed, alphabet_id, alpha_len, len)
+        };
     if let Ok(mut guard) = cache.lock() {
         guard.insert(key, computed.clone());
     }
@@ -214,6 +225,13 @@ fn scramble_params_uncached(
     alpha_len: u32,
     len: usize,
 ) -> (BigUint, BigUint, BigUint) {
+    // Full-book modulus is fine in release WASM; in `cargo test` (debug) it looks
+    // "stuck" for minutes. Unit tests must use smaller `len` or avoid book Basile.
+    assert!(
+        !(cfg!(test) && len == BOOK_CONTENT_SYMBOLS),
+        "test tried to scramble BOOK_CONTENT_SYMBOLS ({len}) — that hangs debug CI; \
+         use a medium length or do not call book_symbols_at / invert_book / locate_page / book_image from unit tests"
+    );
     let n = modulus(alpha_len, len);
     let mut h = blake3::Hasher::new();
     h.update(b"lob:basile:C");
@@ -238,15 +256,33 @@ fn scramble_params_uncached(
         h_int %= &n_div;
     }
     let c = h_int * alpha_len + BigUint::one();
-    let i = mod_inverse(&c, &n);
+    let i = mod_inverse_alpha_pow(&c, alpha_len, len);
     (c, i, n)
 }
 
 /// Digits little-endian (index 0 = least significant) → big integer.
+///
+/// Skips leading/trailing zero digits so short zero-padded book searches stay cheap.
 #[must_use]
 pub fn digits_to_int(digits: &[u16], alpha_len: u32) -> BigUint {
     debug_assert!(digits.iter().all(|&d| u32::from(d) < alpha_len));
-    // `from_radix_le` only accepts radix ∈ 2..=256 and one byte per digit.
+    let Some(start) = digits.iter().position(|&d| d != 0) else {
+        return BigUint::zero();
+    };
+    let end = digits
+        .iter()
+        .rposition(|&d| d != 0)
+        .map_or(start, |i| i + 1);
+    let slice = &digits[start..end];
+    let body = digits_to_int_dense(slice, alpha_len);
+    if start == 0 {
+        body
+    } else {
+        body * BigUint::from(alpha_len).pow(start as u32)
+    }
+}
+
+fn digits_to_int_dense(digits: &[u16], alpha_len: u32) -> BigUint {
     if (2..=256).contains(&alpha_len) {
         let raw: Vec<u8> = digits.iter().map(|&d| d as u8).collect();
         BigUint::from_radix_le(&raw, alpha_len).unwrap_or_else(BigUint::zero)
@@ -290,7 +326,221 @@ fn digits_u16_to_page(digits: &[u16]) -> [u16; PAGE_CONTENT_SYMBOLS] {
     out
 }
 
-/// Virgin page symbols at `key` (page-level Basile map).
+/// Book address: `book + BOOKS * pair(z,n)` (no page — pages are slices of the book).
+fn book_addr(z: &BigInt, n: &BigInt, book_index: u32, n_mod: &BigUint) -> BigUint {
+    let g = pair_gallery_mod(z, n, n_mod);
+    BigUint::from(book_index % BOOKS_PER_GALLERY) + BigUint::from(BOOKS_PER_GALLERY) * g
+}
+
+fn unpack_book_addr(mut addr: BigUint) -> (BigInt, BigInt, u32) {
+    let books = BigUint::from(BOOKS_PER_GALLERY);
+    let book = (u64_from_big(&(&addr % &books)) as u32) % BOOKS_PER_GALLERY;
+    addr /= &books;
+    let (z, n) = unpair_gallery(&addr);
+    (z, n, book)
+}
+
+/// Cache key for [`book_symbols_at`]: universe, alphabet, α, book, z/n bytes.
+type BookSymbolsKey = (u64, u32, u32, u32, Vec<u8>, Vec<u8>);
+static BOOK_SYMBOLS_CACHE: OnceLock<Mutex<HashMap<BookSymbolsKey, Arc<[u16]>>>> = OnceLock::new();
+
+/// Virgin full-book symbols at `(z, n, book)` (book-level Basile map).
+///
+/// Results are cached (Arc) — regenerating `α^BOOK` content is expensive; page
+/// turns and `book_image` must share one materialisation per open book.
+#[must_use]
+pub fn book_symbols_at(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    universe_seed: u64,
+    alphabet_id: u32,
+    alpha_len: u32,
+) -> Arc<[u16]> {
+    debug_assert!((1..=4096).contains(&alpha_len));
+    let cache = BOOK_SYMBOLS_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    let key = (
+        universe_seed,
+        alphabet_id,
+        alpha_len,
+        book_index % BOOKS_PER_GALLERY,
+        z.to_signed_bytes_le(),
+        n.to_signed_bytes_le(),
+    );
+    if let Ok(guard) = cache.lock()
+        && let Some(hit) = guard.get(&key)
+    {
+        return Arc::clone(hit);
+    }
+    let (c, _i, modulus) =
+        scramble_params(universe_seed, alphabet_id, alpha_len, BOOK_CONTENT_SYMBOLS);
+    // `+ 1` so gallery origin (addr 0) is not the all-zero digit book.
+    let addr = book_addr(z, n, book_index, &modulus) % &modulus;
+    let content = ((&addr + BigUint::one()) * &c) % &modulus;
+    let digits = int_to_digits(content, alpha_len, BOOK_CONTENT_SYMBOLS);
+    let arc: Arc<[u16]> = Arc::from(digits.into_boxed_slice());
+    if let Ok(mut guard) = cache.lock() {
+        // Keep a small working set — each entry is ~2.5 MiB.
+        if guard.len() >= 4 {
+            guard.clear();
+        }
+        guard.insert(key, Arc::clone(&arc));
+    }
+    arc
+}
+
+const SCRAMBLE_BLOB_MAGIC: &[u8; 8] = b"LOBSCRv1";
+
+/// Encode `(C, I, N)` for the book map into a portable LE blob (host gen tool).
+#[must_use]
+pub fn encode_book_scramble_blob(
+    universe_seed: u64,
+    alphabet_id: u32,
+    alpha_len: u32,
+    c: &BigUint,
+    i: &BigUint,
+    n: &BigUint,
+) -> Vec<u8> {
+    let c_b = c.to_bytes_le();
+    let i_b = i.to_bytes_le();
+    let n_b = n.to_bytes_le();
+    let mut out = Vec::with_capacity(40 + c_b.len() + i_b.len() + n_b.len());
+    out.extend_from_slice(SCRAMBLE_BLOB_MAGIC);
+    out.extend_from_slice(&GENERATOR_VERSION.to_le_bytes());
+    out.extend_from_slice(&universe_seed.to_le_bytes());
+    out.extend_from_slice(&alphabet_id.to_le_bytes());
+    out.extend_from_slice(&alpha_len.to_le_bytes());
+    out.extend_from_slice(&(BOOK_CONTENT_SYMBOLS as u64).to_le_bytes());
+    out.extend_from_slice(&(c_b.len() as u32).to_le_bytes());
+    out.extend_from_slice(&(i_b.len() as u32).to_le_bytes());
+    out.extend_from_slice(&(n_b.len() as u32).to_le_bytes());
+    out.extend_from_slice(&c_b);
+    out.extend_from_slice(&i_b);
+    out.extend_from_slice(&n_b);
+    out
+}
+
+/// Compute book-map `(C, I, N)` and encode (used by `gen_basile_scramble`).
+///
+/// # Panics
+///
+/// Same as uncached scramble for book length under `cfg(test)`.
+#[must_use]
+pub fn export_book_scramble_blob(universe_seed: u64, alphabet_id: u32, alpha_len: u32) -> Vec<u8> {
+    let (c, i, n) =
+        scramble_params_uncached(universe_seed, alphabet_id, alpha_len, BOOK_CONTENT_SYMBOLS);
+    encode_book_scramble_blob(universe_seed, alphabet_id, alpha_len, &c, &i, &n)
+}
+
+#[cfg(not(test))]
+fn decode_book_scramble_blob(
+    bytes: &[u8],
+) -> Option<(u64, u32, u32, usize, BigUint, BigUint, BigUint)> {
+    if bytes.len() < 40 || &bytes[0..8] != SCRAMBLE_BLOB_MAGIC {
+        return None;
+    }
+    let mut o = 8;
+    let read_u32 = |buf: &[u8], o: &mut usize| -> Option<u32> {
+        let v = u32::from_le_bytes(buf.get(*o..*o + 4)?.try_into().ok()?);
+        *o += 4;
+        Some(v)
+    };
+    let read_u64 = |buf: &[u8], o: &mut usize| -> Option<u64> {
+        let v = u64::from_le_bytes(buf.get(*o..*o + 8)?.try_into().ok()?);
+        *o += 8;
+        Some(v)
+    };
+    let gen_ver = read_u32(bytes, &mut o)?;
+    if gen_ver != GENERATOR_VERSION {
+        return None;
+    }
+    let universe_seed = read_u64(bytes, &mut o)?;
+    let alphabet_id = read_u32(bytes, &mut o)?;
+    let alpha_len = read_u32(bytes, &mut o)?;
+    let len = read_u64(bytes, &mut o)? as usize;
+    let c_len = read_u32(bytes, &mut o)? as usize;
+    let i_len = read_u32(bytes, &mut o)? as usize;
+    let n_len = read_u32(bytes, &mut o)? as usize;
+    if bytes.len() < o + c_len + i_len + n_len {
+        return None;
+    }
+    let c = BigUint::from_bytes_le(&bytes[o..o + c_len]);
+    o += c_len;
+    let i = BigUint::from_bytes_le(&bytes[o..o + i_len]);
+    o += i_len;
+    let n = BigUint::from_bytes_le(&bytes[o..o + n_len]);
+    Some((universe_seed, alphabet_id, alpha_len, len, c, i, n))
+}
+
+/// Baked default: universe `0` + Basile book map (`mise run gen-basile-scramble`).
+#[cfg(not(test))]
+static BAKED_DEFAULT_BOOK_SCRAMBLE: &[u8] = include_bytes!("../data/basile_book_scramble_u0.bin");
+
+fn baked_book_scramble(
+    universe_seed: u64,
+    alphabet_id: u32,
+    alpha_len: u32,
+    len: usize,
+) -> Option<(BigUint, BigUint, BigUint)> {
+    // Host unit tests never ship the multi‑MiB blob; WASM/release does.
+    #[cfg(test)]
+    {
+        let _ = (universe_seed, alphabet_id, alpha_len, len);
+        None
+    }
+    #[cfg(not(test))]
+    {
+        if len != BOOK_CONTENT_SYMBOLS {
+            return None;
+        }
+        let (blob_universe, blob_alphabet, blob_alpha_len, blob_len, factor_c, inv, modulus) =
+            decode_book_scramble_blob(BAKED_DEFAULT_BOOK_SCRAMBLE)?;
+        if blob_universe == universe_seed
+            && blob_alphabet == alphabet_id
+            && blob_alpha_len == alpha_len
+            && blob_len == len
+        {
+            Some((factor_c, inv, modulus))
+        } else {
+            None
+        }
+    }
+}
+
+/// Precompute and cache `(C, I, N)` for the full-book Basile map.
+///
+/// Default universe + Basile loads from the baked blob (instant). Other
+/// `(universe, alphabet)` pairs still compute on demand (can take minutes).
+pub fn warm_book_scramble(universe_seed: u64, alphabet_id: u32, alpha_len: u32) {
+    let _ = scramble_params(universe_seed, alphabet_id, alpha_len, BOOK_CONTENT_SYMBOLS);
+}
+
+/// Invert a full-book symbol stream → `(z, n, book_index)`.
+///
+/// # Panics
+///
+/// Debug-asserts `symbols.len() == BOOK_CONTENT_SYMBOLS`.
+#[must_use]
+pub fn invert_book_symbols(
+    symbols: &[u16],
+    universe_seed: u64,
+    alphabet_id: u32,
+    alpha_len: u32,
+) -> (BigInt, BigInt, u32) {
+    debug_assert_eq!(symbols.len(), BOOK_CONTENT_SYMBOLS);
+    let (_c, i, modulus) =
+        scramble_params(universe_seed, alphabet_id, alpha_len, BOOK_CONTENT_SYMBOLS);
+    let content = digits_to_int(symbols, alpha_len) % &modulus;
+    let raw = (content * i) % &modulus; // addr + 1 (mod N)
+    let addr = if raw.is_zero() {
+        &modulus - BigUint::one()
+    } else {
+        raw - BigUint::one()
+    };
+    unpack_book_addr(addr)
+}
+
+/// Virgin page symbols at `key` (page-linked Basile map).
 #[must_use]
 pub fn page_symbols_at(key: &PageKey, alpha_len: u32) -> [u16; PAGE_CONTENT_SYMBOLS] {
     debug_assert!((1..=4096).contains(&alpha_len));
@@ -311,7 +561,7 @@ pub fn page_symbols_at(key: &PageKey, alpha_len: u32) -> [u16; PAGE_CONTENT_SYMB
     digits_u16_to_page(&digits)
 }
 
-/// Invert a full page of symbols → page key (same universe / alphabet / `alpha_len`).
+/// Invert a full page of symbols → page key (page-linked map).
 #[must_use]
 pub fn invert_page_symbols(
     symbols: &[u16; PAGE_CONTENT_SYMBOLS],
@@ -442,27 +692,6 @@ mod tests {
     }
 
     #[test]
-    fn pack_unpack_page_index_bigint() {
-        let cases = [
-            (BigInt::from(0), BigInt::from(0), 0u32, 0u32),
-            (BigInt::from(1), BigInt::from(-1), 699, 409),
-            (BigInt::from(-50), BigInt::from(12), 3, 7),
-            // Beyond i64 — must not truncate on unpack.
-            (
-                BigInt::parse_bytes(b"9223372036854775808", 10).unwrap(),
-                BigInt::from(-3),
-                1,
-                2,
-            ),
-        ];
-        for (z, n, b, p) in cases {
-            let x = pack_page_index(&z, &n, b, p);
-            let (z2, n2, b2, p2) = unpack_page_index(x);
-            assert_eq!((z2, n2, b2, p2), (z, n, b, p));
-        }
-    }
-
-    #[test]
     fn title_round_trip() {
         let alpha = 29u32;
         let z = BigInt::from(2);
@@ -503,20 +732,38 @@ mod tests {
 
     #[test]
     fn gallery_titles_match_per_book_at_huge_coords() {
-        let mut page = [0u16; PAGE_CONTENT_SYMBOLS];
-        for (i, s) in page.iter_mut().enumerate() {
-            *s = ((i * 17) % 29) as u16;
-        }
-        let key = invert_page_symbols(&page, 0, 29, 29);
-        let batch = title_symbols_for_gallery(&key.z, &key.n, 0, 29, 29);
+        let z = BigInt::parse_bytes(b"9223372036854775808", 10).unwrap();
+        let n = BigInt::from(-42);
+        let batch = title_symbols_for_gallery(&z, &n, 0, 29, 29);
         assert_eq!(batch.len(), BOOKS_PER_GALLERY as usize);
         for (i, row) in batch.iter().enumerate() {
-            let one = title_symbols_at(&key.z, &key.n, i as u32, 0, 29, 29);
+            let one = title_symbols_at(&z, &n, i as u32, 0, 29, 29);
             assert_eq!(row, &one, "book {i}");
         }
-        let titles = crate::gallery::gallery_titles(&key.z, &key.n, 29, 0, None);
-        let spine0 = crate::search::spine_title_at(&key.z, &key.n, 0, 29, 0);
+        let titles = crate::gallery::gallery_titles(&z, &n, 29, 0, None);
+        let spine0 = crate::search::spine_title_at(&z, &n, 0, 29, 0);
         assert_eq!(titles[0], spine0);
+    }
+
+    #[test]
+    fn pack_unpack_page_index_bigint() {
+        let cases = [
+            (BigInt::from(0), BigInt::from(0), 0u32, 0u32),
+            (BigInt::from(1), BigInt::from(-1), 699, 409),
+            (BigInt::from(-50), BigInt::from(12), 3, 7),
+            // Beyond i64 — must not truncate on unpack.
+            (
+                BigInt::parse_bytes(b"9223372036854775808", 10).unwrap(),
+                BigInt::from(-3),
+                1,
+                2,
+            ),
+        ];
+        for (z, n, b, p) in cases {
+            let x = pack_page_index(&z, &n, b, p);
+            let (z2, n2, b2, p2) = unpack_page_index(x);
+            assert_eq!((z2, n2, b2, p2), (z, n, b, p));
+        }
     }
 }
 
@@ -551,13 +798,20 @@ mod content_bijection_tests {
     }
 
     #[test]
-    fn arbitrary_page_content_round_trips() {
-        let mut page = [0u16; PAGE_CONTENT_SYMBOLS];
-        for (i, slot) in page.iter_mut().enumerate() {
-            *slot = ((i * 13 + 11) % 29) as u16;
+    fn hensel_inverse_medium_round_trip() {
+        // Book-shaped map at a small length — never BOOK_CONTENT_SYMBOLS in CI.
+        let len = 6_400usize;
+        let alpha = 29u32;
+        let (c, i, n) = scramble_params(0, 29, alpha, len);
+        assert_eq!((&c * &i) % &n, BigUint::from(1u32));
+        let mut digits = vec![0u16; len];
+        for (idx, slot) in digits.iter_mut().enumerate() {
+            *slot = ((idx * 7 + 3) % 29) as u16;
         }
-        let key = invert_page_symbols(&page, 0, 29, 29);
-        let regen = page_symbols_at(&key, 29);
-        assert_eq!(page, regen);
+        let content = digits_to_int(&digits, alpha) % &n;
+        let addr = (&content * &i) % &n;
+        let back = (&addr * &c) % &n;
+        assert_eq!(content, back);
+        assert_eq!(int_to_digits(back, alpha, len), digits);
     }
 }

@@ -158,9 +158,12 @@
       <div class="about-tabs" role="tablist" data-i18n-aria-label="about.tabsLabel" aria-label="About sections">
         <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview" data-i18n="about.tab.overview">overview</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1" data-i18n="about.tab.wander">wander</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-engines" aria-selected="false" aria-controls="aboutPanel-engines" tabindex="-1" data-i18n="about.tab.engines">engines</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-scale" aria-selected="false" aria-controls="aboutPanel-scale" tabindex="-1" data-i18n="about.tab.scale">scale</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-alphabets" aria-selected="false" aria-controls="aboutPanel-alphabets" tabindex="-1" data-i18n="about.tab.alphabets">alphabets</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1" data-i18n="about.tab.books">books</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-search" aria-selected="false" aria-controls="aboutPanel-search" tabindex="-1" data-i18n="about.tab.search">search</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-url" aria-selected="false" aria-controls="aboutPanel-url" tabindex="-1" data-i18n="about.tab.url">url</button>
         <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1" data-i18n="about.tab.more">more</button>
       </div>
       <div class="about-body">
@@ -170,6 +173,16 @@
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
           <div data-i18n-html="about.wander"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-engines" aria-labelledby="aboutTab-engines" hidden>
+          <div data-i18n-html="about.engines"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-scale" aria-labelledby="aboutTab-scale" hidden>
+          <div data-i18n-html="about.scale.intro"></div>
+          <div id="aboutScaleTable" class="about-scale-mount"></div>
+          <p class="dim" data-i18n-html="about.scale.outro"></p>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-alphabets" aria-labelledby="aboutTab-alphabets" hidden>
@@ -184,6 +197,10 @@
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-search" aria-labelledby="aboutTab-search" hidden>
           <div data-i18n-html="about.search"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-url" aria-labelledby="aboutTab-url" hidden>
+          <div data-i18n-html="about.url"></div>
         </div>
 
         <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
@@ -277,6 +294,17 @@
         <div class="search-panel" role="tabpanel" id="searchPanel-mosaic" aria-labelledby="searchTab-babel" hidden>
           <div id="searchMosaicPanel" class="mosaic-panel">
             <p class="find-dim" id="mosaicHonesty" data-i18n="search.babel.honesty">Same universe → exact export book. Other universe → same Babelgram print, different contents.</p>
+            <p class="find-dim mosaic-photo-only" id="mosaicHint" data-i18n-html="search.hintMosaic" hidden></p>
+            <div class="mosaic-palette-block mosaic-photo-only" id="mosaicPaletteBlock" hidden>
+              <p class="find-dim mosaic-palette-note" id="mosaicPaletteNote" data-i18n="search.mosaic.progressPalette">current palette for this gallery at this alphabet lens + universe</p>
+              <div
+                id="mosaicPaletteStrip"
+                class="find-palette-gradient"
+                role="img"
+                data-i18n-aria-label="search.mosaic.progressPalette"
+                aria-label="current palette for this gallery at this alphabet lens + universe"
+              ></div>
+            </div>
             <div class="find-row">
               <label class="mosaic-file-label">
                 <span id="mosaicUploadLabel" data-i18n="search.babel.upload">upload Babelgram PNG</span>
@@ -305,53 +333,16 @@
                 </div>
               </figure>
               <figure class="mosaic-photo-only">
-                <figcaption data-i18n="search.mosaic.preview">mosaic preview</figcaption>
+                <figcaption data-i18n="search.mosaic.preview">letter mosaic · this gallery</figcaption>
                 <canvas id="mosaicPreview" width="200" height="200" aria-label="mosaic"></canvas>
                 <div class="mosaic-fit-slot">
                   <div id="mosaicFitPct" class="find-dim"></div>
-                </div>
-                <div class="mosaic-knobs mosaic-knobs-mosaic" id="mosaicKnobs"
-                  data-i18n-aria-label="search.mosaic.knobsMosaic" aria-label="Mosaic palette">
-                  <p class="mosaic-knobs-head" data-i18n="search.mosaic.knobsMosaic">mosaic palette</p>
-                  <label class="mosaic-knob mosaic-palette-kind">
-                    <span data-i18n="search.mosaic.palette" data-i18n-tip="search.mosaic.tip.palette"
-                      data-tip="Glyph = letter colour map (Babelgram). Luma = brightness ramp.">palette</span>
-                    <select id="mosaicPaletteKind">
-                      <option value="1" selected data-i18n="search.mosaic.palette.glyph">letters</option>
-                      <option value="0" data-i18n="search.mosaic.palette.luma">luma ramp</option>
-                    </select>
-                  </label>
-                  <label class="mosaic-knob">
-                    <span data-i18n="search.mosaic.hue" data-i18n-tip="search.mosaic.tip.hue"
-                      data-tip="Rotates the glyph colour wheel used to paint the mosaic">hue</span>
-                    <input id="mosaicHue" type="range" min="0" max="359" step="1" value="40" />
-                  </label>
-                  <label class="mosaic-knob">
-                    <span data-i18n="search.mosaic.chroma" data-i18n-tip="search.mosaic.tip.chroma"
-                      data-tip="How vivid glyph colours are (low = muted, high is saturated)">chroma</span>
-                    <input id="mosaicChroma" type="range" min="0.04" max="0.28" step="0.005" value="0.15" />
-                  </label>
-                  <label class="mosaic-knob">
-                    <span data-i18n="search.mosaic.light" data-i18n-tip="search.mosaic.tip.light"
-                      data-tip="Overall lightness of non-space glyph colours">light</span>
-                    <input id="mosaicLight" type="range" min="0.35" max="0.85" step="0.01" value="0.66" />
-                  </label>
-                  <label class="mosaic-knob">
-                    <span data-i18n="search.mosaic.space" data-i18n-tip="search.mosaic.tip.space"
-                      data-tip="Dark pixels below this luminance become the space glyph">space</span>
-                    <input id="mosaicSpace" type="range" min="0" max="80" step="1" value="28" />
-                  </label>
-                  <label class="mosaic-knob mosaic-check">
-                    <span data-i18n="search.mosaic.dither" data-i18n-tip="search.mosaic.tip.dither"
-                      data-tip="Floyd–Steinberg dither spreads colour error for a softer mosaic">dither</span>
-                    <input type="checkbox" id="mosaicDither" />
-                  </label>
                 </div>
               </figure>
             </div>
             <div class="find-row">
               <button type="button" id="mosaicFind" data-i18n="search.babel.find">find book</button>
-              <span class="find-dim" id="mosaicHint" data-i18n="search.hintBabel"></span>
+              <span class="find-dim" id="mosaicHintBabel" data-i18n="search.hintBabel" hidden></span>
             </div>
             <div class="find-result" id="mosaicResult"></div>
           </div>
@@ -439,6 +430,16 @@
         </span>
         <button type="button" id="goPage" data-i18n="common.go">go</button>
       </div>
+      <div id="bookWait" class="book-wait" hidden aria-live="polite" aria-busy="true">
+        <div class="book-wait-panel">
+          <p id="bookWaitLabel" class="book-wait-copy"></p>
+          <div class="find-progress-track book-wait-track" aria-hidden="true">
+            <span class="find-progress-run">
+              <span class="find-progress-spin"></span>
+            </span>
+          </div>
+        </div>
+      </div>
     </dialog>
 
     <dialog id="imageModal">
@@ -464,13 +465,23 @@
         </div>
       </div>
       <div class="image-wrap"><canvas id="bookImageCanvas"></canvas></div>
+      <div id="imageWait" class="book-wait" hidden aria-live="polite" aria-busy="true">
+        <div class="book-wait-panel">
+          <p id="imageWaitLabel" class="book-wait-copy"></p>
+          <div class="find-progress-track book-wait-track" aria-hidden="true">
+            <span class="find-progress-run">
+              <span class="find-progress-spin"></span>
+            </span>
+          </div>
+        </div>
+      </div>
     </dialog>
 
     <dialog id="babelCompareModal" class="babel-compare-modal">
       <div class="book-head">
         <div class="book-head-text">
-          <h3 data-i18n="search.babel.compare.title">compare</h3>
-          <small data-i18n="search.babel.compare.hint">wipe reproject ↔ diff — exact decode makes the diff side near-black</small>
+          <h3 id="babelCompareTitle" data-i18n="search.babel.compare.title">compare</h3>
+          <small id="babelCompareHint" data-i18n="search.babel.compare.hint">wipe reproject ↔ diff — exact decode makes the diff side near-black</small>
         </div>
         <div class="book-head-actions">
           <button type="button" id="closeBabelCompare" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
@@ -480,12 +491,40 @@
         <canvas id="babelCompareCanvas" width="200" height="200" aria-label="compare"></canvas>
         <label class="babel-compare-slider">
           <span class="babel-compare-ends">
-            <span data-i18n="search.babel.compare.result">reproject</span>
-            <span data-i18n="search.babel.compare.diff">diff</span>
+            <span id="babelCompareResultLabel" data-i18n="search.babel.compare.result">reproject</span>
+            <span id="babelCompareDiffLabel" data-i18n="search.babel.compare.diff">diff</span>
           </span>
           <input id="babelCompareRange" type="range" min="0" max="100" step="1" value="50"
             data-i18n-aria-label="search.babel.compare.sliderAria" aria-label="wipe between reproject and diff" />
         </label>
+      </div>
+    </dialog>
+
+    <dialog id="mbitNoticeModal">
+      <div class="book-head">
+        <div class="book-head-text">
+          <h3 data-i18n="gallery.mbitNotice.title">Mbit range</h3>
+          <small id="mbitNoticeBody" data-i18n-html="gallery.mbitNotice.body"></small>
+          <small id="mbitNoticeScale" class="mbit-notice-scale"></small>
+        </div>
+        <div class="book-head-actions">
+          <button type="button" id="closeMbitNotice" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
+      </div>
+      <div class="mbit-notice-facts">
+        <div class="mbit-notice-row">
+          <span class="mbit-notice-k" data-i18n="gallery.mbitNotice.hashLabel">Room hash</span>
+          <code id="mbitNoticeHash" class="mbit-notice-v">—</code>
+        </div>
+        <div class="mbit-notice-row">
+          <span class="mbit-notice-k" data-i18n="gallery.mbitNotice.coordsLabel">Axes (magnitude)</span>
+          <code id="mbitNoticeCoords" class="mbit-notice-v">—</code>
+        </div>
+      </div>
+      <div class="mbit-notice-actions">
+        <button type="button" id="mbitNoticeGotIt" class="primary" data-i18n="gallery.mbitNotice.gotIt">Got it</button>
+        <button type="button" id="mbitNoticeEngines" data-i18n="gallery.mbitNotice.engines">LIB-OF-BABEL → SCALE</button>
+        <button type="button" id="mbitNoticeMute" data-i18n="gallery.mbitNotice.mute">Don't show again</button>
       </div>
     </dialog>
 

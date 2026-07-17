@@ -89,6 +89,29 @@ export function buildAlphabetPalette(alpha, accentHue, accentChroma, accentLight
   return palette;
 }
 
+/**
+ * Fill a rolling `.find-progress-spin` from an alphabet palette; advance one
+ * colour each animation loop (when the square snaps back).
+ * @param {HTMLElement | null} spinEl
+ * @param {string[]} palette hex colours
+ */
+export function wireRollingPaletteSpin(spinEl, palette) {
+  if (!spinEl || !palette?.length) return;
+  if (spinEl.dataset.paletteWired === "1") return;
+  spinEl.dataset.paletteWired = "1";
+  let i = 0;
+  const paint = () => {
+    const hex = palette[i % palette.length];
+    spinEl.style.backgroundColor = hex;
+    spinEl.style.borderColor = hex;
+  };
+  paint();
+  spinEl.addEventListener("animationiteration", () => {
+    i = (i + 1) % palette.length;
+    paint();
+  });
+}
+
 /** Deterministic hue 0–359 from a gallery hash prefix. */
 export function hashHue(hex) {
   return parseInt(hex.slice(0, 4), 16) % 360;

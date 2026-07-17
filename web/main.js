@@ -18,6 +18,12 @@ import { kvGet, kvDel } from "./js/lib/db.js";
 import { S, hydrateTrail, persist, applyUniverse } from "./js/gallery/state.js";
 import { parsePermalink } from "./js/gallery/url.js";
 import {
+  decodeCoordParam,
+  normalizeCoordValue,
+  isHugeCoordValue,
+  coordForWasm,
+} from "./js/lib/coords.js";
+import {
   isLegacyPermalink,
   isStaleJourney,
   migrateLegacyLink,
@@ -27,6 +33,7 @@ import { render } from "./js/gallery/view.js";
 import { newWalk, resetTrail } from "./js/gallery/nav.js";
 import { openBook, openBookImage } from "./js/reader/book.js";
 import { wireControls } from "./js/chrome/controls.js";
+import "./js/lib/find-debug.js";
 import {
   openAboutGuide,
   hasSeenAbout,
@@ -51,8 +58,8 @@ function resolveSearchPermalink(link) {
     if (kind === "title") {
       S.titleEmbed = {
         flat: link.q,
-        z: String(hit.z),
-        n: String(hit.n),
+        z: hit.z,
+        n: hit.n,
         book: hit.book,
       };
     } else {
@@ -60,13 +67,14 @@ function resolveSearchPermalink(link) {
     }
     return {
       ...link,
-      z: BigInt(hit.z),
-      n: BigInt(hit.n),
+      z: decodeCoordParam(hit.z),
+      n: decodeCoordParam(hit.n),
       b: hit.book,
       p: kind === "title" ? 1 : hit.page,
       a: hit.alphabet ?? alphabetId,
       q: kind === "content" ? link.q : null,
       find: kind,
+      scope: hit.scope === "book" ? "book" : "page",
       img: false,
     };
   } catch {
@@ -86,7 +94,10 @@ async function openBookFromPermalink(link) {
             ? payload.imageRgba
             : new Uint8Array(payload.imageRgba)
           : null;
-        openBookImage(link.b, null, payload.flat, payload.pageSpan || 1, {
+        // Letter flat is identity — pass as contentFlat, not searchHighlight
+        // (normalizeSearchQuery would lowercase / mis-handle multi-cell alphabets).
+        openBookImage(link.b, null, null, 1, {
+          contentFlat: payload.flat,
           imageRgba: rgba,
           imageW: payload.imageW || 0,
           imageH: payload.imageH || 0,
@@ -94,10 +105,11 @@ async function openBookFromPermalink(link) {
         return;
       }
     }
-    // Mosaic / Babelgram `&bo=` cache — skip virgin book_image when present.
-    if (link.imageRgba?.length) {
+    // Photo Find / Babelgram `&bo=` — letter flat is identity; RGBA is book-scope paint.
+    if (link.flat || link.imageRgba?.length) {
       openBookImage(link.b, null, null, 1, {
-        imageRgba: link.imageRgba,
+        contentFlat: link.flat || null,
+        imageRgba: link.imageRgba || null,
         imageW: link.imageW || 0,
         imageH: link.imageH || 0,
       });
@@ -128,19 +140,35 @@ async function applyBookOpenHandoff(link) {
         ? payload.imageRgba
         : new Uint8Array(payload.imageRgba)
       : null;
+    const flat =
+      typeof payload.flat === "string" && payload.flat.length
+        ? payload.flat
+        : null;
     // Handoff is authoritative — full Basile z/n never fit reliably in the hash.
+    if (link.bo) S.bookOpenId = link.bo;
+    const scope = payload.scope === "page" ? "page" : "book";
+    S.bijectionScope = scope;
+    // Keep huge book-linked coords as compact strings — never decodeCoordParam
+    // (megabit BigInt freezes the tab for seconds).
+    const z =
+      payload.z != null ? normalizeCoordValue(payload.z) : link.z;
+    const n =
+      payload.n != null ? normalizeCoordValue(payload.n) : link.n;
+    S.coordsHuge = isHugeCoordValue(z) || isHugeCoordValue(n);
     return {
       ...link,
-      z: payload.z != null ? BigInt(payload.z) : link.z,
-      n: payload.n != null ? BigInt(payload.n) : link.n,
+      z,
+      n,
       b: Number(payload.b),
       a: payload.a ?? link.a ?? null,
       u: payload.u ?? link.u ?? null,
       img: payload.img !== false,
       p: link.p ?? 1,
+      flat,
       imageRgba: rgba,
       imageW: payload.imageW || 0,
       imageH: payload.imageH || 0,
+      scope,
     };
   } catch {
     return link;
@@ -186,8 +214,10 @@ async function boot() {
     link.z != null &&
     link.n != null &&
     savedOk &&
-    saved.current.z === link.z.toString() &&
-    saved.current.n === link.n.toString() &&
+    !isHugeCoordValue(link.z) &&
+    !isHugeCoordValue(link.n) &&
+    saved.current.z === coordForWasm(link.z) &&
+    saved.current.n === coordForWasm(link.n) &&
     (saved.universe || "") === S.universeName &&
     (saved.generator_version == null || saved.generator_version === S.gv);
 
@@ -213,7 +243,10 @@ async function boot() {
   } else if (link && link.z != null && link.n != null && !isOwnRefresh) {
     S.z = link.z;
     S.n = link.n;
-    resetTrail();
+    if (link.scope === "book" || link.scope === "page") {
+      S.bijectionScope = link.scope;
+    }
+    resetTrail({ scope: S.bijectionScope });
     await persist();
     render();
   } else if (savedOk && isStaleJourney(saved, S.gv)) {
@@ -224,16 +257,18 @@ async function boot() {
     });
     if (choice?.action === "wipe") return; // page reloads
     // Continue / skip: keep shelf address, drop the old trail hashes.
-    S.z = BigInt(saved.current.z);
-    S.n = BigInt(saved.current.n);
+    S.z = decodeCoordParam(saved.current.z);
+    S.n = decodeCoordParam(saved.current.n);
+    S.bijectionScope = "page";
     if (saved.universe) applyUniverse(saved.universe);
     if (saved.alphabet != null) S.alphabetId = saved.alphabet;
-    resetTrail();
+    resetTrail({ scope: "page" });
     await persist();
     render();
   } else if (savedOk) {
-    S.z = BigInt(saved.current.z);
-    S.n = BigInt(saved.current.n);
+    S.z = decodeCoordParam(saved.current.z);
+    S.n = decodeCoordParam(saved.current.n);
+    S.bijectionScope = "page";
     S.trail = hydrateTrail(saved.trail, {
       universe: saved.universe,
       alphabet: saved.alphabet,
@@ -255,10 +290,13 @@ async function boot() {
   ) {
     // Prefer link coords when present (handoff / truncated paste may disagree
     // with an older IndexedDB shelf until we jump).
+    if (link.scope === "book" || link.scope === "page") {
+      S.bijectionScope = link.scope;
+    }
     if (S.z !== link.z || S.n !== link.n) {
       S.z = link.z;
       S.n = link.n;
-      resetTrail();
+      resetTrail({ scope: S.bijectionScope });
       await persist();
       render();
     }

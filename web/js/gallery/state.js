@@ -6,6 +6,7 @@
 import { WINDOW_MAX, DEFAULT_ALPHABET_ID, ALPHABET_REGISTRY } from "../lib/constants.js";
 import { kvSet } from "../lib/db.js";
 import { node_hash_hex, get_universe, set_universe, universe_seed_for } from "../lib/wasm.js";
+import { coordForWasm } from "../lib/coords.js";
 
 export const S = {
   z: 0n,
@@ -19,6 +20,20 @@ export const S = {
   currentBook: null, // { index, title, text, page, searchHighlight?, searchStartPage?, searchPageSpan? }
   lastPickedUp: null, // { z, n, universe, alphabet, bookIndex } — last closed book in this gallery
   viewMode: "text", // "text" | "color" — how the open page is shown
+  /** Same-browser `&bo=` id — keep URL short; never put huge Basile z/n in the hash. */
+  bookOpenId: null,
+  /** True when z/n came from book-level invert (too big to stringify into the DOM/URL). */
+  coordsHuge: false,
+  /** Bijection scope: `page` (wander/text) or `book` (photo Find / Babelgram identity). */
+  bijectionScope: "page",
+  /**
+   * Session cache of Find / Babelgram identity for this room (letter flat + proof RGBA).
+   * Keyed by shelf index. Survives closing the reader so reopening the same spine
+   * does not fall back to a slow virgin rematerialise / wrong-looking page map.
+   * Cleared when leaving the room or switching lens/universe.
+   * @type {Map<number, { flat: string|null, imageRgba: Uint8Array|null, imageW: number, imageH: number }>|null}
+   */
+  bookIdentityByIndex: null,
   // current gallery's palette, derived from its hash (set in render). hue spaces
   // the letters; chroma + lightness give each gallery its own mood in OKLCH.
   accentHue: 0,
@@ -59,7 +74,50 @@ export function withUniverse(name, fn) {
   }
 }
 
+/** Remember Find / Babelgram letters + colour map for a shelf in this room. */
+export function rememberBookIdentity(
+  bookIndex,
+  { flat = null, imageRgba = null, imageW = 0, imageH = 0 } = {},
+) {
+  if (!Number.isInteger(bookIndex) || bookIndex < 0) return;
+  const hasFlat = typeof flat === "string" && flat.length > 0;
+  const hasImg = Boolean(imageRgba?.length);
+  if (!hasFlat && !hasImg) return;
+  if (!S.bookIdentityByIndex) S.bookIdentityByIndex = new Map();
+  const prev = S.bookIdentityByIndex.get(bookIndex) || {};
+  S.bookIdentityByIndex.set(bookIndex, {
+    flat: hasFlat ? flat : prev.flat || null,
+    imageRgba: hasImg
+      ? imageRgba instanceof Uint8Array
+        ? imageRgba
+        : new Uint8Array(imageRgba)
+      : prev.imageRgba || null,
+    imageW: hasImg ? imageW || 0 : prev.imageW || 0,
+    imageH: hasImg ? imageH || 0 : prev.imageH || 0,
+  });
+}
+
+/** @returns {{ flat: string|null, imageRgba: Uint8Array|null, imageW: number, imageH: number }|null} */
+export function recallBookIdentity(bookIndex) {
+  if (!S.bookIdentityByIndex) return null;
+  return S.bookIdentityByIndex.get(bookIndex) || null;
+}
+
+export function clearBookIdentityCache() {
+  S.bookIdentityByIndex = null;
+}
+
 export function markLastPickedUp(bookIndex) {
+  if (S.coordsHuge) {
+    S.lastPickedUp = {
+      z: "⋯",
+      n: "⋯",
+      universe: S.universeName,
+      alphabet: S.alphabetId,
+      bookIndex,
+    };
+    return;
+  }
   S.lastPickedUp = {
     z: S.z.toString(),
     n: S.n.toString(),
@@ -72,6 +130,9 @@ export function markLastPickedUp(bookIndex) {
 export function isLastPickedUp(bookIndex) {
   const p = S.lastPickedUp;
   if (!p) return false;
+  if (S.coordsHuge) {
+    return p.universe === S.universeName && p.bookIndex === bookIndex;
+  }
   // Same room slot — highlight survives alphabet lens switches.
   return (
     p.z === S.z.toString() &&
@@ -115,7 +176,9 @@ export function journeySnapshot({ includeCurrent = false } = {}) {
     trail: S.trail,
   };
   if (includeCurrent) {
-    body.current = { z: S.z.toString(), n: S.n.toString() };
+    body.current = S.coordsHuge
+      ? { z: "0", n: "0", huge: true }
+      : { z: S.z.toString(), n: S.n.toString() };
   }
   return body;
 }
@@ -185,10 +248,23 @@ export function syncLensControls() {
 }
 
 export function recordStep(move) {
-  const hash = node_hash_hex(String(S.z), String(S.n));
+  // Book-level Find addresses must not be decimal-expanded into the trail.
+  if (S.coordsHuge) {
+    S.trail.push({
+      z: "⋯",
+      n: "⋯",
+      move,
+      hash: "⋯",
+      alphabet: S.alphabetId,
+      universe: S.universeName,
+    });
+    if (S.trail.length > WINDOW_MAX) S.trail.shift();
+    return;
+  }
+  const hash = node_hash_hex(coordForWasm(S.z), coordForWasm(S.n));
   const entry = {
-    z: S.z.toString(),
-    n: S.n.toString(),
+    z: coordForWasm(S.z),
+    n: coordForWasm(S.n),
     move,
     hash,
     alphabet: S.alphabetId, // lens at visit (room hash ignores this)
