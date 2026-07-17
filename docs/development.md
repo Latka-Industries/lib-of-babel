@@ -21,6 +21,7 @@ lib-of-babel/
 │       ├── reader/   book, search, search-query, mosaic-search, verify
 │       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
+├── data/         alphabet packs + baked Basile scramble blob — see [data/README.md](../data/README.md)
 ├── scripts/      size guards, sigil sheet, OG share card (`make-og.mjs`)
 └── .mise.toml    toolchain + build / serve / test tasks
 ```
@@ -45,6 +46,7 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift |
 | `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
+| `mise run gen-basile-scramble` | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
 | `mise run asset-sheet` | prints URL for `web/asset-sheet.html` (dev UI inventory via `mise run serve`; stripped from Pages) |
 | `mise run clean` | remove `target/` and `web/pkg` |
 
