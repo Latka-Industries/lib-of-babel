@@ -8,7 +8,9 @@ use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION};
 use crate::gallery::{
     book_index_to_shelf, gallery_titles, neighbor, node_fingerprint, node_hash_bytes, parse_coord,
 };
-use crate::page::{PageAddr, PageRender, book_text, page_text};
+use crate::page::{
+    PageAddr, PageRender, book_text, book_text_book_scope, page_text, page_text_book_scope,
+};
 use crate::search::{
     LocateError, PageLocation, json_char_literal, json_string_literal, locate_page, locate_title,
     normalize_query, push_json_string, search_page_segment, search_page_span,
@@ -47,11 +49,12 @@ fn locate_hit_json(
             "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
             "\"book\":{},\"page\":{},\"page_end\":{},\"page_span\":{},",
             "\"char_count\":{},\"alphabet\":{},",
-            "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{}}}"
+            "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{},",
+            "\"scope\":\"page\"}}"
         ),
         loc.universe_seed,
-        loc.z,
-        loc.n,
+        crate::gallery::format_coord(&loc.z),
+        crate::gallery::format_coord(&loc.n),
         loc.book_index,
         page,
         page_end,
@@ -121,6 +124,16 @@ pub fn get_universe() -> u64 {
     universe::get_universe()
 }
 
+/// Precompute the book-linked Basile modulus / inverse for the active universe.
+///
+/// First call is the expensive one-time step behind photo Find; safe to call
+/// again (cached).
+#[wasm_bindgen]
+pub fn warm_book_basile(alphabet_id: u32) {
+    let alpha_len = alphabet_len(alphabet_id);
+    crate::basile::warm_book_scramble(active_universe(), alphabet_id, alpha_len);
+}
+
 #[wasm_bindgen]
 #[must_use]
 /// Map a universe name (or `0x` hex) to a stable seed. Blank → `0`.
@@ -180,11 +193,20 @@ pub fn node_hash_full_hex(z: &str, n: &str) -> String {
 
 #[wasm_bindgen]
 #[must_use]
-/// Full text of one book (410 pages). Expensive — only call when downloading.
+/// Full text of one book (410 pages) — **page-linked**. Expensive — download only.
 pub fn book_text_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> String {
     let z = parse_coord(z);
     let n = parse_coord(n);
     book_text(&z, &n, book_index, alphabet_id, active_universe())
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Full text of one book — **book-linked** (photo Find / Babelgram). Coords may be `c…`.
+pub fn book_text_book_scope_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    book_text_book_scope(&z, &n, book_index, alphabet_id, active_universe())
 }
 
 #[wasm_bindgen]
@@ -217,6 +239,30 @@ pub fn page_text_for(
     ));
     let _ = (q, hit_start); // highlight is UI-only; virgin page text is Basile
     page_text(&req)
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// One formatted page from the **book-linked** map (`z`/`n` may be compact `c…`).
+/// First call materialises the full book (cached); prefer handoff RGBA for Find open.
+pub fn page_text_book_scope_for(
+    z: &str,
+    n: &str,
+    book_index: u32,
+    page: u32,
+    alphabet_id: u32,
+) -> String {
+    let z = parse_coord(z);
+    let n = parse_coord(n);
+    let req = PageRender::new(PageAddr::new(
+        z,
+        n,
+        book_index,
+        page,
+        alphabet_id,
+        active_universe(),
+    ));
+    page_text_book_scope(&req)
 }
 
 #[wasm_bindgen]

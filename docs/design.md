@@ -28,7 +28,7 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | Room: compact `(z, n)` (`c…` base64url when huge) + optional `u` / `a` / `book` / `page` / `img=1` / `gv`. Search shares: short `#q=&find=content\|title` (re-locate on boot). Mosaic / Babelgram go+copy: short `&bo=` (IndexedDB coords + optional RGBA; same-browser). Other-universe Babelgram print: `&be=` (IndexedDB). |
+| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot). Mosaic / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. |
 | **Stack** | Rust → WASM core + static web frontend. |
 | **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
 
@@ -46,7 +46,7 @@ Same inputs forever → same books. Open a book → generate → render → disc
 
 **The generator is the schema.** Alphabet, PRNG, hash, dimensions, and seeding order are
 frozen and versioned. Exports and permalinks stamp `generator_version` / `&gv=` (currently
-**9**); a core change invalidates old proofs. Missing or mismatched `gv` on a deep link
+**11**); a core change invalidates old proofs. Missing or mismatched `gv` on a deep link
 triggers a migrate warning (closest equivalent: re-locate if `&q=`, else keep coords).
 
 ## What gets stored (it's tiny)
@@ -54,43 +54,74 @@ triggers a migrate warning (closest equivalent: re-locate if `&q=`, else keep co
 Per step ≈ **50 bytes** (`z`, `n`, `move`, `node_hash`). An hour of walking is ~180 KB;
 a million steps ~50 MB. Text is never stored.
 
-## Search (`generator_version` 9)
+## Search (`generator_version` 11 — dual bijection scopes)
 
-**actions… → search…** — **text** (content / title), **photo** (alphabet mosaic ranked
-by rms / mae / corr), or **Babelgram** (stamped book-image PNG), under the active
-alphabet and universe.
+**actions… → search…** — **text** (content / title), **photo** (alphabet mosaic → one virgin
+book), or **Babelgram** (stamped book-image PNG), under the active alphabet and universe.
 
-**Content (true Basile):** pad the phrase into a full page (deterministic offset + filler)
-→ invert the page integer (`content × I mod |Σ|^3200`) → virgin page at those coords
-**is** the padded phrase (no post-hoc embed). Highlight is UI-only (**clear mark** drops
-`&q=` without changing glyphs). Multi-page: virgin page 0 holds the start (page-level
-map; consecutive book-level bijection deferred). Coordinates are unbounded `BigInt`;
-the UI shows scientific notation for huge axes. Share links prefer `#q=&find=content`
-(boot re-locates) so the hash stays short.
+Two universes of math share the same address labels `(z, n, book[, page])`:
+
+- **Page-linked** — every possible *page* exists once (`content = (addr × C) mod |Σ|^3200`).
+  Wander, spines, text search (≤ one page), reader `book_image`.
+- **Book-linked** — every possible *full book* exists once
+  (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Photo Find / Babelgram identity.
+  Addresses are **Mbit-range** (~millions of bits per axis); UI shows spines + colour map
+  but not lattice wander (see About → engines).
+
+Same shelf numbers under different scopes are different virgin content. Handoff and
+`lob:babel` stamps carry `scope=page|book`.
+
+**Content (page-linked):** query capped at one page (3200 cells); pad into page 0
+(offset + filler) → invert → virgin page contains the padded phrase. Highlight is
+UI-only. Share links prefer `#q=&find=content` (boot re-locates).
 
 **Title:** pad to **24** cells → invert title map → virgin spine contains the phrase →
 jump and open at page 1.
 
-**Babelgram:** stamped PNG from save → book image (exact colour grid, `tEXt lob:babel`
-plus optional universe name). Exact accent decode reports **rms % / mae / corr** (and a
-diff thumb). Locate inverts virgin page 0 of the projected flat. **go there** / **copy link**
-use a short same-browser `&bo=` handoff (coords + cached RGBA in IndexedDB so open skips
-virgin `book_image`). Other-universe **go there** also stashes the print flat under `&be=`.
+**Babelgram** (tamper-checked colour-map PNG):
 
-**Photo mosaic:** stretch any image to the full-book colour grid → project onto the
-active alphabet (**letter** colours or **luma ramp**) → coarse pack sweep → locate →
-re-rank the virgin book colour map vs upload by **rms / mae / corr**. **go there** /
-**copy link** use the same `&bo=` handoff and cache the scored book RGBA (skip regenerating
-`book_image` on open). Cold virgin maps use a Web Worker pool (page-range strips → stitch;
-N workers ≈ N× WASM instances). Live knobs use a downsampled preview; Find runs the full
-search.
+1. **Save** → Babelgram writes a lossless book-grid PNG with `tEXt lob:babel`.
+2. **Search** → Babelgram uploads that PNG, decodes the print, verifies the stamp,
+   then **go there** opens the stamped room (same universe) or a rematch (other universe).
+
+Stamp wire (`web/js/lib/png-babel.js`):
+
+| Version | Payload |
+| --- | --- |
+| **v3** (current) | `u`, `a`, compact `z`/`n`, `b`, `scope=page\|book`, `name`, plus `seal` (12-hex SHA-256 of letter flat) and `h` (16-hex `node_hash_hex` under stamped universe) |
+| **v2** | same address fields, no seal — locate shows *legacy*; go still allowed |
+| **v1** | address only, no `scope` (treated as `page`) |
+
+Verify on locate: recompute seal from decoded flat + room hash under stamp `u`; both must
+match. **Fail** → go / copy blocked (check-diff still works). **Pass** (same universe) →
+**go there** uses stamp `z`/`n`/`b`, not a rematch guess. Other universe → rematch print; seal still
+checked before go. **go there** / **copy link** stash a short same-browser `&bo=` handoff in
+IndexedDB (coords + print RGBA + letter `flat`) — useful for a new tab *here*, not a portable
+URL. Other-universe go also stashes `&be=`. Cross-device reopen: Babelgram PNG → search → verify.
+Re-export seals from on-screen pixels under the *current* room accent (matches verify;
+safe after other-universe rematch where the print still uses export colours).
+
+Filename hint (not authoritative — stamp wins):
+`babel-u{seedHex}-z{z}-n{n}-b{book}-a{alphabet}-s{page\|book}-colors.png`
+(compact / long axes shorten to `c…` in the name; stamp keeps full coords).
+
+Mbit rooms cannot live in a URL — save any book’s Babelgram, then **search → Babelgram**
+to verify and reopen that exact stamped room.
+
+**Photo mosaic:** WASM `mosaic_find_book` — project onto letter colours → book-linked
+invert → that mosaic **is** one virgin book. Proof pixels use book-linked paint.
+UI shows this gallery’s palette strip under the Find copy; after a hit, a second strip under
+**go there** / **copy link** shows the result gallery’s palette.
+**go there** / **copy link** use `&bo=` + virgin RGBA (same-browser IndexedDB handoff, not
+shareable). Huge coords stay compact (`c…`); never JS-decimal-expand into the hash.
+To keep an Mbit hit across devices: save a Babelgram there, then search → Babelgram to verify.
 
 ```text
-content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  ──virgin──▶  page text
-title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)         ──virgin──▶  spine
-babel:    PNG     ──stamp+palette──▶  flat  ──locate──▶  (z, n, book)
-photo:    image   ──mosaic packs──▶  flat  ──locate──▶  (z, n, book)  ──re-rank──▶  best fit
+content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  [scope=page]
+title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)
+babel:    PNG     ──decode──▶  flat  ──verify seal+h──▶  trust stamp coords / rematch
+photo:    image   ──letter mosaic──▶  text  ──invert──▶  (z, n, book)  [scope=book]
 ```
 
-Page generation is the reverse of search: `content = (addr × C) mod |Σ|^3200`.
-WASM entry points: `locate_page_json` / `locate_title_json` / `mosaic_*` (see [development.md](development.md)).
+WASM entry points: `locate_page_json` / `locate_title_json` / `mosaic_*` /
+`page_text_book_scope_for` / `book_text_book_scope_for` (see [development.md](development.md)).

@@ -36,6 +36,8 @@ jobs:
           # wasm-pack drops npm metadata we don't serve
           rm -f web/pkg/.gitignore web/pkg/package.json web/pkg/README.md \
             web/pkg/*.d.ts
+          # Local UI inventory — not for production
+          rm -f web/asset-sheet.html
 
       - uses: actions/configure-pages@v5
 

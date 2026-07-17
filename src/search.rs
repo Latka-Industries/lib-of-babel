@@ -1,4 +1,8 @@
 //! Search-by-content and search-by-title: Basile invert + pad planning.
+//!
+//! Content locate uses the **page-linked** bijection (padded page 0). Photo /
+//! Babelgram full-book identity uses [`crate::basile::invert_book_symbols`]
+//! directly (book-linked), not this module.
 
 use core::fmt::Write;
 
@@ -23,7 +27,7 @@ pub struct PageLocation {
     pub alphabet_id: u32,
 }
 
-/// Search hit — may span consecutive pages in one book.
+/// Search hit — content locate is capped at one page (`MAX_SEARCH_CHARS`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LocateResult {
     /// First page of the padded / placed phrase.
@@ -185,7 +189,7 @@ fn build_padded_page0(
     Ok(page)
 }
 
-/// Reverse lookup: phrase → coordinates (Basile invert of padded page 0).
+/// Reverse lookup: phrase → coordinates (page-linked invert of padded page 0).
 ///
 /// The virgin page at the returned address contains the padded query (short
 /// queries: query @ offset + filler). Multi-page: page 0 matches the first
@@ -195,7 +199,7 @@ fn build_padded_page0(
 ///
 /// Returns [`LocateError::InvalidChars`] when the query uses symbols outside
 /// the alphabet, or [`LocateError::Message`] for empty text, over-long text
-/// (beyond one book), or an unmaterialisable page-0 segment.
+/// (beyond one page), or an unmaterialisable page-0 segment.
 pub fn locate_page(
     text: &str,
     alphabet_id: u32,
@@ -210,7 +214,7 @@ pub fn locate_page(
     let char_count = count_cells(&flat, ab);
     if char_count > MAX_SEARCH_CHARS {
         return Err(LocateError::Message(format!(
-            "text too long (max {MAX_SEARCH_CHARS} characters — one book)"
+            "text too long (max {MAX_SEARCH_CHARS} characters — one page)"
         )));
     }
     let page_span = search_page_span(&flat, alphabet_id);

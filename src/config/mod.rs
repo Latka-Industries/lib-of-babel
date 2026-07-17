@@ -18,8 +18,11 @@ pub use registry::{ALPHABET_REGISTRY, AlphabetDef, alphabet, alphabet_def};
 pub use tables::{ALPHABET_TABLE, AlphabetTables};
 
 /// Bump only with intent — this is the schema for all generated content.
-/// v9: Basile page↔address modular bijection (retire Feistel + search overlay).
-pub const GENERATOR_VERSION: u32 = 9;
+/// v11: dual bijection scopes — **page-linked** (wander / short text) and
+/// **book-linked** (photo Find / Babelgram identity). Same `(z,n,book)` labels
+/// under different scopes are different virgin content.
+/// v10 was book-map everywhere; v9 was page-level only.
+pub const GENERATOR_VERSION: u32 = 11;
 
 /// Soft upper bound on alphabet cell count for generator v8.
 pub const MAX_ALPHABET_LEN: u16 = 4096;
@@ -44,5 +47,8 @@ pub const TITLE_LEN: usize = 24;
 /// Content symbols per page (40 × 80); newlines are inserted on format only.
 pub const PAGE_CONTENT_SYMBOLS: usize = (LINES_PER_PAGE * CHARS_PER_LINE) as usize;
 
-/// Max searchable content in one book (410 pages × 3200 symbols).
-pub const MAX_SEARCH_CHARS: usize = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK as usize;
+/// Full-book content length (410 × 3200) — Basile v10 book-level modulus size.
+pub const BOOK_CONTENT_SYMBOLS: usize = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK as usize;
+
+/// Max searchable content for text locate (= one page).
+pub const MAX_SEARCH_CHARS: usize = PAGE_CONTENT_SYMBOLS;

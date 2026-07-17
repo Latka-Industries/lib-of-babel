@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>lib-of-babel · asset sheet</title>
+    <script>
+      (function () {
+        try {
+          var k = "lib-of-babel-theme";
+          var t = localStorage.getItem(k);
+          if (t !== "light" && t !== "dark") {
+            t = matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          }
+          document.documentElement.dataset.theme = t;
+        } catch (e) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./css/app.css" />
+    <style>
+      /* Sheet chrome only — samples use real app classes. */
+      .sheet-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem 1.25rem;
+        padding: 0.75rem 1.25rem;
+        background: color-mix(in oklab, var(--bg-deep) 88%, transparent);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+      }
+      .sheet-top h1 {
+        margin: 0;
+        font-size: 0.95rem;
+        letter-spacing: 0.12em;
+        font-weight: 600;
+      }
+      .sheet-top .sheet-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.75rem;
+        margin-inline-start: auto;
+        font-size: 0.8rem;
+      }
+      .sheet-top .sheet-nav a {
+        color: var(--accent-link);
+        text-decoration: none;
+      }
+      .sheet-top .sheet-nav a:hover {
+        color: var(--accent-link-hover);
+      }
+      .sheet-main {
+        max-width: 52rem;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 4rem;
+      }
+      .sheet-sec {
+        margin: 2.25rem 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--line);
+      }
+      .sheet-sec > h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.05rem;
+        letter-spacing: 0.06em;
+      }
+      .sheet-sec > .sheet-lead {
+        margin: 0 0 1rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .sheet-row {
+        display: grid;
+        grid-template-columns: 7.5rem minmax(0, 1fr);
+        gap: 0.5rem 0.75rem;
+        align-items: center;
+        margin: 0.75rem 0;
+      }
+      .sheet-row-stack {
+        align-items: start;
+      }
+      .sheet-row-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        align-items: center;
+      }
+      .sheet-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .sheet-swatches {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--panel);
+      }
+      .sheet-swatch {
+        display: grid;
+        grid-template-columns: 2.75rem minmax(0, 1fr);
+        align-items: stretch;
+        margin: 0;
+        border: none;
+        border-top: 1px solid var(--line);
+      }
+      .sheet-swatch:first-child {
+        border-top: none;
+      }
+      .sheet-swatch-chip {
+        min-height: 2.35rem;
+        border-right: 1px solid var(--line);
+      }
+      .sheet-swatch figcaption {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.25rem 0.85rem;
+        padding: 0.4rem 0.65rem;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .sheet-swatch code {
+        color: var(--ink);
+        font-size: 0.72rem;
+      }
+      .sheet-swatch .sheet-swatch-val {
+        font-family: "Overpass Mono", ui-monospace, monospace;
+        font-size: 0.68rem;
+        word-break: break-all;
+      }
+      .sheet-panel {
+        padding: 1rem 1.1rem;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .sheet-panel + .sheet-panel {
+        margin-top: 0.75rem;
+      }
+      .sheet-type-sample {
+        margin: 0.5rem 0;
+      }
+      .sheet-type-sample.brand {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+      }
+      .sheet-type-sample.prose {
+        font-family: "Lato", var(--font);
+        font-size: 1rem;
+        line-height: 1.55;
+        max-width: 36rem;
+      }
+      .sheet-type-sample.mono {
+        font-family: "Overpass Mono", ui-monospace, monospace;
+        font-size: 0.85rem;
+      }
+      .sheet-type-sample.muted {
+        color: var(--muted);
+      }
+      .sheet-fake-header {
+        position: static;
+        margin: 0;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .sheet-fake-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 1.5rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: color-mix(in oklab, var(--bg-deep) 40%, var(--panel));
+      }
+      .sheet-stat .stat-label {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .sheet-mbit-card {
+        margin: 0.65rem 0;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+      .sheet-mbit-card header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.85rem;
+        margin-bottom: 0.4rem;
+        position: static;
+        padding: 0;
+        background: none;
+        border: none;
+        backdrop-filter: none;
+      }
+      .sheet-mbit-card header code {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .sheet-mbit-meta {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .sheet-mbit-vars {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.75rem;
+        font-size: 0.72rem;
+        color: var(--accent-link);
+        margin-bottom: 0.45rem;
+      }
+      .sheet-locale-tabs {
+        display: flex;
+        gap: 0.35rem;
+        margin-bottom: 0.75rem;
+      }
+      .sheet-locale-tabs button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .sheet-locale-block[hidden] {
+        display: none;
+      }
+      /* Compare sample: reuse real classes, keep canvas readable on the sheet. */
+      .sheet-compare .babel-compare-body {
+        padding: 0;
+      }
+      .sheet-compare .babel-compare-body canvas {
+        width: 100%;
+        max-width: 22rem;
+        max-height: 12rem;
+      }
+      .sheet-knobs-demo {
+        max-width: 22rem;
+      }
+      .sheet-book-nav {
+        margin-top: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet-top">
+      <h1>ASSET SHEET</h1>
+      <span class="find-dim">lib-of-babel · real CSS · no WASM</span>
+      <nav class="sheet-nav" aria-label="sections">
+        <a href="#tokens">tokens</a>
+        <a href="#type">type</a>
+        <a href="#controls">controls</a>
+        <a href="#chrome">chrome</a>
+        <a href="#find">find</a>
+        <a href="#compare">compare</a>
+        <a href="#dialogs">dialogs</a>
+        <a href="#mbit">mbit copy</a>
+      </nav>
+      <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false" title="toggle theme">☀</button>
+    </div>
+
+    <main class="sheet-main">
+      <p class="sheet-lead find-dim">
+        Continuous inventory of static chrome and dynamic copy samples.
+        Dev-only (<code>mise run serve</code> / <code>mise run dev</code>; stripped from Pages).
+        Toggle theme anytime — same <code>data-theme</code> / localStorage key as the app.
+      </p>
+
+      <section class="sheet-sec" id="tokens">
+        <h2>Tokens</h2>
+        <p class="sheet-lead">Design tokens from <code>base.css</code> (live under current theme).</p>
+        <div class="sheet-swatches" id="tokenSwatches"></div>
+      </section>
+
+      <section class="sheet-sec" id="type">
+        <h2>Typography</h2>
+        <p class="sheet-lead">Brand mono, UI body, About prose (Lato).</p>
+        <div class="sheet-panel">
+          <p class="sheet-type-sample brand">LIB·OF·BABEL</p>
+          <p class="sheet-type-sample">Body — Overpass Mono stack · 14px / 1.5 — gallery UI.</p>
+          <p class="sheet-type-sample muted">Muted — secondary labels and hints.</p>
+          <p class="sheet-type-sample mono">hash a1b2c3d4 · coords (≈6.4 Mbit, ≈6.4 Mbit)</p>
+          <p class="sheet-type-sample prose">
+            Prose — Lato for About. An endless library you can walk. Each hexagonal gallery has four
+            walls of bookshelves and two hallways to the next gallery.
+          </p>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="controls">
+        <h2>Controls</h2>
+        <p class="sheet-lead">Buttons, fields, chips, dropdowns, ranges.</p>
+        <div class="sheet-row">
+          <span class="sheet-label">buttons</span>
+          <div class="sheet-row-controls">
+            <button type="button">default</button>
+            <button type="button" class="dice" title="random">&#9860;</button>
+            <button type="button" class="theme-toggle" aria-hidden="true" tabindex="-1">☀</button>
+            <button type="button" class="dialog-close" aria-label="close">close</button>
+            <button type="button" class="history-btn">wanderings · 12/1000</button>
+            <button type="button" class="help-btn" title="Help">
+              <span class="help-btn-q" aria-hidden="true">?</span>
+              <span>· Help</span>
+            </button>
+          </div>
+        </div>
+        <div class="sheet-row">
+          <span class="sheet-label">fields</span>
+          <div class="sheet-row-controls">
+            <input class="universe" type="text" value="default universe" readonly />
+            <button type="button" class="alphabet">a–z · Basile</button>
+            <label class="mosaic-file-label">
+              <span>upload Babelgram PNG</span>
+              <input type="file" accept="image/png" disabled />
+            </label>
+          </div>
+        </div>
+        <div class="sheet-row about-body">
+          <span class="sheet-label">chips</span>
+          <div class="sheet-row-controls">
+            <span class="ui">find</span>
+            <span class="ui">gallery (z, n)</span>
+            <span class="ui">ENGINES</span>
+            <button type="button" class="ui about-goto-tab">WANDER</button>
+          </div>
+        </div>
+        <div class="sheet-row sheet-row-stack">
+          <span class="sheet-label">dropdown</span>
+          <div>
+            <div class="dd" id="sheetDd">
+              <button type="button" class="dd-trigger" aria-expanded="false" aria-haspopup="menu">
+                <span class="dd-label">actions…</span>
+                <span class="dd-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="dd-menu" role="menu" hidden>
+                <button type="button" role="menuitem" class="dd-item" data-action="copy">copy link</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="search">search…</button>
+                <div class="dd-sep" role="separator"></div>
+                <button type="button" role="menuitem" class="dd-item" data-action="reset">new walk</button>
+              </div>
+            </div>
+            <p class="find-dim" style="margin: 0.35rem 0 0">click — same <code>.dd</code> as the header</p>
+          </div>
+        </div>
+        <div class="sheet-row">
+          <span class="sheet-label">search tabs</span>
+          <div class="search-tabs" role="tablist">
+            <button type="button" class="search-tab" aria-selected="true">text</button>
+            <button type="button" class="search-tab" aria-selected="false">photo</button>
+            <button type="button" class="search-tab" aria-selected="false">Babelgram</button>
+          </div>
+        </div>
+        <div class="sheet-row sheet-row-stack">
+          <span class="sheet-label">about tabs</span>
+          <div class="about-tabs" role="tablist" aria-label="About sections" style="border: 1px solid var(--line); border-radius: 6px; padding: 0 0.5rem">
+            <button type="button" class="about-tab" aria-selected="true">overview</button>
+            <button type="button" class="about-tab" aria-selected="false">wander</button>
+            <button type="button" class="about-tab" aria-selected="false">engines</button>
+            <button type="button" class="about-tab" aria-selected="false">search</button>
+          </div>
+        </div>
+        <div class="sheet-row sheet-row-stack">
+          <span class="sheet-label">jump</span>
+          <div class="jump-body" style="padding: 0; border: none">
+            <label>z <input type="text" inputmode="numeric" value="0" readonly /></label>
+            <label>n <input type="text" inputmode="numeric" value="-12" readonly /></label>
+            <button type="button">go</button>
+          </div>
+        </div>
+        <div class="sheet-row sheet-row-stack">
+          <span class="sheet-label">knobs</span>
+          <div class="mosaic-knobs sheet-knobs-demo mosaic-knobs-source">
+            <p class="mosaic-knobs-head">original image</p>
+            <label class="mosaic-knob">
+              <span data-tip="Brighten or darken the upload before it is mosaiced">brightness</span>
+              <input type="range" min="-40" max="40" step="1" value="8" />
+            </label>
+            <label class="mosaic-knob">
+              <span data-tip="Raise or lower contrast of the upload before mosaicing">contrast</span>
+              <input type="range" min="-40" max="40" step="1" value="-12" />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="chrome">
+        <h2>Chrome</h2>
+        <p class="sheet-lead">Header / footer fragments (static layout).</p>
+        <header class="sheet-fake-header">
+          <div class="header-bar" style="overflow: visible">
+            <button type="button" class="logo">LIB·OF·BABEL</button>
+            <div class="header-controls">
+              <input class="universe" type="text" value="pilot" readonly style="width: 7rem" />
+              <button type="button" class="alphabet">a–z · Basile</button>
+              <button type="button" class="dd-trigger"><span class="dd-label">actions…</span></button>
+            </div>
+          </div>
+        </header>
+        <div class="sheet-fake-footer" style="margin-top: 0.75rem">
+          <button type="button" class="history-btn">wanderings · 12/1000</button>
+          <div class="sheet-stat">
+            <span class="stat-label">gallery</span>
+            <b class="coord">(≈6.4 Mbit, ≈6.4 Mbit)</b>
+          </div>
+          <div class="sheet-stat">
+            <span class="stat-label">hash</span>
+            <b class="hash">a1b2c3d4e5f6</b>
+          </div>
+          <div class="sheet-stat">
+            <span class="stat-label">steps</span>
+            <b>12</b>
+          </div>
+          <button type="button" class="help-btn" title="Help">
+            <span class="help-btn-q" aria-hidden="true">?</span>
+            <span>· Help</span>
+          </button>
+        </div>
+        <div class="sheet-book-nav">
+          <div class="book-nav" style="position: static; border: none; padding: 0; background: transparent">
+            <button type="button">color</button>
+            <button type="button">clear mark</button>
+            <span class="grow grow-start"></span>
+            <span class="page-turn">
+              <button type="button"><span class="nav-label">‹ prev</span></button>
+              <span>page 12 / 410</span>
+              <button type="button"><span class="nav-label">next ›</span></button>
+            </span>
+            <span class="grow grow-end"></span>
+            <span class="page-jump-wrap">
+              <input type="number" min="1" max="410" value="12" aria-label="page" />
+              <span class="page-total" aria-hidden="true">/ 410</span>
+            </span>
+            <button type="button">go</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="find">
+        <h2>Find / progress</h2>
+        <p class="sheet-lead">Honesty copy, palette strip, progress track, hit thumbs + actions.</p>
+        <div class="sheet-panel">
+          <p class="find-dim">Same universe → exact export book. Other universe → same Babelgram print, different contents.</p>
+          <div class="mosaic-palette-block" style="margin-top: 0.65rem">
+            <p class="find-dim mosaic-palette-note">current palette for this gallery at this alphabet lens + universe</p>
+            <div
+              class="find-palette-gradient"
+              id="sheetPalette"
+              role="img"
+              aria-label="sample palette"
+              style="background-image: linear-gradient(90deg, #1a1520, #5a3a2a, #c9a227, #8f7016, #d8d4c8)"
+            ></div>
+          </div>
+          <p class="find-dim about-body" style="margin-top: 0.75rem">
+            410 pages · 1,312,000 cells · address magnitude ≈10^(1.9×10^6) — first
+            <span class="ui">find</span> can take a few
+          </p>
+          <div class="find-progress" style="margin-top: 0.85rem">
+            <div class="find-progress-row">
+              <span class="find-progress-label">warming book map (first search attempt can take a few)</span>
+              <div class="find-progress-track" aria-hidden="true">
+                <span class="find-progress-run">
+                  <span class="find-progress-spin"></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sheet-panel">
+          <p class="find-dim">Best mosaic match · took 4m 57s</p>
+          <div class="mosaic-hit" style="display: flex; gap: 0.75rem; align-items: flex-start; margin-top: 0.5rem">
+            <div class="mosaic-hit-thumbs">
+              <div class="mosaic-hit-thumb-wrap">
+                <canvas class="mosaic-hit-thumb" width="72" height="58" style="background: linear-gradient(135deg, #5a3a2a, #c9a227)"></canvas>
+                <span class="mosaic-hit-thumb-cap">found babelgram</span>
+              </div>
+            </div>
+            <div class="mosaic-hit-body">
+              <div class="mosaic-hit-main">
+                <span class="mosaic-hit-metrics">
+                  <span class="mosaic-hit-metric" data-tip="root-mean-square similarity">rms 99.97%</span>
+                  <span class="mosaic-hit-metric" data-tip="mean absolute error">mae 0.012</span>
+                  <span class="mosaic-hit-metric" data-tip="Pearson correlation">corr 1.0000</span>
+                </span>
+                <span class="mosaic-hit-ok">exact decode</span>
+              </div>
+              <div class="find-dim">gallery (≈6.4 Mbit, ≈6.4 Mbit) · book 12 · Basile</div>
+              <div class="find-row find-actions" style="margin-top: 0.45rem">
+                <button type="button">go there</button>
+                <button type="button">copy link</button>
+                <button type="button">check diff</button>
+                <button type="button">compare letters</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="compare">
+        <h2>Check diff · wipe slider</h2>
+        <p class="sheet-lead">
+          Same markup as <code>#babelCompareModal</code> — drag to wipe reproject ↔ diff.
+        </p>
+        <div class="sheet-panel sheet-compare" style="padding: 0.85rem 1rem 1rem">
+          <div class="book-head" style="position: static; padding: 0 0 0.65rem; background: none; border: none; backdrop-filter: none">
+            <div class="book-head-text">
+              <h3 style="margin: 0; font-size: 1rem">compare</h3>
+              <small>wipe reproject ↔ diff — exact decode makes the diff side near-black</small>
+            </div>
+          </div>
+          <div class="babel-compare-body">
+            <canvas id="sheetCompareCanvas" width="320" height="160" aria-label="compare wipe sample"></canvas>
+            <label class="babel-compare-slider">
+              <span class="babel-compare-ends">
+                <span>reproject</span>
+                <span>diff</span>
+              </span>
+              <input id="sheetCompareRange" type="range" min="0" max="100" step="1" value="50"
+                aria-label="wipe between reproject and diff" />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="dialogs">
+        <h2>Dialogs</h2>
+        <p class="sheet-lead">Shared dialog head + wait overlay + notice facts.</p>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3>Mbit range</h3>
+              <small>This gallery uses the <b>book-linked</b> map. Hallway arrows and jump are off.</small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <div class="mbit-notice-facts">
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k">Room hash</span>
+              <code class="mbit-notice-v">0123456789abcdef0123456789abcdef</code>
+            </div>
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k">Axes (magnitude)</span>
+              <code class="mbit-notice-v">(≈6.4 Mbit, ≈6.4 Mbit)</code>
+            </div>
+          </div>
+          <div class="mbit-notice-actions">
+            <button type="button">Got it</button>
+            <button type="button">LIB-OF-BABEL → ENGINES</button>
+            <button type="button">Don't show again</button>
+          </div>
+        </div>
+        <div class="sheet-panel" style="margin-top: 0.75rem; position: relative; min-height: 6rem">
+          <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+            <div class="book-wait-panel" style="width: 100%">
+              <p class="book-wait-copy">Mbit range — building this book. Can take a few.</p>
+              <div class="find-progress-track book-wait-track" aria-hidden="true">
+                <span class="find-progress-run">
+                  <span class="find-progress-spin"></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="mbit">
+        <h2>Mbit notice · scale copy</h2>
+        <p class="sheet-lead">Dynamic tiers filled from live locale + scale math (same as production).</p>
+        <div class="sheet-locale-tabs" role="tablist" aria-label="locale">
+          <button type="button" data-locale="en" aria-pressed="true">EN</button>
+          <button type="button" data-locale="de" aria-pressed="false">DE</button>
+          <button type="button" data-locale="nl" aria-pressed="false">NL</button>
+        </div>
+        <div id="mbitScaleMount"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { THEME_KEY, getTheme, toggleTheme, syncThemeToggle } from "./js/chrome/theme.js";
+      import { wireDropdownMenu } from "./js/chrome/dropdown.js";
+      import { en } from "./js/lib/locales/en.js";
+      import { de } from "./js/lib/locales/de.js";
+      import { nl } from "./js/lib/locales/nl.js";
+      import {
+        MBIT_SCALE_SAMPLES,
+        mbitScaleTier,
+        mbitScaleVars,
+      } from "./js/lib/mbit-scale.js";
+
+      const CATALOGS = { en, de, nl };
+
+      function tCatalog(catalog, key, vars = {}) {
+        let s = catalog[key] ?? en[key] ?? key;
+        for (const [k, v] of Object.entries(vars)) {
+          s = s.replaceAll(`{${k}}`, String(v));
+        }
+        return s;
+      }
+
+      const TOKENS = [
+        "--bg",
+        "--bg-deep",
+        "--panel",
+        "--ink",
+        "--muted",
+        "--accent",
+        "--accent-link",
+        "--accent-link-hover",
+        "--line",
+        "--page-ink",
+      ];
+
+      /** Declared value on :root (hex / color-mix), not computed rgb(). */
+      function tokenDeclared(cssVar) {
+        return (
+          getComputedStyle(document.documentElement)
+            .getPropertyValue(cssVar)
+            .trim() || "—"
+        );
+      }
+
+      function paintSwatches() {
+        const root = document.getElementById("tokenSwatches");
+        if (!root) return;
+        root.innerHTML = TOKENS.map((cssVar) => {
+          const declared = tokenDeclared(cssVar);
+          return `<figure class="sheet-swatch">
+            <div class="sheet-swatch-chip" style="background:var(${cssVar})"></div>
+            <figcaption>
+              <code>${cssVar}</code>
+              <span class="sheet-swatch-val">${declared}</span>
+            </figcaption>
+          </figure>`;
+        }).join("");
+      }
+
+      function paintMbit(locale) {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const mount = document.getElementById("mbitScaleMount");
+        if (!mount) return;
+        const body = translate("gallery.mbitNotice.body");
+        const cards = MBIT_SCALE_SAMPLES.map(({ tier, bits, note }) => {
+          const got = mbitScaleTier(bits);
+          const vars = mbitScaleVars(bits, { locale, t: translate });
+          const html = translate(`gallery.mbitNotice.scale.${tier}`, vars);
+          const warn =
+            got !== tier
+              ? ` <em style="color:#c45c5c">(tier fn → ${got})</em>`
+              : "";
+          return `<article class="sheet-mbit-card">
+            <header>
+              <code>${tier}</code>
+              <span class="sheet-mbit-meta">${note} · ${bits.toLocaleString("en-US")} bit${warn}</span>
+            </header>
+            <div class="sheet-mbit-vars">
+              <code>{mbit}=${vars.mbit}</code>
+              <code>{digits}=${vars.digits}</code>
+              <code>{mb}=${vars.mb}</code>
+              <code>{recite}=${vars.recite}</code>
+            </div>
+            <div class="copy">${html}</div>
+          </article>`;
+        }).join("");
+        mount.innerHTML = `<div class="sheet-panel" style="margin-bottom:0.75rem">${body}</div>${cards}`;
+      }
+
+      const themeBtn = document.getElementById("themeToggle");
+      themeBtn?.addEventListener("click", () => {
+        toggleTheme();
+        syncThemeToggle((k) =>
+          k === "header.themeToLight"
+            ? "switch to light mode"
+            : k === "header.themeToDark"
+              ? "switch to dark mode"
+              : k,
+        );
+        paintSwatches();
+      });
+      syncThemeToggle((k) =>
+        k === "header.themeToLight"
+          ? "switch to light mode"
+          : k === "header.themeToDark"
+            ? "switch to dark mode"
+            : k,
+      );
+      paintSwatches();
+
+      wireDropdownMenu("sheetDd", {
+        copy: () => {},
+        search: () => {},
+        reset: () => {},
+      });
+
+      /** Fake reproject (warm mosaic) ↔ near-black diff wipe — same cut as production. */
+      function paintSheetCompare(t) {
+        const canvas = document.getElementById("sheetCompareCanvas");
+        if (!canvas) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const cut = Math.round(Math.min(1, Math.max(0, t)) * w);
+        const img = ctx.createImageData(w, h);
+        const d = img.data;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const i = (y * w + x) * 4;
+            if (x < cut) {
+              // reproject: warm stamp noise
+              const n = ((x * 17 + y * 31) & 31) / 31;
+              d[i] = 90 + n * 80;
+              d[i + 1] = 55 + n * 40;
+              d[i + 2] = 35 + ((x + y) & 15);
+              d[i + 3] = 255;
+            } else {
+              // diff: near-black with faint residual
+              const n = ((x * 13 + y * 7) & 7);
+              d[i] = n;
+              d[i + 1] = n;
+              d[i + 2] = n;
+              d[i + 3] = 255;
+            }
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+        // Hairline at wipe edge (matches production).
+        if (cut > 0 && cut < w) {
+          ctx.fillStyle = "rgba(255,255,255,0.55)";
+          ctx.fillRect(cut - 0.5, 0, 1, h);
+        }
+      }
+
+      const compareRange = document.getElementById("sheetCompareRange");
+      const onCompare = () => paintSheetCompare(Number(compareRange?.value || 50) / 100);
+      compareRange?.addEventListener("input", onCompare);
+      compareRange?.addEventListener("change", onCompare);
+      onCompare();
+
+      let locale = "en";
+      document.querySelectorAll(".sheet-locale-tabs [data-locale]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          locale = btn.getAttribute("data-locale") || "en";
+          document.querySelectorAll(".sheet-locale-tabs [data-locale]").forEach((b) => {
+            b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+          });
+          paintMbit(locale);
+        });
+      });
+      paintMbit(locale);
+
+      // Keep theme key documented in console for devs.
+      console.info(`asset-sheet · theme key ${THEME_KEY} · ${getTheme()}`);
+    </script>
+  </body>
+</html>

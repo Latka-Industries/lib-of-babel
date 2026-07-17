@@ -33,7 +33,7 @@ export const en = {
 
   "footer.wanderings": "wanderings · {n}/{max}",
   "footer.gallery": "gallery",
-  "footer.coordTitle": "click to jump to any gallery",
+  "footer.coordTitle": "click for room details (Mbit) or jump",
   "footer.hash": "hash",
   "footer.hashTitle": "click to copy this gallery's full hash",
   "footer.steps": "steps",
@@ -51,8 +51,81 @@ export const en = {
   "about.tab.wander": "wander",
   "about.tab.books": "books",
   "about.tab.search": "search",
+  "about.tab.engines": "engines",
+  "about.tab.scale": "scale",
+  "about.tab.url": "url",
   "about.tab.more": "more",
   "about.tabsLabel": "About sections",
+  "gallery.coordsHuge.hint":
+    "Mbit-range room (book-linked) — spines and color map work; hallway wander and jump are off. Full book text / color map can take minutes the first time.",
+  "gallery.coordsHuge.title":
+    "{scope} · Mbit-range {coords} — not hallway-wanderable",
+  "gallery.coordsHuge.minimap":
+    "Mbit-range room — lattice exits disabled. See LIB-OF-BABEL → SCALE.",
+  "gallery.coordsHuge.minimapShort": "Mbit · no exits",
+  "gallery.mbitNotice.title": "Mbit range",
+  "gallery.mbitNotice.body":
+    "This gallery uses the <b>book-linked</b> map. Spines and color maps still work. Hallway arrows and jump are off. Mbit rooms cannot be stored in a URL — open any book here, save a Babelgram, then search → Babelgram to verify and open that room. Opening or borrowing a book can take a few.",
+  "gallery.mbitNotice.scale.slim":
+    "<b>Scale</b> — ≈{mbit} Mbit ({mag}). Past every familiar combinatorial count — shuffled decks (~10^68), atoms in the universe (~10^80), chess games (~10^120), Go positions (~10^170) — and past a <i>googol</i> (10^100). One digit per second: {recite}.",
+  "gallery.mbitNotice.scale.mid":
+    "<b>Scale</b> — ≈{mbit} Mbit ({mag}). Written out ≈{digits} digits — about as many <i>letters</i> as a short-to-typical novel (novella ~100 000 characters; a paperback often a few hundred thousand). One digit per second: {recite}.",
+  "gallery.mbitNotice.scale.book":
+    "<b>Scale</b> — ≈{mbit} Mbit per axis — Basile book-map (~6.4). Written out ≈{digits} digits — about as many <i>letters</i> as one of this library’s 410‑page books (~1.3 M), up toward a Bible (~3 M). One digit per second: {recite}.",
+  "gallery.mbitNotice.scale.fat":
+    "<b>Scale</b> — ≈{mbit} Mbit ({mag}). Just storing the room number takes ≈{mb} MB — JPEG‑photo / short‑MP3 size. One digit per second: {recite}.",
+  "gallery.mbitNotice.scale.titan":
+    "<b>Scale</b> — ≈{mbit} Mbit ({mag}). The coordinate alone is ≈{mb} MB on disk — long MP3 / small app‑download size, for one room address. One digit per second: {recite}.",
+  "gallery.mbitNotice.recite.minutes": "~{n} minutes",
+  "gallery.mbitNotice.recite.hours": "~{n} hours",
+  "gallery.mbitNotice.recite.days": "~{n} days",
+  "gallery.mbitNotice.recite.weeks": "~{n} weeks",
+  "gallery.mbitNotice.recite.months": "~{n} months",
+  "gallery.mbitNotice.recite.years": "~{n} years",
+  "gallery.mbitNotice.hashLabel": "Room hash",
+  "gallery.mbitNotice.coordsLabel": "Axes (magnitude)",
+  "gallery.mbitNotice.gotIt": "Got it",
+  "gallery.mbitNotice.engines": "LIB-OF-BABEL → SCALE",
+  "gallery.mbitNotice.mute": "Don't show again",
+
+  "about.scale.col.band": "Band",
+  "about.scale.col.scalar": "Scalar",
+  "about.scale.col.bytes": "Bytes",
+  "about.scale.col.letters": "Letters",
+  "about.scale.col.recite": "Recite (1 digit/s)",
+  "about.scale.band.slim": "slim",
+  "about.scale.band.mid": "mid",
+  "about.scale.band.book": "book",
+  "about.scale.band.fat": "fat",
+  "about.scale.band.titan": "titan",
+  "about.scale.letters.na": "—",
+  "about.scale.letters.mid":
+    "≈{digits} digits · novella → paperback",
+  "about.scale.letters.book":
+    "≈{digits} digits · one library book → Bible",
+  "about.scale.intro": `
+<h4>Mbit scale</h4>
+<p class="dim">
+Room addresses are integers. When an axis is wider than the page map, the footer
+shows <b>bit width</b> in megabits (<code>1 Mbit = 10^6</code> bits) instead of the full decimal.
+Recite times assume <b>one digit per second</b> spoken aloud.
+</p>
+<p class="dim">
+Photo Find / Babelgram under Basile land in the <b>book</b> band (≈3–6 Mbit per axis).
+Larger alphabets (Thai, Chinese, …) make those addresses a bit bigger — still book, not fat or titan.
+Find does not reach <b>fat</b> / <b>titan</b> with today’s book length.
+Mbit rooms cannot be stored in a URL. Open any book in that room, save a Babelgram, then
+<span class="ui">search…</span> → <span class="ui">Babelgram</span> to verify the file and open the stamped room.
+How the two maps work:
+&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
+</p>`,
+  "about.scale.outro": `
+Storage size is for the <i>coordinate integer alone</i> (not the book text).
+Letter analogies only fit where the digit count lines up with familiar text lengths
+(mid / book). See also
+<button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>.
+`,
+
   "about.alphabets.h": "Alphabet lenses",
   "about.alphabets.intro":
     "Each preset is a <b>symbol law</b> for spines and pages — not a separate universe. Same room hash and sigil; <i>a new sort of translation</i>. Search and titles only accept symbols from the active lens. Browse by family below. An <b>interface · …</b> mark means menus and labels switch to that language too. <b>Sources</b> under each family blurb link to overview articles.",
@@ -82,7 +155,7 @@ for each preset (and which ones also change the site language).</li>
 </ul>
 <h4>Inspiration</h4>
 <p class="dim">
-<a href="https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf"
+<a href="https://en.wikipedia.org/wiki/The_Library_of_Babel"
 target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of Babel” (1941).</a><br />
 <a href="https://libraryofbabel.info/" target="_blank" rel="noopener noreferrer">Jonathan Basile, <i>libraryofbabel.info</i></a>
 </p>`,
@@ -93,12 +166,13 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li><kbd>LIB·OF·BABEL</kbd>, <kbd>?&nbsp;-&nbsp;Help</kbd>, or <kbd>?</kbd> open this guide anytime.</li>
 <li>The header <span class="ui">theme</span> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
 <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
-<li>Click <span class="ui">gallery&nbsp;(z,&nbsp;n)</span> to jump anywhere on the lattice.</li>
+<li>Click <span class="ui">gallery&nbsp;(z,&nbsp;n)</span> to jump anywhere on the lattice — only in the <b>page-linked</b> (wanderable) range.</li>
+<li>Photo Find / Babelgram can land you in the <b>Mbit range</b> (book-linked): spines work, hallway wander does not.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
 <li>Type a <span class="ui">universe</span> name or roll <span class="ui">&#9860;</span> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
 <li>The <span class="ui">alphabet</span> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETS</button></li>
 <li>Click any colored spine on a wall to open a book.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOOKS</button></li>
-<li><span class="ui">actions…</span> → <span class="ui">copy link</span> (or click the footer <span class="ui">hash</span>) for a permalink; <code>&amp;a=</code> restores the lens you were using.</li>
+<li><span class="ui">actions…</span> → <span class="ui">copy link</span> (or click the footer <span class="ui">hash</span>) for a permalink.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button></li>
 <li><span class="ui">actions…</span> → <span class="ui">search…</span> — <span class="ui">text</span>, <span class="ui">photo</span>, or <span class="ui">Babelgram</span>; jump there.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SEARCH</button></li>
 <li><span class="ui">wanderings</span> (footer, last {max}) revisits recent steps — shows universe + alphabet per visit; <span class="ui">export journey</span> saves the full path as JSON.</li>
 </ul>`,
@@ -108,20 +182,19 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <ul>
 <li>Click any colored spine to open it; <kbd>←</kbd> <kbd>→</kbd> turn pages while the reader is open.</li>
 <li>The spine you last closed is outlined in <b>red</b> so you can find it again on this shelf.</li>
-<li><span class="ui">color</span> redraws the page as a character-colour map — each symbol a square, tinted by the gallery hash.</li>
-<li><span class="ui">link</span> copies a permalink to this book at the current page.</li>
+<li><span class="ui">color</span> redraws the page as a character-color map — each symbol a square, tinted by the gallery hash.</li>
+<li><span class="ui">link</span> copies a permalink to this book at the current page (page-map only — Mbit rooms cannot be stored in a URL).</li>
 <li><span class="ui">save…</span> → <span class="ui">borrow book</span> — full text export (~1.3&nbsp;MB .txt)</li>
-<li><span class="ui">save…</span> → <span class="ui">book image</span> — whole book as a PNG colour map</li>
+<li><span class="ui">save…</span> → <span class="ui">Babelgram</span> — whole-book color map PNG with a seal; for Mbit rooms, search → Babelgram verifies it and opens the stamped room</li>
 </ul>`,
 
   "about.search": `
 <h4>by content</h4>
 <p class="dim">
 In <span class="ui">actions…</span> → <span class="ui">search…</span>, stay on the <span class="ui">text</span> tab with
-<span class="ui">content</span>. Paste any phrase (up to one full book — ~1.3&nbsp;million
-characters) and the library returns the gallery, shelf, book, and page(s) where
-it already lives — then opens it. Long phrases span consecutive pages in the
-same volume. Search uses the <b>current alphabet lens</b> and stays in the
+<span class="ui">content</span>. Paste any phrase (up to one page — 3200 characters)
+and the library returns the gallery, shelf, book, and page where it already
+lives — then opens it. Search uses the <b>current alphabet lens</b> and stays in the
 universe you are standing in. Invalid characters are highlighted in red.
 </p>
 <h4>by title</h4>
@@ -134,30 +207,133 @@ opens page&nbsp;1.
 </p>
 <h4>by Babelgram</h4>
 <p class="dim">
-<span class="ui">Babelgram</span> tab: upload a stamped PNG from <span class="ui">save…</span> → <span class="ui">book image</span>.
-<b>Same universe</b> as the export → find that <b>exact book</b>.
-<b>Other universe</b> → same <b>Babelgram print</b> at a new address, but
-<b>different book contents</b>. <span class="ui">go there</span> / <span class="ui">copy link</span>
-use a short same-browser handoff (opens the colour map without regenerating it).
-<span class="ui">check diff</span> wipes <b>reproject</b> (stamp-accent decode) against the
-<b>diff</b> (|upload − reproject|) — exact decode makes the diff side near-black.
+<span class="ui">Babelgram</span> tab: upload a stamped PNG from <span class="ui">save…</span> → <span class="ui">Babelgram</span>.
+Mbit rooms cannot be stored in a URL — this tab verifies the seal and, if it passes, opens the exact room in the stamp.
+<b>Same universe</b> as the export → that exact book (after verify).
+<b>Other universe</b> → same print at a new address, different book contents (seal still checked).
+<span class="ui">go there</span> / <span class="ui">copy link</span> stash a short <code>#bo=</code> handoff in <b>this</b> browser’s storage — not a shareable URL. Another device needs a Babelgram.
+<span class="ui">check diff</span> compares reproject vs diff — exact decode → near-black diff.
 </p>
 <h4>by photo mosaic</h4>
 <p class="dim">
-<span class="ui">photo</span> tab: upload any image. It is stretched to the full-book colour
-grid, projected onto the <b>current alphabet lens</b> — either the <b>letter colour map</b>
-(Babelgram-style) or a <b>luma ramp</b> — then ranked by
-<b>rms % / mae / corr</b>. Pick a hit —
-<span class="ui">go there</span> / <span class="ui">copy link</span> open the book + colour map
-in a new tab via a short same-browser handoff.
+<span class="ui">photo</span> tab: upload any image (optional brightness / contrast). It is
+stretched to the full-book grid and projected with <b>this gallery’s room letter colors</b>
+onto the active alphabet. That mosaic <b>is</b> one virgin book under the
+<b>book-linked</b> bijection (usually an Mbit room — no hallway wander).
+The top palette strip is this gallery; after Find, a second strip shows the hit gallery’s palette.
+<span class="ui">go there</span> / <span class="ui">copy link</span> use a short <code>#bo=</code> handoff in <b>this</b> browser only — not shareable across devices.
+To keep the room elsewhere: open any book there, save a Babelgram, then search → Babelgram to verify and reopen it.
+</p>`,
+
+  "about.engines": `
+<h4>Shorthand</h4>
+<p class="dim">
+<code>Σ</code> — active alphabet (glyph set). <code>|Σ|</code> — its size
+(Basile default <code>|Σ|=29</code>).<br>
+<code>PAGE</code> — symbols per page = <code>40×80 = 3200</code>.<br>
+<code>BOOK</code> — symbols per book = <code>PAGE × 410 = 1 312 000</code>.<br>
+<code>|Σ|^PAGE</code> — page-map modulus (how many distinct pages).<br>
+<code>|Σ|^BOOK</code> — book-map modulus (how many distinct full books).<br>
+<code>Mbit</code> — megabit = <code>10^6</code> bits (bit width of an integer).
+Per <code>1 Mbit</code> of width the number is about
+<code>2^(10^6) ≈ 10^(3.01×10^5)</code> (~301 000 decimal digits).
+Basile book-map: <code>BOOK · log₂(29) ≈ 6.4 Mbit</code> → about
+<code>(10^301 030)^6.4 ≈ 10^(1.9×10^6)</code> per axis.
+</p>
+<h4>Two bijection scopes</h4>
+<p class="dim">
+One address shape <code>(z, n, book[, page])</code>, two maps. Same shelf index under
+different scopes → <b>different virgin content</b>.
+</p>
+<h4>Page-linked</h4>
+<p class="dim">
+Bijection over <code>|Σ|^PAGE</code>. Every page exists once. Wandering, spines, page turns,
+<span class="ui">text</span> search (≤ one page). Lattice arrows / jump stay here.
+</p>
+<h4>Book-linked</h4>
+<p class="dim">
+Bijection over <code>|Σ|^BOOK</code>. Every full book exists once.
+<span class="ui">photo</span> Find and <span class="ui">Babelgram</span> identity:
+the letter mosaic <b>is</b> that book.
+</p>
+<h4>Mbit range</h4>
+<p class="dim">
+When axes are book-map sized (Basile ≈ <code>3–6 Mbit</code> per axis after unpack), the UI calls that
+the <b>Mbit range</b>: footer shows bit width only; no full decimal;
+no hallway arrows / minimap exits / jump. Spines, open book, color map, lens, universe still work.
+A full <code>z</code>/<code>n</code> is about a megabyte each — too large for a URL.
+The address bar omits those axes. Mbit rooms cannot be stored in a URL: open any book in the room, save a Babelgram, then
+<span class="ui">search…</span> → <span class="ui">Babelgram</span> to verify the seal and open the stamped room.
+Same-browser after verify: <code>#bo=</code> from <span class="ui">go there</span> / <span class="ui">copy link</span> is a local handoff (this browser’s storage), not a portable Mbit URL — use a Babelgram to share across devices.
+<span class="ui">new walk</span> or a page-linked permalink to roam again.
+Comparative bands:
+&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-scale">SCALE</button>
+</p>
+<h4>How coordinates are shown</h4>
+<p class="dim">
+Footer <span class="ui">gallery (z, n)</span>: page-map → scientific notation when long;
+book-map / Mbit range → bit width only. Wire form <code>c…</code> (base64url) when axes
+outgrow short decimals.
+</p>
+<h4>Babelgram stamps</h4>
+<p class="dim">
+<span class="ui">save…</span> → <span class="ui">Babelgram</span> writes a PNG with a <code>lob:babel</code> text chunk:
+universe, alphabet, full compact <code>z</code>/<code>n</code>, book index, <code>scope=page|book</code>,
+plus a <b>content seal</b> and <b>room hash</b> so the file can be checked for tampering.
+Mbit rooms cannot be stored in a URL — save a Babelgram from any book in the room, then
+<span class="ui">search…</span> → <span class="ui">Babelgram</span>: verify passes → open that exact stamped room.
+Wander exports are page-linked; book-map exports are book-linked. Grid must be exact book size.
+</p>`,
+
+  "about.url": `
+<h4>Permalink shape</h4>
+<p class="dim">
+Everything after <code>#</code> is a room or search address for <b>page-linked</b> (wanderable) coords
+and text search. Same address → same room forever (under the same generator). Short flags are listed
+<b>before</b> large <code>z</code>/<code>n</code> so a truncated paste can still open a book.
+Mbit-range axes are <b>not</b> put in the URL — they are too large. Mbit rooms cannot be stored in a URL: save a Babelgram from any book in the room, then search → Babelgram to verify and open it.
+&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
+</p>
+<h4>Room flags</h4>
+<ul>
+<li><code>z</code> / <code>n</code> — gallery coordinates (short decimal, or compact <code>c…</code> when large but still page-map sized). Omitted in Mbit range.</li>
+<li><code>h</code> — 16-hex prefix of the room <b>BLAKE3</b> hash (proof token; not reversible to coords).</li>
+<li><code>a</code> — alphabet lens id (restores the shelf language).</li>
+<li><code>u</code> — universe name (omitted or blank → default).</li>
+<li><code>gv</code> — generator version; mismatch opens the migrate warning.</li>
+<li><code>b</code> — book shelf index (0–699) to open on load.</li>
+<li><code>p</code> — 1-based page inside that book.</li>
+<li><code>img=1</code> — open the color-map image for that book.</li>
+</ul>
+<h4>Search shares</h4>
+<ul>
+<li><code>q</code> — phrase to find (soft-capped; content ≤ one page in the UI).</li>
+<li><code>find=content|title</code> — which locate to run on boot (re-locate; no huge coords in the hash).</li>
+</ul>
+<h4>Mbit rooms — no URL</h4>
+<p class="dim">
+Book-linked axes are roughly megabyte-scale as <code>c…</code>. Browsers will not carry them in a hash.
+Mbit rooms cannot be stored in a URL. Open any book in that room, save a Babelgram, then
+<span class="ui">search…</span> → <span class="ui">Babelgram</span> to verify the seal and open the stamped room.
+Same browser after verify: <code>#bo=</code> / <code>#be=</code> from <span class="ui">go there</span> / <span class="ui">copy link</span> are local IndexedDB handoffs — not shareable across devices.
+</p>
+<h4>Same-browser handoffs</h4>
+<ul>
+<li><code>bo</code> — short IndexedDB id (coords + optional color map). Not a cross-device share.</li>
+<li><code>be</code> — short-lived Babelgram print flat for other-universe rematch (also local).</li>
+</ul>
+<p class="dim">
+Bijection <b>scope</b> (<code>page</code> vs <code>book</code>) travels in the handoff / PNG stamp,
+not as a public URL flag. Prefer <code>#q=&amp;find=</code> for text search shares.
 </p>`,
 
   "about.more": `
 <h4>The numbers in the footer</h4>
 <p class="dim">
-<span class="ui">gallery (z, n)</span> is your coordinate. <span class="ui">hash</span> is the room's
-<b>BLAKE3</b> fingerprint — a permalink and proof for this place in this
-universe. It does <b>not</b> change when you switch alphabet; the lens only
+<span class="ui">gallery (z, n)</span> is your coordinate — scientific on the page map, bit magnitude
+on the book map (see <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-scale">SCALE</button>).
+<span class="ui">hash</span> is the room's <b>BLAKE3</b> fingerprint — a permalink proof for this
+place in this universe. It does <b>not</b> change when you switch alphabet; the lens only
 rewrites what the shelves say. <span class="ui">wanderings</span> keeps your last
 {max} steps (universe + alphabet lens frozen per visit) — including
 <span class="ui">universe</span> switches at the same gallery (◇), with no hallway move;
@@ -174,16 +350,16 @@ starts fresh in this browser.
 <p class="dim">
 The Library itself is never downloaded — only your <b>path</b>, <span class="ui">theme</span>
 preference, and a “seen the guide” flag live here. Photo / Babelgram
-<span class="ui">go there</span> and <span class="ui">copy link</span> stash a short-lived handoff
-in <b>this</b> browser (coords + colour-map pixels) so the new tab can open without
-regenerating the whole-book image; other-universe Babelgram go may also hand the print flat.
+<span class="ui">go there</span> and <span class="ui">copy link</span> stash a short-lived <code>#bo=</code> handoff
+in <b>this</b> browser’s IndexedDB — useful for a new tab here, not a link you can paste on another device.
+Cross-device reopen for Mbit rooms: save a Babelgram, then search → Babelgram.
 </p>
-<h4>Sharing links</h4>
+<h4>Sharing</h4>
 <p class="dim">
-A permalink encodes gallery <b>(z,&nbsp;n)</b>, room <b>hash</b>, alphabet
-<code>&amp;a=</code>, optional universe <code>&amp;u=</code>, and sometimes book
-page or a search phrase. Same address → same room forever. Changing the lens
-keeps the hash; only the shelves rewrite.
+Page-linked rooms and text search: URL flags under
+<button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button>.
+Mbit rooms cannot be stored in a URL. Open any book in that room, save a Babelgram, then
+<span class="ui">search…</span> → <span class="ui">Babelgram</span> to verify and open the stamped room.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -211,15 +387,15 @@ keeps the hash; only the shelves rewrite.
   "search.head": "search",
   "search.headContent": "search by content",
   "search.headTitle": "search by title",
-  "search.headMosaic": "search by colour mosaic",
+  "search.headMosaic": "search by color mosaic",
   "search.metaText":
-    "Find a phrase, match a photo mosaic, or open a Babelgram book image.",
+    "Find a phrase, match a photo mosaic, or open a Babelgram.",
   "search.metaContent":
-    "Type a phrase — the library inverts it to the page where those glyphs already live (padded to a full page).",
+    "Type a phrase — page-linked invert finds the page where those glyphs already live (padded to a full page).",
   "search.metaTitle":
     "Type a spine title — the library finds the gallery and shelf where it belongs.",
   "search.metaMosaic":
-    "Upload an image → alphabet mosaic → find books ranked by rms / mae / corr.",
+    "Upload a photo → full-book letter mosaic → locate. Size and wait time are on the Find row.",
   "search.tabsLabel": "Search mode",
   "search.tab.text": "text",
   "search.tab.photo": "photo",
@@ -230,19 +406,22 @@ keeps the hash; only the shelves rewrite.
     "Same universe → exact export book. Other universe → same Babelgram print, different contents.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Upload a stamped PNG from save → book image (1:1 grid + lob:babel stamp). Same universe as the export → that exact book. Other universe → same Babelgram print at a new address, but different book contents. go there / copy link use a short same-browser handoff (cached colour map). Other-universe go also hands the print flat locally.",
+    "Upload a Babelgram from save → Babelgram. The stamp is verified (content seal + room hash). If it passes, <span class=\"ui\">{go}</span> opens the exact stamped room. Mbit rooms cannot be stored in a URL — this is how you reopen them. Same universe → that book. Other universe → same print, new address. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> use a short <code>#bo=</code> handoff in this browser (not shareable); another device needs the Babelgram PNG.",
   "search.babel.find": "find book",
-  "search.babel.progress": "decoding Babelgram…",
+  "search.babel.progress": "decoding Babelgram",
   "search.babel.upload": "upload Babelgram PNG",
   "search.babel.original": "Babelgram export",
   "search.babel.gridHint":
-    "Needs a stamped lossless PNG at exactly {w}×{h} (save → book image).",
+    "Needs a stamped lossless PNG at exactly {w}×{h} (save → Babelgram).",
   "search.babel.fileMeta": "{name} · exact {w}×{h} Babelgram grid",
+  "search.babel.stampV3": "stamp v3 (sealed)",
+  "search.babel.stampV2": "stamp v2 (no seal)",
+  "search.babel.stampV1": "stamp v1 (no seal)",
   "search.babel.sizeMismatch":
-    "Wrong size ({sw}×{sh}). Babelgrams must be exactly {w}×{h} — re-export from save → book image.",
+    "Wrong size ({sw}×{sh}). Babelgrams must be exactly {w}×{h} — re-export from save → Babelgram.",
   "search.babel.needExact": "upload an exact {w}×{h} Babelgram PNG first",
   "search.babel.notBabel":
-    "Not a Babelgram book-image PNG. Re-export from save → book image.",
+    "Not a Babelgram PNG. Re-export from save → Babelgram.",
   "search.babel.nameMismatch":
     "filename coords do not match the PNG stamp",
   "search.babel.originLine":
@@ -251,9 +430,9 @@ keeps the hash; only the shelves rewrite.
   "search.babel.originNote":
     "Locate destination differs from export origin by design (same cells → new coords; other universe → other coords).",
   "search.babel.originNoteSame":
-    "Same universe as the export — this is the exact book. go there opens it in a new tab.",
+    "Same universe as the export — this is the exact book. <span class=\"ui\">{go}</span> opens it in a new tab.",
   "search.babel.originNoteOther":
-    "Other universe — same Babelgram print at a new address, different book contents. go there opens a new tab with that print (local handoff). copy link uses the same short same-browser handoff.",
+    "Other universe — same Babelgram print at a new address, different book contents. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> use a local <code>#bo=</code> handoff (this browser only). Mbit rooms: keep the Babelgram, then search → Babelgram to verify and reopen elsewhere.",
   "search.babel.resultsIntro":
     "Babelgram locate in {universe} (seed {seed}) — exact accent decode:",
   "search.babel.resultsIntroSame":
@@ -263,6 +442,10 @@ keeps the hash; only the shelves rewrite.
   "search.babel.thumbAlt": "uploaded Babelgram",
   "search.babel.diffAlt": "decode difference (|upload − reproject|)",
   "search.babel.exactOk": "exact decode",
+  "search.babel.verifyOk": "verified — stamp matches print",
+  "search.babel.verifyFail": "tamper check failed — stamp does not match print",
+  "search.babel.verifyLegacy": "legacy stamp — no seal (re-export to verify)",
+  "search.babel.verifyBlocked": "go / copy blocked until the stamp verifies",
   "search.babel.seal": "content seal {seal}",
   "search.babel.diffCaption": "diff",
   "search.babel.compare.title": "compare",
@@ -272,6 +455,26 @@ keeps the hash; only the shelves rewrite.
   "search.babel.compare.diff": "diff",
   "search.babel.compare.sliderAria": "wipe between reproject and diff",
   "search.babel.compare.checkDiff": "check diff",
+  "search.mosaic.compare.title": "compare",
+  "search.mosaic.compare.hint":
+    "wipe library book ↔ difference — near-black = same letters. The found babelgram uses the match gallery’s colours; the preview above still uses this gallery’s.",
+  "search.mosaic.compare.shelf": "library book",
+  "search.mosaic.compare.diff": "difference",
+  "search.mosaic.compare.sliderAria": "wipe between library book and letter difference",
+  "search.mosaic.compare.checkDiff": "compare letters",
+  "search.mosaic.thumbMosaic": "found babelgram",
+  "search.mosaic.thumbShelf": "library book",
+  "search.mosaic.thumbMosaicAlt": "found babelgram at the match gallery",
+  "search.mosaic.thumbShelfAlt": "how that book looks in the library",
+  "search.mosaic.exactOk": "exact letters",
+  "search.mosaic.tip.exactOk":
+    "Same letters as the preview mosaic. Colours can differ: preview = this gallery’s palette; the found babelgram = the match gallery’s palette.",
+  "search.mosaic.tip.rms":
+    "RMS fit of letter mosaic vs library book map (match-gallery colours). Ideal ≈ 100%.",
+  "search.mosaic.tip.mae":
+    "Mean absolute error of letter mosaic vs library book map. Ideal ≈ 0.",
+  "search.mosaic.tip.corr":
+    "Correlation of letter mosaic vs library book map. Ideal ≈ 1.",
   "search.babel.metric.rms": "rms {n}%",
   "search.babel.metric.mae": "mae {n}",
   "search.babel.metric.corr": "corr {n}",
@@ -284,11 +487,17 @@ keeps the hash; only the shelves rewrite.
   "search.babel.tip.diff":
     "Pixelwise |upload − reproject| under the stamp accent. Ideal: near-black (all zeros).",
   "search.babel.tip.seal":
-    "Short SHA-256 of the decoded book text. Same print ⇒ same seal in every universe.",
+    "Short SHA-256 of the decoded book text. Same print ⇒ same seal in every universe. Stamped on save; compared on find.",
+  "search.babel.tip.verifyOk":
+    "Stamp seal and room hash match this file. go uses the exact stamped room.",
+  "search.babel.tip.verifyFail":
+    "Pixels or stamp were changed. Seal or room hash no longer match — go is blocked.",
+  "search.babel.tip.verifyLegacy":
+    "Older Babelgram without seal/hash. Re-export from save → Babelgram to enable tamper checks.",
   "search.babel.tip.exactOk":
     "Decode looks exact: rms ≥ 99.9%, mae < 0.5, and corr ≥ 0.999.",
   "search.babel.confirmHint":
-    "Pics are noisy — trust rms % (~100), mae (~0), corr (~1), near-black diff wipe, and content seal.",
+    "Pics are noisy — trust verify (seal + room hash), rms % (~100), mae (~0), corr (~1), and near-black diff wipe.",
   "search.label": "search",
   "search.kindTitle": "search spine titles or page content",
   "search.kindContent": "content",
@@ -299,20 +508,34 @@ keeps the hash; only the shelves rewrite.
   "search.count": "{n} / {max}",
   "search.countTip": "{n} alphabet cells of {max} allowed",
   "search.hintContent":
-    "uses the current alphabet lens · up to one full book",
+    "uses the current alphabet lens · up to one page",
   "search.hintTitle":
     "uses the current alphabet lens · up to {n} spine-title cells",
+  "search.canTakeAFew": "can take a few",
   "search.hintMosaic":
-    "full-book colour grid · current alphabet lens → mosaic → top matches by rms / mae / corr",
-  "search.mosaic.find": "find matches",
+    "{pages} pages · {cells} cells · address magnitude {mag} — first <span class=\"ui\">{find}</span> {slow}",
+  "search.mosaic.find": "find match",
   "search.mosaic.searching": "searching…",
-  "search.mosaic.progress": "projecting + ranking mosaics…",
+  "search.mosaic.progress": "finding book",
+  "search.mosaic.progressProject": "projecting photo to letters",
+  "search.mosaic.progressWarm":
+    "warming book map (first search attempt {slow})",
+  "search.mosaic.progressInvert": "finding book address",
+  "search.mosaic.progressConstruct": "constructing color map",
+  "search.mosaic.progressScoreProof": "scoring proof vs virgin book map",
+  "search.mosaic.progressPalette":
+    "current palette for this gallery at this alphabet lens + universe",
+  "search.mosaic.resultPalette":
+    "color palette for the resulting gallery (alphabet lens + universe)",
+  "search.mosaic.handoff": "preparing color map handoff…",
   "search.mosaic.progressPacks": "scanning palette packs…",
   "search.mosaic.progressLocate": "locating pack {i} / {n}…",
+  "search.mosaic.progressClimb":
+    "round {i} · best {pct}% · no gain {stale}/{staleMax}…",
   "search.mosaic.progressScore": "scoring book map {i} / {n}…",
   "search.mosaic.upload": "upload image",
   "search.mosaic.honesty":
-    "Maps the photo onto the current alphabet as a colour mosaic (letters or luma ramp), then ranks destinations by rms % (~100), mae (~0), and corr (~1). go there / copy link open the book + colour map in a new tab via a short same-browser handoff (caches the scored map so open skips regenerating it).",
+    "Letter mosaic uses this gallery’s colours (palette strip above). <span class=\"ui\">{find}</span> looks up those letters; the hit may sit in another gallery — a second palette strip under <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> shows that gallery’s colours. Hits are usually Mbit rooms (no URL). <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> stash a short <code>#bo=</code> handoff in this browser only — not shareable. To reopen elsewhere: save a Babelgram there, then search → Babelgram to verify.",
   "search.mosaic.bookTextIntro":
     "Book text ({n} chars). Copy, or put it in content search and hit find.",
   "search.mosaic.toSearch": "put in content search",
@@ -321,20 +544,22 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.resultsIntro":
     "Top {n} alphabet-mosaic matches (ranked by rms / mae / corr):",
   "search.mosaic.resultsIntroBest": "Best mosaic match:",
-  "search.mosaic.thumbAlt": "book colour map at match",
-  "search.mosaic.original": "original (book grid)",
-  "search.mosaic.preview": "mosaic preview",
+  "search.mosaic.elapsedSec": "took {n}s",
+  "search.mosaic.elapsedMinSec": "took {m}m {s}s",
+  "search.mosaic.thumbAlt": "book color map at match",
+  "search.mosaic.original": "your photo",
+  "search.mosaic.preview": "letter mosaic · this gallery",
   "search.mosaic.fitPct": "projection fit {n}%",
   "search.mosaic.previewError": "preview failed",
   "search.mosaic.fileMeta": "{name} · {sw}×{sh} → stretched to {w}×{h} book grid",
   "search.mosaic.gridHint":
-    "Any image is stretched to the full-book colour grid ({w}×{h}).",
+    "Any image is stretched to the full-book color grid ({w}×{h}).",
   "search.mosaic.badImage": "could not decode that image",
   "search.mosaic.palette": "palette",
   "search.mosaic.palette.glyph": "letters",
   "search.mosaic.palette.luma": "luma ramp",
   "search.mosaic.tip.palette":
-    "Letters = Babelgram-style per-glyph colours. Luma ramp = brightness ladder (structure-first).",
+    "Letters = Babelgram-style per-glyph colors. Luma ramp = brightness ladder (structure-first).",
   "search.mosaic.dither": "dither",
   "search.mosaic.brightness": "brightness",
   "search.mosaic.contrast": "contrast",
@@ -349,15 +574,15 @@ keeps the hash; only the shelves rewrite.
   "search.mosaic.tip.contrast":
     "Raise or lower contrast of the upload before mosaicing.",
   "search.mosaic.tip.hue":
-    "Rotates the accent on the letter colour map (or the luma ramp tint).",
+    "Rotates this hex’s letter-color wheel (same accent law as Babelgrams).",
   "search.mosaic.tip.chroma":
-    "How vivid glyph colours are — or how much tint vs grey on the luma ramp.",
+    "How vivid letter colors are on this hex’s wheel.",
   "search.mosaic.tip.light":
-    "Overall lightness of letter colours — or the center of the luma ramp.",
+    "Lightness of letter colors on this hex’s wheel.",
   "search.mosaic.tip.space":
     "Pixels darker than this luminance become the space glyph when mosaicing.",
   "search.mosaic.tip.dither":
-    "Floyd–Steinberg dither spreads colour error for a softer, grainier mosaic.",
+    "Floyd–Steinberg dither spreads color error for a softer, grainier mosaic.",
   "search.mosaic.needImage": "upload an image first",
   "search.mosaic.hitBook": "book {book}",
   "search.go": "go there",
@@ -376,7 +601,7 @@ keeps the hash; only the shelves rewrite.
   "search.error.invalidGeneric": "invalid characters for this alphabet",
   "search.error.moreKinds": " (+{n} more kinds)",
   "search.error.empty": "search text is empty",
-  "search.error.tooLong": "text too long (max {n} characters — one book)",
+  "search.error.tooLong": "text too long (max {n} characters — one page)",
   "search.error.titleTooLong": "title too long (max {n} characters)",
   "search.error.pageRoom":
     "text needs {need} pages but only {room} remain in this book — try a shorter phrase",
@@ -390,7 +615,7 @@ keeps the hash; only the shelves rewrite.
   "book.saveTitle": "take this book home",
   "book.savePlaceholder": "save…",
   "book.borrow": "borrow book",
-  "book.image": "book image",
+  "book.image": "Babelgram",
   "book.linkTitle": "copy a link to this book at this page",
   "book.viewTitle": "switch between text and a character-color view of the page",
   "book.viewColor": "color",
@@ -401,6 +626,9 @@ keeps the hash; only the shelves rewrite.
   "book.next": "next ›",
   "book.pageInd": "page {page} / {total}",
   "book.pagePlaceholder": "page",
+  "book.waitMbit": "Mbit range — building this book. Can take a few.",
+  "book.waitMbitImage": "Mbit range — building the color map. Can take a few.",
+  "book.waitMbitBorrow": "Mbit range — writing the full book text. Can take a few.",
   "book.wall": "Wall {n}",
   "book.wallBook": "Wall {n} · book {book}",
 

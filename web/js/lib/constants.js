@@ -15,8 +15,10 @@ export const PAGES_PER_BOOK = 410;
 export const LINES_PER_PAGE = 40;
 export const CHARS_PER_LINE = 80;
 export const PAGE_CONTENT_SYMBOLS = LINES_PER_PAGE * CHARS_PER_LINE; // 3200 content chars
+/** Full-book letter grid (photo Find / book-linked invert). */
+export const BOOK_CONTENT_SYMBOLS = PAGES_PER_BOOK * PAGE_CONTENT_SYMBOLS; // 1_312_000
 export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newline per line
-export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS * PAGES_PER_BOOK; // one full book
+export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS; // one page of content search
 export const TITLE_LEN = 24; // spine title length (mirror src/config/)
 
 // Legacy i64 bounds (Feistel-era UI clamp). Random walks still use a friendly

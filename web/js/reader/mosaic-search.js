@@ -1,5 +1,5 @@
-// Babelgram: stamped PNG → locate → go / copy short book-image link.
-// Photo mosaic: alphabet-lens project → rms/mae/corr rank → go there.
+// Babelgram: stamped PNG → locate → go / copy short handoff link.
+// Photo: mosaic_find_book in a dedicated worker (main-thread fallback).
 
 import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js";
 import {
@@ -14,28 +14,39 @@ import {
   openModal,
 } from "../lib/util.js";
 import { t, getLocale } from "../lib/i18n.js";
-import { formatAlphabetSymbolLabel } from "../lib/constants.js";
+import { buildAlphabetPalette, wireRollingPaletteSpin } from "../lib/color.js";
+import {
+  formatAlphabetSymbolLabel,
+  PAGES_PER_BOOK,
+  BOOK_CONTENT_SYMBOLS,
+  alphabetCells,
+} from "../lib/constants.js";
 import { permalink, bookOpenShareUrl } from "../gallery/url.js";
+import { encodeCoordParam, coordForWasm } from "../lib/coords.js";
 import {
   readBabelMeta,
+  readPngDims,
   parseBabelFilename,
+  contentSeal,
+  verifyBabelProof,
 } from "../lib/png-babel.js";
 import { kvSet } from "../lib/db.js";
 import {
   book_image_dims,
   mosaic_project_preview,
-  mosaic_candidate_packs_json,
-  mosaic_candidate_eval_json,
   mosaic_babel_json,
   room_accent,
   node_hash_hex,
   get_universe,
+  set_universe,
+  alphabet_len,
 } from "../lib/wasm.js";
 import {
-  PHOTO_SEARCH_TAB_ENABLED,
-  selectSearchTab,
-} from "./search.js";
-import { generateBookImageRgba } from "./book-image-pool.js";
+  mosaicFindBookAsync,
+  cancelMosaicFind,
+} from "./mosaic-find-pool.js";
+import { PHOTO_SEARCH_TAB_ENABLED } from "./search.js";
+import { createFindTrace } from "../lib/find-debug.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
 const BOOK_OPEN_KEY = (id) => `book-open:${id}`;
@@ -45,7 +56,8 @@ function newHandoffId() {
 }
 
 /** Same-browser handoff so paste truncation cannot drop &b=&img=1.
- * Optional `imageRgba` skips slow virgin `book_image` on open. */
+ * Optional `imageRgba` skips slow virgin `book_image` on open.
+ * Stores compact `c…` z/n + `scope` — never megadigit decimals. */
 async function stashBookOpen(
   hit,
   {
@@ -54,19 +66,26 @@ async function stashBookOpen(
     imageRgba = null,
     imageW = 0,
     imageH = 0,
+    flat = null,
+    scope = hit.scope || "book",
   } = {},
 ) {
   const id = newHandoffId();
   const payload = {
-    z: String(hit.z),
-    n: String(hit.n),
+    z: encodeCoordParam(hit.z),
+    n: encodeCoordParam(hit.n),
     b: Number(hit.book),
     a: hit.alphabet ?? S.alphabetId,
     u: universe ?? "",
     img: !!image,
     imageW: imageW || 0,
     imageH: imageH || 0,
+    scope: scope === "page" ? "page" : "book",
   };
+  if (typeof flat === "string" && flat.length) {
+    // Letter grid from Find — source of truth for book text on open.
+    payload.flat = flat;
+  }
   if (imageRgba?.length) {
     // Own a JS copy before IDB clone (WASM getters already copy; stay defensive).
     payload.imageRgba =
@@ -100,9 +119,10 @@ let babelMeta = null;
 /** Soft parse of the upload filename (for confirmation UI). */
 let babelNameMeta = null;
 /**
- * Last Babel locate proof frames for the compare wipe.
- * reproject = stamp-accent mosaic; diff = `|upload − reproject|`.
- * @type {{ reprojectRgba: Uint8Array, diffRgba: Uint8Array, w: number, h: number, wipeOut?: Uint8Array } | null}
+ * Last locate proof frames for the compare wipe.
+ * Babel: reproject = stamp mosaic; diff = `|upload − reproject|`.
+ * Photo: reproject slot = virgin shelf; diff = `|projected − shelf|`.
+ * @type {{ reprojectRgba: Uint8Array, diffRgba: Uint8Array, w: number, h: number, wipeOut?: Uint8Array, kind?: "photo"|"babel" } | null}
  */
 let babelCompareFrames = null;
 let babelCompareWired = false;
@@ -119,19 +139,26 @@ function dims() {
   return { w: d[0], h: d[1] };
 }
 
+/** Room letter-colour accent for the hex you're in (same law as `book_image`). */
+function letterAccentFromHere() {
+  const a = room_accent(coordForWasm(S.z), coordForWasm(S.n), get_universe());
+  return { hue: a[0], chroma: a[1], light: a[2] };
+}
+
 function readParams() {
   const babel = mosaicMode === "babel";
-  const paletteKind = Number(el("mosaicPaletteKind")?.value ?? 1);
+  // Letter colours = this gallery’s room accent (same law as Babelgram / book map).
+  // Only brightness/contrast tweak the upload before mosaicing.
+  const accent = letterAccentFromHere();
   return {
-    hue: Number(el("mosaicHue")?.value ?? S.accentHue),
-    chroma: Number(el("mosaicChroma")?.value ?? S.accentChroma),
-    light: Number(el("mosaicLight")?.value ?? S.accentLightness),
-    space: babel ? 0 : Number(el("mosaicSpace")?.value ?? 28),
-    dither: babel ? false : el("mosaicDither")?.checked === true,
+    hue: accent.hue,
+    chroma: accent.chroma,
+    light: accent.light,
+    space: 0,
+    dither: false,
     brightness: babel ? 0 : Number(el("mosaicBrightness")?.value ?? 0),
     contrast: babel ? 0 : Number(el("mosaicContrast")?.value ?? 0),
-    /** 0 = luma ramp, 1 = glyph / letter colours */
-    paletteKind: babel ? 1 : paletteKind === 0 ? 0 : 1,
+    paletteKind: 1,
   };
 }
 
@@ -270,9 +297,44 @@ function ensureBabelCompareWired() {
   range.addEventListener("change", onInput);
 }
 
+function applyCompareDialogCopy(kind = "babel") {
+  const photo = kind === "photo";
+  const setText = (id, key) => {
+    const node = el(id);
+    if (!node) return;
+    node.dataset.i18n = key;
+    node.textContent = t(key);
+  };
+  setText(
+    "babelCompareTitle",
+    photo ? "search.mosaic.compare.title" : "search.babel.compare.title",
+  );
+  setText(
+    "babelCompareHint",
+    photo ? "search.mosaic.compare.hint" : "search.babel.compare.hint",
+  );
+  setText(
+    "babelCompareResultLabel",
+    photo ? "search.mosaic.compare.shelf" : "search.babel.compare.result",
+  );
+  setText(
+    "babelCompareDiffLabel",
+    photo ? "search.mosaic.compare.diff" : "search.babel.compare.diff",
+  );
+  const range = el("babelCompareRange");
+  if (range) {
+    const ariaKey = photo
+      ? "search.mosaic.compare.sliderAria"
+      : "search.babel.compare.sliderAria";
+    range.dataset.i18nAriaLabel = ariaKey;
+    range.setAttribute("aria-label", t(ariaKey));
+  }
+}
+
 function openBabelCompare() {
   if (!babelCompareFrames) return;
   ensureBabelCompareWired();
+  applyCompareDialogCopy(babelCompareFrames.kind || "babel");
   const range = el("babelCompareRange");
   // Start mid-wipe so both sides are obvious.
   if (range) range.value = "50";
@@ -293,30 +355,70 @@ function clearPreviewCanvases() {
   }
 }
 
+/** No-op kept for callers — photo Find always uses this gallery’s room accent. */
 export function syncMosaicKnobsFromGallery() {
-  const hue = el("mosaicHue");
-  const chroma = el("mosaicChroma");
-  const light = el("mosaicLight");
-  if (hue) hue.value = String(Math.round(S.accentHue));
-  if (chroma) chroma.value = String(S.accentChroma.toFixed(3));
-  if (light) light.value = String(S.accentLightness.toFixed(3));
+  paintFindPaletteStrip();
 }
 
 /** Apply photo vs babel copy / knobs visibility. */
 export function syncMosaicModeUI(mode = mosaicMode) {
+  const prev = mosaicMode;
   mosaicMode =
     mode === "babel" || !PHOTO_SEARCH_TAB_ENABLED ? "babel" : "photo";
+  if (prev === "photo" && mosaicMode !== "photo") {
+    cancelMosaicFind();
+  }
   const babel = mosaicMode === "babel";
   document.querySelectorAll(".mosaic-photo-only").forEach((node) => {
     node.classList.toggle("hidden", babel);
   });
   el("mosaicCompare")?.classList.toggle("mosaic-compare-solo", babel);
-  const setI18nText = (node, key) => {
+  const size = findSizeVars();
+  const slow = t("search.canTakeAFew");
+  const setI18nText = (node, key, vars = {}) => {
     if (!node) return;
     node.dataset.i18n = key;
-    node.textContent = t(key);
+    delete node.dataset.i18nHtml;
+    node.textContent = t(key, vars);
   };
-  setI18nText(el("mosaicHonesty"), babel ? "search.babel.honesty" : "search.mosaic.honesty");
+  const setI18nHtml = (node, key, vars = {}) => {
+    if (!node) return;
+    node.dataset.i18nHtml = key;
+    delete node.dataset.i18n;
+    node.innerHTML = t(key, vars);
+  };
+  if (babel) {
+    setI18nHtml(el("mosaicHonesty"), "search.babel.honesty", {
+      go: t("search.go"),
+      copy: t("actions.copy"),
+    });
+  } else {
+    setI18nHtml(el("mosaicHonesty"), "search.mosaic.honesty", {
+      find: t("search.mosaic.find"),
+      go: t("search.go"),
+      copy: t("actions.copy"),
+    });
+  }
+  const photoHint = el("mosaicHint");
+  const babelHint = el("mosaicHintBabel");
+  if (photoHint) {
+    photoHint.hidden = babel;
+    photoHint.classList.toggle("hidden", babel);
+    if (!babel) {
+      setI18nHtml(photoHint, "search.hintMosaic", {
+        ...size,
+        find: t("search.find"),
+        slow,
+      });
+    }
+  }
+  if (babelHint) {
+    babelHint.hidden = !babel;
+    babelHint.classList.toggle("hidden", !babel);
+    if (babel) {
+      setI18nText(babelHint, "search.hintBabel");
+    }
+  }
   setI18nText(
     el("mosaicUploadLabel"),
     babel ? "search.babel.upload" : "search.mosaic.upload",
@@ -325,7 +427,10 @@ export function syncMosaicModeUI(mode = mosaicMode) {
     el("mosaicOriginalCaption"),
     babel ? "search.babel.original" : "search.mosaic.original",
   );
-  setI18nText(el("mosaicHint"), babel ? "search.hintBabel" : "search.hintMosaic");
+  setI18nText(
+    el("mosaicPaletteNote"),
+    "search.mosaic.progressPalette",
+  );
   const findBtn = el("mosaicFind");
   if (findBtn && !findBtn.disabled) {
     setI18nText(findBtn, babel ? "search.babel.find" : "search.mosaic.find");
@@ -340,6 +445,19 @@ export function syncMosaicModeUI(mode = mosaicMode) {
   const fileInput = el("mosaicFile");
   if (fileInput) {
     fileInput.accept = babel ? "image/png" : "image/png,image/*";
+  }
+  paintFindPaletteStrip();
+  // Babel needs a stamped PNG. A leftover photo bitmap is not a failed Babelgram —
+  // clear it so the empty state shows the grid hint, not "Not a Babelgram PNG".
+  if (babel && !babelMeta && lastBitmap) {
+    lastBitmap.close?.();
+    lastBitmap = null;
+    reshaped = null;
+    ingestCacheKey = "";
+    sourceName = "";
+    babelNameMeta = null;
+    if (fileInput) fileInput.value = "";
+    clearPreviewCanvases();
   }
   if (lastBitmap) schedulePreview({ immediate: true });
   else updateFileMeta();
@@ -490,13 +608,18 @@ function updateFileMeta() {
         w: String(w),
         h: String(h),
       }),
+      babelMeta.version === 3
+        ? t("search.babel.stampV3")
+        : babelMeta.version === 2
+          ? t("search.babel.stampV2")
+          : t("search.babel.stampV1"),
       formatOriginLine(babelMeta),
     ];
     if (
       babelNameMeta &&
       (babelNameMeta.u !== babelMeta.u ||
-        babelNameMeta.z !== babelMeta.z ||
-        babelNameMeta.n !== babelMeta.n ||
+        encodeCoordParam(babelNameMeta.z) !== encodeCoordParam(babelMeta.z) ||
+        encodeCoordParam(babelNameMeta.n) !== encodeCoordParam(babelMeta.n) ||
         babelNameMeta.b !== babelMeta.b ||
         babelNameMeta.a !== babelMeta.a)
     ) {
@@ -522,10 +645,10 @@ async function onFileChosen(file) {
   reshaped = null;
   ingestCacheKey = "";
 
-  // Stamped book-image PNG → Babelgram tab (auto-switch from photo).
+  // Stamped book-image PNG → Babelgram tab (auto-switch from photo / any mosaic tab).
   try {
     const buf = await file.arrayBuffer();
-    const stamped = readBabelMeta(buf);
+    const stamped = await readBabelMeta(buf);
     if (stamped) {
       babelMeta = stamped;
       modeResults.babel = null;
@@ -535,7 +658,24 @@ async function onFileChosen(file) {
       } else {
         paintModeResult();
       }
+      const pngDims = readPngDims(buf);
+      const { w, h } = dims();
+      const exactGrid =
+        pngDims != null && pngDims.w === w && pngDims.h === h;
+      if (!exactGrid) {
+        if (lastBitmap) lastBitmap.close?.();
+        lastBitmap = null;
+        el("mosaicFileMeta").textContent = t("search.babel.sizeMismatch", {
+          sw: String(pngDims?.w ?? "?"),
+          sh: String(pngDims?.h ?? "?"),
+          w: String(w),
+          h: String(h),
+        });
+        clearPreviewCanvases();
+        return;
+      }
     } else {
+      babelMeta = null;
       modeResults[mosaicMode] = null;
       paintModeResult();
       if (mosaicMode === "babel") {
@@ -548,6 +688,7 @@ async function onFileChosen(file) {
     }
   } catch (err) {
     console.error(err);
+    babelMeta = null;
     modeResults[mosaicMode] = null;
     paintModeResult();
     if (mosaicMode === "babel") {
@@ -570,6 +711,99 @@ async function onFileChosen(file) {
   schedulePreview({ immediate: true });
 }
 
+/** Hex list for the live letter mosaic palette (same as the strip). */
+function findPaletteHexes(accent = null, alphabetId = S.alphabetId) {
+  try {
+    const a = accent || letterAccentFromHere();
+    const alpha = alphabetCells(alphabetId);
+    if (!alpha?.length) return [];
+    return buildAlphabetPalette(alpha, a.hue, a.chroma, a.light);
+  } catch {
+    return [];
+  }
+}
+
+function wireFindProgressSpin(root) {
+  const spin = root?.querySelector?.(".find-progress-spin");
+  if (!spin) return;
+  wireRollingPaletteSpin(spin, findPaletteHexes());
+}
+
+/**
+ * Alphabet colours as a CSS linear gradient.
+ * @param {{ hue: number, chroma: number, light: number } | null} accent
+ * @param {number} alphabetId
+ */
+function findPaletteGradientCss(accent = null, alphabetId = S.alphabetId) {
+  try {
+    const a = accent || letterAccentFromHere();
+    const alpha = alphabetCells(alphabetId);
+    if (!alpha?.length) return "";
+    const palette = buildAlphabetPalette(alpha, a.hue, a.chroma, a.light);
+    if (!palette.length) return "";
+    if (palette.length === 1) {
+      return `linear-gradient(90deg, ${palette[0]} 0%, ${palette[0]} 100%)`;
+    }
+    // Cap stops so huge lenses (thousands of glyphs) stay cheap to paint.
+    const maxStops = 96;
+    const step = Math.max(1, Math.ceil(palette.length / maxStops));
+    const sampled = [];
+    for (let i = 0; i < palette.length; i += step) sampled.push(palette[i]);
+    if (sampled[sampled.length - 1] !== palette[palette.length - 1]) {
+      sampled.push(palette[palette.length - 1]);
+    }
+    const stops = sampled.map((hex, i) => {
+      const pct = (i / (sampled.length - 1)) * 100;
+      return `${hex} ${pct.toFixed(2)}%`;
+    });
+    return `linear-gradient(90deg, ${stops.join(", ")})`;
+  } catch (err) {
+    console.warn("find palette gradient failed", err);
+    return "";
+  }
+}
+
+/** Room accent for a hit gallery (same universe as the search). */
+function letterAccentForHit(hit) {
+  try {
+    if (
+      hit &&
+      typeof hit.hue === "number" &&
+      typeof hit.chroma === "number" &&
+      typeof hit.light === "number"
+    ) {
+      return { hue: hit.hue, chroma: hit.chroma, light: hit.light };
+    }
+    const a = room_accent(
+      coordForWasm(hit.z),
+      coordForWasm(hit.n),
+      get_universe(),
+    );
+    return { hue: a[0], chroma: a[1], light: a[2] };
+  } catch {
+    return letterAccentFromHere();
+  }
+}
+
+/** Paint the alphabet palette strip (photo tab — under the Find copy). */
+export function paintFindPaletteStrip() {
+  const block = el("mosaicPaletteBlock");
+  const strip = el("mosaicPaletteStrip");
+  const note = el("mosaicPaletteNote");
+  const photo = mosaicMode === "photo" && PHOTO_SEARCH_TAB_ENABLED;
+  if (block) {
+    block.hidden = !photo;
+    block.classList.toggle("hidden", !photo);
+  }
+  if (!photo || !strip) return;
+  const label = t("search.mosaic.progressPalette");
+  if (note) note.textContent = label;
+  strip.setAttribute("aria-label", label);
+  const grad = findPaletteGradientCss();
+  strip.style.backgroundImage = grad || "none";
+  strip.style.backgroundColor = grad ? "transparent" : "";
+}
+
 function setModeResult(payload) {
   modeResults[mosaicMode] = payload;
   paintModeResult();
@@ -585,9 +819,31 @@ function paintModeResult() {
     box.classList.remove("show");
     return;
   }
-  if (payload.progress) {
+  if (payload.progressPhase || payload.progress) {
     babelCompareFrames = null;
-    box.innerHTML = `<p class="find-dim">${escapeHtml(payload.progress)}</p>`;
+    const phase = payload.progressPhase || "invert";
+    const base = payload.progress || findProgressText(phase);
+    // Palette strip lives under the Find row (always visible in photo mode).
+    paintFindPaletteStrip();
+    const existing = box.querySelector(".find-progress");
+    if (existing) {
+      const label = existing.querySelector(".find-progress-label");
+      if (label) label.textContent = base;
+      wireFindProgressSpin(existing);
+      box.classList.add("show");
+      return;
+    }
+    box.innerHTML = `<div class="find-progress">
+      <div class="find-progress-row">
+        <span class="find-progress-label">${escapeHtml(base)}</span>
+        <span class="find-progress-track" aria-hidden="true">
+          <span class="find-progress-run">
+            <span class="find-progress-spin"></span>
+          </span>
+        </span>
+      </div>
+    </div>`;
+    wireFindProgressSpin(box);
     box.classList.add("show");
     return;
   }
@@ -600,6 +856,7 @@ function paintModeResult() {
   if (mosaicMode === "babel" && payload.hits) {
     paintBabelHits(box, payload.hits, !!payload.sameUniverse, payload.flat || null, {
       seal: payload.seal || null,
+      verify: payload.verify || null,
       reprojectRgba: payload.reprojectRgba || null,
       diffRgba: payload.diffRgba || null,
       diffW: payload.diffW || 0,
@@ -609,76 +866,18 @@ function paintModeResult() {
   }
   if (mosaicMode === "photo" && payload.hits) {
     paintPhotoHits(box, payload.hits, {
+      flat: payload.flat || null,
       bookRgba: payload.bookRgba || null,
+      mosaicRgba: payload.mosaicRgba || null,
       diffRgba: payload.diffRgba || null,
       diffW: payload.diffW || 0,
       diffH: payload.diffH || 0,
+      elapsedMs: payload.elapsedMs,
     });
     return;
   }
   box.innerHTML = "";
   box.classList.remove("show");
-}
-
-function rgbaAbsDiff(src, other) {
-  const n = Math.min(src.length, other.length);
-  const out = new Uint8Array(n);
-  for (let i = 0; i + 3 < n; i += 4) {
-    out[i] = Math.abs(src[i] - other[i]);
-    out[i + 1] = Math.abs(src[i + 1] - other[i + 1]);
-    out[i + 2] = Math.abs(src[i + 2] - other[i + 2]);
-    out[i + 3] = 255;
-  }
-  return out;
-}
-
-/** Same ideals as Babelgram confirm — score upload vs book colour map. */
-function rgbFitTriple(src, other) {
-  const n = Math.min(src.length, other.length) / 4;
-  if (!n) return { percent: 0, mae: 0, corr: 1, rank: 0 };
-  let sumSq = 0;
-  let sumAbs = 0;
-  let sumSrc = 0;
-  let sumOth = 0;
-  let sumSrcSq = 0;
-  let sumOthSq = 0;
-  let sumCross = 0;
-  let count = 0;
-  for (let i = 0; i < n; i++) {
-    const o = i * 4;
-    for (let c = 0; c < 3; c++) {
-      const x = src[o + c];
-      const y = other[o + c];
-      const d = x - y;
-      sumSq += d * d;
-      sumAbs += Math.abs(d);
-      sumSrc += x;
-      sumOth += y;
-      sumSrcSq += x * x;
-      sumOthSq += y * y;
-      sumCross += x * y;
-      count += 1;
-    }
-  }
-  const rmsNorm = Math.sqrt(sumSq / count / (255 * 255));
-  const percent = Math.max(0, Math.min(100, 100 * (1 - Math.min(1, rmsNorm))));
-  const mae = sumAbs / count;
-  const meanSrc = sumSrc / count;
-  const meanOth = sumOth / count;
-  const cov = sumCross / count - meanSrc * meanOth;
-  const varSrc = sumSrcSq / count - meanSrc * meanSrc;
-  const varOth = sumOthSq / count - meanOth * meanOth;
-  let corr = 1;
-  if (varSrc > 1e-12 && varOth > 1e-12) {
-    corr = Math.max(-1, Math.min(1, cov / (Math.sqrt(varSrc) * Math.sqrt(varOth))));
-  } else if (Math.abs(cov) > 1e-12) {
-    corr = 0;
-  }
-  const rmsTerm = Math.max(0, Math.min(1, percent / 100));
-  const maeTerm = Math.max(0, Math.min(1, 1 - mae / 255));
-  const corrTerm = Math.max(0, Math.min(1, corr));
-  const rank = 100 * (0.4 * rmsTerm + 0.3 * maeTerm + 0.3 * corrTerm);
-  return { percent, mae, corr, rank };
 }
 
 function yieldToUi() {
@@ -691,23 +890,185 @@ function yieldToUi() {
   });
 }
 
+/** Size labels for Find progress / honesty (`{pages}`, `{cells}`, `{mbit}`). */
+function findSizeVars(alphabetId = S.alphabetId) {
+  let alphaLen = 0;
+  try {
+    alphaLen = Number(alphabet_len(alphabetId)) || 0;
+  } catch {
+    alphaLen = 0;
+  }
+  if (!alphaLen) {
+    try {
+      alphaLen = alphabetCells(alphabetId)?.length || 29;
+    } catch {
+      alphaLen = 29;
+    }
+  }
+  const bits = BOOK_CONTENT_SYMBOLS * Math.log2(Math.max(2, alphaLen));
+  const mbit = (bits / 1e6).toFixed(1);
+  // Decimal magnitude of a B-bit integer: ~10^(B · log10 2).
+  const log10 = bits * Math.log10(2);
+  const exp = Math.round(log10);
+  return {
+    pages: String(PAGES_PER_BOOK),
+    cells: BOOK_CONTENT_SYMBOLS.toLocaleString(getLocale()),
+    mbit: `≈${mbit}`,
+    mag: `≈10^${exp.toLocaleString(getLocale())}`,
+  };
+}
+
+function findProgressText(phase) {
+  const key =
+    phase === "project"
+      ? "search.mosaic.progressProject"
+      : phase === "warm"
+        ? "search.mosaic.progressWarm"
+        : phase === "construct"
+          ? "search.mosaic.progressConstruct"
+          : phase === "score"
+            ? "search.mosaic.progressScoreProof"
+            : "search.mosaic.progressInvert";
+  if (phase === "warm") {
+    return t(key, { slow: t("search.canTakeAFew") });
+  }
+  return t(key);
+}
+
+/** Human elapsed for Find results (`took 4m 57s`). */
+function formatFindElapsed(ms) {
+  if (ms == null || !Number.isFinite(ms) || ms < 0) return "";
+  const sec = Math.round(ms / 1000);
+  if (sec < 60) return t("search.mosaic.elapsedSec", { n: String(sec) });
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return t("search.mosaic.elapsedMinSec", { m: String(m), s: String(s) });
+}
+
+/**
+ * Letter mosaic → book-linked invert → proof RGBA.
+ * Runs in a dedicated WASM worker so the UI thread stays responsive;
+ * falls back to main-thread WASM if workers are unavailable.
+ */
+function runPhotoCandidates(modeAtStart, findBtn) {
+  void (async () => {
+    const t0 = performance.now();
+    const uiTrace = createFindTrace("ui", {
+      alphabetId: S.alphabetId,
+      ...findSizeVars(),
+      rgbaBytes: reshaped?.rgba?.byteLength ?? 0,
+    });
+    try {
+      if (mosaicMode !== modeAtStart || !reshaped) return;
+      applyUniverseFromInput(el("universe")?.value);
+      const p = readParams();
+      const universe = get_universe();
+
+      setModeResult({ progressPhase: "project" });
+      uiTrace.phase("project", { universe: String(universe) });
+      if (findBtn) findBtn.textContent = t("search.mosaic.searching");
+      await yieldToUi();
+      if (mosaicMode !== modeAtStart) return;
+
+      let located;
+      try {
+        uiTrace.phase("await-pool");
+        located = await mosaicFindBookAsync(
+          reshaped.rgba,
+          S.alphabetId,
+          p.hue,
+          p.chroma,
+          p.light,
+          universe,
+          {
+            onProgress: (phase) => {
+              if (mosaicMode !== modeAtStart) return;
+              uiTrace.note(`ui progress: ${phase}`);
+              setModeResult({ progressPhase: phase });
+            },
+          },
+        );
+      } catch (err) {
+        const msg = typeof err === "string" ? err : err?.message || String(err);
+        if (/cancelled/i.test(msg)) {
+          uiTrace.fail(err);
+          return;
+        }
+        uiTrace.fail(err);
+        setModeResult({ error: msg || t("search.mosaic.noHits") });
+        return;
+      }
+      if (mosaicMode !== modeAtStart) return;
+
+      let decoded;
+      try {
+        decoded = JSON.parse(located.resultsJson);
+      } catch {
+        uiTrace.fail("results JSON parse failed");
+        setModeResult({ error: t("search.mosaic.noHits") });
+        return;
+      }
+      const hit = decoded?.results?.[0];
+      if (!decoded?.ok || !hit || !located.bookRgba?.length || !located.flat) {
+        uiTrace.fail(decoded?.error || "no hit / missing proof");
+        setModeResult({
+          error: decoded?.error || t("search.mosaic.noHits"),
+        });
+        return;
+      }
+
+      const elapsedMs = performance.now() - t0;
+      uiTrace.done({
+        book: hit.book,
+        flatLen: located.flat.length,
+        w: located.width,
+        h: located.height,
+        elapsedMs: Math.round(elapsedMs),
+      });
+      setModeResult({
+        hits: [{ ...hit, alphabet: hit.alphabet ?? S.alphabetId }],
+        flat: located.flat,
+        bookRgba: located.bookRgba,
+        mosaicRgba: located.mosaicRgba || null,
+        diffRgba: located.diffRgba,
+        diffW: located.width,
+        diffH: located.height,
+        elapsedMs,
+      });
+    } catch (err) {
+      console.error(err);
+      uiTrace.fail(err);
+      if (mosaicMode === modeAtStart) {
+        setModeResult({ error: t("search.error.unknown") });
+      }
+    } finally {
+      if (findBtn) {
+        findBtn.disabled = false;
+        findBtn.textContent = t("search.mosaic.find");
+      }
+    }
+  })();
+}
+
 /** Full address fallback when IndexedDB handoff is unavailable. */
 function photoPermalink(hit) {
-  const z = BigInt(hit.z);
-  const n = BigInt(hit.n);
+  const zW = coordForWasm(hit.z);
+  const nW = coordForWasm(hit.n);
   const alphabet = hit.alphabet ?? S.alphabetId;
-  const hash = node_hash_hex(String(z), String(n));
-  return permalink(z, n, hash, alphabet, Number(hit.book), 1, S.universeName, null, {
+  const hash = node_hash_hex(zW, nW);
+  return permalink(zW, nW, hash, alphabet, Number(hit.book), 1, S.universeName, null, {
     image: true,
   });
 }
 
 /** Prefer short `&bo=` share — full Basile z/n blow past clipboard / paste limits. */
 async function photoShareUrl(hit, proof = {}) {
+  const d = dims();
   const bookOpenId = await stashBookOpen(hit, {
+    flat: proof.flat || null,
     imageRgba: proof.bookRgba || null,
-    imageW: proof.diffW || 0,
-    imageH: proof.diffH || 0,
+    imageW: proof.diffW || d.w,
+    imageH: proof.diffH || d.h,
   });
   return bookOpenShareUrl(bookOpenId, {
     book: hit.book,
@@ -718,20 +1079,26 @@ async function photoShareUrl(hit, proof = {}) {
 
 async function goToPhotoHit(hit, proof = {}) {
   if (!hit) return;
+  const box = el("findResults");
+  const prev = box?.querySelector(".find-busy");
+  if (prev) prev.remove();
+  const busy = document.createElement("p");
+  busy.className = "find-dim find-busy";
+  busy.textContent = t("search.mosaic.handoff");
+  box?.prepend(busy);
   try {
-    window.open(
-      await photoShareUrl(hit, proof),
-      "_blank",
-      "noopener,noreferrer",
-    );
+    await yieldToUi();
+    const url = await photoShareUrl(hit, proof);
+    window.open(url, "_blank", "noopener,noreferrer");
   } catch (err) {
     console.error(err);
-    // Fallback: full permalink if IndexedDB handoff fails.
     try {
       window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
     } catch (err2) {
       console.error(err2);
     }
+  } finally {
+    busy.remove();
   }
 }
 
@@ -751,36 +1118,48 @@ function paintPhotoHits(box, hits, proof = {}) {
     proof.diffH &&
     proof.bookRgba.length === proof.diffRgba.length
   );
-  const intro = t("search.mosaic.resultsIntroBest");
+  const elapsed = formatFindElapsed(proof.elapsedMs);
+  const intro = elapsed
+    ? `${t("search.mosaic.resultsIntroBest")} · ${elapsed}`
+    : t("search.mosaic.resultsIntroBest");
   const { rms, mae, corr, isExact } = formatMetricTriplet(hit);
   const exact = isExact
     ? `<span class="mosaic-hit-ok" tabindex="0" data-tip="${escapeHtml(
-        t("search.babel.tip.exactOk"),
-      )}">${escapeHtml(t("search.babel.exactOk"))}</span>`
+        t("search.mosaic.tip.exactOk"),
+      )}">${escapeHtml(t("search.mosaic.exactOk"))}</span>`
     : "";
   const label = !isExact && hit.label
     ? `<span class="mosaic-hit-label">${escapeHtml(hit.label)}</span>`
     : "";
   const metrics = `<span class="mosaic-hit-metrics">
         <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
-          t("search.babel.tip.rms"),
+          t("search.mosaic.tip.rms"),
         )}">${escapeHtml(t("search.babel.metric.rms", { n: rms }))}</span>
         <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
-          t("search.babel.tip.mae"),
+          t("search.mosaic.tip.mae"),
         )}">${escapeHtml(t("search.babel.metric.mae", { n: mae }))}</span>
         <span class="mosaic-hit-metric" role="note" tabindex="0" data-tip="${escapeHtml(
-          t("search.babel.tip.corr"),
+          t("search.mosaic.tip.corr"),
         )}">${escapeHtml(t("search.babel.metric.corr", { n: corr }))}</span>
       </span>`;
+  const thumbRgba = proof.bookRgba?.length
+    ? proof.bookRgba
+    : proof.mosaicRgba?.length
+      ? proof.mosaicRgba
+      : null;
+  const thumbHtml = thumbRgba
+    ? `<div class="mosaic-hit-thumbs">
+        <div class="mosaic-hit-thumb-wrap">
+          <canvas class="mosaic-hit-thumb mosaic-hit-thumb-found" width="72" height="58" aria-label="${escapeHtml(
+            t("search.mosaic.thumbMosaicAlt"),
+          )}"></canvas>
+          <span class="mosaic-hit-thumb-cap">${escapeHtml(t("search.mosaic.thumbMosaic"))}</span>
+        </div>
+      </div>`
+    : "";
   box.innerHTML = `<p class="find-dim">${escapeHtml(intro)}</p>
     <div class="mosaic-hit" data-i="0">
-      <div class="mosaic-hit-thumbs">
-        <div class="mosaic-hit-thumb-wrap">
-          <canvas class="mosaic-hit-thumb mosaic-hit-thumb-book" width="72" height="58" aria-label="${escapeHtml(
-            t("search.mosaic.thumbAlt"),
-          )}"></canvas>
-        </div>
-      </div>
+      ${thumbHtml}
       <div class="mosaic-hit-body">
         <div class="mosaic-hit-main">
           ${metrics}
@@ -798,12 +1177,22 @@ function paintPhotoHits(box, hits, proof = {}) {
           { id: "go", label: t("search.go") },
           { id: "link", label: t("actions.copy") },
           ...(canCompare
-            ? [{ id: "diff", label: t("search.babel.compare.checkDiff") }]
+            ? [{ id: "diff", label: t("search.mosaic.compare.checkDiff") }]
             : []),
         ]).replace(
           'class="find-row find-actions"',
           'class="find-row find-actions" data-i="0"',
         )}
+        <div class="mosaic-palette-block mosaic-hit-palette">
+          <p class="find-dim mosaic-palette-note">${escapeHtml(
+            t("search.mosaic.resultPalette"),
+          )}</p>
+          <div
+            class="find-palette-gradient mosaic-hit-palette-strip"
+            role="img"
+            aria-label="${escapeHtml(t("search.mosaic.resultPalette"))}"
+          ></div>
+        </div>
       </div>
     </div>`;
   box.classList.add("show");
@@ -813,12 +1202,21 @@ function paintPhotoHits(box, hits, proof = {}) {
         diffRgba: proof.diffRgba,
         w: proof.diffW,
         h: proof.diffH,
+        kind: "photo",
       }
     : null;
   const row = box.querySelector(".mosaic-hit");
-  const bookThumb = row?.querySelector("canvas.mosaic-hit-thumb-book");
-  if (bookThumb && proof.bookRgba) {
-    paintCanvas(bookThumb, proof.bookRgba, proof.diffW, proof.diffH, 72);
+  const foundThumb = row?.querySelector("canvas.mosaic-hit-thumb-found");
+  if (foundThumb && thumbRgba && proof.diffW && proof.diffH) {
+    paintCanvas(foundThumb, thumbRgba, proof.diffW, proof.diffH, 72);
+  }
+  const hitStrip = row?.querySelector(".mosaic-hit-palette-strip");
+  if (hitStrip) {
+    const hitAccent = letterAccentForHit(hit);
+    const hitAlpha = hit.alphabet ?? S.alphabetId;
+    const grad = findPaletteGradientCss(hitAccent, hitAlpha);
+    hitStrip.style.backgroundImage = grad || "none";
+    hitStrip.style.backgroundColor = grad ? "transparent" : "";
   }
   const handlers = {
     go: () => {
@@ -826,7 +1224,13 @@ function paintPhotoHits(box, hits, proof = {}) {
     },
     link: (_ev, btn) => {
       void (async () => {
+        const box = el("findResults");
+        const busy = document.createElement("p");
+        busy.className = "find-dim find-busy";
+        busy.textContent = t("search.mosaic.handoff");
+        box?.prepend(busy);
         try {
+          await yieldToUi();
           await copyText(await photoShareUrl(hit, proof), btn, t("common.copied"));
         } catch (err) {
           console.error(err);
@@ -835,6 +1239,8 @@ function paintPhotoHits(box, hits, proof = {}) {
           } catch (err2) {
             console.error(err2);
           }
+        } finally {
+          busy.remove();
         }
       })();
     },
@@ -876,13 +1282,13 @@ function formatMetricTriplet(r) {
 
 /** Full address fallback when IndexedDB handoff is unavailable. */
 function babelPermalink(hit, { sameUniverse = false, embedId = null } = {}) {
-  const z = BigInt(hit.z);
-  const n = BigInt(hit.n);
-  const hash = node_hash_hex(String(z), String(n));
+  const zW = coordForWasm(hit.z);
+  const nW = coordForWasm(hit.n);
+  const hash = node_hash_hex(zW, nW);
   // Prefer stamped export name on same-universe round-trip; else current session.
   const uni =
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
-  return permalink(z, n, hash, hit.alphabet, Number(hit.book), 1, uni, null, {
+  return permalink(zW, nW, hash, hit.alphabet, Number(hit.book), 1, uni, null, {
     image: true,
     embedId,
   });
@@ -901,17 +1307,7 @@ async function stashBabelEmbed({ flat, pageSpan, imageRgba, imageW, imageH }) {
 }
 
 /** Short SHA-256 of the decoded flat — identity check when mosaics look like noise. */
-async function contentSeal(flat) {
-  if (!flat || !globalThis.crypto?.subtle) return null;
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(flat),
-  );
-  return [...new Uint8Array(buf)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 12);
-}
+// contentSeal imported from png-babel.js
 
 function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
   if (!hits?.length) {
@@ -938,11 +1334,25 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
       seed,
     },
   );
-  // Only prose besides the numeric/visual report: the results intro line.
+  const verify = proof.verify || { sealed: false, ok: null };
+  let verifyLine = "";
+  if (verify.sealed && verify.ok) {
+    verifyLine = `<div class="find-dim mosaic-hit-ok">${escapeHtml(
+      t("search.babel.verifyOk"),
+    )}</div>`;
+  } else if (verify.sealed && verify.ok === false) {
+    verifyLine = `<div class="find-dim search-error">${escapeHtml(
+      t("search.babel.verifyFail"),
+    )}</div>`;
+  } else {
+    verifyLine = `<div class="find-dim">${escapeHtml(
+      t("search.babel.verifyLegacy"),
+    )}</div>`;
+  }
   const sealLine = proof.seal
-    ? `<div class="find-dim mosaic-hit-seal" tabindex="0" data-tip="${escapeHtml(
-        t("search.babel.tip.seal"),
-      )}">${escapeHtml(t("search.babel.seal", { seal: proof.seal }))}</div>`
+    ? `<div class="find-dim mosaic-hit-seal">${escapeHtml(
+        t("search.babel.seal", { seal: proof.seal }),
+      )}</div>`
     : "";
   const canCompare = !!(
     proof.reprojectRgba?.length &&
@@ -951,15 +1361,18 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
     proof.diffH &&
     proof.reprojectRgba.length === proof.diffRgba.length
   );
+  /** Trust stamp coords only when sealed proof passes (or legacy unsealed). */
+  const trustStamp = !verify.sealed || verify.ok === true;
   const rows = hits
     .map((r, i) => {
       const { rms, mae, corr, isExact } = formatMetricTriplet(r);
-      const exact = isExact
+      const showExact = isExact && trustStamp && (sameUniverse ? verify.ok !== false : true);
+      const exact = showExact
         ? `<span class="mosaic-hit-ok" tabindex="0" data-tip="${escapeHtml(
             t("search.babel.tip.exactOk"),
           )}">${escapeHtml(t("search.babel.exactOk"))}</span>`
         : "";
-      const label = !isExact && r.label
+      const label = !showExact && r.label
         ? `<span class="mosaic-hit-label">${escapeHtml(r.label)}</span>`
         : "";
       const metrics = `<span class="mosaic-hit-metrics">
@@ -973,6 +1386,27 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
               t("search.babel.tip.corr"),
             )}">${escapeHtml(t("search.babel.metric.corr", { n: corr }))}</span>
           </span>`;
+      const actions = trustStamp
+        ? findActionRow([
+            { id: "go", label: t("search.go") },
+            { id: "link", label: t("actions.copy") },
+            ...(canCompare
+              ? [{ id: "diff", label: t("search.babel.compare.checkDiff") }]
+              : []),
+          ]).replace(
+            'class="find-row find-actions"',
+            `class="find-row find-actions" data-i="${i}"`,
+          )
+        : `<p class="find-dim search-error">${escapeHtml(t("search.babel.verifyBlocked"))}</p>${
+            canCompare
+              ? findActionRow([
+                  { id: "diff", label: t("search.babel.compare.checkDiff") },
+                ]).replace(
+                  'class="find-row find-actions"',
+                  `class="find-row find-actions" data-i="${i}"`,
+                )
+              : ""
+          }`;
       return `<div class="mosaic-hit" data-i="${i}">
         <div class="mosaic-hit-thumbs">
           <div class="mosaic-hit-thumb-wrap">
@@ -994,17 +1428,9 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
           )} · ${escapeHtml(
             t("search.mosaic.hitBook", { book: String(Number(r.book) + 1) }),
           )} · ${escapeHtml(formatAlphabetSymbolLabel(r.alphabet, t))}</div>
+          ${verifyLine}
           ${sealLine}
-          ${findActionRow([
-            { id: "go", label: t("search.go") },
-            { id: "link", label: t("actions.copy") },
-            ...(canCompare
-              ? [{ id: "diff", label: t("search.babel.compare.checkDiff") }]
-              : []),
-          ]).replace(
-            'class="find-row find-actions"',
-            `class="find-row find-actions" data-i="${i}"`,
-          )}
+          ${actions}
         </div>
       </div>`;
     })
@@ -1017,6 +1443,7 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
         diffRgba: proof.diffRgba,
         w: proof.diffW,
         h: proof.diffH,
+        kind: "babel",
       }
     : null;
   box.querySelectorAll(".mosaic-hit").forEach((row) => {
@@ -1026,15 +1453,16 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
     if (srcThumb && reshaped?.rgba) {
       paintCanvas(srcThumb, reshaped.rgba, reshaped.w, reshaped.h, 72);
     }
-    const handlers = {
-      go: () => {
+    const handlers = {};
+    if (trustStamp) {
+      handlers.go = () => {
         void goToBabelHit(hit, sameUniverse, flat);
-      },
-      link: (_ev, btn) => {
+      };
+      handlers.link = (_ev, btn) => {
         void (async () => {
           try {
             await copyText(
-              await babelShareUrl(hit, { sameUniverse }),
+              await babelShareUrl(hit, { sameUniverse, flat }),
               btn,
               t("common.copied"),
             );
@@ -1051,26 +1479,37 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
             }
           }
         })();
-      },
-    };
+      };
+    }
     if (canCompare) {
       handlers.diff = () => {
         openBabelCompare();
       };
     }
-    wireFindActions(row, handlers);
+    if (Object.keys(handlers).length) wireFindActions(row, handlers);
   });
 }
 
-async function babelShareUrl(hit, { sameUniverse = false, embedId = null } = {}) {
+async function babelShareUrl(
+  hit,
+  { sameUniverse = false, embedId = null, flat = null } = {},
+) {
   const uni =
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
-  // Cache upload / reproject pixels so open skips virgin book_image.
+  // Cache upload pixels + locate flat so open/save can seal without re-projecting
+  // (upload was painted with the export gallery’s accent, not the destination’s).
   const bookOpenId = await stashBookOpen(hit, {
     universe: uni,
     imageRgba: reshaped?.rgba || null,
     imageW: reshaped?.w || 0,
     imageH: reshaped?.h || 0,
+    flat: typeof flat === "string" && flat.length ? flat : null,
+    scope:
+      hit.scope === "page" || hit.scope === "book"
+        ? hit.scope
+        : babelMeta?.scope === "page"
+          ? "page"
+          : "book",
   });
   // Prefer short handoff — full Basile address is multi-KB.
   let url = bookOpenShareUrl(bookOpenId, {
@@ -1098,7 +1537,7 @@ async function goToBabelHit(hit, sameUniverse = false, flat = null) {
       });
     }
     window.open(
-      await babelShareUrl(hit, { sameUniverse, embedId }),
+      await babelShareUrl(hit, { sameUniverse, embedId, flat }),
       "_blank",
       "noopener,noreferrer",
     );
@@ -1124,155 +1563,6 @@ export function clearMosaicResults() {
   paintModeResult();
 }
 
-function runPhotoCandidates(modeAtStart, findBtn) {
-  void (async () => {
-    try {
-      if (mosaicMode !== modeAtStart || !reshaped) return;
-      const p = readParams();
-
-      setModeResult({ progress: t("search.mosaic.progressPacks") });
-      await yieldToUi();
-      if (mosaicMode !== modeAtStart) return;
-
-      let packsDecoded;
-      try {
-        packsDecoded = JSON.parse(
-          mosaic_candidate_packs_json(
-            reshaped.rgba,
-            S.alphabetId,
-            p.hue,
-            p.chroma,
-            p.light,
-            p.space,
-            p.dither,
-            p.paletteKind,
-          ),
-        );
-      } catch {
-        setModeResult({ error: t("search.mosaic.noHits") });
-        return;
-      }
-      const packs = packsDecoded?.packs;
-      if (!packsDecoded?.ok || !packs?.length) {
-        setModeResult({
-          error: packsDecoded?.error || t("search.mosaic.noHits"),
-        });
-        return;
-      }
-
-      /** @type {object[]} */
-      const located = [];
-      for (let i = 0; i < packs.length; i++) {
-        if (mosaicMode !== modeAtStart) return;
-        setModeResult({
-          progress: t("search.mosaic.progressLocate", {
-            i: String(i + 1),
-            n: String(packs.length),
-          }),
-        });
-        await yieldToUi();
-        if (mosaicMode !== modeAtStart) return;
-        const pack = packs[i];
-        let ev;
-        try {
-          ev = JSON.parse(
-            mosaic_candidate_eval_json(
-              reshaped.rgba,
-              S.alphabetId,
-              pack.hue,
-              pack.chroma,
-              pack.light,
-              pack.space_threshold,
-              !!pack.dither,
-              p.paletteKind,
-              pack.label || "",
-            ),
-          );
-        } catch {
-          continue;
-        }
-        const hit = ev?.results?.[0];
-        if (!ev?.ok || !hit) continue;
-        const key = `${hit.z}|${hit.n}|${hit.book}`;
-        if (located.some((h) => `${h.z}|${h.n}|${h.book}` === key)) continue;
-        located.push(hit);
-      }
-
-      if (!located.length) {
-        setModeResult({ error: t("search.mosaic.noHits") });
-        return;
-      }
-
-      // Re-rank by virgin book colour map ↔ upload (matches thumb + check-diff).
-      let best = null;
-      let bestBookRgba = null;
-      let bestDiff = null;
-      let bestW = 0;
-      let bestH = 0;
-      for (let i = 0; i < located.length; i++) {
-        if (mosaicMode !== modeAtStart) return;
-        setModeResult({
-          progress: t("search.mosaic.progressScore", {
-            i: String(i + 1),
-            n: String(located.length),
-          }),
-        });
-        await yieldToUi();
-        if (mosaicMode !== modeAtStart) return;
-        const hit = located[i];
-        const alphabet = hit.alphabet ?? S.alphabetId;
-        const bookImg = await generateBookImageRgba({
-          z: hit.z,
-          n: hit.n,
-          book: hit.book,
-          alphabetId: alphabet,
-          universe: get_universe(),
-        });
-        if (mosaicMode !== modeAtStart) return;
-        const bookRgba = bookImg.pixels;
-        const fit = rgbFitTriple(reshaped.rgba, bookRgba);
-        const scored = {
-          ...hit,
-          percent: fit.percent,
-          mae: fit.mae,
-          corr: fit.corr,
-          _rank: fit.rank,
-        };
-        if (!best || fit.rank > best._rank) {
-          best = scored;
-          bestBookRgba = bookRgba;
-          bestW = bookImg.width;
-          bestH = bookImg.height;
-          bestDiff = rgbaAbsDiff(reshaped.rgba, bookRgba);
-        }
-      }
-
-      if (!best || !bestBookRgba) {
-        setModeResult({ error: t("search.mosaic.noHits") });
-        return;
-      }
-      if (mosaicMode !== modeAtStart) return;
-      setModeResult({
-        hits: [best],
-        bookRgba: bestBookRgba,
-        diffRgba: bestDiff,
-        diffW: bestW,
-        diffH: bestH,
-      });
-    } catch (err) {
-      console.error(err);
-      if (mosaicMode === modeAtStart) {
-        setModeResult({ error: t("search.error.unknown") });
-      }
-    } finally {
-      if (findBtn) {
-        findBtn.disabled = false;
-        findBtn.textContent = t("search.mosaic.find");
-      }
-    }
-  })();
-}
-
 async function runBabelLocate(modeAtStart, findBtn) {
   try {
     if (mosaicMode !== modeAtStart || !babelMeta) return;
@@ -1282,7 +1572,12 @@ async function runBabelLocate(modeAtStart, findBtn) {
       S.alphabetId = alphabetId;
       syncLensControls();
     }
-    const accent = room_accent(String(babelMeta.z), String(babelMeta.n), babelMeta.u);
+    const accent = room_accent(
+      coordForWasm(babelMeta.z),
+      coordForWasm(babelMeta.n),
+      babelMeta.u,
+    );
+    await yieldToUi();
     let locate;
     try {
       locate = mosaic_babel_json(
@@ -1329,30 +1624,68 @@ async function runBabelLocate(modeAtStart, findBtn) {
     const seal = await contentSeal(flat);
     if (mosaicMode !== modeAtStart) return;
     const sameUniverse = BigInt(get_universe()) === BigInt(babelMeta.u);
-    const proof = { flat, seal, reprojectRgba, diffRgba, diffW, diffH };
-    if (sameUniverse) {
+    const savedU = get_universe();
+    let roomHash;
+    try {
+      set_universe(
+        typeof babelMeta.u === "bigint" ? babelMeta.u : BigInt(babelMeta.u),
+      );
+      roomHash = node_hash_hex(
+        coordForWasm(babelMeta.z),
+        coordForWasm(babelMeta.n),
+      );
+    } finally {
+      set_universe(savedU);
+    }
+    const verify = verifyBabelProof(babelMeta, { seal, roomHash });
+    const proof = {
+      flat,
+      seal,
+      verify,
+      reprojectRgba,
+      diffRgba,
+      diffW,
+      diffH,
+    };
+    // Same-universe: go to stamp coords only when seal+hash pass (or legacy unsealed).
+    const trustStamp = !verify.sealed || verify.ok === true;
+    if (sameUniverse && trustStamp) {
       const base = decoded.results[0];
+      const scope = babelMeta.scope === "book" ? "book" : "page";
       setModeResult({
         sameUniverse: true,
         ...proof,
         hits: [
           {
             ...base,
-            z: String(babelMeta.z),
-            n: String(babelMeta.n),
+            z: encodeCoordParam(babelMeta.z),
+            n: encodeCoordParam(babelMeta.n),
             book: babelMeta.b,
             page: 1,
             page_span: base.page_span ?? 1,
             label: "export origin",
             alphabet: alphabetId,
+            scope,
           },
         ],
+      });
+    } else if (sameUniverse && !trustStamp) {
+      // Tampered: show rematch hit for metrics, but go/link stay blocked.
+      setModeResult({
+        sameUniverse: true,
+        ...proof,
+        hits: decoded.results.map((h) => ({
+          ...h,
+          scope: babelMeta.scope === "book" ? "book" : "page",
+          alphabet: alphabetId,
+          label: "untrusted stamp",
+        })),
       });
     } else {
       setModeResult({
         sameUniverse: false,
         ...proof,
-        hits: decoded.results,
+        hits: decoded.results.map((h) => ({ ...h, scope: h.scope || "page" })),
       });
     }
   } catch (err) {
@@ -1375,9 +1708,13 @@ function runMosaicSearch() {
     const { w, h } = dims();
     let err = ingested.error || t("search.mosaic.needImage");
     if (mosaicMode === "babel") {
-      err = !babelMeta
-        ? t("search.babel.notBabel")
-        : t("search.babel.needExact", { w: String(w), h: String(h) });
+      if (!lastBitmap) {
+        err = t("search.babel.needExact", { w: String(w), h: String(h) });
+      } else if (!babelMeta) {
+        err = t("search.babel.notBabel");
+      } else {
+        err = t("search.babel.needExact", { w: String(w), h: String(h) });
+      }
     }
     setModeResult({ error: err });
     return;
@@ -1387,12 +1724,11 @@ function runMosaicSearch() {
     findBtn.disabled = true;
     findBtn.textContent = t("search.mosaic.searching");
   }
-  setModeResult({
-    progress:
-      mosaicMode === "babel"
-        ? t("search.babel.progress")
-        : t("search.mosaic.progress"),
-  });
+  if (mosaicMode === "babel") {
+    setModeResult({ progress: t("search.babel.progress") });
+  } else {
+    setModeResult({ progressPhase: "project" });
+  }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (modeAtStart === "babel") void runBabelLocate(modeAtStart, findBtn);
@@ -1403,7 +1739,6 @@ function runMosaicSearch() {
 
 /** Wire mosaic UI (call once from controls). */
 export function wireMosaicSearch() {
-  syncMosaicKnobsFromGallery();
   syncMosaicModeUI(PHOTO_SEARCH_TAB_ENABLED ? "photo" : "babel");
 
   el("mosaicFile")?.addEventListener("change", async (ev) => {
@@ -1412,16 +1747,7 @@ export function wireMosaicSearch() {
     if (file) await onFileChosen(file);
   });
 
-  [
-    "mosaicHue",
-    "mosaicChroma",
-    "mosaicLight",
-    "mosaicSpace",
-    "mosaicBrightness",
-    "mosaicContrast",
-    "mosaicDither",
-    "mosaicPaletteKind",
-  ].forEach((id) => {
+  ["mosaicBrightness", "mosaicContrast"].forEach((id) => {
     const node = el(id);
     if (!node) return;
     node.addEventListener("input", () => schedulePreview());

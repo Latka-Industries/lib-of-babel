@@ -8,6 +8,7 @@
 use num_bigint::BigInt;
 use wasm_bindgen::prelude::*;
 
+use crate::basile::book_symbols_at;
 use crate::config::{
     CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, alphabet,
 };
@@ -215,10 +216,36 @@ pub fn book_image_search(
     )
 }
 
-/// Native helper for tests / mosaic (`BigInt` coords).
+/// Native helper — **page-linked** colour map (`BigInt` coords).
 #[must_use]
 pub fn book_image_at(z: &BigInt, n: &BigInt, book_index: u32, alphabet_id: u32) -> BookImage {
     book_image_inner(z, n, book_index, alphabet_id, None)
+}
+
+/// **Book-linked** colour map for photo Find / Babelgram proof (matches
+/// [`crate::basile::invert_book_symbols`]).
+#[must_use]
+pub fn book_image_book_scope_at(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+) -> BookImage {
+    let pixels =
+        book_image_book_scope_pages_inner(z, n, book_index, alphabet_id, 0, PAGES_PER_BOOK);
+    let (width, height) = book_grid_dims();
+    BookImage {
+        width,
+        height,
+        pixels,
+    }
+}
+
+/// WASM: full-book colour map under the **book-linked** Basile map (`z`/`n` may be `c…`).
+#[wasm_bindgen]
+#[must_use]
+pub fn book_image_book_scope(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> BookImage {
+    book_image_book_scope_at(&parse_coord(z), &parse_coord(n), book_index, alphabet_id)
 }
 
 /// Page-range RGBA strip for worker parallelization (THI-144).
@@ -298,6 +325,7 @@ fn book_image_pages_inner(
     let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
     let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
 
+    // Page-linked: each page is an independent virgin page (fast wander).
     let mut pixels = vec![0u8; page_count * PAGE_CONTENT_SYMBOLS * 4];
     let mut px_idx = 0;
     for page in start..end {
@@ -324,6 +352,53 @@ fn book_image_pages_inner(
             px[3] = 255;
             px_idx += 1;
         }
+    }
+
+    pixels
+}
+
+/// Book-linked paint — used only for mosaic Find proof (expensive).
+fn book_image_book_scope_pages_inner(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    page_start: u32,
+    page_end: u32,
+) -> Vec<u8> {
+    let start = page_start.min(PAGES_PER_BOOK);
+    let end = page_end.min(PAGES_PER_BOOK).max(start);
+    let page_count = (end - start) as usize;
+    let universe_seed = universe();
+
+    let ab = alphabet(alphabet_id);
+    let len = ab.len();
+    let space_idx = len - 3;
+
+    let fp = node_fingerprint(z, n, universe_seed);
+    let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
+    let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
+    let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
+    let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
+
+    let book = book_symbols_at(z, n, book_index, universe_seed, alphabet_id, len as u32);
+    let sym_start = start as usize * PAGE_CONTENT_SYMBOLS;
+    let sym_end = end as usize * PAGE_CONTENT_SYMBOLS;
+    let slice = &book[sym_start..sym_end];
+
+    let mut pixels = vec![0u8; page_count * PAGE_CONTENT_SYMBOLS * 4];
+    for (px_idx, &sym) in slice.iter().enumerate() {
+        let idx = sym as usize;
+        let rgb = if idx == space_idx {
+            SPACE_RGB
+        } else {
+            palette[idx]
+        };
+        let px = &mut pixels[px_idx * 4..(px_idx + 1) * 4];
+        px[0] = rgb[0];
+        px[1] = rgb[1];
+        px[2] = rgb[2];
+        px[3] = 255;
     }
 
     pixels
