@@ -15,7 +15,7 @@ does not recompute that ~megabit modulus work in the browser.
 
 - **Do not hand-edit.** Regenerate only.
 - **Regen:** `mise run gen-basile-scramble` (release binary; can take a few minutes).
-- **Smoke check:** `cargo run --release --bin gen_basile_scramble -- --verify-warm`
+- **Smoke check:** `mise run verify-basile-scramble` (`--verify-warm`; also part of `mise run check` / CI). Fails if warm takes >5s (baked path unused).
 - Host `cargo test` skips the blob (`cfg(test)`); WASM / normal builds load it.
 
 Other universes / alphabets still compute scramble on demand when needed.

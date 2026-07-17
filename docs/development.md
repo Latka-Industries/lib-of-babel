@@ -43,10 +43,11 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve |
 | `mise run serve` | serve `web/` only (no rebuild) |
 | `mise run test` | `cargo test` |
-| `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift |
+| `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift + baked scramble warm |
 | `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
 | `mise run gen-basile-scramble` | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
+| `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing) |
 | `mise run asset-sheet` | prints URL for `web/asset-sheet.html` (dev UI inventory via `mise run serve`; stripped from Pages) |
 | `mise run clean` | remove `target/` and `web/pkg` |
 

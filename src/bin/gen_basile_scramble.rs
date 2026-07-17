@@ -19,7 +19,17 @@ fn main() {
         eprintln!("warm_book_scramble (baked path if blob matches)…");
         let t0 = Instant::now();
         warm_book_scramble(universe_seed, alphabet_id, alpha_len);
-        eprintln!("warm done in {:.3}s", t0.elapsed().as_secs_f64());
+        let secs = t0.elapsed().as_secs_f64();
+        eprintln!("warm done in {secs:.3}s");
+        // Baked load is near-instant; uncached book scramble takes minutes.
+        // Fail CI / local check if we fell through to the slow path.
+        if secs > 5.0 {
+            eprintln!(
+                "error: warm took {secs:.1}s — expected baked blob load (<1s). \
+                 Is data/basile_book_scramble_u0.bin present and matching universe 0 + Basile?"
+            );
+            std::process::exit(1);
+        }
         return;
     }
 

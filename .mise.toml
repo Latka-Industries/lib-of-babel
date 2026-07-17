@@ -43,18 +43,23 @@ run = "cargo test"
 description = "cargo fmt"
 run = "cargo fmt --all"
 
+[tasks.verify-basile-scramble]
+description = "Warm default book scramble via baked blob (fail if slow / missing)"
+run = "cargo run --bin gen_basile_scramble -- --verify-warm"
+
+[tasks.gen-basile-scramble]
+description = "Bake default (universe 0 + Basile) book-map C/I/N into data/ (~2 MiB; release, slow once)"
+run = "cargo run --release --bin gen_basile_scramble"
+
 [tasks.check]
-description = "fmt + clippy (-D warnings) + tests + alphabet-pack drift"
+description = "fmt + clippy (-D warnings) + tests + alphabet-pack drift + baked scramble warm"
 run = [
   "cargo fmt --all -- --check",
   "cargo clippy --all-targets -- -D warnings",
   "cargo test",
   "mise run check-alphabets",
+  "mise run verify-basile-scramble",
 ]
-
-[tasks.gen-basile-scramble]
-description = "Bake default (universe 0 + Basile) book-map C/I/N into data/ (~2 MiB; release, slow once)"
-run = "cargo run --release --bin gen_basile_scramble"
 
 [tasks.asset-sheet]
 description = "UI asset sheet (tokens, chrome, find, mbit copy) — mise run serve/dev only; stripped from Pages"
