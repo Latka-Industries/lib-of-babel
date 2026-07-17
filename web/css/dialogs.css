@@ -556,8 +556,14 @@
   font-variant-caps: all-small-caps;
   letter-spacing: 0.06em;
   font-weight: 700;
-  /* accent-link is contrast-tuned per theme (dark→lighter gold, light→deeper gold). */
+  /* accent-link is contrast-tuned per theme; light gets a deeper mix below. */
   color: var(--accent-link);
+  /* Breathing room so the unit doesn’t crowd neighboring numbers/words. */
+  margin-inline: 0.12em;
+  padding-inline: 0.06em;
+}
+[data-theme="light"] .unit-mbit {
+  color: color-mix(in oklab, var(--accent) 42%, black);
 }
 .mbit-notice-actions {
   display: flex;
