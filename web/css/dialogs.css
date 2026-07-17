@@ -555,8 +555,9 @@
 .unit-mbit {
   font-variant-caps: all-small-caps;
   letter-spacing: 0.06em;
-  font-weight: 600;
-  color: color-mix(in oklab, var(--accent) 55%, var(--ink));
+  font-weight: 700;
+  /* accent-link is contrast-tuned per theme (dark→lighter gold, light→deeper gold). */
+  color: var(--accent-link);
 }
 .mbit-notice-actions {
   display: flex;
