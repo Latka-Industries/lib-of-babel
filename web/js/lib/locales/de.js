@@ -695,17 +695,17 @@ Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum ö
   "alphabet.blurb.West African":
     "N’Ko ist ein von rechts nach links laufendes Alphabet, 1949 von Solomana Kanté für Mandingsprachen geschaffen — eigenständige westafrikanische Schrift, weder Latein noch Arabisch.",
   "alphabet.blurb.Ethiopic":
-    "Die Geʿez-/äthiopische Schrift ist eine Abugida: jedes Zeichen ist eine Konsonant–Vokal-Silbe. Amharisch nutzt ein großes Fidel-Inventar; diese Linse ist eine kuratierte Auswahl unter dem Feistel-Größenlimit.",
+    "Die Geʿez-/äthiopische Schrift ist eine Abugida: jedes Zeichen ist eine Konsonant–Vokal-Silbe. Amharisch nutzt ein großes Fidel-Inventar; diese Linse ist eine kuratierte Auswahl unter dem Softcap der Linse.",
   "alphabet.blurb.African Latin":
     "Viele afrikanische Sprachen nutzen lateinische Orthographien aus Mission, Kolonialschule und späteren Reformen. Zusatzbuchstaben (ɓɗƙ, ẹọṣ, ịụ, …) markieren Laute, die einfaches a–z nicht schreibt. Swahili braucht oft keine Extras.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) ist das moderne offizielle Amazigh-Alphabet in Marokko, wiederbelebt aus älteren libysch-berberischen Zeichen. Geometrische Links-nach-rechts-Buchstaben, getrennt von Latein und Arabisch.",
   "alphabet.blurb.CJK":
-    "Ostasiatische Seiten unter dem Feistel-Softcap (4096 Zellen): japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
+    "Ostasiatische Seiten unter dem Softcap (4096 Zellen): japanisches Kana (Gojūon, ohne Dakuten), kuratierte Hangul-Silben und ein vereinfachtes Chinesisch-Frequenzpaket. Volles Unihan oder volles Hangul geht nicht als eine Linse.",
   "alphabet.blurb.Indic":
-    "Brahmische Abugidas Indiens als Unicode-Atome (Vokale, Konsonanten, Matras, Virama/Zeichen) plus Leerzeichen, Komma, Punkt. Feistel speichert keine Konjunkt-Tabellen; Seiten sind Buchstabenrauschen, keine Orthographie.",
+    "Brahmische Abugidas Indiens als Unicode-Atome (Vokale, Konsonanten, Matras, Virama/Zeichen) plus Leerzeichen, Komma, Punkt. Eine Linse speichert keine Konjunkt-Tabellen; Seiten sind Buchstabenrauschen, keine Orthographie.",
   "alphabet.blurb.Mongolic":
-    "Mongolische Sprachen der Steppe. Modernes Khalkha-Mongolisch in der Mongolei nutzt ein kyrillisches Alphabet mit ө und ү für vordere gerundete Vokale — dieselbe Zivilschriftfamilie wie Russisch, anderes Feistel-Inventar.",
+    "Mongolische Sprachen der Steppe. Modernes Khalkha-Mongolisch in der Mongolei nutzt ein kyrillisches Alphabet mit ө und ү für vordere gerundete Vokale — dieselbe Zivilschriftfamilie wie Russisch, anderes Linsen-Inventar.",
   "alphabet.blurb.Southeast Asian":
     "Festland- und See-Südostasien: Filipino und Vietnamesisch in Latein (ñ; đ und Tonvokale), Thai und Khmer als brahmischstämmige Abugidas mit selbst gehosteten Noto-Schriften. Seiten sind Glyphenprojektionen, keine Silbenorthographie.",
 

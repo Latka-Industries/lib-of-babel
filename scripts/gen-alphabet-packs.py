@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate Rust alphabet pack modules from data/alphabets/*.txt.
 
-Source of truth: one Feistel cell per line (no trailing space/comma/period).
+Source of truth: one alphabet cell per line (no trailing space/comma/period).
 The web UI loads cells from WASM (`alphabet_symbols_json`) — no JS mirror.
 
 Regenerate after editing those files:
@@ -67,7 +67,7 @@ def emit_rust(packs: list[tuple[str, str, list[str]]]) -> str:
     ]
     for _stem, const, cells in packs:
         full = [*cells, *TRAIL]
-        lines.append(f"/// {len(full)} Feistel cells (incl. space/comma/period).")
+        lines.append(f"/// {len(full)} alphabet cells (incl. space/comma/period).")
         lines.append(f"pub const {const}: &[&str] = &[")
         row: list[str] = []
         for cell in full:

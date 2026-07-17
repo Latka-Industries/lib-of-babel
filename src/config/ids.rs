@@ -1,4 +1,4 @@
-//! Stable alphabet lens ids (permalink / Feistel key).
+//! Stable alphabet lens ids (permalink / lens id).
 //!
 //! Prefer `id == glyph_count` when free; on collision use a free id ≥ 69
 //! (or a free slot that matches count, e.g. Hebrew = 30).

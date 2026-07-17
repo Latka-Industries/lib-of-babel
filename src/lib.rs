@@ -267,7 +267,7 @@ mod tests {
             let n = def.symbols.len();
             assert!(
                 (1..=MAX_ALPHABET_LEN as usize).contains(&n),
-                "{} glyph count {n} outside Feistel 1..={}",
+                "{} glyph count {n} outside alphabet length 1..={}",
                 def.name,
                 MAX_ALPHABET_LEN
             );

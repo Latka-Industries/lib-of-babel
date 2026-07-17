@@ -1,6 +1,6 @@
 # Alphabet pack source files
 
-One Feistel cell per line. Trailing space / comma / period are **not** listed —
+One alphabet cell per line. Trailing space / comma / period are **not** listed —
 `mise run gen-alphabets` appends them when emitting `src/config/generated/packs.rs`.
 
 The web UI does **not** mirror these files; it loads cells from WASM
@@ -34,4 +34,4 @@ mise run gen-alphabets
 | `vietnamese.txt` | 93 (96) | Latin + tone vowels; id `96` |
 | `japanese.txt` | 92 (95) | Hiragana + katakāna gojūon (ゐ/ゑ omitted); id `95` |
 
-Numbers are `.txt` line count, then Feistel length after gen appends ` ` `,` `.`.
+Numbers are `.txt` line count, then alphabet length after gen appends ` ` `,` `.`.

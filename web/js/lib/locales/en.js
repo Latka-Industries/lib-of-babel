@@ -690,17 +690,17 @@ Mbit rooms cannot be stored in a URL. Open any book in that room, save a Babelgr
   "alphabet.blurb.West African":
     "N’Ko is a right-to-left alphabet invented in 1949 by Solomana Kanté for Manding languages. It is indigenous West African writing — not Latin or Arabic — still taught and printed across the region.",
   "alphabet.blurb.Ethiopic":
-    "Geʿez (Ethiopic) script is an abugida: each character is a consonant–vowel syllable. Amharic, Ethiopia’s working language, uses a large fidel inventory; this lens is a curated set of common syllabographs under the Feistel size limit.",
+    "Geʿez (Ethiopic) script is an abugida: each character is a consonant–vowel syllable. Amharic, Ethiopia’s working language, uses a large fidel inventory; this lens is a curated set of common syllabographs under the alphabet soft cap.",
   "alphabet.blurb.African Latin":
     "Many African languages use Latin orthographies shaped by missionaries, colonial schooling, and later national reforms. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) mark sounds plain a–z cannot write. Swahili often needs no extras beyond a–z.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is the modern official Amazigh alphabet in Morocco, revived from older Libyco-Berber signs. Letters here are left-to-right geometric forms distinct from Latin and Arabic.",
   "alphabet.blurb.CJK":
-    "East Asian pages under the Feistel soft cell cap (4096): Japanese kana (gojūon, no dakuten), curated Hangul syllables, and Simplified + Traditional Chinese frequent-character packs. Full Unihan or full Hangul is still impossible as one lens.",
+    "East Asian pages under the soft cell cap (4096): Japanese kana (gojūon, no dakuten), curated Hangul syllables, and Simplified + Traditional Chinese frequent-character packs. Full Unihan or full Hangul is still impossible as one lens.",
   "alphabet.blurb.Indic":
-    "Brahmic abugidas of India as grapheme-cluster cells: independent vowels and consonants, plus curated consonant–matra units (no lone combining marks). Feistel still cannot store full conjunct akshara tables; pages are cluster noise, not composed orthography.",
+    "Brahmic abugidas of India as grapheme-cluster cells: independent vowels and consonants, plus curated consonant–matra units (no lone combining marks). A single lens still cannot store full conjunct akshara tables; pages are cluster noise, not composed orthography.",
   "alphabet.blurb.Mongolic":
-    "Mongolic languages of the steppe. Modern Khalkha Mongolian in Mongolia uses a Cyrillic alphabet with ө and ү for front rounded vowels — same civil-script family as Russian, different Feistel inventory.",
+    "Mongolic languages of the steppe. Modern Khalkha Mongolian in Mongolia uses a Cyrillic alphabet with ө and ү for front rounded vowels — same civil-script family as Russian, different lens inventory.",
   "alphabet.blurb.Southeast Asian":
     "Mainland and maritime Southeast Asia: Filipino and Vietnamese in Latin (ñ; đ and tone-marked vowels), Thai and Khmer as clustered abugida cells (base + attached marks; Noto faces). Pages are glyph projections, not syllable orthography.",
   // Per-lens blurbs (stable registry ids).
@@ -789,13 +789,13 @@ Mbit rooms cannot be stored in a URL. Open any book in that room, save a Babelgr
   "alphabet.lensBlurb.69":
     "Arabic abjad letters as abstract Unicode characters. Browser shaping (Noto Sans Arabic) joins them when the page is set right-to-left; hamza is included as a free glyph.",
   "alphabet.lensBlurb.70":
-    "Persian (Farsi) extends Arabic with پ چ ژ گ. Same RTL joining behaviour as the Arabic lens; the Feistel key differs so shelves are a different projection.",
+    "Persian (Farsi) extends Arabic with پ چ ژ گ. Same RTL joining behaviour as the Arabic lens; the lens id differs so shelves are a different projection.",
   "alphabet.lensBlurb.71":
     "N’Ko letters for Manding. Right-to-left and shaped by Noto Sans NKo — an African alphabet invented in the twentieth century, not a Latin transcription.",
   "alphabet.lensBlurb.234":
     "Amharic fidel: curated Geʿez syllabographs (common consonant–vowel orders). One character is one syllable cell — not Latin letters.",
   "alphabet.lensBlurb.72":
-    "Kiswahili commonly writes with plain a–z. Same glyphs as Basile, different lens id — a parallel Feistel alphabet for the coastal lingua franca.",
+    "Kiswahili commonly writes with plain a–z. Same glyphs as Basile, different lens id — a parallel alphabet lens for the coastal lingua franca.",
   "alphabet.lensBlurb.73":
     "Afrikaans Latin orthography adds several vowel accents (ê/ë/ô/…) used in standard spelling.",
   "alphabet.lensBlurb.74":

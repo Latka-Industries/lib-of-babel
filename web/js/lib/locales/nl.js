@@ -689,17 +689,17 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek 
   "alphabet.blurb.West African":
     "N’Ko is een rechts-naar-links-alfabet, in 1949 bedacht door Solomana Kanté voor Manding-talen — eigen West-Afrikaans schrift, geen Latijn of Arabisch.",
   "alphabet.blurb.Ethiopic":
-    "Het Geʿez-/Ethiopische schrift is een abugida: elk teken is een medeklinker–klinker-lettergreep. Amhaars gebruikt een grote fidel-voorraad; deze lens is een gecureerde selectie onder de Feistel-limiet.",
+    "Het Geʿez-/Ethiopische schrift is een abugida: elk teken is een medeklinker–klinker-lettergreep. Amhaars gebruikt een grote fidel-voorraad; deze lens is een gecureerde selectie onder de softcap van de lens.",
   "alphabet.blurb.African Latin":
     "Veel Afrikaanse talen gebruiken Latijnse orthografieën uit missie, koloniale school en latere hervormingen. Extra letters (ɓɗƙ, ẹọṣ, ịụ, …) markeren klanken die gewoon a–z niet schrijft. Swahili heeft vaak geen extras nodig.",
   "alphabet.blurb.Berber":
     "Tifinagh (Neo-Tifinagh / IRCAM) is het moderne officiële Amazigh-alfabet in Marokko, herleefd uit oudere Libisch-Berberse tekens. Geometrische links-naar-rechts-letters, los van Latijn en Arabisch.",
   "alphabet.blurb.CJK":
-    "Oost-Aziatische pagina’s onder het Feistel softcap (4096 cellen): Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
+    "Oost-Aziatische pagina’s onder het softcap (4096 cellen): Japans kana (gojūon, geen dakuten), gecureerde Hangul-lettergrepen en een vereenvoudigd Chinees frequentiepakket. Vol Unihan of vol Hangul past niet in één lens.",
   "alphabet.blurb.Indic":
-    "Brahmische abugida’s van India als Unicode-atomen (klinkers, medeklinkers, matras, virama/tekens) plus spatie, komma, punt. Feistel kan geen conjunct-tabellen; pagina’s zijn letterruis, geen spelling.",
+    "Brahmische abugida’s van India als Unicode-atomen (klinkers, medeklinkers, matras, virama/tekens) plus spatie, komma, punt. Een lens kan geen conjunct-tabellen; pagina’s zijn letterruis, geen spelling.",
   "alphabet.blurb.Mongolic":
-    "Mongoolse talen van de steppe. Modern Khalkha-Mongools in Mongolië gebruikt een Cyrillisch alfabet met ө en ү voor voorste geronde klinkers — dezelfde civiele-schriftfamilie als Russisch, andere Feistel-voorraad.",
+    "Mongoolse talen van de steppe. Modern Khalkha-Mongools in Mongolië gebruikt een Cyrillisch alfabet met ө en ү voor voorste geronde klinkers — dezelfde civiele-schriftfamilie als Russisch, andere lensvoorraad.",
   "alphabet.blurb.Southeast Asian":
     "Vasteland- en maritiem Zuidoost-Azië: Filipino en Vietnamees in Latijn (ñ; đ en toonklinkers), Thai en Khmer als Brahmisch-afstammende abugida’s met zelfgehoste Noto-fonts. Pagina’s zijn glyfprojecties, geen lettergreeporthografie.",
 

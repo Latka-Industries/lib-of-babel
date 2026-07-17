@@ -5,7 +5,7 @@ use super::DEFAULT_ALPHABET;
 use super::ids::ALPHABET_ID;
 use super::tables::ALPHABET_TABLE;
 
-/// Named alphabet lens (id is what permalinks / Feistel keys use).
+/// Named alphabet lens (id is what permalinks / lens ids use).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AlphabetDef {
     pub id: u32,

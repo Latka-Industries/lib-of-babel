@@ -116,7 +116,7 @@ pub(crate) fn build_glyph_palette(
 
 /// Photo-mosaic palette: non-space glyphs on a lightness ramp (structure-first).
 ///
-/// Reading colour maps ([`build_glyph_palette`]) scatter hues so Feistel text looks
+/// Reading colour maps ([`build_glyph_palette`]) scatter hues so alphabet text looks
 /// speckled. Photos need the opposite — nearby greys must stay nearby — so we place
 /// every non-space cell on an OKLCH lightness ladder with a subdued accent tint.
 pub(crate) fn build_photo_luma_palette(

@@ -21,7 +21,7 @@ export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newl
 export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS; // one page of content search
 export const TITLE_LEN = 24; // spine title length (mirror src/config/)
 
-// Legacy i64 bounds (Feistel-era UI clamp). Random walks still use a friendly
+// Legacy i64 bounds (pre-Basile UI clamp). Random walks still use a friendly
 // range; Basile search jumps use unbounded BigInt and must not clamp to these.
 export const I64_MIN = -9223372036854775808n;
 export const I64_MAX = 9223372036854775807n;
@@ -41,7 +41,7 @@ export const MOVE_ARROW = {
 
 /**
  * UI metadata for built-in lenses. Glyph cells: `alphabetCells(id)` → WASM.
- * `id` is the permalink/Feistel key (usually glyph count; some ids stay frozen after growth).
+ * `id` is the permalink/lens id (usually glyph count; some ids stay frozen after growth).
  * `native` — endonym; always shown in the picker (not UI-locale-translated).
  * `uiLocale` — optional chrome locale when this lens is active.
  * `rtl` / `script` / `lang` — presentation hints.
@@ -480,7 +480,7 @@ export function isTrailPunct(ch) {
 
 export const DEFAULT_ALPHABET_ID = 29;
 
-/** Cached Feistel cells from WASM (authoritative — see src/config/). */
+/** Cached alphabet cells from WASM (authoritative — see src/config/). */
 const cellCache = new Map();
 
 /** Resolve known alphabet cells via WASM (Basile fallback inside core). Call after init(). */

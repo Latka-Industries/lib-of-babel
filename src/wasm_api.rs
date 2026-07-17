@@ -90,7 +90,7 @@ pub fn default_alphabet() -> u32 {
 
 #[wasm_bindgen]
 #[must_use]
-/// JSON array of Feistel cells for `alphabet_id` (unknown id → Basile).
+/// JSON array of alphabet cells for `alphabet_id` (unknown id → Basile).
 pub fn alphabet_symbols_json(alphabet_id: u32) -> String {
     let cells = crate::config::alphabet(alphabet_id);
     let mut s = String::from("[");
