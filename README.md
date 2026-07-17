@@ -1,4 +1,4 @@
-# lib-of-babel
+# LIB·OF·BABEL
 
 [![Site](https://img.shields.io/badge/site-lib--of--babel.xyz-c9a227?style=flat-square&labelColor=0b0b0d)](https://lib-of-babel.xyz)
 [![CI](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/check.yml/badge.svg)](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/check.yml)
