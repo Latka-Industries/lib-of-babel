@@ -22,7 +22,7 @@ lib-of-babel/
 │       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
 ├── data/         alphabet packs + baked Basile scramble blob — see [data/README.md](../data/README.md)
-├── scripts/      size guards, sigil sheet, OG share card (`make-og.mjs`)
+├── scripts/      size guards, sigil sheet, OG share cards (`make-og.mjs`)
 └── .mise.toml    toolchain + build / serve / test tasks
 ```
 
