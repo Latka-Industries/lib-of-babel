@@ -14,17 +14,6 @@ keep is the **journey**: the path and a cryptographic fingerprint of each room.
 
 <sub>Each gallery has a **sigil** from its room hash. Same coordinate + universe → same sigil (alphabet is a lens and does not change it). The 24 above are real default-universe galleries — see [`assets/sigils.json`](assets/sigils.json) (`node scripts/make-sigil-sheet.mjs` to redraw).</sub>
 
-## Quick start
-
-[mise](https://mise.jdx.dev/) pins Rust + wasm-pack + uv.
-
-```bash
-mise trust && mise install   # one-time
-mise run dev                 # build wasm → web/pkg, then serve
-```
-
-Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [docs/development.md](docs/development.md).
-
 ## Docs
 
 | Doc | What’s in it |
