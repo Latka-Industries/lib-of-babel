@@ -45,6 +45,7 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run check` | fmt + clippy (`-D warnings`) + tests + alphabet-pack drift |
 | `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
+| `mise run asset-sheet` | prints URL for `web/asset-sheet.html` (dev UI inventory via `mise run serve`; stripped from Pages) |
 | `mise run clean` | remove `target/` and `web/pkg` |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
@@ -54,18 +55,22 @@ Permalinks: room links need `z`/`n` (compact `c…` encoding when huge) plus opt
 (boot re-locates; no huge coords in the hash). Shareable `&q=` is soft-capped;
 mosaic / full-book flats stay out of the URL. Photo / Babelgram **go there** and
 **copy link** prefer short same-browser `&bo=` (IndexedDB: Basile coords + optional
-RGBA cache so open skips virgin `book_image`). Other-universe Babelgram **go there**
-may also add short-lived `&be=` for the print flat. Param order puts `bo` / `img` /
-`b` before huge `z`/`n` so truncation still opens the book. Legacy / missing `gv`
-opens the migrate modal.
+RGBA cache + letter `flat` so open/save can seal without re-projecting). That handoff is
+local to this browser — not a shareable Mbit URL; cross-device reopen is Babelgram verify.
+Babelgram go/copy run only after stamp verify (or legacy unsealed v1/v2). Other-universe
+Babelgram **go there** may also add short-lived `&be=` for the print flat. Param order puts
+`bo` / `img` / `b` before huge `z`/`n` so truncation still opens the book. Legacy / missing
+`gv` opens the migrate modal.
 
 ## UI notes
 
 - In-app guide: brand **LIB·OF·BABEL**, footer **? · Help**, or keyboard **?** (first visit opens About once)
-- About tabs: **overview → wander → alphabets → books → search → more**. Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH**). Control names in the prose use panel chips (`.ui`).
+- About tabs: **overview → wander → alphabets → books → search → engines → url → more**. Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH** / **URL**). Control names in the prose use panel chips (`.ui`).
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
-- Search modes shipped in UI: **text** (content / title), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp), **Babelgram** (exact-size stamped book-image PNG → locate; metrics + **go there** / copy link)
-- Virgin `book_image` (cold open / mosaic re-rank): Web Worker pool in `web/js/reader/book-image-pool.js` — each worker runs `book_image_pages` for a page range; main thread stitches flat RGBA. Memory ≈ N× WASM instances (cap 8). Falls back to main-thread `book_image` if workers fail.
+- Search modes shipped in UI: **text** (content ≤ one page / 3200 cells; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
+- Babelgram stamp/verify: `web/js/lib/png-babel.js` (`lob:babel` v3 `seal` + `h`); save seals from on-screen pixels + current room accent (`book.js`); locate/UI in `mosaic-search.js`. Go/copy stash letter `flat` in `&bo=` (and `&be=` cross-universe). Compact axes shorten in download filenames (`c…`). Round-trip: `node scripts/test-png-babel.mjs`
+- Virgin `book_image` (wander): **page-linked** paint — worker page-range strips are fine again. Photo Find proof uses book-linked paint inside `mosaic_find_book`.
+- Photo Find: WASM `mosaic_find_book` off the UI thread (`mosaic-find-worker.js` + pool; main-thread fallback) — letter mosaic → book-linked invert → book-scope virgin RGBA; handoff stores compact `c…` coords + `scope=book`
 - Photo tab flag: `PHOTO_SEARCH_TAB_ENABLED` in `web/js/reader/search.js` (on)
 - Lens registry for the UI lives in `web/js/lib/constants.js` (kept in sync with Rust via tests)
 - Chrome: Overpass Mono; About prose: Lato
@@ -78,17 +83,17 @@ Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures ab
 
 | Export | Purpose |
 | --- | --- |
-| `generator_version()` | Schema stamp for verify/export/permalinks (currently **9**) |
+| `generator_version()` | Schema stamp for verify/export/permalinks (currently **11** — dual bijection scopes) |
 | `books_per_gallery()` | Constant `700` |
 | `default_alphabet()` | Default lens id (`29` = Basile) |
 | `alphabet_symbols_json(a)` / `alphabet_len(a)` | Alphabet cell list / count (UI cache) |
 | `max_title_len()` | Spine title length cap (`24`) |
 | `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis (`""` / blank → `0`) |
-| `gallery_titles_json(z, n, a, title_embed)` | 700 spines (virgin Basile titles; `title_embed` ignored) |
+| `gallery_titles_json(z, n, a, title_embed)` | 700 spines (`z`/`n` decimal or compact `c…`) |
 | `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 |
-| `page_text_for(…, search_query, search_start_page)` | One virgin page (`search_*` args ignored; highlight is UI-only) |
-| `locate_page_json` / `locate_title_json` | Reverse lookup → hit or validation errors |
-| `search_page_span_for` / `search_page_embed_for` | Multi-page highlight helpers |
-| `book_text_for` / `book_image` / `book_image_pages` / `book_image_search` / `book_image_dims` / `room_accent` | Full text; full RGBA; page-range RGBA strip (worker stitch); search flat ignored; grid size; origin-room OKLCH knobs |
-| `mosaic_project` / `mosaic_project_preview` / `mosaic_flat_for` / `mosaic_candidate_packs_json` / `mosaic_candidate_eval_json` / `mosaic_babel_json` | Full / downsampled preview; flat; chunked candidate packs + eval (rms/mae/corr); exact Babelgram locate (`BabelLocateResult`) |
+| `page_text_for` / `page_text_book_scope_for` | Page-linked / book-linked virgin page |
+| `locate_page_json` / `locate_title_json` | Page-linked content locate (max one page) / title locate (`scope` in JSON) |
+| `search_page_span_for` / `search_page_embed_for` | Highlight helpers (content locate itself is one page) |
+| `book_text_for` / `book_text_book_scope_for` / `book_image` / `book_image_pages` / `book_image_dims` / `room_accent` | Page-linked full text; book-linked full text; page-linked RGBA; strips; grid; accent |
+| `mosaic_find_book` / `mosaic_babel_json` / other `mosaic_*` | Book-linked Find; Babelgram locate; project/preview/packs |
 | `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |

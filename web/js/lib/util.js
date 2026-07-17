@@ -1,5 +1,14 @@
 // DOM / clipboard / chrome helpers. No app state.
 
+import {
+  isCompactCoord,
+  isHugeCoordValue,
+  decodeCoordParam,
+  formatCoordMagnitudeLabel,
+  approxCoordMagnitude,
+  PAGE_MAP_MAX_BITS,
+} from "./coords.js";
+
 /** Shorthand for `document.getElementById`. */
 export const el = (id) => document.getElementById(id);
 
@@ -41,29 +50,50 @@ export function escapeHtml(s) {
 /**
  * Long integer → scientific form for UI (`-1.234×10^312`).
  * Short values stay decimal.
+ * Page-map range (`|Σ|^3200`, ≤ {@link PAGE_MAP_MAX_BITS}) → scientific.
+ * Above that (book-linked) → bit-magnitude labels; never expand those axes.
  */
 export function formatBigIntScientific(
   value,
   { digits = 4, minLen = 12 } = {},
 ) {
-  const s = String(value);
-  const neg = s.startsWith("-");
-  const body = neg ? s.slice(1) : s;
-  if (!/^\d+$/.test(body) || body.length < minLen) return s;
-  const exp = body.length - 1;
-  const frac = body.slice(1, digits).replace(/0+$/, "");
-  const mant = frac ? `${body[0]}.${frac}` : body[0];
+  if (
+    isHugeCoordValue(value) ||
+    approxCoordMagnitude(value).bits > PAGE_MAP_MAX_BITS
+  ) {
+    return formatCoordMagnitudeLabel(value);
+  }
+  let bi;
+  try {
+    if (typeof value === "bigint") bi = value;
+    else if (typeof value === "string" && isCompactCoord(value)) {
+      bi = decodeCoordParam(value);
+    } else {
+      bi = BigInt(value);
+    }
+  } catch {
+    return formatCoordMagnitudeLabel(value);
+  }
+  const neg = bi < 0n;
+  const mag = neg ? -bi : bi;
+  const s = mag.toString();
+  if (!/^\d+$/.test(s) || s.length < minLen) {
+    return `${neg ? "-" : ""}${s}`;
+  }
+  const exp = s.length - 1;
+  const frac = s.slice(1, digits).replace(/0+$/, "");
+  const mant = frac ? `${s[0]}.${frac}` : s[0];
   return `${neg ? "-" : ""}${mant}×10^${exp}`;
 }
 
-/** Gallery `(z, n)` for UI — scientific when axes are huge. */
+/** Gallery `(z, n)` — scientific in page range; bit magnitude when book-scale. */
 export function formatCoordDisplay(z, n) {
   return `(${formatBigIntScientific(z)}, ${formatBigIntScientific(n)})`;
 }
 
-/** Full exact `(z, n)` for tooltips / title attributes. */
+/** Tooltip coords — same as display (never dump exact mega-digit axes into the DOM). */
 export function formatCoordFull(z, n) {
-  return `(${z}, ${n})`;
+  return formatCoordDisplay(z, n);
 }
 
 /** Fallback when `navigator.clipboard` is missing or blocked (file://, some dialogs). */

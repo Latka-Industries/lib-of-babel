@@ -42,9 +42,10 @@ Open <http://127.0.0.1:8777/index.html>. More tasks and the WASM surface → [do
 - [ ] Custom alphabet picker — user-defined glyph sets beyond the built-in registry
 - [ ] More UI locale packs — es/fr/… beyond DE/NL
 - [ ] Generative audio per gallery
-- [x] Babelgram search — stamped book-image PNG → locate; same-universe exact book / other-universe print; short `&bo=` go+copy (RGBA cache); `&be=` print flat on other-universe go
-- [x] Photo→mosaic search (alphabet lens + rms / mae / corr ranking; `&bo=` handoff caches scored book RGBA)
+- [x] Babelgram search — stamped PNG (`lob:babel` v3 seal+room-hash) → verify → locate; same-universe stamped room / other-universe rematch; go/copy gated on verify; `&bo=` / `&be=` same-browser IndexedDB handoffs (not portable URLs); Mbit reopen via Babelgram
+- [x] Photo→mosaic search (alphabet lens + rms / mae / corr; this-gallery + hit-gallery palette strips; `&bo=` handoff caches scored book RGBA)
 - [x] Parallel virgin `book_image` via Web Workers (`book_image_pages` strips → stitch; main-thread chunk fallback)
+- [x] Photo Find (`mosaic_find_book`) off the UI thread (`mosaic-find-worker` + pool; main-thread fallback)
 
 ## License
 

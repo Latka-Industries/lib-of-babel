@@ -9,7 +9,15 @@ import {
   stepAlphabet,
   syncLensControls,
 } from "./state.js";
-import { el, copyText, formatCoordDisplay, formatCoordFull, formatUniverseLabel, galleryIsTouch } from "../lib/util.js";
+import {
+  el,
+  copyText,
+  escapeHtml,
+  formatCoordDisplay,
+  formatCoordFull,
+  formatUniverseLabel,
+  galleryIsTouch,
+} from "../lib/util.js";
 import { hueFromString, hashHue, hashAccentColor } from "../lib/color.js";
 import { neighbor } from "../lib/lattice.js";
 import {
@@ -25,6 +33,7 @@ import {
 } from "../lib/constants.js";
 import { syncUrl, permalink } from "./url.js";
 import { node_hash_hex, gallery_titles_json } from "../lib/wasm.js";
+import { coordForWasm } from "../lib/coords.js";
 import { titleEmbedFlat } from "../reader/search.js";
 import { sigilSvg } from "./sigil.js";
 import { setAccentFavicon } from "../chrome/favicon.js";
@@ -44,6 +53,8 @@ function spineCharBudget() {
   return Math.max(10, Math.min(22, Math.round((h - 2) / (fontPx * 0.78))));
 }
 
+const MINIMAP_HEX = "110,30 179,70 179,150 110,190 41,150 41,70";
+
 // Hexagon minimap: current gallery in the middle, the hash awaiting down each
 // of the four exits (two hallways + stairs up/down). Click an exit to walk it.
 function renderMinimap(curHash, accentHue) {
@@ -54,14 +65,13 @@ function renderMinimap(curHash, accentHue) {
     return { h, color: hashAccentColor(h) };
   };
   const up = exit(2), down = exit(3), left = exit(0), right = exit(1);
-  const hex = "110,30 179,70 179,150 110,190 41,150 41,70";
   const fill =
     getComputedStyle(document.documentElement).getPropertyValue("--mm-fill").trim() ||
     "transparent";
 
   el("minimap").innerHTML = `
     <svg viewBox="0 0 220 222" width="100%">
-      <polygon points="${hex}" fill="${fill}"
+      <polygon points="${MINIMAP_HEX}" fill="${fill}"
         stroke="${accent}" stroke-width="1.5"/>
       <text x="110" y="112" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
       <g id="mm-2" class="mm-exit"><text x="110" y="15" text-anchor="middle" font-size="11" fill="${up.color}">▲ ${up.h.slice(0, 6)}</text></g>
@@ -76,13 +86,41 @@ function renderMinimap(curHash, accentHue) {
   });
 }
 
+/** Book-linked / opaque rooms: spines work; lattice exits do not. */
+function renderMinimapPinned(curHash, accentHue) {
+  const accent = accentHsl(accentHue);
+  const fill =
+    getComputedStyle(document.documentElement).getPropertyValue("--mm-fill").trim() ||
+    "transparent";
+  const tip = escapeHtml(t("gallery.coordsHuge.minimap"));
+  el("minimap").innerHTML = `
+    <svg viewBox="0 0 220 222" width="100%">
+      <title>${tip}</title>
+      <polygon points="${MINIMAP_HEX}" fill="${fill}"
+        stroke="${accent}" stroke-width="1.5"/>
+      <text x="110" y="112" text-anchor="middle" font-size="11" fill="${accent}">${curHash.slice(0, 8)}</text>
+      <text x="110" y="132" text-anchor="middle" font-size="9" fill="${accent}" opacity="0.7">${escapeHtml(
+        t("gallery.coordsHuge.minimapShort"),
+      )}</text>
+    </svg>`;
+}
+
 export function render() {
+  // Compact `c…` into WASM — never megadigit decimal String(z)/String(n).
+  // Book-linked axes still yield spines (title map is tiny); lattice walk stays off.
+  const zW = coordForWasm(S.z);
+  const nW = coordForWasm(S.n);
   const titles = JSON.parse(
-    gallery_titles_json(String(S.z), String(S.n), S.alphabetId, titleEmbedFlat()),
+    gallery_titles_json(zW, nW, S.alphabetId, titleEmbedFlat()),
   );
-  const hash = node_hash_hex(String(S.z), String(S.n));
+  const hash = node_hash_hex(zW, nW);
   el("coord").textContent = formatCoordDisplay(S.z, S.n);
-  el("coord").title = `${formatCoordFull(S.z, S.n)} — click to jump`;
+  el("coord").title = S.coordsHuge
+    ? t("gallery.coordsHuge.title", {
+        scope: S.bijectionScope === "page" ? "page-linked" : "book-linked",
+        coords: formatCoordFull(S.z, S.n),
+      })
+    : `${formatCoordFull(S.z, S.n)} — click to jump`;
   el("hash").textContent = hash;
   el("hash").dataset.full = hash;
   el("steps").textContent = String(Math.max(0, S.trail.length - 1));
@@ -99,7 +137,8 @@ export function render() {
   setAccentFavicon(S.accentHue);
 
   el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
-  renderMinimap(hash, S.accentHue);
+  if (S.coordsHuge) renderMinimapPinned(hash, S.accentHue);
+  else renderMinimap(hash, S.accentHue);
 
   const wallsEl = el("walls");
   const prevScroll = [...wallsEl.querySelectorAll(".shelf-track")].map(
@@ -123,7 +162,7 @@ export function render() {
     track.className = "shelf-track";
     for (let b = 0; b < booksPerWall; b++) {
       const bookIndex = idx++;
-      const title = titles[bookIndex] || `book ${bookIndex}`;
+      const title = titles[bookIndex] || `book ${bookIndex + 1}`;
       const hue = hueFromString(title);
       const book = document.createElement("div");
       book.className = "book";

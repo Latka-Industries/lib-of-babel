@@ -10,9 +10,11 @@ import {
 import {
   book_image_dims,
   book_image_pages,
+  book_image_book_scope,
   get_universe,
   set_universe,
 } from "../lib/wasm.js";
+import { coordForWasm } from "../lib/coords.js";
 
 const MAX_WORKERS = 8;
 const BYTES_PER_PAGE = PAGE_CONTENT_SYMBOLS * 4;
@@ -218,8 +220,8 @@ async function generateOnMainChunked(
     for (let start = 0; start < PAGES_PER_BOOK; start += MAIN_CHUNK_PAGES) {
       const end = Math.min(PAGES_PER_BOOK, start + MAIN_CHUNK_PAGES);
       const strip = book_image_pages(
-        String(z),
-        String(n),
+        coordForWasm(z),
+        coordForWasm(n),
         bookIdx,
         alpha,
         start,
@@ -250,11 +252,11 @@ async function generateViaWorkers(z, n, book, alphabetId, universe) {
   const parts = await Promise.all(
     ranges.map((range, i) =>
       runOnWorker(pool[i % pool.length], {
-        z: String(z),
-        n: String(n),
+        z: coordForWasm(z),
+        n: coordForWasm(n),
         book: bookIdx,
         alphabetId: alpha,
-        // Structured-clone as string — workers rehydrate to BigInt.
+        // Structured-clone as string — workers rehydrate via WASM parse_coord.
         universe: uni.toString(),
         pageStart: range.start,
         pageEnd: range.end,
@@ -287,7 +289,9 @@ function withTimeout(promise, ms, label) {
 }
 
 /**
- * Full-book virgin RGBA via worker pool, else chunked main thread.
+ * Full-book virgin RGBA.
+ * - `scope: "page"` — per-page Basile (workers OK).
+ * - `scope: "book"` — book-linked map (one materialise; matches photo Find).
  *
  * @param {{
  *   z: string|bigint,
@@ -295,6 +299,7 @@ function withTimeout(promise, ms, label) {
  *   book: number,
  *   alphabetId: number,
  *   universe?: number|bigint|string,
+ *   scope?: "page"|"book",
  *   onProgress?: (info: { done: number, total: number }) => void,
  * }} opts
  * @returns {Promise<{ width: number, height: number, pixels: Uint8Array }>}
@@ -305,29 +310,52 @@ export async function generateBookImageRgba({
   book,
   alphabetId,
   universe = get_universe(),
+  scope = "page",
   onProgress,
 }) {
-  if (!workersDisabled) {
+  onProgress?.({ done: 0, total: PAGES_PER_BOOK });
+  if (scope === "book") {
+    // Parallel workers each rematerialise α^BOOK — do one sync call instead.
+    await new Promise((r) => setTimeout(r, 0));
+    const prev = asUniverseSeed(get_universe());
+    const uni = asUniverseSeed(universe);
+    let img = null;
     try {
-      return await withTimeout(
-        generateViaWorkers(z, n, book, alphabetId, universe),
-        WORKER_POOL_MS,
-        "book-image worker pool timeout",
+      set_universe(uni);
+      img = book_image_book_scope(
+        coordForWasm(z),
+        coordForWasm(n),
+        asU32(book),
+        asU32(alphabetId),
       );
-    } catch (err) {
-      const msg = err?.message || String(err);
-      console.warn("book-image workers unavailable, using main thread:", err);
-      // Timeouts happen on huge Basile coords — retry workers next open.
-      if (/timeout/i.test(msg)) abandonWorkers(err);
-      else disableWorkers(err);
+      const pixels = img.pixels;
+      const out =
+        pixels instanceof Uint8Array ? pixels : new Uint8Array(pixels);
+      onProgress?.({ done: PAGES_PER_BOOK, total: PAGES_PER_BOOK });
+      return {
+        width: Number(img.width) >>> 0,
+        height: Number(img.height) >>> 0,
+        pixels: out,
+      };
+    } finally {
+      set_universe(prev);
+      img?.free?.();
     }
   }
-  return generateOnMainChunked(
-    z,
-    n,
-    book,
-    alphabetId,
-    universe,
-    onProgress,
-  );
+  if (!workersDisabled) {
+    try {
+      const img = await withTimeout(
+        generateViaWorkers(z, n, book, alphabetId, universe),
+        WORKER_POOL_MS,
+        "book_image worker pool timeout",
+      );
+      onProgress?.({ done: PAGES_PER_BOOK, total: PAGES_PER_BOOK });
+      return img;
+    } catch (err) {
+      console.warn("book_image workers failed; using main thread", err);
+      workersDisabled = true;
+      terminatePool();
+    }
+  }
+  return generateOnMainChunked(z, n, book, alphabetId, universe, onProgress);
 }

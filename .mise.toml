@@ -52,6 +52,14 @@ run = [
   "mise run check-alphabets",
 ]
 
+[tasks.gen-basile-scramble]
+description = "Bake default (universe 0 + Basile) book-map C/I/N into data/ (~2 MiB; release, slow once)"
+run = "cargo run --release --bin gen_basile_scramble"
+
+[tasks.asset-sheet]
+description = "UI asset sheet (tokens, chrome, find, mbit copy) — mise run serve/dev only; stripped from Pages"
+run = "echo \"Open http://127.0.0.1:${PORT:-8777}/asset-sheet.html (mise run serve / mise run dev first)\""
+
 [tasks.gen-alphabets]
 description = "Regenerate Rust alphabet packs from data/alphabets/*.txt"
 run = "uv run --no-project --python 3.13 -- python scripts/gen-alphabet-packs.py"

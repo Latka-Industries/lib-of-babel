@@ -5,8 +5,9 @@ import {
   alphabetFamilyRefs,
   isTrailPunct,
 } from "../lib/constants.js";
-import { t } from "../lib/i18n.js";
+import { t, getLocale } from "../lib/i18n.js";
 import { el, escapeHtml, openModal } from "../lib/util.js";
+import { MBIT_SCALE_SAMPLES, mbitScaleVars } from "../lib/mbit-scale.js";
 
 /** localStorage: first-landing guide already shown (same pattern as theme). */
 export const SEEN_ABOUT_KEY = "lib-of-babel-seen-about";
@@ -297,6 +298,50 @@ export function renderAboutAlphabets() {
     lensesHost.scrollTop = 0;
   }
   if (panel) panel.scrollTop = 0;
+}
+
+/** Letter-analogy cell — only mid/book bands have a useful text-length compare. */
+function scaleLettersCell(tier, vars) {
+  if (tier === "mid" || tier === "book") {
+    return escapeHtml(t(`about.scale.letters.${tier}`, vars));
+  }
+  return `<span class="dim">${escapeHtml(t("about.scale.letters.na"))}</span>`;
+}
+
+/** Representative Mbit bands table (same samples as the room notice / asset sheet). */
+export function renderAboutScale() {
+  const host = el("aboutScaleTable");
+  if (!host) return;
+  const locale = getLocale();
+  const head = [
+    t("about.scale.col.band"),
+    t("about.scale.col.scalar"),
+    t("about.scale.col.bytes"),
+    t("about.scale.col.letters"),
+    t("about.scale.col.recite"),
+  ]
+    .map((label) => `<th scope="col">${escapeHtml(label)}</th>`)
+    .join("");
+  const rows = MBIT_SCALE_SAMPLES.map(({ tier, bits }) => {
+    const vars = mbitScaleVars(bits, { locale, t });
+    const scalar = `≈${vars.mbit} Mbit · ${vars.mag}`;
+    return (
+      `<tr>` +
+      `<th scope="row">${escapeHtml(t(`about.scale.band.${tier}`))}</th>` +
+      `<td><code>${escapeHtml(scalar)}</code></td>` +
+      `<td>${escapeHtml(vars.bytes)}</td>` +
+      `<td>${scaleLettersCell(tier, vars)}</td>` +
+      `<td>${escapeHtml(vars.recite)}</td>` +
+      `</tr>`
+    );
+  }).join("");
+  host.innerHTML =
+    `<div class="about-scale-scroll">` +
+    `<table class="about-scale-table">` +
+    `<thead><tr>${head}</tr></thead>` +
+    `<tbody>${rows}</tbody>` +
+    `</table>` +
+    `</div>`;
 }
 
 export function wireAboutTabs() {

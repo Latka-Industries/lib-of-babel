@@ -24,14 +24,18 @@ import {
   persist,
   markLastPickedUp,
   recordStep,
+  clearBookIdentityCache,
 } from "../gallery/state.js";
 import { currentUrl, syncUrl } from "../gallery/url.js";
+import { coordForWasm } from "../lib/coords.js";
 import { render, renderHistory } from "../gallery/view.js";
 import { step, jumpTo, exportJourney, newWalk } from "../gallery/nav.js";
+import { showMbitNotice } from "../gallery/mbit-notice.js";
 import { verifyJourney, showVerify } from "../reader/verify.js";
 import {
   reopenCurrentBook,
   renderBookPage,
+  hydrateBookPageText,
   turnPage,
   jumpPage,
   downloadBook,
@@ -62,6 +66,7 @@ import {
   openAboutGuide,
   stepAboutTab,
   renderAboutAlphabets,
+  renderAboutScale,
   wireAboutTabs,
 } from "../about/about.js";
 import {
@@ -81,10 +86,12 @@ export function refreshLocaleChrome() {
   syncLensControls();
   syncAlphabetPresentation(S.alphabetId);
   renderAboutAlphabets();
+  renderAboutScale();
   document.querySelectorAll("[data-window-max]").forEach((node) => {
     node.textContent = String(WINDOW_MAX);
   });
   syncSearchKindUI();
+  syncMosaicModeUI();
   syncThemeToggle(t);
   const viewBtn = el("viewToggle");
   if (viewBtn) {
@@ -169,6 +176,7 @@ export function wireControls() {
     ["closeBook", "bookModal"],
     ["closeImage", "imageModal"],
     ["closeBabelCompare", "babelCompareModal"],
+    ["closeMbitNotice", "mbitNoticeModal"],
   ]);
   refreshLocaleChrome();
   wireAboutTabs();
@@ -189,8 +197,13 @@ export function wireControls() {
     if (jumpTo(el("jumpZ").value, el("jumpN").value)) el("jumpModal").close();
   };
   el("coord").addEventListener("click", () => {
-    el("jumpZ").value = S.z.toString();
-    el("jumpN").value = S.n.toString();
+    // Mbit-range: show room hash / axes notice (jump form can't take mega-axes).
+    if (S.coordsHuge) {
+      showMbitNotice({ force: true });
+      return;
+    }
+    el("jumpZ").value = coordForWasm(S.z);
+    el("jumpN").value = coordForWasm(S.n);
     openModal("jumpModal");
     el("jumpZ").focus();
     el("jumpZ").select();
@@ -202,9 +215,11 @@ export function wireControls() {
   el("sigil").addEventListener("click", () => {
     const svg = el("sigil").innerHTML.trim();
     if (!svg) return;
+    const zPart = S.coordsHuge ? "huge" : String(S.z);
+    const nPart = S.coordsHuge ? "huge" : String(S.n);
     downloadBlob(
       new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`], { type: "image/svg+xml" }),
-      `sigil_${S.z}_${S.n}_${el("hash").textContent}.svg`,
+      `sigil_${zPart}_${nPart}_${el("hash").textContent}.svg`,
       { revokeDelay: 1000 },
     );
   });
@@ -282,10 +297,21 @@ export function wireControls() {
 
   // Shared path after alphabet/universe change: freeze past steps, persist, redraw.
   function afterLensChange(reopenHighlight) {
+    clearBookIdentityCache();
+    if (S.currentBook) {
+      // Find identity is lens/universe-specific — drop cached letters + proof pixels.
+      S.currentBook.contentFlat = null;
+      S.currentBook.contentCells = null;
+      S.currentBook.imageRgba = null;
+      S.currentBook.imageW = 0;
+      S.currentBook.imageH = 0;
+      S.currentBook.bookScopeReady = false;
+    }
     refreshLocaleChrome();
     persist();
     render();
     reopenCurrentBook(reopenHighlight);
+    syncMosaicKnobsFromGallery();
     // Basile C/I/N is per-alphabet; warm off the UI thread so the first open is snappy.
     const warm = () => warmPageGenerator();
     if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 800 });
@@ -329,10 +355,13 @@ export function wireControls() {
       render();
     }
     S.currentBook = null;
+    S.bookOpenId = null;
     syncUrl();
   });
   wireDropdownMenu("saveMenu", {
-    txt: downloadBook,
+    txt: () => {
+      void downloadBook().catch((err) => console.error(err));
+    },
     img: () => {
       void renderBookImage().catch((err) => console.error(err));
       openModal("imageModal");
@@ -342,7 +371,11 @@ export function wireControls() {
     S.viewMode = S.viewMode === "color" ? "text" : "color";
     ev.currentTarget.textContent =
       S.viewMode === "color" ? t("book.viewText") : t("book.viewColor");
-    renderBookPage();
+    if (S.currentBook?.deferPageText) {
+      void hydrateBookPageText();
+      return;
+    }
+    void renderBookPage();
   });
   el("clearBookSearch")?.addEventListener("click", () => {
     clearBookSearchHighlight();
