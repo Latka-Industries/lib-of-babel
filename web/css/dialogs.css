@@ -551,20 +551,30 @@
   background: color-mix(in oklab, var(--bg) 70%, var(--panel-tinted, var(--bg)));
   border: 1px solid var(--line);
 }
-/* SI-style unit mark for megabit — not a chip / tab / About transfer. */
+/* Megabit unit chip in body copy — sharp box (not a rounded control chip). */
 .unit-mbit {
-  font-variant-caps: all-small-caps;
-  font-size: 1.08em;
-  letter-spacing: 0.06em;
-  font-weight: 700;
-  /* accent-link is contrast-tuned per theme; light gets a deeper mix below. */
+  display: inline-flex;
+  align-items: center;
+  vertical-align: baseline;
+  margin-inline: 0.15em;
+  padding: 0.08em 0.35em;
+  border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--line));
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--accent) 18%, var(--panel));
   color: var(--accent-link);
-  /* Breathing room so the unit doesn’t crowd neighboring numbers/words. */
-  margin-inline: 0.12em;
-  padding-inline: 0.06em;
+  font-family: var(--font);
+  font-size: 0.78em;
+  font-weight: 700;
+  font-variant-caps: normal;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 [data-theme="light"] .unit-mbit {
-  color: color-mix(in oklab, var(--accent) 42%, black);
+  background: color-mix(in oklab, var(--accent) 22%, var(--panel));
+  color: color-mix(in oklab, var(--accent) 38%, black);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--line));
 }
 .mbit-notice-actions {
   display: flex;
@@ -1010,8 +1020,8 @@ pre.page mark.search-hit {
   display: block;
 }
 .about-scale-table .unit-mbit {
-  /* Inherit mono from the scalar <code>; keep unit mark color/caps. */
-  font-family: inherit;
+  /* Keep the sharp unit chip inside scalar <code>; don’t inherit code size alone. */
+  font-family: var(--font);
 }
 .about-save-rows { display: grid; gap: 0.2rem; }
 .about-save-row {
