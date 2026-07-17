@@ -1,5 +1,10 @@
 # lib-of-babel
 
+[![Site](https://img.shields.io/badge/site-lib--of--babel.xyz-c9a227?style=flat-square&labelColor=0b0b0d)](https://lib-of-babel.xyz)
+[![CI](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/check.yml/badge.svg)](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/check.yml)
+[![Pages](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/deploy.yml/badge.svg)](https://github.com/Latka-Industries/lib-of-babel/actions/workflows/deploy.yml)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue?style=flat-square)](LICENSE)
+
 **A living, walkable Library of Babel.** Start in a random hexagonal gallery, read the
 books, take a hallway or a staircase, and keep walking. Every gallery is generated
 deterministically from its coordinate — infinite space, almost nothing stored. What you
@@ -8,8 +13,6 @@ keep is the **journey**: the path and a cryptographic fingerprint of each room.
 ![A grid of per-gallery sigils — generative emblems drawn deterministically from each gallery's hash](assets/sigils.svg)
 
 <sub>Each gallery has a **sigil** from its room hash. Same coordinate + universe → same sigil (alphabet is a lens and does not change it). The 24 above are real default-universe galleries — see [`assets/sigils.json`](assets/sigils.json) (`node scripts/make-sigil-sheet.mjs` to redraw).</sub>
-
-Live: [lib-of-babel.xyz](https://lib-of-babel.xyz) · share cards use a static Open Graph image (`web/og.png`; regenerate with `node scripts/make-og.mjs`).
 
 ## Quick start
 
