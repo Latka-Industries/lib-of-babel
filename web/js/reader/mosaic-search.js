@@ -502,7 +502,9 @@ function refreshPreview(opts = {}) {
   const factor = opts.factor ?? PREVIEW_SETTLE_FACTOR;
   const ingested = ensureIngested();
   if (!ingested.ok) {
-    el("mosaicFileMeta").textContent = ingested.error;
+    setMosaicFileMeta(ingested.error, {
+      html: /class=/.test(ingested.error),
+    });
     el("mosaicFitPct").textContent = "";
     clearPreviewCanvases();
     return;
@@ -585,19 +587,30 @@ function formatOriginLine(meta) {
   });
 }
 
+function setMosaicFileMeta(value, { html = false } = {}) {
+  const meta = el("mosaicFileMeta");
+  if (!meta) return;
+  if (html) meta.innerHTML = value;
+  else meta.textContent = value;
+}
+
 function updateFileMeta() {
   const meta = el("mosaicFileMeta");
   if (!meta) return;
   const { w, h } = dims();
   if (!lastBitmap) {
-    meta.textContent =
-      mosaicMode === "babel"
-        ? t("search.babel.gridHint", { w: String(w), h: String(h) })
-        : t("search.mosaic.gridHint", { w: String(w), h: String(h) });
+    if (mosaicMode === "babel") {
+      setMosaicFileMeta(
+        t("search.babel.gridHint", { w: String(w), h: String(h) }),
+        { html: true },
+      );
+    } else {
+      setMosaicFileMeta(t("search.mosaic.gridHint", { w: String(w), h: String(h) }));
+    }
     return;
   }
   if (mosaicMode === "babel" && !babelMeta) {
-    meta.textContent = t("search.babel.notBabel");
+    setMosaicFileMeta(t("search.babel.notBabel"), { html: true });
     return;
   }
   if (!reshaped) return;
@@ -625,15 +638,17 @@ function updateFileMeta() {
     ) {
       bits.push(t("search.babel.nameMismatch"));
     }
-    meta.textContent = bits.filter(Boolean).join(" · ");
+    setMosaicFileMeta(bits.filter(Boolean).join(" · "));
   } else {
-    meta.textContent = t("search.mosaic.fileMeta", {
-      name: sourceName || "image",
-      sw: String(reshaped.srcW ?? lastBitmap.width),
-      sh: String(reshaped.srcH ?? lastBitmap.height),
-      w: String(w),
-      h: String(h),
-    });
+    setMosaicFileMeta(
+      t("search.mosaic.fileMeta", {
+        name: sourceName || "image",
+        sw: String(reshaped.srcW ?? lastBitmap.width),
+        sh: String(reshaped.srcH ?? lastBitmap.height),
+        w: String(w),
+        h: String(h),
+      }),
+    );
   }
 }
 
@@ -665,12 +680,15 @@ async function onFileChosen(file) {
       if (!exactGrid) {
         if (lastBitmap) lastBitmap.close?.();
         lastBitmap = null;
-        el("mosaicFileMeta").textContent = t("search.babel.sizeMismatch", {
-          sw: String(pngDims?.w ?? "?"),
-          sh: String(pngDims?.h ?? "?"),
-          w: String(w),
-          h: String(h),
-        });
+        setMosaicFileMeta(
+          t("search.babel.sizeMismatch", {
+            sw: String(pngDims?.w ?? "?"),
+            sh: String(pngDims?.h ?? "?"),
+            w: String(w),
+            h: String(h),
+          }),
+          { html: true },
+        );
         clearPreviewCanvases();
         return;
       }
@@ -681,7 +699,7 @@ async function onFileChosen(file) {
       if (mosaicMode === "babel") {
         if (lastBitmap) lastBitmap.close?.();
         lastBitmap = null;
-        el("mosaicFileMeta").textContent = t("search.babel.notBabel");
+        setMosaicFileMeta(t("search.babel.notBabel"), { html: true });
         clearPreviewCanvases();
         return;
       }
@@ -692,7 +710,7 @@ async function onFileChosen(file) {
     modeResults[mosaicMode] = null;
     paintModeResult();
     if (mosaicMode === "babel") {
-      el("mosaicFileMeta").textContent = t("search.babel.notBabel");
+      setMosaicFileMeta(t("search.babel.notBabel"), { html: true });
       clearPreviewCanvases();
       return;
     }

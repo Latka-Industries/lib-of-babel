@@ -28,8 +28,8 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot). Mosaic / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. |
-| **Stack** | Rust → WASM core + static web frontend. |
+| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot). Mosaic / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide Open Graph card (`og.png`) is static — same preview for every hash URL. |
+| **Stack** | Rust → WASM core + static web frontend (GitHub Pages). |
 | **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
 
 ## The generation chain (never store text)
@@ -64,9 +64,11 @@ Two universes of math share the same address labels `(z, n, book[, page])`:
 - **Page-linked** — every possible *page* exists once (`content = (addr × C) mod |Σ|^3200`).
   Wander, spines, text search (≤ one page), reader `book_image`.
 - **Book-linked** — every possible *full book* exists once
-  (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Photo Find / Babelgram identity.
-  Addresses are **Mbit-range** (~millions of bits per axis); UI shows spines + colour map
-  but not lattice wander (see About → engines).
+  (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Search → photo / Babelgram identity.
+  Addresses are **Mbit-range** (~millions of bits per axis); UI shows first/last five
+  digits in the footer (hover: scientific + bit width as plain `≈N Mbit` text), Digits (z, n)
+  in the gallery notice (body copy uses the `.unit-mbit` mark), spines + colour map, but not
+  lattice wander (see About → engines / scale).
 
 Same shelf numbers under different scopes are different virgin content. Handoff and
 `lob:babel` stamps carry `scope=page|book`.

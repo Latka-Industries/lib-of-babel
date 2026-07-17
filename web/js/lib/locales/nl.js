@@ -62,19 +62,19 @@ export const nl = {
   "gallery.coordsHuge.minimap":
     "Mbit-bereik — roosteruitgangen uit. Zie LIB-OF-BABEL → SCHAAL.",
   "gallery.coordsHuge.minimapShort": "Mbit · geen uitgangen",
-  "gallery.mbitNotice.title": "Mbit-bereik",
+  "gallery.mbitNotice.title": "MBIT-bereik",
   "gallery.mbitNotice.body":
-    "Deze galerij ligt op de <b>boekgekoppelde</b> kaart. Ruggen en kleurenkaarten werken. Gangpijlen en sprong zijn uit. Mbit-kamers kunnen niet in een URL worden opgeslagen — open hier een willekeurig boek, bewaar een Babelgram, dan zoeken… → Babelgram om te verifiëren en de gestempelde kamer te openen. Een boek openen of lenen kan even duren.",
+    "Deze galerij ligt op de <b>boekgekoppelde</b> kaart. Ruggen en kleurenkaarten werken. Gangpijlen en sprong zijn uit. <span class=\"unit-mbit\">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen — open hier een willekeurig boek, bewaar een Babelgram, dan <span class=\"ui\">zoeken…</span> → <span class=\"ui ui-tab\">Babelgram</span> om te verifiëren en de gestempelde kamer te openen. Een boek openen of lenen kan even duren.",
   "gallery.mbitNotice.scale.slim":
-    "<b>Schaal</b> — ≈{mbit} Mbit ({mag}). Voorbij elke vertrouwde combinatoriek — kaartspellen (~10^68), atomen in het heelal (~10^80), schaakpartijen (~10^120), Go-stellingen (~10^170) — en voorbij een <i>googol</i> (10^100). Eén cijfer per seconde: {recite}.",
+    "<b>Schaal</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). Voorbij elke vertrouwde combinatoriek — kaartspellen (~10^68), atomen in het heelal (~10^80), een <i>googol</i> (10^100), schaakpartijen (~10^120), Go-stellingen (~10^170). Eén cijfer per seconde: {recite}.",
   "gallery.mbitNotice.scale.mid":
-    "<b>Schaal</b> — ≈{mbit} Mbit ({mag}). Uitgeschreven ≈{digits} cijfers — ongeveer zoveel <i>letters</i> als een korte tot typische roman (novelle ~100 000 tekens; een pocket vaak een paar honderdduizend). Eén cijfer per seconde: {recite}.",
+    "<b>Schaal</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). ≈{digits} cijfers. Ter vergelijking: een korte tot typische roman heeft grofweg 100 000 tot een paar honderdduizend <i>letters</i>. Eén cijfer per seconde: {recite}.",
   "gallery.mbitNotice.scale.book":
-    "<b>Schaal</b> — ≈{mbit} Mbit per as — Basile-boekkaart (~6,4). Uitgeschreven ≈{digits} cijfers — ongeveer zoveel <i>letters</i> als één van deze 410‑pagina‑boeken (~1,3 M), tot richting een Bijbel (~3 M). Eén cijfer per seconde: {recite}.",
+    "<b>Schaal</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> per as — Basile-boekkaart (~6,4). ≈{digits} cijfers. Ter vergelijking: één van deze 410‑pagina‑boeken bevat ~1,3 M <i>letters</i>; een Bijbel ~3 M. Eén cijfer per seconde: {recite}.",
   "gallery.mbitNotice.scale.fat":
-    "<b>Schaal</b> — ≈{mbit} Mbit ({mag}). Alleen het kamernummer opslaan: ≈{mb} MB — JPEG‑foto / korte MP3. Eén cijfer per seconde: {recite}.",
+    "<b>Schaal</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). Alleen het kamernummer opslaan: ≈{mb} MB — JPEG‑foto / korte MP3. Eén cijfer per seconde: {recite}.",
   "gallery.mbitNotice.scale.titan":
-    "<b>Schaal</b> — ≈{mbit} Mbit ({mag}). De coördinaat alleen: ≈{mb} MB op schijf — lange MP3 / kleine app‑download, voor één kameradres. Eén cijfer per seconde: {recite}.",
+    "<b>Schaal</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). De coördinaat alleen: ≈{mb} MB op schijf — lange MP3 / kleine app‑download, voor één kameradres. Eén cijfer per seconde: {recite}.",
   "gallery.mbitNotice.recite.minutes": "~{n} minuten",
   "gallery.mbitNotice.recite.hours": "~{n} uur",
   "gallery.mbitNotice.recite.days": "~{n} dagen",
@@ -83,6 +83,7 @@ export const nl = {
   "gallery.mbitNotice.recite.years": "~{n} jaar",
   "gallery.mbitNotice.hashLabel": "Kamer-hash",
   "gallery.mbitNotice.coordsLabel": "Assen (grootte)",
+  "gallery.mbitNotice.digitsLabel": "Cijfers (z, n)",
   "gallery.mbitNotice.gotIt": "Begrepen",
   "gallery.mbitNotice.engines": "LIB-OF-BABEL → SCHAAL",
   "gallery.mbitNotice.mute": "Niet meer tonen",
@@ -90,38 +91,41 @@ export const nl = {
   "about.scale.col.band": "Band",
   "about.scale.col.scalar": "Schaal",
   "about.scale.col.bytes": "Bytes",
-  "about.scale.col.letters": "Letters",
+  "about.scale.col.comparison": "Vergelijking",
   "about.scale.col.recite": "Opsommen (1 cijfer/s)",
   "about.scale.band.slim": "smal",
   "about.scale.band.mid": "midden",
   "about.scale.band.book": "boek",
   "about.scale.band.fat": "dik",
   "about.scale.band.titan": "titan",
-  "about.scale.letters.na": "—",
-  "about.scale.letters.mid":
-    "≈{digits} cijfers · novelle → pocket",
-  "about.scale.letters.book":
-    "≈{digits} cijfers · één bibliotheekboek → Bijbel",
+  "about.scale.comparison.slim": "voorbij Go’s stellingental (~10^170)",
+  "about.scale.comparison.mid":
+    "≈{digits} cijfers · ref: novelle–pocket ~100 000–een paar honderdduizend letters",
+  "about.scale.comparison.book":
+    "≈{digits} cijfers · ref: bibliotheekboek ~1,3 M / Bijbel ~3 M letters",
+  "about.scale.comparison.fat": "JPEG / korte MP3",
+  "about.scale.comparison.titan": "lange MP3 / kleine app-download",
   "about.scale.intro": `
-<h4>Mbit-schaal</h4>
+<h4>MBIT-schaal</h4>
 <p class="dim">
 Kameradressen zijn gehele getallen. Is een as breder dan de paginakaart, dan toont de voet
-de <b>bitbreedte</b> in megabit (<code>1 Mbit = 10^6</code> bits) in plaats van de volle decimaal.
-Opsomtijden: <b>één cijfer per seconde</b> hardop.
+eerste/laatste vijf cijfers (<code>12345…67890</code>); hover voegt wetenschappelijke vorm en bitbreedte
+toe in megabit (1 <span class="unit-mbit">Mbit</span> = <code>10^6</code> bits). Klik <span class="ui">galerij (z, n)</span> voor de
+kamer-melding — Assen-voorbeeld plus Cijfers (z, n). De kolom <b>Vergelijking</b> is alleen analogie
+(combinatoriek, tekstlengtes, JPEG/MP3/app). Opsomtijden: <b>één cijfer per seconde</b> hardop.
 </p>
 <p class="dim">
-Foto-Find / Babelgram onder Basile landen in de <b>boek</b>-band (≈3–6 Mbit per as).
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">foto</span> / <span class="ui ui-tab">Babelgram</span> onder Basile landen in de <b>boek</b>-band (≈3–6 <span class="unit-mbit">Mbit</span> per as).
 Grotere alfabetten (Thai, Chinees, …) maken die adressen iets groter — nog steeds boek, niet dik of titan.
-Find haalt <b>dik</b> / <b>titan</b> met de huidige boeklengte niet.
-Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
-<span class="ui">zoeken…</span> → <span class="ui">Babelgram</span> om te verifiëren en de gestempelde kamer te openen.
+Die modi halen <b>dik</b> / <b>titan</b> met de huidige boeklengte niet.
+<span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om te verifiëren en de gestempelde kamer te openen.
 Hoe de twee kaarten werken:
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
 </p>`,
   "about.scale.outro": `
 De opslaggrootte geldt alleen voor het <i>coördinaatgetal</i> (niet de boektekst).
-Letteranalogieën passen alleen waar het cijferaantal bekende tekstlengtes raakt
-(midden / boek). Zie ook
+Vergelijkingscellen zijn landmarken en bestandsgrootte-analogieën naast de cijferschatting. Zie ook
 <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>.
 `,
   "about.alphabets.h": "Alfabetlenzen",
@@ -165,13 +169,13 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>De kop-<span class="ui">thema</span>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
 <li>Gebruik de <b>minikaart</b> — klik een uitgangs-hash. <kbd>pijltjestoetsen</kbd> lopen gangen en trappen (tenzij een dialoog open is).</li>
 <li>Klik <span class="ui">galerij&nbsp;(z,&nbsp;n)</span> om te springen — alleen in het <b>paginagekoppelde</b> (dwaalbare) bereik.</li>
-<li>Foto-Find / Babelgram kan je in het <b>Mbit-bereik</b> (boekgekoppeld) brengen: ruggen werken, gangdwalen niet.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
+<li><span class="ui">zoeken…</span> → <span class="ui ui-tab">foto</span> / <span class="ui ui-tab">Babelgram</span> kan je in het <b><span class="unit-mbit">Mbit</span>-bereik</b> (boekgekoppeld) brengen: ruggen werken, gangdwalen niet.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
 <li>Typ een <span class="ui">universum</span>naam of gooi <span class="ui">&#9860;</span>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
 <li>Het <span class="ui">alfabet</span>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALFABETTEN</button></li>
 <li>Klik een gekleurde rug op een wand om een boek te openen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BOEKEN</button></li>
 <li><span class="ui">acties…</span> → <span class="ui">link kopiëren</span> (of voet-<span class="ui">hash</span>) voor een permalink.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button></li>
-<li><span class="ui">acties…</span> → <span class="ui">zoeken…</span> — <span class="ui">tekst</span>, <span class="ui">foto</span> of <span class="ui">Babelgram</span>; spring ernaartoe.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">ZOEKEN</button></li>
+<li><span class="ui">acties…</span> → <span class="ui">zoeken…</span> — <span class="ui ui-tab">tekst</span>, <span class="ui ui-tab">foto</span> of <span class="ui ui-tab">Babelgram</span>; spring ernaartoe.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">ZOEKEN</button></li>
 <li><span class="ui">dwaaltochten</span> (voet, laatste {max}) — recente stappen met universum + alfabet; <span class="ui">tocht exporteren</span> bewaart het hele pad als JSON.</li>
 </ul>`,
 
@@ -181,23 +185,23 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>Klik een gekleurde rug; <kbd>←</kbd> <kbd>→</kbd> bladeren zolang de lezer open is.</li>
 <li>De rug die je laatst sloot is <b>rood</b> omlijnd, zodat je hem terugvindt.</li>
 <li><span class="ui">kleur</span> tekent de pagina als een teken-kleurenkaart — elk symbool een vierkant, getint door de galerij-hash.</li>
-<li><span class="ui">link</span> kopieert een permalink naar dit boek op deze pagina (alleen paginakaart — Mbit-kamers kunnen niet in een URL worden opgeslagen).</li>
+<li><span class="ui">link</span> kopieert een permalink naar dit boek op deze pagina (alleen paginakaart — <span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen).</li>
 <li><span class="ui">opslaan…</span> → <span class="ui">boek lenen</span> — volledige tekst (~1,3&nbsp;MB .txt)</li>
-<li><span class="ui">opslaan…</span> → <span class="ui">Babelgram</span> — volboek-kleurenkaart-PNG met zegel; voor Mbit-kamers: zoeken → Babelgram verifieert en opent de gestempelde kamer</li>
+<li><span class="ui">opslaan…</span> → <span class="ui">Babelgram</span> — volboek-kleurenkaart-PNG met zegel; voor <span class="unit-mbit">Mbit</span>-kamers: <span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> verifieert en opent de gestempelde kamer</li>
 </ul>`,
 
   "about.search": `
 <h4>op inhoud</h4>
 <p class="dim">
-Onder <span class="ui">acties…</span> → <span class="ui">zoeken…</span> blijf op het tabblad <span class="ui">tekst</span> met
-<span class="ui">inhoud</span>. Plak een zin (tot één pagina — 3200 tekens); de bibliotheek
+Onder <span class="ui">acties…</span> → <span class="ui">zoeken…</span> blijf op het tabblad <span class="ui ui-tab">tekst</span> met
+<span class="ui ui-tab">inhoud</span>. Plak een zin (tot één pagina — 3200 tekens); de bibliotheek
 noemt galerij, plank, boek en pagina waar die al leeft — en opent hem.
 Zoeken gebruikt de <b>huidige alfabetlens</b> en blijft in het universum waar je staat.
 Ongeldige tekens worden rood gemarkeerd.
 </p>
 <h4>op titel</h4>
 <p class="dim">
-Zelfde <span class="ui">tekst</span>-tab — kies <span class="ui">titel</span> i.p.v. <span class="ui">inhoud</span>. Voer tot
+Zelfde <span class="ui ui-tab">tekst</span>-tab — kies <span class="ui ui-tab">titel</span> i.p.v. <span class="ui ui-tab">inhoud</span>. Voer tot
 <b>24 tekens</b> (actieve lensregels). Die tekenreeks is een
 <b>ruglabel</b>: de bibliotheek springt naar de galerij en plank waar die
 titel onder het huidige alfabet hoort, toont hem op de rug, en opent
@@ -205,8 +209,8 @@ pagina&nbsp;1.
 </p>
 <h4>op Babelgram</h4>
 <p class="dim">
-Tab <span class="ui">Babelgram</span>: gestempelde PNG van <span class="ui">opslaan…</span> → <span class="ui">Babelgram</span>.
-Mbit-kamers kunnen niet in een URL worden opgeslagen — dit tabblad verifieert het zegel en opent bij succes de exacte kamer in de stempel.
+Tab <span class="ui ui-tab">Babelgram</span>: gestempelde PNG van <span class="ui">opslaan…</span> → <span class="ui">Babelgram</span>.
+<span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen — dit tabblad verifieert het zegel en opent bij succes de exacte kamer in de stempel.
 <b>Zelfde universum</b> als de export → dat exacte boek (na verify).
 <b>Ander universum</b> → dezelfde afdruk op een nieuw adres, andere inhoud (zegel wordt nog gecontroleerd).
 <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> leggen een korte <code>#bo=</code>-handoff in <b>deze</b> browser — geen deelbare URL. Ander apparaat heeft een Babelgram nodig.
@@ -214,13 +218,13 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen — dit tabblad verifieert 
 </p>
 <h4>op fotomozaïek</h4>
 <p class="dim">
-Tab <span class="ui">foto</span>: upload een willekeurig beeld (optioneel helderheid / contrast).
+Tab <span class="ui ui-tab">foto</span>: upload een willekeurig beeld (optioneel helderheid / contrast).
 Het wordt uitgerekt naar het volboekrooster en geprojecteerd met de
 <b>kamerletterkleuren van deze galerij</b>. Dat mozaïek <b>is</b> één virgin boek onder de
-<b>boekgekoppelde</b> bijectie (meestal een Mbit-kamer — geen gangdwalen).
+<b>boekgekoppelde</b> bijectie (meestal een <span class="unit-mbit">Mbit</span>-kamer — geen gangdwalen).
 De bovenste paletstrook is deze galerij; na Find toont een tweede de kleuren van de hit-galerij.
 <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> gebruiken een korte <code>#bo=</code>-handoff alleen in <b>deze</b> browser — niet deelbaar over apparaten.
-Kamer bewaren: open daar een willekeurig boek, bewaar een Babelgram, dan zoeken → Babelgram om te verifiëren en opnieuw te openen.
+Kamer bewaren: open daar een willekeurig boek, bewaar een Babelgram, dan <span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om te verifiëren en opnieuw te openen.
 </p>`,
 
   "about.engines": `
@@ -229,13 +233,13 @@ Kamer bewaren: open daar een willekeurig boek, bewaar een Babelgram, dan zoeken 
 <code>Σ</code> — actief alfabet. <code>|Σ|</code> — zijn grootte
 (Basile-standaard <code>|Σ|=29</code>).<br>
 <code>PAGE</code> — symbolen per pagina = <code>40×80 = 3200</code>.<br>
-<code>BOOK</code> — symbolen per boek = <code>PAGE × 410 = 1 312 000</code>.<br>
+<code>BOOK</code> — symbolen per boek = <code>PAGE × 410 = 1.312.000</code>.<br>
 <code>|Σ|^PAGE</code> — modulus van de paginakaart.<br>
 <code>|Σ|^BOOK</code> — modulus van de boekkaart.<br>
-<code>Mbit</code> — megabit = <code>10^6</code> bits (bitbreedte van een getal).
-Per <code>1 Mbit</code> breedte is het getal ongeveer
+<span class="unit-mbit">Mbit</span> — megabit = <code>10^6</code> bits (bitbreedte van een getal).
+Per 1 <span class="unit-mbit">Mbit</span> breedte is het getal ongeveer
 <code>2^(10^6) ≈ 10^(3.01×10^5)</code> (~301 000 decimalen).
-Basile-boekkaart: <code>BOOK · log₂(29) ≈ 6.4 Mbit</code> → ongeveer
+Basile-boekkaart: <code>BOOK · log₂(29) ≈ 6.4</code> <span class="unit-mbit">Mbit</span> → ongeveer
 <code>(10^301 030)^6.4 ≈ 10^(1.9×10^6)</code> per as.
 </p>
 <h4>Twee bijectie-scopes</h4>
@@ -246,23 +250,24 @@ verschillende scopes → <b>andere virgin inhoud</b>.
 <h4>Paginagekoppeld</h4>
 <p class="dim">
 Bijectie over <code>|Σ|^PAGE</code>. Elke pagina één keer. Dwalen, ruggen, bladeren,
-<span class="ui">tekst</span>-zoeken (≤ één pagina). Roosterpijlen / sprong blijven hier.
+<span class="ui ui-tab">tekst</span>-zoeken (≤ één pagina). Roosterpijlen / sprong blijven hier.
 </p>
 <h4>Boekgekoppeld</h4>
 <p class="dim">
 Bijectie over <code>|Σ|^BOOK</code>. Elk vol boek één keer.
-<span class="ui">foto</span>-Find en <span class="ui">Babelgram</span>-identiteit:
+<span class="ui ui-tab">foto</span> en <span class="ui ui-tab">Babelgram</span>-identiteit:
 het lettermozaïek <b>is</b> dat boek.
 </p>
-<h4>Mbit-bereik</h4>
+<h4>MBIT-bereik</h4>
 <p class="dim">
-Boekkaart-assen (Basile ≈ <code>3–6 Mbit</code> per as na uitpakken): voet
-alleen bitbreedte; geen volle decimalen; geen gangpijlen /
+Boekkaart-assen (Basile ≈ 3–6 <span class="unit-mbit">Mbit</span> per as na uitpakken): voet
+eerste/laatste vijf cijfers; hover: wetenschappelijk + bitbreedte; klik
+<span class="ui">galerij (z, n)</span> → Assen + Cijfers (z, n) in de kamer-melding. Geen volle decimalen; geen gangpijlen /
 minikaart-uitgangen / sprong. Ruggen, boek, kleurenkaart, lens, universum werken wel.
 Volle <code>z</code>/<code>n</code> zijn elk ongeveer megabytegroot — te groot voor een URL.
-De adresbalk laat die assen weg. Mbit-kamers kunnen niet in een URL worden opgeslagen: open een willekeurig boek in de kamer, bewaar een Babelgram, dan
-<span class="ui">zoeken…</span> → <span class="ui">Babelgram</span> om het zegel te verifiëren en de gestempelde kamer te openen.
-Na verify in dezelfde browser: <code>#bo=</code> van <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> is een lokale handoff (opslag van deze browser), geen portable Mbit-URL — gebruik een Babelgram om over apparaten te delen.
+De adresbalk laat die assen weg. <span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen: open een willekeurig boek in de kamer, bewaar een Babelgram, dan
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om het zegel te verifiëren en de gestempelde kamer te openen.
+Na verify in dezelfde browser: <code>#bo=</code> van <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> is een lokale handoff (opslag van deze browser), geen portable <span class="unit-mbit">Mbit</span>-URL — gebruik een Babelgram om over apparaten te delen.
 <span class="ui">nieuwe tocht</span> of paginagekoppelde permalink om weer te dwalen.
 Vergelijkingsbanden:
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-scale">SCHAAL</button>
@@ -270,16 +275,17 @@ Vergelijkingsbanden:
 <h4>Coördinaatweergave</h4>
 <p class="dim">
 Voet <span class="ui">galerij (z, n)</span>: paginakaart → wetenschappelijke notatie als lang;
-boekkaart / Mbit-bereik → alleen bitbreedte. Draadvorm <code>c…</code> (base64url) als assen
-korte decimalen ontgroeien.
+boekkaart / <span class="unit-mbit">Mbit</span>-bereik → eerste/laatste vijf cijfers (<code>12345…67890</code>); hover toont
+wetenschappelijke vorm en bitbreedte. Klik opent de kamer-melding met cijfers per as.
+Draadvorm <code>c…</code> (base64url) als assen korte decimalen ontgroeien.
 </p>
 <h4>Babelgram-stempels</h4>
 <p class="dim">
 <span class="ui">opslaan…</span> → <span class="ui">Babelgram</span> schrijft een PNG met <code>lob:babel</code>:
 universum, alfabet, volle compacte <code>z</code>/<code>n</code>, boekindex, <code>scope=page|book</code>,
 plus een <b>inhoudszegel</b> en <b>kamer-hash</b> tegen manipulatie.
-Mbit-kamers kunnen niet in een URL worden opgeslagen — bewaar een Babelgram uit een willekeurig boek in de kamer, dan
-<span class="ui">zoeken…</span> → <span class="ui">Babelgram</span>: verify geslaagd → exact die gestempelde kamer openen.
+<span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen — bewaar een Babelgram uit een willekeurig boek in de kamer, dan
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span>: verify geslaagd → exact die gestempelde kamer openen.
 Dwaalexports paginagekoppeld; boekkaart-exports boekgekoppeld. Rooster moet exact boekgrootte zijn.
 </p>`,
 
@@ -288,12 +294,12 @@ Dwaalexports paginagekoppeld; boekkaart-exports boekgekoppeld. Rooster moet exac
 <p class="dim">
 Alles na <code>#</code> is een kamer- of zoekadres voor <b>paginagekoppelde</b> (dwaalbare) coords
 en tekstzoeken. Zelfde adres → altijd dezelfde kamer. Korte flags staan <b>vóór</b> grote
-<code>z</code>/<code>n</code>. Mbit-assen komen <b>niet</b> in de URL — te groot. Mbit-kamers kunnen niet in een URL worden opgeslagen: bewaar een Babelgram uit een willekeurig boek in de kamer, dan zoeken → Babelgram om te verifiëren en te openen.
+<code>z</code>/<code>n</code>. <span class="unit-mbit">Mbit</span>-assen komen <b>niet</b> in de URL — te groot. <span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen: bewaar een Babelgram uit een willekeurig boek in de kamer, dan <span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om te verifiëren en te openen.
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
 </p>
 <h4>Kamerflags</h4>
 <ul>
-<li><code>z</code> / <code>n</code> — galerijcoördinaten (decimaal of compact <code>c…</code>, zolang paginakaart-groot). In Mbit-bereik weggelaten.</li>
+<li><code>z</code> / <code>n</code> — galerijcoördinaten (decimaal of compact <code>c…</code>, zolang paginakaart-groot). In <span class="unit-mbit">Mbit</span>-bereik weggelaten.</li>
 <li><code>h</code> — 16 hex-tekens van de kamer-<b>BLAKE3</b>-hash (bewijs; niet omkeerbaar naar coords).</li>
 <li><code>a</code> — alfabetlens-id.</li>
 <li><code>u</code> — universumnaam (ontbreekt / leeg → standaard).</li>
@@ -307,11 +313,11 @@ en tekstzoeken. Zelfde adres → altijd dezelfde kamer. Korte flags staan <b>vó
 <li><code>q</code> — zoekzin (zacht begrensd; inhoud in de UI max. één pagina).</li>
 <li><code>find=content|title</code> — welke locate bij boot (herlokaliseren; geen enorme coords in de hash).</li>
 </ul>
-<h4>Mbit-kamers — geen URL</h4>
+<h4>MBIT-kamers — geen URL</h4>
 <p class="dim">
 Boekgekoppelde assen zijn als <code>c…</code> ongeveer megabytegroot. Browsers dragen dat niet in een hash.
-Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
-<span class="ui">zoeken…</span> → <span class="ui">Babelgram</span> om het zegel te verifiëren en de gestempelde kamer te openen.
+<span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om het zegel te verifiëren en de gestempelde kamer te openen.
 Na verify in dezelfde browser: <code>#bo=</code> / <code>#be=</code> van <span class="ui">ga erheen</span> / <span class="ui">link kopiëren</span> zijn lokale IndexedDB-handoffs — niet deelbaar over apparaten.
 </p>
 <h4>Handoffs in dezelfde browser</h4>
@@ -350,14 +356,14 @@ De Bibliotheek zelf wordt nooit gedownload — alleen je <b>pad</b>,
 <span class="ui">thema</span>-voorkeur, en een “gids gezien”-vlag blijven hier. Foto- /
 Babelgram-<span class="ui">ga erheen</span> en <span class="ui">link kopiëren</span> leggen een
 kortstondige <code>#bo=</code>-handoff in de IndexedDB van <b>deze</b> browser — nuttig voor een nieuw tabblad hier, geen link voor een ander apparaat.
-Over apparaten heen bij Mbit-kamers: bewaar een Babelgram, dan zoeken → Babelgram.
+Over apparaten heen bij <span class="unit-mbit">Mbit</span>-kamers: bewaar een Babelgram, dan <span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span>.
 </p>
 <h4>Delen</h4>
 <p class="dim">
 Paginagekoppelde kamers en tekstzoeken: URL-flags onder
 <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button>.
-Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
-<span class="ui">zoeken…</span> → <span class="ui">Babelgram</span> om te verifiëren en de gestempelde kamer te openen.
+<span class="unit-mbit">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek in die kamer, bewaar een Babelgram, dan
+<span class="ui">zoeken…</span> → <span class="ui ui-tab">Babelgram</span> om te verifiëren en de gestempelde kamer te openen.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -404,22 +410,22 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek 
     "Zelfde universum → exact exportboek. Ander universum → dezelfde Babelgram-afdruk, andere inhoud.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Upload een Babelgram van opslaan → Babelgram. De stempel wordt geverifieerd (inhoudszegel + kamer-hash). Bij succes opent <span class=\"ui\">{go}</span> de gestempelde kamer. Mbit-kamers kunnen niet in een URL worden opgeslagen — zo open je ze opnieuw. Zelfde universum → dat boek. Ander universum → dezelfde afdruk, nieuw adres. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> leggen een korte <code>#bo=</code>-handoff in deze browser (niet deelbaar); ander apparaat heeft de Babelgram-PNG nodig.",
+    "Upload een Babelgram van <span class=\"ui\">opslaan…</span> → <span class=\"ui\">Babelgram</span>. De stempel wordt geverifieerd (inhoudszegel + kamer-hash). Bij succes opent <span class=\"ui\">{go}</span> de gestempelde kamer. <span class=\"unit-mbit\">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen — zo open je ze opnieuw. Zelfde universum → dat boek. Ander universum → dezelfde afdruk, nieuw adres. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> leggen een korte <code>#bo=</code>-handoff in deze browser (niet deelbaar); ander apparaat heeft de Babelgram-PNG nodig.",
   "search.babel.find": "boek vinden",
   "search.babel.progress": "Babelgram decoderen",
   "search.babel.upload": "Babelgram-PNG uploaden",
   "search.babel.original": "Babelgram-export",
   "search.babel.gridHint":
-    "Vereist een gestempelde verliesvrije PNG van precies {w}×{h} (opslaan → Babelgram).",
+    "Vereist een gestempelde verliesvrije PNG van precies {w}×{h} (<span class=\"ui\">opslaan…</span> → <span class=\"ui\">Babelgram</span>).",
   "search.babel.fileMeta": "{name} · exact {w}×{h} Babelgram-rooster",
   "search.babel.stampV3": "stempel v3 (verzegeld)",
   "search.babel.stampV2": "stempel v2 (geen zegel)",
   "search.babel.stampV1": "stempel v1 (geen zegel)",
   "search.babel.sizeMismatch":
-    "Verkeerde maat ({sw}×{sh}). Babelgrams moeten precies {w}×{h} zijn — opnieuw exporteren via opslaan → Babelgram.",
+    "Verkeerde maat ({sw}×{sh}). Babelgrams moeten precies {w}×{h} zijn — opnieuw exporteren via <span class=\"ui\">opslaan…</span> → <span class=\"ui\">Babelgram</span>.",
   "search.babel.needExact": "upload eerst een exacte {w}×{h} Babelgram-PNG",
   "search.babel.notBabel":
-    "Geen Babelgram-PNG. Opnieuw exporteren via opslaan → Babelgram.",
+    "Geen Babelgram-PNG. Opnieuw exporteren via <span class=\"ui\">opslaan…</span> → <span class=\"ui\">Babelgram</span>.",
   "search.babel.nameMismatch":
     "bestandsnaam-coördinaten komen niet overeen met de PNG-stempel",
   "search.babel.originLine":
@@ -430,7 +436,7 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek 
   "search.babel.originNoteSame":
     "Zelfde universum als de export — dit is het exacte boek. ga erheen opent een nieuw tabblad.",
   "search.babel.originNoteOther":
-    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> gebruiken een lokale <code>#bo=</code>-handoff (alleen deze browser). Mbit-kamers: bewaar de Babelgram, dan zoeken → Babelgram om te verifiëren en elders opnieuw te openen.",
+    "Ander universum — dezelfde Babelgram-afdruk op een nieuw adres, andere boekinhoud. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> gebruiken een lokale <code>#bo=</code>-handoff (alleen deze browser). <span class=\"unit-mbit\">Mbit</span>-kamers: bewaar de Babelgram, dan <span class=\"ui\">zoeken…</span> → <span class=\"ui ui-tab\">Babelgram</span> om te verifiëren en elders opnieuw te openen.",
   "search.babel.resultsIntro":
     "Babelgram-locate in {universe} (seed {seed}) — exacte accentdecode:",
   "search.babel.resultsIntroSame":
@@ -491,7 +497,7 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek 
   "search.babel.tip.verifyFail":
     "Pixels of stempel zijn gewijzigd. Zegel of kamer-hash klopt niet — ga erheen is geblokkeerd.",
   "search.babel.tip.verifyLegacy":
-    "Oudere Babelgram zonder zegel/hash. Opnieuw exporteren via opslaan → Babelgram voor tamperchecks.",
+    "Oudere Babelgram zonder zegel/hash. Opnieuw exporteren via <span class=\"ui\">opslaan…</span> → <span class=\"ui\">Babelgram</span> voor tamperchecks.",
   "search.babel.tip.exactOk":
     "Decode lijkt exact: rms ≥ 99,9%, mae < 0,5 en corr ≥ 0,999.",
   "search.babel.confirmHint":
@@ -533,7 +539,7 @@ Mbit-kamers kunnen niet in een URL worden opgeslagen. Open een willekeurig boek 
   "search.mosaic.progressScore": "boekkaart {i} / {n} scoren…",
   "search.mosaic.upload": "beeld uploaden",
   "search.mosaic.honesty":
-    "Het lettermozaïek gebruikt de kleuren van deze galerij (paletstrook hierboven). <span class=\"ui\">{find}</span> zoekt die letters op; de hit kan in een andere galerij liggen — een tweede paletstrook onder <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> toont die kleuren. Hits zijn meestal Mbit-kamers (geen URL). <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> leggen een korte <code>#bo=</code>-handoff alleen in deze browser — niet deelbaar. Elders openen: bewaar een Babelgram, dan zoeken → Babelgram om te verifiëren.",
+    "Het lettermozaïek gebruikt de kleuren van deze galerij (paletstrook hierboven). <span class=\"ui\">{find}</span> zoekt die letters op; de hit kan in een andere galerij liggen — een tweede paletstrook onder <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> toont die kleuren. Hits zijn meestal <span class=\"unit-mbit\">Mbit</span>-kamers (geen URL). <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> leggen een korte <code>#bo=</code>-handoff alleen in deze browser — niet deelbaar. Elders openen: bewaar een Babelgram, dan <span class=\"ui\">zoeken…</span> → <span class=\"ui ui-tab\">Babelgram</span> om te verifiëren.",
   "search.mosaic.bookTextIntro":
     "Boektekst ({n} tekens). Kopieer, of zet in inhoudzoeken en klik vinden.",
   "search.mosaic.toSearch": "zet in inhoudzoeken",

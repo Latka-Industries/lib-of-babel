@@ -300,12 +300,20 @@ export function renderAboutAlphabets() {
   if (panel) panel.scrollTop = 0;
 }
 
-/** Letter-analogy cell — only mid/book bands have a useful text-length compare. */
-function scaleLettersCell(tier, vars) {
-  if (tier === "mid" || tier === "book") {
-    return escapeHtml(t(`about.scale.letters.${tier}`, vars));
-  }
-  return `<span class="dim">${escapeHtml(t("about.scale.letters.na"))}</span>`;
+/** Comparison cell — analogy / storage size for each Mbit band. */
+function scaleComparisonCell(tier, vars) {
+  return escapeHtml(t(`about.scale.comparison.${tier}`, vars));
+}
+
+/** Scalar cell — bit width on line 1; magnitude (`10^…`) always on line 2. */
+function scaleScalarCell(vars) {
+  return (
+    `<code class="about-scale-scalar">` +
+    `<span class="about-scale-mbit">≈${escapeHtml(vars.mbit)} ` +
+    `<span class="unit-mbit">Mbit</span> ·</span>` +
+    `<span class="about-scale-mag">${escapeHtml(vars.mag)}</span>` +
+    `</code>`
+  );
 }
 
 /** Representative Mbit bands table (same samples as the room notice / asset sheet). */
@@ -317,20 +325,19 @@ export function renderAboutScale() {
     t("about.scale.col.band"),
     t("about.scale.col.scalar"),
     t("about.scale.col.bytes"),
-    t("about.scale.col.letters"),
+    t("about.scale.col.comparison"),
     t("about.scale.col.recite"),
   ]
     .map((label) => `<th scope="col">${escapeHtml(label)}</th>`)
     .join("");
   const rows = MBIT_SCALE_SAMPLES.map(({ tier, bits }) => {
     const vars = mbitScaleVars(bits, { locale, t });
-    const scalar = `≈${vars.mbit} Mbit · ${vars.mag}`;
     return (
       `<tr>` +
       `<th scope="row">${escapeHtml(t(`about.scale.band.${tier}`))}</th>` +
-      `<td><code>${escapeHtml(scalar)}</code></td>` +
+      `<td>${scaleScalarCell(vars)}</td>` +
       `<td>${escapeHtml(vars.bytes)}</td>` +
-      `<td>${scaleLettersCell(tier, vars)}</td>` +
+      `<td>${scaleComparisonCell(tier, vars)}</td>` +
       `<td>${escapeHtml(vars.recite)}</td>` +
       `</tr>`
     );

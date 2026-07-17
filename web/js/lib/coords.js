@@ -131,11 +131,15 @@ export function approxCoordMagnitude(value) {
   }
   const s = String(value ?? "").trim();
   if (isCompactCoord(s)) {
-    const b64Len = s.length - 1;
-    // Unpadded base64url → floor(n×3/4) decoded bytes (includes 1 sign byte).
-    const decoded = Math.floor((b64Len * 3) / 4);
-    const magBytes = Math.max(0, decoded - 1);
-    return { bits: magBytes * 8, neg: false };
+    const packed = compactMagBytes(s);
+    if (!packed) return { bits: 0, neg: false };
+    const { neg, mag } = packed;
+    let start = 0;
+    while (start < mag.length && mag[start] === 0) start++;
+    if (start >= mag.length) return { bits: 0, neg: false };
+    const m = mag.subarray(start);
+    const clz8 = Math.clz32(m[0]) - 24;
+    return { bits: m.length * 8 - clz8, neg };
   }
   if (/^-?\d+$/.test(s)) {
     const neg = s.startsWith("-");
@@ -164,4 +168,149 @@ export function formatBitMagnitude(bits, { neg = false } = {}) {
 export function formatCoordMagnitudeLabel(value) {
   const { bits, neg } = approxCoordMagnitude(value);
   return formatBitMagnitude(bits, { neg });
+}
+
+const LOG10_2 = Math.log10(2);
+
+/**
+ * Decode compact `c…` to sign + big-endian magnitude bytes (no BigInt).
+ * @returns {{ neg: boolean, mag: Uint8Array } | null}
+ */
+function compactMagBytes(raw) {
+  const s = String(raw ?? "").trim();
+  if (!isCompactCoord(s)) return null;
+  let b64 = s.slice(1).replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  let bin;
+  try {
+    bin = atob(b64);
+  } catch {
+    return null;
+  }
+  if (bin.length < 1) return null;
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return { neg: bytes[0] === 1, mag: bytes.subarray(1) };
+}
+
+/**
+ * Magnitude bytes for a coord without decimal-expanding huge values.
+ * @returns {{ neg: boolean, mag: Uint8Array } | null}
+ */
+function coordMagBytes(value) {
+  if (typeof value === "bigint") {
+    const neg = value < 0n;
+    let mag = neg ? -value : value;
+    if (mag === 0n) return { neg: false, mag: new Uint8Array([0]) };
+    const hex = mag.toString(16);
+    const padded = hex.length % 2 ? `0${hex}` : hex;
+    const out = new Uint8Array(padded.length / 2);
+    for (let i = 0; i < out.length; i++) {
+      out[i] = Number.parseInt(padded.slice(i * 2, i * 2 + 2), 16);
+    }
+    return { neg, mag: out };
+  }
+  const s = String(value ?? "").trim();
+  if (isCompactCoord(s)) return compactMagBytes(s);
+  if (/^-?\d+$/.test(s)) {
+    // Short / medium decimals only — never call with megadigit strings.
+    if (s.replace(/^-/, "").length > 20_000) return null;
+    try {
+      return coordMagBytes(BigInt(s));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * First/last decimal digits + digit count for UI — never builds a full decimal
+ * string for huge `c…` axes (uses magnitude bytes + log10 of the top limb).
+ *
+ * @returns {{
+ *   neg: boolean,
+ *   head: string,
+ *   tail: string,
+ *   digits: number,
+ *   bits: number,
+ *   scientific: string,
+ *   preview: string,
+ * } | null}
+ */
+export function peekHugeCoordDigits(value, { headLen = 5, tailLen = 5 } = {}) {
+  const packed = coordMagBytes(value);
+  if (!packed) return null;
+  const { neg, mag } = packed;
+  let start = 0;
+  while (start < mag.length && mag[start] === 0) start++;
+  if (start >= mag.length) {
+    return {
+      neg: false,
+      head: "0",
+      tail: "0",
+      digits: 1,
+      bits: 0,
+      scientific: "0",
+      preview: "0",
+    };
+  }
+  const m = mag.subarray(start);
+  const clz8 = Math.clz32(m[0]) - 24;
+  const bits = m.length * 8 - clz8;
+
+  // Trailing digits: fold all mag bytes mod 10^tailLen (limb stays < 1e5 — safe in Number).
+  const tailMod = 10 ** tailLen;
+  let last = 0;
+  for (let i = 0; i < m.length; i++) {
+    last = (last * 256 + m[i]) % tailMod;
+  }
+  const tail = String(last).padStart(tailLen, "0");
+
+  // Leading digits + digit count from top ≤7 bytes (safe in Number) + bit shift.
+  const topN = Math.min(7, m.length);
+  let top = 0;
+  for (let i = 0; i < topN; i++) top = top * 256 + m[i];
+  const topBits = Math.floor(Math.log2(top)) + 1;
+  const log10m = Math.log10(top) + (bits - topBits) * LOG10_2;
+  let digits = Math.floor(log10m) + 1;
+  if (!Number.isFinite(digits) || digits < 1) digits = 1;
+  let frac = log10m - Math.floor(log10m);
+  if (frac < 0) frac = 0;
+  let lead = Math.floor(10 ** (frac + headLen - 1) + 1e-8);
+  const powHead = 10 ** headLen;
+  if (lead >= powHead) {
+    lead = 10 ** (headLen - 1);
+    digits += 1;
+  }
+  if (lead < 10 ** (headLen - 1)) {
+    // Guard float undershoot (e.g. 9999 instead of 10000).
+    lead = 10 ** (headLen - 1);
+  }
+  const head = String(lead);
+
+  const mantFrac = head.slice(1).replace(/0+$/, "");
+  const mant = mantFrac ? `${head[0]}.${mantFrac}` : head[0];
+  const exp = Math.max(0, digits - 1);
+  const scientific = `${neg ? "-" : ""}${mant}×10^${exp}`;
+  const preview = `${neg ? "-" : ""}${head}…${tail}`;
+
+  return { neg, head, tail, digits, bits, scientific, preview };
+}
+
+/** Gallery label for book-scale axes: `12345…67890`. */
+export function formatHugeCoordPreview(value, opts) {
+  const peek = peekHugeCoordDigits(value, opts);
+  if (!peek) return formatCoordMagnitudeLabel(value);
+  return peek.preview;
+}
+
+/**
+ * Tooltip-style label: `12345…67890 · 1.2345×10^1901234 · ≈6.4 Mbit`.
+ */
+export function formatHugeCoordDetail(value, opts) {
+  const peek = peekHugeCoordDigits(value, opts);
+  if (!peek) return formatCoordMagnitudeLabel(value);
+  const mag = formatBitMagnitude(peek.bits, { neg: peek.neg });
+  return `${peek.preview} · ${peek.scientific} · ${mag}`;
 }
