@@ -554,6 +554,7 @@
 /* SI-style unit mark for megabit — not a chip / tab / About transfer. */
 .unit-mbit {
   font-variant-caps: all-small-caps;
+  font-size: 1.08em;
   letter-spacing: 0.06em;
   font-weight: 700;
   /* accent-link is contrast-tuned per theme; light gets a deeper mix below. */
