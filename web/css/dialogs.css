@@ -551,6 +551,13 @@
   background: color-mix(in oklab, var(--bg) 70%, var(--panel-tinted, var(--bg)));
   border: 1px solid var(--line);
 }
+/* SI-style unit mark for megabit — not a chip / tab / About transfer. */
+.unit-mbit {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--accent) 55%, var(--ink));
+}
 .mbit-notice-actions {
   display: flex;
   gap: 0.5rem;
@@ -985,6 +992,18 @@ pre.page mark.search-hit {
 .about-scale-table code {
   font-size: 0.92em;
   word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.about-scale-table .about-scale-scalar {
+  display: block;
+  line-height: 1.35;
+}
+.about-scale-table .about-scale-mag {
+  display: block;
+}
+.about-scale-table .unit-mbit {
+  /* Inherit mono from the scalar <code>; keep unit mark color/caps. */
+  font-family: inherit;
 }
 .about-save-rows { display: grid; gap: 0.2rem; }
 .about-save-row {
@@ -996,7 +1015,7 @@ pre.page mark.search-hit {
   background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
   padding: 0 0.35rem; font-size: 0.85em;
 }
-/* Inline stand-in for real controls (buttons, menus, tabs, options). */
+/* Inline stand-in for real controls (buttons, menus, options). */
 .about-body .ui,
 .find-dim .ui {
   display: inline-flex;
@@ -1013,6 +1032,19 @@ pre.page mark.search-hit {
   font-weight: 500;
   line-height: 1.25;
   white-space: nowrap;
+}
+/* Illustrative dialog/search tab — not a chrome button, not an About transfer. */
+.about-body .ui.ui-tab,
+.find-dim .ui.ui-tab {
+  border-radius: 6px 6px 2px 2px;
+  border-style: solid;
+  border-bottom-style: dashed;
+  border-bottom-color: color-mix(in oklab, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg) 30%);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .about-body button.ui {
   cursor: pointer;

@@ -67,19 +67,19 @@ export const de = {
   "gallery.coordsHuge.minimap":
     "Mbit-Bereich — Gitterausgänge deaktiviert. Siehe LIB-OF-BABEL → GRÖSSE.",
   "gallery.coordsHuge.minimapShort": "Mbit · keine Ausgänge",
-  "gallery.mbitNotice.title": "Mbit-Bereich",
+  "gallery.mbitNotice.title": "MBIT-Bereich",
   "gallery.mbitNotice.body":
-    "Diese Galerie liegt auf der <b>buchgebundenen</b> Karte. Rücken und Farbkarten funktionieren. Flurpfeile und Sprung sind aus. Mbit-Räume lassen sich nicht in einer URL speichern — öffnen Sie hier ein beliebiges Buch, speichern Sie ein Babelgram, dann Suchen… → Babelgram zum Prüfen und Öffnen des gestempelten Raums. Buch öffnen oder ausleihen kann etwas dauern.",
+    "Diese Galerie liegt auf der <b>buchgebundenen</b> Karte. Rücken und Farbkarten funktionieren. Flurpfeile und Sprung sind aus. <span class=\"unit-mbit\">Mbit</span>-Räume lassen sich nicht in einer URL speichern — öffnen Sie hier ein beliebiges Buch, speichern Sie ein Babelgram, dann <span class=\"ui\">Suchen…</span> → <span class=\"ui ui-tab\">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums. Buch öffnen oder ausleihen kann etwas dauern.",
   "gallery.mbitNotice.scale.slim":
-    "<b>Größe</b> — ≈{mbit} Mbit ({mag}). Jenseits vertrauter Kombinatorik — Kartenspiele (~10^68), Atome im Universum (~10^80), Schachpartien (~10^120), Go-Stellungen (~10^170) — und jenseits eines <i>Googols</i> (10^100). Eine Ziffer pro Sekunde: {recite}.",
+    "<b>Größe</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). Jenseits vertrauter Kombinatorik — Kartenspiele (~10^68), Atome im Universum (~10^80), ein <i>Googol</i> (10^100), Schachpartien (~10^120), Go-Stellungen (~10^170). Eine Ziffer pro Sekunde: {recite}.",
   "gallery.mbitNotice.scale.mid":
-    "<b>Größe</b> — ≈{mbit} Mbit ({mag}). Ausgeschrieben ≈{digits} Stellen — etwa so viele <i>Buchstaben</i> wie ein kurzer bis typischer Roman (Novelle ~100 000 Zeichen; ein Taschenbuch oft einige hunderttausend). Eine Ziffer pro Sekunde: {recite}.",
+    "<b>Größe</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). ≈{digits} Stellen. Zum Vergleich: ein kurzer bis typischer Roman hat grob 100 000 bis einige hunderttausend <i>Buchstaben</i>. Eine Ziffer pro Sekunde: {recite}.",
   "gallery.mbitNotice.scale.book":
-    "<b>Größe</b> — ≈{mbit} Mbit pro Achse — Basile-Buchkarte (~6,4). Ausgeschrieben ≈{digits} Stellen — etwa so viele <i>Buchstaben</i> wie eines dieser 410‑Seiten‑Bücher (~1,3 M), bis hin zur Bibel (~3 M). Eine Ziffer pro Sekunde: {recite}.",
+    "<b>Größe</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> pro Achse — Basile-Buchkarte (~6,4). ≈{digits} Stellen. Zum Vergleich: eines dieser 410‑Seiten‑Bücher fasst ~1,3 M <i>Buchstaben</i>; eine Bibel ~3 M. Eine Ziffer pro Sekunde: {recite}.",
   "gallery.mbitNotice.scale.fat":
-    "<b>Größe</b> — ≈{mbit} Mbit ({mag}). Allein die Zimmernummer speichern: ≈{mb} MB — JPEG‑Foto / kurzes MP3. Eine Ziffer pro Sekunde: {recite}.",
+    "<b>Größe</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). Allein die Zimmernummer speichern: ≈{mb} MB — JPEG‑Foto / kurzes MP3. Eine Ziffer pro Sekunde: {recite}.",
   "gallery.mbitNotice.scale.titan":
-    "<b>Größe</b> — ≈{mbit} Mbit ({mag}). Die Koordinate allein: ≈{mb} MB auf der Platte — langes MP3 / kleiner App‑Download, für eine Zimmeradresse. Eine Ziffer pro Sekunde: {recite}.",
+    "<b>Größe</b> — ≈{mbit} <span class=\"unit-mbit\">Mbit</span> ({mag}). Die Koordinate allein: ≈{mb} MB auf der Platte — langes MP3 / kleiner App‑Download, für eine Zimmeradresse. Eine Ziffer pro Sekunde: {recite}.",
   "gallery.mbitNotice.recite.minutes": "~{n} Minuten",
   "gallery.mbitNotice.recite.hours": "~{n} Stunden",
   "gallery.mbitNotice.recite.days": "~{n} Tage",
@@ -88,6 +88,7 @@ export const de = {
   "gallery.mbitNotice.recite.years": "~{n} Jahre",
   "gallery.mbitNotice.hashLabel": "Raum-Hash",
   "gallery.mbitNotice.coordsLabel": "Achsen (Größe)",
+  "gallery.mbitNotice.digitsLabel": "Stellen (z, n)",
   "gallery.mbitNotice.gotIt": "Verstanden",
   "gallery.mbitNotice.engines": "LIB-OF-BABEL → GRÖSSE",
   "gallery.mbitNotice.mute": "Nicht mehr anzeigen",
@@ -95,38 +96,41 @@ export const de = {
   "about.scale.col.band": "Band",
   "about.scale.col.scalar": "Skalar",
   "about.scale.col.bytes": "Bytes",
-  "about.scale.col.letters": "Buchstaben",
+  "about.scale.col.comparison": "Vergleich",
   "about.scale.col.recite": "Vorsprechen (1 Ziffer/s)",
   "about.scale.band.slim": "schlank",
   "about.scale.band.mid": "mittel",
   "about.scale.band.book": "Buch",
   "about.scale.band.fat": "fett",
   "about.scale.band.titan": "titan",
-  "about.scale.letters.na": "—",
-  "about.scale.letters.mid":
-    "≈{digits} Stellen · Novelle → Taschenbuch",
-  "about.scale.letters.book":
-    "≈{digits} Stellen · ein Bibliotheksbuch → Bibel",
+  "about.scale.comparison.slim": "jenseits der Go-Stellungszahl (~10^170)",
+  "about.scale.comparison.mid":
+    "≈{digits} Stellen · Ref: Novelle–Taschenbuch ~100 000–einige hunderttausend Buchstaben",
+  "about.scale.comparison.book":
+    "≈{digits} Stellen · Ref: Bibliotheksbuch ~1,3 M / Bibel ~3 M Buchstaben",
+  "about.scale.comparison.fat": "JPEG / kurzes MP3",
+  "about.scale.comparison.titan": "langes MP3 / kleiner App-Download",
   "about.scale.intro": `
-<h4>Mbit-Größe</h4>
+<h4>MBIT-Größe</h4>
 <p class="dim">
 Raumadressen sind ganze Zahlen. Ist eine Achse breiter als die Seitenkarte, zeigt die Fußzeile
-die <b>Bitbreite</b> in Megabit (<code>1 Mbit = 10^6</code> Bit) statt der vollen Dezimalzahl.
-Vorsprechzeiten: <b>eine Ziffer pro Sekunde</b> laut gesprochen.
+erste/letzte fünf Ziffern (<code>12345…67890</code>); Hover ergänzt wissenschaftliche Form und Bitbreite
+in Megabit (1 <span class="unit-mbit">Mbit</span> = <code>10^6</code> Bit). Klick auf <span class="ui">Galerie (z, n)</span> öffnet den
+Raumhinweis — Achsen-Vorschau plus Stellen (z, n). Die Spalte <b>Vergleich</b> ist nur Analogie
+(Kombinatorik, Textlängen, JPEG/MP3/App). Vorsprechzeiten: <b>eine Ziffer pro Sekunde</b> laut gesprochen.
 </p>
 <p class="dim">
-Foto-Find / Babelgram unter Basile landen im <b>Buch</b>-Band (≈3–6 Mbit pro Achse).
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Foto</span> / <span class="ui ui-tab">Babelgram</span> unter Basile landen im <b>Buch</b>-Band (≈3–6 <span class="unit-mbit">Mbit</span> pro Achse).
 Größere Alphabete (Thai, Chinesisch, …) machen diese Adressen etwas größer — immer noch Buch, nicht fett oder titan.
-Find erreicht <b>fett</b> / <b>titan</b> bei heutiger Buchlänge nicht.
-Mbit-Räume lassen sich nicht in einer URL speichern. Öffnen Sie ein beliebiges Buch in diesem Raum, speichern Sie ein Babelgram, dann
-<span class="ui">Suchen…</span> → <span class="ui">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums.
+Diese Modi erreichen <b>fett</b> / <b>titan</b> bei heutiger Buchlänge nicht.
+<span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern. Öffnen Sie ein beliebiges Buch in diesem Raum, speichern Sie ein Babelgram, dann
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums.
 Wie die beiden Karten funktionieren:
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
 </p>`,
   "about.scale.outro": `
 Die Speichergröße gilt nur für die <i>Koordinaten-Ganzzahl</i> (nicht den Buchtext).
-Buchstabenvergleiche passen nur, wo die Stellenzahl bekannte Textlängen trifft
-(mittel / Buch). Siehe auch
+Vergleichszellen sind Landmarken und Dateigrößen-Analogien neben der Stellenschätzung. Siehe auch
 <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>.
 `,
   "about.alphabets.h": "Alphabet-Linsen",
@@ -170,13 +174,13 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Die Kopfzeilen-<span class="ui">Thema</span>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
 <li>Nutzen Sie die <b>Minikarte</b> — klicken Sie auf einen Ausgangs-Hash. Mit den <kbd>Pfeiltasten</kbd> gehen Sie Flure und Treppen (außer bei offenem Dialog).</li>
 <li>Klicken Sie auf <span class="ui">Galerie&nbsp;(z,&nbsp;n)</span>, um zu springen — nur im <b>seitengebundenen</b> (wanderbaren) Bereich.</li>
-<li>Foto-Find / Babelgram kann Sie in den <b>Mbit-Bereich</b> (buchgebunden) bringen: Rücken funktionieren, Flurwandern nicht.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
+<li><span class="ui">Suchen…</span> → <span class="ui ui-tab">Foto</span> / <span class="ui ui-tab">Babelgram</span> kann Sie in den <b><span class="unit-mbit">Mbit</span>-Bereich</b> (buchgebunden) bringen: Rücken funktionieren, Flurwandern nicht.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
 <li>Geben Sie einen <span class="ui">Universum</span>-Namen ein oder würfeln Sie mit <span class="ui">&#9860;</span>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
 <li>Das <span class="ui">Alphabet</span>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETE</button></li>
 <li>Klicken Sie auf einen farbigen Rücken an einer Wand, um ein Buch zu öffnen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-books">BÜCHER</button></li>
 <li><span class="ui">Aktionen…</span> → <span class="ui">Link kopieren</span> (oder Fußzeilen-<span class="ui">Hash</span>) für einen Permalink.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button></li>
-<li><span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> — <span class="ui">Text</span>, <span class="ui">Foto</span> oder <span class="ui">Babelgram</span>; hinspringen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SUCHE</button></li>
+<li><span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> — <span class="ui ui-tab">Text</span>, <span class="ui ui-tab">Foto</span> oder <span class="ui ui-tab">Babelgram</span>; hinspringen.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-search">SUCHE</button></li>
 <li><span class="ui">Wanderungen</span> (Fußzeile, letzte {max}) — kürzliche Schritte mit Universum + Alphabet; <span class="ui">Reise exportieren</span> speichert den gesamten Weg als JSON.</li>
 </ul>`,
 
@@ -186,23 +190,23 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Klicken Sie auf einen farbigen Rücken; mit <kbd>←</kbd> <kbd>→</kbd> blättern Sie, solange der Leser offen ist.</li>
 <li>Der zuletzt geschlossene Rücken ist <b>rot</b> umrandet, damit Sie ihn wiederfinden.</li>
 <li><span class="ui">Farbe</span> zeichnet die Seite als Zeichen-Farbkarte — jedes Symbol ein Quadrat, getönt vom Galerie-Hash.</li>
-<li><span class="ui">Link</span> kopiert einen Permalink zu diesem Buch auf dieser Seite (nur Seitenkarte — Mbit-Räume lassen sich nicht in einer URL speichern).</li>
+<li><span class="ui">Link</span> kopiert einen Permalink zu diesem Buch auf dieser Seite (nur Seitenkarte — <span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern).</li>
 <li><span class="ui">Speichern…</span> → <span class="ui">Buch ausleihen</span> — voller Text (~1,3&nbsp;MB .txt)</li>
-<li><span class="ui">Speichern…</span> → <span class="ui">Babelgram</span> — Ganzbuch-Farbkarte als PNG mit Siegel; für Mbit-Räume: Suchen → Babelgram prüft und öffnet den gestempelten Raum</li>
+<li><span class="ui">Speichern…</span> → <span class="ui">Babelgram</span> — Ganzbuch-Farbkarte als PNG mit Siegel; für <span class="unit-mbit">Mbit</span>-Räume: <span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> prüft und öffnet den gestempelten Raum</li>
 </ul>`,
 
   "about.search": `
 <h4>nach Inhalt</h4>
 <p class="dim">
-Unter <span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> bleiben Sie auf dem Tab <span class="ui">Text</span> mit
-<span class="ui">Inhalt</span>. Fügen Sie eine Phrase ein (bis zu einer Seite — 3200 Zeichen);
+Unter <span class="ui">Aktionen…</span> → <span class="ui">Suchen…</span> bleiben Sie auf dem Tab <span class="ui ui-tab">Text</span> mit
+<span class="ui ui-tab">Inhalt</span>. Fügen Sie eine Phrase ein (bis zu einer Seite — 3200 Zeichen);
 die Bibliothek nennt Galerie, Regal, Buch und Seite, wo sie bereits lebt — und öffnet sie.
 Die Suche nutzt die <b>aktuelle Alphabet-Linse</b> und bleibt im Universum, in dem Sie stehen.
 Ungültige Zeichen werden rot markiert.
 </p>
 <h4>nach Titel</h4>
 <p class="dim">
-Derselbe <span class="ui">Text</span>-Tab — wählen Sie <span class="ui">Titel</span> statt <span class="ui">Inhalt</span>. Geben Sie bis zu
+Derselbe <span class="ui ui-tab">Text</span>-Tab — wählen Sie <span class="ui ui-tab">Titel</span> statt <span class="ui ui-tab">Inhalt</span>. Geben Sie bis zu
 <b>24 Zeichen</b> ein (aktive Linsenregeln). Die Zeichenkette gilt als
 <b>Rückenbeschriftung</b>: die Bibliothek springt zur Galerie und zum Regal, wo
 dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken und
@@ -210,8 +214,8 @@ dieser Titel unter dem aktuellen Alphabet sitzt, zeigt ihn auf dem Buchrücken u
 </p>
 <h4>nach Babelgram</h4>
 <p class="dim">
-Tab <span class="ui">Babelgram</span>: gestempeltes PNG von <span class="ui">Speichern…</span> → <span class="ui">Babelgram</span>.
-Mbit-Räume lassen sich nicht in einer URL speichern — dieser Tab prüft das Siegel und öffnet bei Erfolg den exakten Raum im Stempel.
+Tab <span class="ui ui-tab">Babelgram</span>: gestempeltes PNG von <span class="ui">Speichern…</span> → <span class="ui">Babelgram</span>.
+<span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern — dieser Tab prüft das Siegel und öffnet bei Erfolg den exakten Raum im Stempel.
 <b>Gleiches Universum</b> wie der Export → genau dieses Buch (nach Verify).
 <b>Anderes Universum</b> → gleicher Druck an neuer Adresse, anderer Inhalt (Siegel wird trotzdem geprüft).
 <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> legen einen kurzen <code>#bo=</code>-Handoff in <b>diesem</b> Browser ab — keine teilbare URL. Anderes Gerät braucht ein Babelgram.
@@ -219,13 +223,13 @@ Mbit-Räume lassen sich nicht in einer URL speichern — dieser Tab prüft das S
 </p>
 <h4>nach Foto-Mosaik</h4>
 <p class="dim">
-Tab <span class="ui">Foto</span>: beliebiges Bild (optional Helligkeit / Kontrast). Es wird auf
+Tab <span class="ui ui-tab">Foto</span>: beliebiges Bild (optional Helligkeit / Kontrast). Es wird auf
 das Ganzbuch-Gitter gestreckt und mit den <b>Raumbuchstabenfarben dieser Galerie</b>
 projiziert. Dieses Mosaik <b>ist</b> ein Jungfrau-Buch unter der <b>buchgebundenen</b>
-Bijektion (meist ein Mbit-Raum — kein Flurwandern).
+Bijektion (meist ein <span class="unit-mbit">Mbit</span>-Raum — kein Flurwandern).
 Der obere Palettenstreifen ist diese Galerie; nach Find zeigt ein zweiter die Farben der Treffer-Galerie.
 <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> nutzen einen kurzen <code>#bo=</code>-Handoff nur in <b>diesem</b> Browser — nicht geräteübergreifend.
-Raum behalten: beliebiges Buch dort öffnen, Babelgram speichern, dann Suchen → Babelgram zum Prüfen und erneuten Öffnen.
+Raum behalten: beliebiges Buch dort öffnen, Babelgram speichern, dann <span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen und erneuten Öffnen.
 </p>`,
 
   "about.engines": `
@@ -234,13 +238,13 @@ Raum behalten: beliebiges Buch dort öffnen, Babelgram speichern, dann Suchen �
 <code>Σ</code> — aktives Alphabet. <code>|Σ|</code> — seine Größe
 (Basile-Standard <code>|Σ|=29</code>).<br>
 <code>PAGE</code> — Symbole pro Seite = <code>40×80 = 3200</code>.<br>
-<code>BOOK</code> — Symbole pro Buch = <code>PAGE × 410 = 1 312 000</code>.<br>
+<code>BOOK</code> — Symbole pro Buch = <code>PAGE × 410 = 1.312.000</code>.<br>
 <code>|Σ|^PAGE</code> — Modul der Seitenkarte.<br>
 <code>|Σ|^BOOK</code> — Modul der Buchkarte.<br>
-<code>Mbit</code> — Megabit = <code>10^6</code> Bit (Bitbreite einer Zahl).
-Pro <code>1 Mbit</code> Breite ist die Zahl etwa
+<span class="unit-mbit">Mbit</span> — Megabit = <code>10^6</code> Bit (Bitbreite einer Zahl).
+Pro 1 <span class="unit-mbit">Mbit</span> Breite ist die Zahl etwa
 <code>2^(10^6) ≈ 10^(3.01×10^5)</code> (~301 000 Dezimalziffern).
-Basile-Buchkarte: <code>BOOK · log₂(29) ≈ 6.4 Mbit</code> → etwa
+Basile-Buchkarte: <code>BOOK · log₂(29) ≈ 6.4</code> <span class="unit-mbit">Mbit</span> → etwa
 <code>(10^301 030)^6.4 ≈ 10^(1.9×10^6)</code> pro Achse.
 </p>
 <h4>Zwei Bijektions-Scopes</h4>
@@ -251,23 +255,24 @@ verschiedenen Scopes → <b>anderer Jungfrau-Inhalt</b>.
 <h4>Seitengebunden</h4>
 <p class="dim">
 Bijektion über <code>|Σ|^PAGE</code>. Jede Seite einmal. Wandern, Rücken, Blättern,
-<span class="ui">Text</span>-Suche (≤ eine Seite). Gitterpfeile / Sprung bleiben hier.
+<span class="ui ui-tab">Text</span>-Suche (≤ eine Seite). Gitterpfeile / Sprung bleiben hier.
 </p>
 <h4>Buchgebunden</h4>
 <p class="dim">
 Bijektion über <code>|Σ|^BOOK</code>. Jedes volle Buch einmal.
-<span class="ui">Foto</span>-Find und <span class="ui">Babelgram</span>-Identität:
+<span class="ui ui-tab">Foto</span> und <span class="ui ui-tab">Babelgram</span>-Identität:
 das Buchstabenmosaik <b>ist</b> dieses Buch.
 </p>
-<h4>Mbit-Bereich</h4>
+<h4>MBIT-Bereich</h4>
 <p class="dim">
-Buchkarten-Achsen (Basile ≈ <code>3–6 Mbit</code> pro Achse nach Entpacken): Fußzeile
-nur Bitbreite; keine volle Dezimalanzeige; keine Flurpfeile /
+Buchkarten-Achsen (Basile ≈ 3–6 <span class="unit-mbit">Mbit</span> pro Achse nach Entpacken): Fußzeile
+erste/letzte fünf Ziffern; Hover: wissenschaftlich + Bitbreite; Klick auf
+<span class="ui">Galerie (z, n)</span> → Achsen + Stellen (z, n) im Raumhinweis. Keine volle Dezimalanzeige; keine Flurpfeile /
 Minikarten-Ausgänge / Sprung. Rücken, Buch, Farbkarte, Linse, Universum funktionieren.
 Volle <code>z</code>/<code>n</code> sind je etwa megabytegroß — zu groß für eine URL.
-Die Adresszeile lässt diese Achsen weg. Mbit-Räume lassen sich nicht in einer URL speichern: beliebiges Buch im Raum öffnen, Babelgram speichern, dann
-<span class="ui">Suchen…</span> → <span class="ui">Babelgram</span> zum Prüfen des Siegels und Öffnen des gestempelten Raums.
-Nach Verify im selben Browser: <code>#bo=</code> von <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> ist ein lokaler Handoff (Speicher dieses Browsers), keine portable Mbit-URL — Babelgram zum Teilen über Geräte.
+Die Adresszeile lässt diese Achsen weg. <span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern: beliebiges Buch im Raum öffnen, Babelgram speichern, dann
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen des Siegels und Öffnen des gestempelten Raums.
+Nach Verify im selben Browser: <code>#bo=</code> von <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> ist ein lokaler Handoff (Speicher dieses Browsers), keine portable <span class="unit-mbit">Mbit</span>-URL — Babelgram zum Teilen über Geräte.
 <span class="ui">Neuer Gang</span> oder seitengebundener Permalink zum Weiterwandern.
 Vergleichsbänder:
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-scale">GRÖSSE</button>
@@ -275,16 +280,17 @@ Vergleichsbänder:
 <h4>Koordinatenanzeige</h4>
 <p class="dim">
 Fußzeile <span class="ui">Galerie (z, n)</span>: Seitenkarte → wissenschaftliche Notation wenn lang;
-Buchkarte / Mbit-Bereich → nur Bitbreite. Drahtform <code>c…</code> (base64url), wenn Achsen
-kurze Dezimalzahlen sprengen.
+Buchkarte / <span class="unit-mbit">Mbit</span>-Bereich → erste/letzte fünf Ziffern (<code>12345…67890</code>); Hover zeigt
+wissenschaftliche Form und Bitbreite. Klick öffnet den Raumhinweis mit Stellen pro Achse.
+Drahtform <code>c…</code> (base64url), wenn Achsen kurze Dezimalzahlen sprengen.
 </p>
 <h4>Babelgram-Stempel</h4>
 <p class="dim">
 <span class="ui">Speichern…</span> → <span class="ui">Babelgram</span> schreibt ein PNG mit <code>lob:babel</code>:
 Universum, Alphabet, volle kompakte <code>z</code>/<code>n</code>, Buchindex, <code>scope=page|book</code>,
 plus <b>Inhalts-Siegel</b> und <b>Raum-Hash</b> gegen Manipulation.
-Mbit-Räume lassen sich nicht in einer URL speichern — Babelgram aus einem beliebigen Buch im Raum speichern, dann
-<span class="ui">Suchen…</span> → <span class="ui">Babelgram</span>: Verify bestanden → exakten gestempelten Raum öffnen.
+<span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern — Babelgram aus einem beliebigen Buch im Raum speichern, dann
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span>: Verify bestanden → exakten gestempelten Raum öffnen.
 Wander-Exporte seitengebunden; Buchkarten-Exporte buchgebunden. Gitter muss exakt Buchgröße sein.
 </p>`,
 
@@ -293,12 +299,12 @@ Wander-Exporte seitengebunden; Buchkarten-Exporte buchgebunden. Gitter muss exak
 <p class="dim">
 Alles nach <code>#</code> ist eine Raum- oder Suchadresse für <b>seitengebundene</b> (wanderbare) Koordinaten
 und Textsuche. Gleiche Adresse → immer derselbe Raum. Kurze Flags stehen <b>vor</b> großen
-<code>z</code>/<code>n</code>. Mbit-Achsen kommen <b>nicht</b> in die URL — zu groß. Mbit-Räume lassen sich nicht in einer URL speichern: Babelgram aus einem beliebigen Buch im Raum speichern, dann Suchen → Babelgram zum Prüfen und Öffnen.
+<code>z</code>/<code>n</code>. <span class="unit-mbit">Mbit</span>-Achsen kommen <b>nicht</b> in die URL — zu groß. <span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern: Babelgram aus einem beliebigen Buch im Raum speichern, dann <span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen und Öffnen.
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
 </p>
 <h4>Raum-Flags</h4>
 <ul>
-<li><code>z</code> / <code>n</code> — Galeriekoordinaten (Dezimal oder kompakt <code>c…</code>, solange seitenkarten-groß). Im Mbit-Bereich weggelassen.</li>
+<li><code>z</code> / <code>n</code> — Galeriekoordinaten (Dezimal oder kompakt <code>c…</code>, solange seitenkarten-groß). Im <span class="unit-mbit">Mbit</span>-Bereich weggelassen.</li>
 <li><code>h</code> — 16 Hex-Zeichen des Raum-<b>BLAKE3</b>-Hashs (Beweis; nicht zu Koordinaten umkehrbar).</li>
 <li><code>a</code> — Alphabet-Linsen-ID.</li>
 <li><code>u</code> — Universumsname (fehlt / leer → Standard).</li>
@@ -312,11 +318,11 @@ und Textsuche. Gleiche Adresse → immer derselbe Raum. Kurze Flags stehen <b>vo
 <li><code>q</code> — Suchphrase (weich begrenzt; Inhalt in der UI max. eine Seite).</li>
 <li><code>find=content|title</code> — welche Locate beim Start läuft (neu lokalisieren; keine Riesenkoordinaten im Hash).</li>
 </ul>
-<h4>Mbit-Räume — keine URL</h4>
+<h4>MBIT-Räume — keine URL</h4>
 <p class="dim">
 Buchgebundene Achsen sind als <code>c…</code> etwa megabytegroß. Browser tragen das nicht im Hash.
-Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum öffnen, Babelgram speichern, dann
-<span class="ui">Suchen…</span> → <span class="ui">Babelgram</span> zum Prüfen des Siegels und Öffnen des gestempelten Raums.
+<span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum öffnen, Babelgram speichern, dann
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen des Siegels und Öffnen des gestempelten Raums.
 Nach Verify im selben Browser: <code>#bo=</code> / <code>#be=</code> aus <span class="ui">Dorthin</span> / <span class="ui">Link kopieren</span> sind lokale IndexedDB-Handoffs — nicht geräteübergreifend teilbar.
 </p>
 <h4>Handoffs im selben Browser</h4>
@@ -355,14 +361,14 @@ Die Bibliothek selbst wird nie heruntergeladen — nur Ihr <b>Weg</b>, die
 <span class="ui">Thema</span>-Einstellung und ein „Leitfaden gesehen“-Flag bleiben hier.
 Foto- / Babelgram-<span class="ui">Dorthin</span> und <span class="ui">Link kopieren</span> legen
 einen kurzlebigen <code>#bo=</code>-Handoff in der IndexedDB <b>dieses</b> Browsers ab — nützlich für einen neuen Tab hier, kein Link für ein anderes Gerät.
-Geräteübergreifend bei Mbit-Räumen: Babelgram speichern, dann Suchen → Babelgram.
+Geräteübergreifend bei <span class="unit-mbit">Mbit</span>-Räumen: Babelgram speichern, dann <span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span>.
 </p>
 <h4>Teilen</h4>
 <p class="dim">
 Seitengebundene Räume und Textsuche: URL-Flags unter
 <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-url">URL</button>.
-Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum öffnen, Babelgram speichern, dann
-<span class="ui">Suchen…</span> → <span class="ui">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums.
+<span class="unit-mbit">Mbit</span>-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum öffnen, Babelgram speichern, dann
+<span class="ui">Suchen…</span> → <span class="ui ui-tab">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums.
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
@@ -410,22 +416,22 @@ Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum ö
     "Gleiches Universum → genau das Export-Buch. Anderes Universum → gleicher Babelgram-Druck, anderer Inhalt.",
   "search.hintBabel": "",
   "search.babel.honesty":
-    "Babelgram von Speichern → Babelgram hochladen. Der Stempel wird geprüft (Inhalts-Siegel + Raum-Hash). Bei Erfolg öffnet <span class=\"ui\">{go}</span> den gestempelten Raum. Mbit-Räume lassen sich nicht in einer URL speichern — so öffnen Sie sie erneut. Gleiches Universum → dieses Buch. Anderes Universum → gleicher Druck, neue Adresse. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> legen einen kurzen <code>#bo=</code>-Handoff in diesem Browser ab (nicht teilbar); anderes Gerät braucht die Babelgram-PNG.",
+    "Babelgram von <span class=\"ui\">Speichern…</span> → <span class=\"ui\">Babelgram</span> hochladen. Der Stempel wird geprüft (Inhalts-Siegel + Raum-Hash). Bei Erfolg öffnet <span class=\"ui\">{go}</span> den gestempelten Raum. <span class=\"unit-mbit\">Mbit</span>-Räume lassen sich nicht in einer URL speichern — so öffnen Sie sie erneut. Gleiches Universum → dieses Buch. Anderes Universum → gleicher Druck, neue Adresse. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> legen einen kurzen <code>#bo=</code>-Handoff in diesem Browser ab (nicht teilbar); anderes Gerät braucht die Babelgram-PNG.",
   "search.babel.find": "Buch finden",
   "search.babel.progress": "Babelgram wird dekodiert",
   "search.babel.upload": "Babelgram-PNG hochladen",
   "search.babel.original": "Babelgram-Export",
   "search.babel.gridHint":
-    "Braucht ein gestempeltes verlustfreies PNG genau {w}×{h} (Speichern → Babelgram).",
+    "Braucht ein gestempeltes verlustfreies PNG genau {w}×{h} (<span class=\"ui\">Speichern…</span> → <span class=\"ui\">Babelgram</span>).",
   "search.babel.fileMeta": "{name} · exakt {w}×{h} Babelgram-Gitter",
   "search.babel.stampV3": "Stempel v3 (versiegelt)",
   "search.babel.stampV2": "Stempel v2 (kein Siegel)",
   "search.babel.stampV1": "Stempel v1 (kein Siegel)",
   "search.babel.sizeMismatch":
-    "Falsche Größe ({sw}×{sh}). Babelgrams müssen exakt {w}×{h} sein — neu exportieren unter Speichern → Babelgram.",
+    "Falsche Größe ({sw}×{sh}). Babelgrams müssen exakt {w}×{h} sein — neu exportieren unter <span class=\"ui\">Speichern…</span> → <span class=\"ui\">Babelgram</span>.",
   "search.babel.needExact": "zuerst ein exaktes {w}×{h} Babelgram-PNG hochladen",
   "search.babel.notBabel":
-    "Kein Babelgram-PNG. Neu exportieren unter Speichern → Babelgram.",
+    "Kein Babelgram-PNG. Neu exportieren unter <span class=\"ui\">Speichern…</span> → <span class=\"ui\">Babelgram</span>.",
   "search.babel.nameMismatch":
     "Dateiname-Koordinaten stimmen nicht mit dem PNG-Stempel überein",
   "search.babel.originLine":
@@ -436,7 +442,7 @@ Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum ö
   "search.babel.originNoteSame":
     "Gleiches Universum wie der Export — genau dieses Buch. Dorthin öffnet einen neuen Tab.",
   "search.babel.originNoteOther":
-    "Anderes Universum — gleicher Babelgram-Druck an neuer Adresse, anderer Buchinhalt. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> nutzen einen lokalen <code>#bo=</code>-Handoff (nur dieser Browser). Mbit-Räume: Babelgram behalten, dann Suchen → Babelgram zum Prüfen und erneuten Öffnen woanders.",
+    "Anderes Universum — gleicher Babelgram-Druck an neuer Adresse, anderer Buchinhalt. <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> nutzen einen lokalen <code>#bo=</code>-Handoff (nur dieser Browser). <span class=\"unit-mbit\">Mbit</span>-Räume: Babelgram behalten, dann <span class=\"ui\">Suchen…</span> → <span class=\"ui ui-tab\">Babelgram</span> zum Prüfen und erneuten Öffnen woanders.",
   "search.babel.resultsIntro":
     "Babelgram-Locate in {universe} (Seed {seed}) — exakte Akzent-Dekodierung:",
   "search.babel.resultsIntroSame":
@@ -497,7 +503,7 @@ Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum ö
   "search.babel.tip.verifyFail":
     "Pixel oder Stempel wurden geändert. Siegel oder Raum-Hash passen nicht — Dorthin ist gesperrt.",
   "search.babel.tip.verifyLegacy":
-    "Älteres Babelgram ohne Siegel/Hash. Neu exportieren unter Speichern → Babelgram für Tamper-Checks.",
+    "Älteres Babelgram ohne Siegel/Hash. Neu exportieren unter <span class=\"ui\">Speichern…</span> → <span class=\"ui\">Babelgram</span> für Tamper-Checks.",
   "search.babel.tip.exactOk":
     "Dekodierung wirkt exakt: rms ≥ 99,9 %, mae < 0,5 und korr ≥ 0,999.",
   "search.babel.confirmHint":
@@ -539,7 +545,7 @@ Mbit-Räume lassen sich nicht in einer URL speichern. Beliebiges Buch im Raum ö
   "search.mosaic.progressScore": "Buchkarte {i} / {n} bewerten…",
   "search.mosaic.upload": "Bild hochladen",
   "search.mosaic.honesty":
-    "Das Buchstabenmosaik nutzt die Farben dieser Galerie (Palettenstreifen oben). <span class=\"ui\">{find}</span> sucht diese Buchstaben; der Treffer kann in einer anderen Galerie liegen — ein zweiter Palettenstreifen unter <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> zeigt deren Farben. Treffer sind meist Mbit-Räume (keine URL). <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> legen einen kurzen <code>#bo=</code>-Handoff nur in diesem Browser ab — nicht teilbar. Zum Öffnen woanders: Babelgram speichern, dann Suchen → Babelgram zum Prüfen.",
+    "Das Buchstabenmosaik nutzt die Farben dieser Galerie (Palettenstreifen oben). <span class=\"ui\">{find}</span> sucht diese Buchstaben; der Treffer kann in einer anderen Galerie liegen — ein zweiter Palettenstreifen unter <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> zeigt deren Farben. Treffer sind meist <span class=\"unit-mbit\">Mbit</span>-Räume (keine URL). <span class=\"ui\">{go}</span> / <span class=\"ui\">{copy}</span> legen einen kurzen <code>#bo=</code>-Handoff nur in diesem Browser ab — nicht teilbar. Zum Öffnen woanders: Babelgram speichern, dann <span class=\"ui\">Suchen…</span> → <span class=\"ui ui-tab\">Babelgram</span> zum Prüfen.",
   "search.mosaic.bookTextIntro":
     "Buchtext ({n} Zeichen). Kopieren, oder in die Inhaltssuche legen und Finden.",
   "search.mosaic.toSearch": "in Inhaltssuche legen",

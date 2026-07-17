@@ -9,7 +9,7 @@ keep is the **journey**: the path and a cryptographic fingerprint of each room.
 
 <sub>Each gallery has a **sigil** from its room hash. Same coordinate + universe → same sigil (alphabet is a lens and does not change it). The 24 above are real default-universe galleries — see [`assets/sigils.json`](assets/sigils.json) (`node scripts/make-sigil-sheet.mjs` to redraw).</sub>
 
-Live: [lib-of-babel.xyz](https://lib-of-babel.xyz)
+Live: [lib-of-babel.xyz](https://lib-of-babel.xyz) · share cards use a static Open Graph image (`web/og.png`; regenerate with `node scripts/make-og.mjs`).
 
 ## Quick start
 

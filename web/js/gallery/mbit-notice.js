@@ -4,7 +4,7 @@ import { S } from "./state.js";
 import { el, openModal, formatCoordDisplay } from "../lib/util.js";
 import { getLocale, t } from "../lib/i18n.js";
 import { openAboutGuide } from "../about/about.js";
-import { approxCoordMagnitude, coordForWasm } from "../lib/coords.js";
+import { approxCoordMagnitude, coordForWasm, peekHugeCoordDigits } from "../lib/coords.js";
 import { mbitScaleTier, mbitScaleVars } from "../lib/mbit-scale.js";
 import { node_hash_hex, node_hash_full_hex } from "../lib/wasm.js";
 
@@ -39,6 +39,13 @@ function axisBits() {
 
 export { mbitScaleTier };
 
+/** Locale-formatted decimal digit width for one axis (`—` if unknown). */
+function axisDigitCount(value) {
+  const peek = peekHugeCoordDigits(value);
+  if (!peek?.digits) return "—";
+  return peek.digits.toLocaleString(getLocale());
+}
+
 function paintNotice() {
   const zW = coordForWasm(S.z);
   const nW = coordForWasm(S.n);
@@ -52,6 +59,9 @@ function paintNotice() {
   }
   const body = el("mbitNoticeBody");
   if (body) body.innerHTML = t("gallery.mbitNotice.body");
+
+  const title = el("mbitNoticeModal")?.querySelector(".book-head-text h3");
+  if (title) title.innerHTML = t("gallery.mbitNotice.title");
 
   const bits = axisBits();
   const tier = mbitScaleTier(bits);
@@ -71,6 +81,10 @@ function paintNotice() {
   const coordsEl = el("mbitNoticeCoords");
   if (coordsEl) {
     coordsEl.textContent = formatCoordDisplay(S.z, S.n);
+  }
+  const digitsEl = el("mbitNoticeDigits");
+  if (digitsEl) {
+    digitsEl.textContent = `(${axisDigitCount(S.z)}, ${axisDigitCount(S.n)})`;
   }
 }
 

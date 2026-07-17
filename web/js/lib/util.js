@@ -4,7 +4,8 @@ import {
   isCompactCoord,
   isHugeCoordValue,
   decodeCoordParam,
-  formatCoordMagnitudeLabel,
+  formatHugeCoordPreview,
+  formatHugeCoordDetail,
   approxCoordMagnitude,
   PAGE_MAP_MAX_BITS,
 } from "./coords.js";
@@ -51,7 +52,7 @@ export function escapeHtml(s) {
  * Long integer → scientific form for UI (`-1.234×10^312`).
  * Short values stay decimal.
  * Page-map range (`|Σ|^3200`, ≤ {@link PAGE_MAP_MAX_BITS}) → scientific.
- * Above that (book-linked) → bit-magnitude labels; never expand those axes.
+ * Above that (book-linked) → first/last 5 digits (`12345…67890`); never expand.
  */
 export function formatBigIntScientific(
   value,
@@ -61,7 +62,7 @@ export function formatBigIntScientific(
     isHugeCoordValue(value) ||
     approxCoordMagnitude(value).bits > PAGE_MAP_MAX_BITS
   ) {
-    return formatCoordMagnitudeLabel(value);
+    return formatHugeCoordPreview(value);
   }
   let bi;
   try {
@@ -72,7 +73,7 @@ export function formatBigIntScientific(
       bi = BigInt(value);
     }
   } catch {
-    return formatCoordMagnitudeLabel(value);
+    return formatHugeCoordPreview(value);
   }
   const neg = bi < 0n;
   const mag = neg ? -bi : bi;
@@ -86,14 +87,26 @@ export function formatBigIntScientific(
   return `${neg ? "-" : ""}${mant}×10^${exp}`;
 }
 
-/** Gallery `(z, n)` — scientific in page range; bit magnitude when book-scale. */
+/** Gallery `(z, n)` — scientific in page range; head…tail when book-scale. */
 export function formatCoordDisplay(z, n) {
   return `(${formatBigIntScientific(z)}, ${formatBigIntScientific(n)})`;
 }
 
-/** Tooltip coords — same as display (never dump exact mega-digit axes into the DOM). */
+/**
+ * Tooltip coords — page-map same as display; Mbit adds scientific + bit magnitude
+ * (`12345…67890 · 1.2345×10^1901234 · ≈6.4 Mbit`).
+ */
 export function formatCoordFull(z, n) {
-  return formatCoordDisplay(z, n);
+  const axis = (v) => {
+    if (
+      isHugeCoordValue(v) ||
+      approxCoordMagnitude(v).bits > PAGE_MAP_MAX_BITS
+    ) {
+      return formatHugeCoordDetail(v);
+    }
+    return formatBigIntScientific(v);
+  };
+  return `(${axis(z)}, ${axis(n)})`;
 }
 
 /** Fallback when `navigator.clipboard` is missing or blocked (file://, some dialogs). */

@@ -258,6 +258,66 @@
         border-radius: 6px;
         background: var(--panel);
       }
+      .sheet-token-misc {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.25rem;
+        font-size: 0.78rem;
+      }
+      .sheet-token-misc-row {
+        display: grid;
+        grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr);
+        gap: 0.35rem 0.75rem;
+        align-items: baseline;
+        padding: 0.2rem 0;
+        border-bottom: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+      }
+      .sheet-token-misc-row code:first-child {
+        color: var(--accent);
+      }
+      .sheet-token-misc-row .sheet-swatch-val {
+        word-break: break-word;
+        color: var(--muted);
+      }
+      .sheet-chip-mount {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .sheet-chip-kinds {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem 0.85rem;
+        align-items: center;
+      }
+      .sheet-chip-kind {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        align-items: center;
+      }
+      .sheet-chip-kind .sheet-chip-meta {
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+      }
+      .sheet-chip-recipes {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .sheet-chip-recipe {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.5rem;
+        align-items: baseline;
+        font-size: 0.85rem;
+      }
+      .sheet-chip-recipe .sheet-chip-meta {
+        flex: 0 0 100%;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -286,8 +346,12 @@
 
       <section class="sheet-sec" id="tokens">
         <h2>Tokens</h2>
-        <p class="sheet-lead">Design tokens from <code>base.css</code> (live under current theme).</p>
+        <p class="sheet-lead">
+          Custom properties discovered from loaded theme rules (<code>:root</code> /
+          <code>[data-theme]</code>) — paint tokens as swatches; the rest listed below.
+        </p>
         <div class="sheet-swatches" id="tokenSwatches"></div>
+        <div class="sheet-token-misc" id="tokenMisc" hidden></div>
       </section>
 
       <section class="sheet-sec" id="type">
@@ -297,7 +361,10 @@
           <p class="sheet-type-sample brand">LIB·OF·BABEL</p>
           <p class="sheet-type-sample">Body — Overpass Mono stack · 14px / 1.5 — gallery UI.</p>
           <p class="sheet-type-sample muted">Muted — secondary labels and hints.</p>
-          <p class="sheet-type-sample mono">hash a1b2c3d4 · coords (≈6.4 Mbit, ≈6.4 Mbit)</p>
+          <p class="sheet-type-sample">
+            Unit — <span class="unit-mbit">Mbit</span> (small-caps megabit mark, not a chip).
+          </p>
+          <p class="sheet-type-sample mono">hash a1b2c3d4 · coords (≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>)</p>
           <p class="sheet-type-sample prose">
             Prose — Lato for About. An endless library you can walk. Each hexagonal gallery has four
             walls of bookshelves and two hallways to the next gallery.
@@ -307,7 +374,10 @@
 
       <section class="sheet-sec" id="controls">
         <h2>Controls</h2>
-        <p class="sheet-lead">Buttons, fields, chips, dropdowns, ranges.</p>
+        <p class="sheet-lead">
+          Buttons, fields, chips, dropdowns, ranges. Chip kinds + path recipes are
+          scraped from loaded CSS / the active locale (EN·DE·NL tabs under Mbit).
+        </p>
         <div class="sheet-row">
           <span class="sheet-label">buttons</span>
           <div class="sheet-row-controls">
@@ -333,13 +403,10 @@
             </label>
           </div>
         </div>
-        <div class="sheet-row about-body">
+        <div class="sheet-row sheet-row-stack about-body">
           <span class="sheet-label">chips</span>
-          <div class="sheet-row-controls">
-            <span class="ui">find</span>
-            <span class="ui">gallery (z, n)</span>
-            <span class="ui">ENGINES</span>
-            <button type="button" class="ui about-goto-tab">WANDER</button>
+          <div id="chipMount" class="sheet-chip-mount">
+            <p class="find-dim">Discovering chip classes from CSS + locale recipes…</p>
           </div>
         </div>
         <div class="sheet-row sheet-row-stack">
@@ -420,7 +487,7 @@
           <button type="button" class="history-btn">wanderings · 12/1000</button>
           <div class="sheet-stat">
             <span class="stat-label">gallery</span>
-            <b class="coord">(≈6.4 Mbit, ≈6.4 Mbit)</b>
+            <b class="coord">(≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>)</b>
           </div>
           <div class="sheet-stat">
             <span class="stat-label">hash</span>
@@ -503,7 +570,7 @@
                 </span>
                 <span class="mosaic-hit-ok">exact decode</span>
               </div>
-              <div class="find-dim">gallery (≈6.4 Mbit, ≈6.4 Mbit) · book 12 · Basile</div>
+              <div class="find-dim">gallery (≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>) · book 12 · Basile</div>
               <div class="find-row find-actions" style="margin-top: 0.45rem">
                 <button type="button">go there</button>
                 <button type="button">copy link</button>
@@ -547,8 +614,8 @@
         <div class="sheet-panel" style="padding: 0; overflow: hidden">
           <div class="book-head">
             <div class="book-head-text">
-              <h3>Mbit range</h3>
-              <small>This gallery uses the <b>book-linked</b> map. Hallway arrows and jump are off.</small>
+              <h3>MBIT range</h3>
+              <small>This gallery uses the <b>book-linked</b> map. Hallway arrows and jump are off. <span class="unit-mbit">Mbit</span> rooms cannot be stored in a URL.</small>
             </div>
             <div class="book-head-actions">
               <button type="button" class="dialog-close">close</button>
@@ -561,7 +628,11 @@
             </div>
             <div class="mbit-notice-row">
               <span class="mbit-notice-k">Axes (magnitude)</span>
-              <code class="mbit-notice-v">(≈6.4 Mbit, ≈6.4 Mbit)</code>
+              <code class="mbit-notice-v">(-88004…82659, 21377…06503)</code>
+            </div>
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k">Digits (z, n)</span>
+              <code class="mbit-notice-v">(959,331, 959,331)</code>
             </div>
           </div>
           <div class="mbit-notice-actions">
@@ -618,18 +689,41 @@
         return s;
       }
 
-      const TOKENS = [
-        "--bg",
-        "--bg-deep",
-        "--panel",
-        "--ink",
-        "--muted",
-        "--accent",
-        "--accent-link",
-        "--accent-link-hover",
-        "--line",
-        "--page-ink",
-      ];
+      /** Walk nested CSSRuleList (supports @media / @supports wrapping theme rules). */
+      function* iterCssRules(rules) {
+        if (!rules) return;
+        for (const rule of rules) {
+          yield rule;
+          if (rule.cssRules?.length) yield* iterCssRules(rule.cssRules);
+        }
+      }
+
+      function* iterStyleSheets() {
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue; // cross-origin
+          }
+          yield* iterCssRules(rules);
+        }
+      }
+
+      /** Custom props declared on :root / [data-theme] in loaded stylesheets. */
+      function collectThemeCustomProps() {
+        const names = new Set();
+        for (const rule of iterStyleSheets()) {
+          if (!(rule instanceof CSSStyleRule)) continue;
+          const sel = rule.selectorText || "";
+          if (!/(?:^|,)\s*:root\b|\[data-theme\b/.test(sel)) continue;
+          for (let i = 0; i < rule.style.length; i++) {
+            const name = rule.style.item(i);
+            if (name?.startsWith("--")) names.add(name);
+          }
+        }
+        return [...names].sort();
+      }
 
       /** Declared value on :root (hex / color-mix), not computed rgb(). */
       function tokenDeclared(cssVar) {
@@ -640,19 +734,174 @@
         );
       }
 
+      function isPaintToken(name, declared) {
+        if (name.startsWith("--font")) return false;
+        if (name === "--noise") return false;
+        if (name.startsWith("--book-") || name === "--page-max") return false;
+        if (name.startsWith("--atmosphere-corners")) return false;
+        if (/^(-?\d|clamp|min\(|max\(|calc\()/i.test(declared)) return false;
+        return (
+          /^(#|rgb|hsl|hwb|lab|lch|oklab|oklch|color-mix|color\(|rgba|hsla|transparent)/i.test(
+            declared,
+          ) ||
+          /--(bg|panel|ink|muted|accent|line|page-ink|hover|vignette|backdrop|mm-fill|panel-tinted)/.test(
+            name,
+          )
+        );
+      }
+
       function paintSwatches() {
         const root = document.getElementById("tokenSwatches");
+        const misc = document.getElementById("tokenMisc");
         if (!root) return;
-        root.innerHTML = TOKENS.map((cssVar) => {
+        const tokens = collectThemeCustomProps();
+        const paint = [];
+        const other = [];
+        for (const cssVar of tokens) {
           const declared = tokenDeclared(cssVar);
-          return `<figure class="sheet-swatch">
+          if (isPaintToken(cssVar, declared)) paint.push({ cssVar, declared });
+          else other.push({ cssVar, declared });
+        }
+        root.innerHTML = paint
+          .map(
+            ({ cssVar, declared }) => `<figure class="sheet-swatch">
             <div class="sheet-swatch-chip" style="background:var(${cssVar})"></div>
             <figcaption>
               <code>${cssVar}</code>
               <span class="sheet-swatch-val">${declared}</span>
             </figcaption>
-          </figure>`;
-        }).join("");
+          </figure>`,
+          )
+          .join("");
+        if (misc) {
+          if (!other.length) {
+            misc.hidden = true;
+            misc.innerHTML = "";
+          } else {
+            misc.hidden = false;
+            misc.innerHTML = other
+              .map(
+                ({ cssVar, declared }) => `<div class="sheet-token-misc-row">
+              <code>${cssVar}</code>
+              <span class="sheet-swatch-val">${declared}</span>
+            </div>`,
+              )
+              .join("");
+          }
+        }
+      }
+
+      /**
+       * Chip variants from live CSS: plain .ui, .ui.ui-*, button.about-goto-tab.
+       * New modifiers in dialogs.css show up here without editing this page.
+       */
+      function discoverChipVariants() {
+        const byClass = new Map();
+        for (const rule of iterStyleSheets()) {
+          if (!(rule instanceof CSSStyleRule)) continue;
+          for (const part of (rule.selectorText || "").split(",")) {
+            const s = part.trim();
+            if (/\.about-goto-tab\b/.test(s)) {
+              byClass.set("ui about-goto-tab", {
+                tag: "button",
+                className: "ui about-goto-tab",
+                label: "About transfer",
+                sample: "ENGINES",
+                attrs: 'type="button" data-about-tab="aboutTab-engines"',
+              });
+              continue;
+            }
+            const m = s.match(
+              /(?:^|[\s>+~])(?:button\.)?\.ui((?:\.[a-zA-Z_][\w-]*)*)/,
+            );
+            if (!m) continue;
+            const extras = m[1].split(".").filter(Boolean);
+            // Skip pseudo-ish / hover-only if we only matched button.ui alone — still control.
+            const className = ["ui", ...extras].join(" ");
+            if (byClass.has(className)) continue;
+            const isTab = extras.includes("ui-tab");
+            byClass.set(className, {
+              tag: "span",
+              className,
+              label: isTab
+                ? "Tab chip"
+                : extras.length
+                  ? `Chip · ${extras.join(".")}`
+                  : "Control chip",
+              sample: isTab
+                ? "Babelgram"
+                : extras.length
+                  ? extras[extras.length - 1]
+                  : "search…",
+              attrs: "",
+            });
+          }
+        }
+        // Stable order: control → tabs/modifiers → transfer
+        const rank = (v) => {
+          if (v.className === "ui") return 0;
+          if (v.className.includes("about-goto-tab")) return 2;
+          return 1;
+        };
+        return [...byClass.values()].sort(
+          (a, b) => rank(a) - rank(b) || a.className.localeCompare(b.className),
+        );
+      }
+
+      /** Path recipes (control → tab / control → control) scraped from locale HTML. */
+      function chipRecipesFromCatalog(catalog) {
+        const seen = new Set();
+        const recipes = [];
+        const arrowRe =
+          /<span class="ui(?: ui-tab)?">[^<]+<\/span>\s*→\s*<span class="ui(?: ui-tab)?">[^<]+<\/span>/g;
+        for (const v of Object.values(catalog)) {
+          if (typeof v !== "string") continue;
+          if (!v.includes("class=") || !v.includes("→")) continue;
+          const html = v.replace(/\\"/g, '"');
+          for (const m of html.matchAll(arrowRe)) {
+            const snippet = m[0];
+            if (seen.has(snippet)) continue;
+            seen.add(snippet);
+            const hasTab = /ui-tab/.test(snippet);
+            recipes.push({
+              html: snippet,
+              note: hasTab
+                ? "search / dialog tab path"
+                : "control path (e.g. save menu)",
+            });
+          }
+        }
+        return recipes;
+      }
+
+      function paintChips(locale = "en") {
+        const mount = document.getElementById("chipMount");
+        if (!mount) return;
+        const variants = discoverChipVariants();
+        const catalog = CATALOGS[locale] || en;
+        const recipes = chipRecipesFromCatalog(catalog);
+        const kinds = variants.length
+          ? `<div class="sheet-chip-kinds">${variants
+              .map((v) => {
+                const el =
+                  v.tag === "button"
+                    ? `<button ${v.attrs} class="${v.className}">${v.sample}</button>`
+                    : `<span class="${v.className}">${v.sample}</span>`;
+                return `<span class="sheet-chip-kind">${el}<span class="sheet-chip-meta"><code>.${v.className.replaceAll(" ", ".")}</code> · ${v.label}</span></span>`;
+              })
+              .join("")}</div>`
+          : `<p class="find-dim">No <code>.ui</code> chip rules found in loaded stylesheets.</p>`;
+        const recipeBlock = recipes.length
+          ? `<div class="sheet-chip-recipes">${recipes
+              .map(
+                (r) => `<div class="sheet-chip-recipe about-body find-dim">
+              <span class="sheet-chip-meta">${r.note}</span>
+              ${r.html}
+            </div>`,
+              )
+              .join("")}</div>`
+          : "";
+        mount.innerHTML = `${kinds}${recipeBlock}`;
       }
 
       function paintMbit(locale) {
@@ -706,6 +955,7 @@
             : k,
       );
       paintSwatches();
+      paintChips("en");
 
       wireDropdownMenu("sheetDd", {
         copy: () => {},
@@ -736,7 +986,7 @@
               d[i + 3] = 255;
             } else {
               // diff: near-black with faint residual
-              const n = ((x * 13 + y * 7) & 7);
+              const n = (x * 13 + y * 7) & 7;
               d[i] = n;
               d[i + 1] = n;
               d[i + 2] = n;
@@ -753,7 +1003,8 @@
       }
 
       const compareRange = document.getElementById("sheetCompareRange");
-      const onCompare = () => paintSheetCompare(Number(compareRange?.value || 50) / 100);
+      const onCompare = () =>
+        paintSheetCompare(Number(compareRange?.value || 50) / 100);
       compareRange?.addEventListener("input", onCompare);
       compareRange?.addEventListener("change", onCompare);
       onCompare();
@@ -766,12 +1017,15 @@
             b.setAttribute("aria-pressed", b === btn ? "true" : "false");
           });
           paintMbit(locale);
+          paintChips(locale);
         });
       });
       paintMbit(locale);
 
       // Keep theme key documented in console for devs.
-      console.info(`asset-sheet · theme key ${THEME_KEY} · ${getTheme()}`);
+      console.info(
+        `asset-sheet · theme key ${THEME_KEY} · ${getTheme()} · tokens ${collectThemeCustomProps().length} · chips ${discoverChipVariants().length}`,
+      );
     </script>
   </body>
 </html>

@@ -3,10 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LIB·OF·BABEL</title>
+    <meta
+      name="description"
+      content="An infinite gallery of books — every page already written. Wander rooms, open volumes, export Babelgrams."
+    />
+    <link rel="canonical" href="https://lib-of-babel.xyz/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lib-of-babel.xyz/" />
+    <meta property="og:site_name" content="LIB·OF·BABEL" />
+    <meta property="og:title" content="LIB·OF·BABEL" />
+    <meta
+      property="og:description"
+      content="An infinite gallery of books — every page already written. Wander rooms, open volumes, export Babelgrams."
+    />
+    <meta property="og:image" content="https://lib-of-babel.xyz/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LIB·OF·BABEL" />
+    <meta
+      name="twitter:description"
+      content="An infinite gallery of books — every page already written. Wander rooms, open volumes, export Babelgrams."
+    />
+    <meta name="twitter:image" content="https://lib-of-babel.xyz/og.png" />
     <!-- SVG link is swapped to a data-URI with the gallery accent after boot; files stay as cold fallbacks. -->
     <link id="faviconSvg" rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
-    <title>lib-of-babel</title>
+    <link rel="apple-touch-icon" href="favicon.png" />
     <script>
       // Apply theme before CSS paints — same key as web/js/chrome/theme.js.
       (function () {
@@ -503,7 +527,7 @@
     <dialog id="mbitNoticeModal">
       <div class="book-head">
         <div class="book-head-text">
-          <h3 data-i18n="gallery.mbitNotice.title">Mbit range</h3>
+          <h3 data-i18n-html="gallery.mbitNotice.title">MBIT range</h3>
           <small id="mbitNoticeBody" data-i18n-html="gallery.mbitNotice.body"></small>
           <small id="mbitNoticeScale" class="mbit-notice-scale"></small>
         </div>
@@ -519,6 +543,10 @@
         <div class="mbit-notice-row">
           <span class="mbit-notice-k" data-i18n="gallery.mbitNotice.coordsLabel">Axes (magnitude)</span>
           <code id="mbitNoticeCoords" class="mbit-notice-v">—</code>
+        </div>
+        <div class="mbit-notice-row">
+          <span class="mbit-notice-k" data-i18n="gallery.mbitNotice.digitsLabel">Digits (z, n)</span>
+          <code id="mbitNoticeDigits" class="mbit-notice-v">—</code>
         </div>
       </div>
       <div class="mbit-notice-actions">
