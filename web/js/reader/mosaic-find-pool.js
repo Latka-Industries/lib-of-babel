@@ -5,6 +5,7 @@ import {
   mosaic_find_book,
   mosaic_find_book_locate,
   mosaic_find_book_finish,
+  locate_book_json,
   set_universe,
   get_universe,
   warm_book_basile,
@@ -70,6 +71,11 @@ function onMessage(ev) {
   }
   if (msg.ok) {
     settle(msg.id, (wait) => {
+      if (msg.kind === "locate_book") {
+        wait.trace?.done({ via: "worker", kind: "locate_book" });
+        wait.resolve({ resultsJson: msg.resultsJson });
+        return;
+      }
       wait.trace?.done({
         via: "worker",
         w: msg.width,
@@ -297,5 +303,76 @@ export async function mosaicFindBookAsync(
       trace.fail(err2);
       throw err2;
     }
+  }
+}
+
+/**
+ * Whole-book text locate (THI-149): warm α^BOOK → invert padded book flat.
+ *
+ * @param {string} text
+ * @param {number} alphabetId
+ * @param {bigint|number|string} [universe]
+ * @param {{ onProgress?: (phase: string) => void }} [opts]
+ * @returns {Promise<{ resultsJson: string }>}
+ */
+export async function locateBookAsync(
+  text,
+  alphabetId,
+  universe = get_universe(),
+  opts = {},
+) {
+  const onProgress = opts.onProgress;
+  if (!workerDisabled) {
+    try {
+      const w = ensureWorker();
+      if (!w) throw new Error("no mosaic-find worker");
+      const id = nextJobId++;
+      const debug = isFindDebug();
+      const trace = createFindTrace(`job#${id}`, {
+        via: "worker",
+        kind: "locate_book",
+        alphabetId,
+        universe: String(universe ?? "0"),
+      });
+      return await new Promise((resolve, reject) => {
+        pending.set(id, { resolve, reject, onProgress, trace });
+        try {
+          w.postMessage({
+            type: "locate_book",
+            id,
+            text: String(text ?? ""),
+            alphabetId,
+            universe: String(universe ?? "0"),
+            debug,
+          });
+          trace.phase("posted", { waiting: "worker wasm" });
+        } catch (err) {
+          pending.delete(id);
+          const e = err instanceof Error ? err : new Error(String(err));
+          trace.fail(e);
+          reject(e);
+        }
+      });
+    } catch (err) {
+      const msg = err?.message || String(err);
+      if (/cancelled/i.test(msg)) throw err;
+      console.warn("locate_book worker failed; using main thread", err);
+      if (!workerDisabled) terminateWorker();
+    }
+  }
+  const trace = createFindTrace("locate_book-main", { via: "main" });
+  try {
+    set_universe(universe);
+    onProgress?.("warm");
+    trace.phase("warm");
+    warm_book_basile(alphabetId);
+    onProgress?.("invert");
+    trace.phase("invert");
+    const resultsJson = locate_book_json(String(text ?? ""), alphabetId);
+    trace.done({ kind: "locate_book" });
+    return { resultsJson };
+  } catch (err) {
+    trace.fail(err);
+    throw err;
   }
 }

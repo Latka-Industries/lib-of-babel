@@ -2,6 +2,7 @@
 
 import { WINDOW_MAX, syncAlphabetPresentation } from "../lib/constants.js";
 import { t, setLocaleFromAlphabet } from "../lib/i18n.js";
+import { startLoadingTypewriter } from "./loading-wave.js";
 import {
   el,
   copyText,
@@ -51,6 +52,7 @@ import {
   clearSearchHighlights,
   renderSearchHighlights,
   syncSearchBackdropScroll,
+  syncSearchBackdropLayout,
   openSearch,
   runSearch,
   wireSearchTabs,
@@ -93,6 +95,9 @@ export function refreshLocaleChrome() {
   syncSearchKindUI();
   syncMosaicModeUI();
   syncThemeToggle(t);
+  if (document.getElementById("loadingCopy")?.isConnected) {
+    startLoadingTypewriter(t("loading.building"));
+  }
   const viewBtn = el("viewToggle");
   if (viewBtn) {
     viewBtn.textContent =
@@ -244,7 +249,9 @@ export function wireControls() {
     { beforeAction: closeHeaderMenu },
   );
 
-  el("searchFind").addEventListener("click", runSearch);
+  el("searchFind").addEventListener("click", () => {
+    void runSearch();
+  });
   el("searchKind").addEventListener("change", () => {
     el("searchResult").classList.remove("show");
     clearSearchHighlights();
@@ -264,7 +271,15 @@ export function wireControls() {
     },
   });
   wireMosaicSearch();
-  el("searchInput").addEventListener("input", () => {
+  el("searchInput").addEventListener("input", (e) => {
+    // Don't lowercase mid-IME composition — it jumps the caret.
+    if (!e.isComposing) syncSearchInput();
+    syncSearchCount();
+    const invalid = validateSearchQuery(el("searchInput").value, S.alphabetId);
+    if (invalid.length) renderSearchHighlights(invalid);
+    else clearSearchHighlights();
+  });
+  el("searchInput").addEventListener("compositionend", () => {
     syncSearchInput();
     syncSearchCount();
     const invalid = validateSearchQuery(el("searchInput").value, S.alphabetId);
@@ -272,7 +287,17 @@ export function wireControls() {
     else clearSearchHighlights();
   });
   el("searchInput").addEventListener("scroll", syncSearchBackdropScroll);
-  wireEnter("searchInput", runSearch, { modKey: true });
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(() => syncSearchBackdropLayout()).observe(el("searchInput"));
+  }
+  syncSearchBackdropLayout();
+  wireEnter(
+    "searchInput",
+    () => {
+      void runSearch();
+    },
+    { modKey: true },
+  );
 
   // verify journey: read an exported file, re-walk it in WASM, prove the hashes
   el("verifyFile").addEventListener("change", async (ev) => {

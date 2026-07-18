@@ -28,7 +28,7 @@ export const en = {
   "minimap.here": "you are here",
   "minimap.sigilTitle": "this gallery's sigil — click to download the SVG",
   "minimap.hint": "click an exit to move",
-  "loading.building": "building library…",
+  "loading.building": "building library",
   "loading.failed": "failed to load: {err}",
 
   "footer.wanderings": "wanderings · {n}/{max}",
@@ -393,12 +393,15 @@ Page-linked rooms and text search: URL flags under
 
   "search.head": "search",
   "search.headContent": "search by content",
+  "search.headContentBook": "search by content (whole book)",
   "search.headTitle": "search by title",
   "search.headMosaic": "search by color mosaic",
   "search.metaText":
     "Find a phrase, match a photo mosaic, or open a Babelgram.",
   "search.metaContent":
     "Type a phrase — page-linked invert finds the page where those glyphs already live (padded to a full page).",
+  "search.metaContentBook":
+    "Longer than one page — book-map invert (same pipeline as <span class=\"ui\">search…</span> → <span class=\"ui ui-tab\">photo</span>). Hit is usually an <span class=\"unit-mbit\">Mbit</span> room: no URL; save a Babelgram to reopen. First <span class=\"ui\">find</span> may need a warm + wait.",
   "search.metaTitle":
     "Type a spine title — the library finds the gallery and shelf where it belongs.",
   "search.metaMosaic":
@@ -516,6 +519,8 @@ Page-linked rooms and text search: URL flags under
   "search.countTip": "{n} alphabet cells of {max} allowed",
   "search.hintContent":
     "uses the current alphabet lens · up to one page",
+  "search.hintContentBook":
+    "book-map / <span class=\"unit-mbit\">Mbit</span>",
   "search.hintTitle":
     "uses the current alphabet lens · up to {n} spine-title cells",
   "search.canTakeAFew": "can take a few",
@@ -600,6 +605,10 @@ Page-linked rooms and text search: URL flags under
   "search.result.pages": "pages {start}–{end}",
   "search.result.chars": "{n} chars",
   "search.result.detailContent": "{pages} · {chars} · alphabet {alphabet}",
+  "search.result.detailContentBook":
+    "{pages} · {chars} · alphabet {alphabet} · book-map",
+  "search.result.bookHandoffNote":
+    "<span class=\"unit-mbit\">Mbit</span> room — copy uses a local <code>#bo=</code> handoff (this browser). Save a Babelgram to reopen elsewhere.",
   "search.result.detailTitle": "title {query} · {chars} · alphabet {alphabet}",
   "search.error.invalid":
     "invalid character for this alphabet ({alphabet} only): {shown}",
@@ -609,6 +618,9 @@ Page-linked rooms and text search: URL flags under
   "search.error.moreKinds": " (+{n} more kinds)",
   "search.error.empty": "search text is empty",
   "search.error.tooLong": "text too long (max {n} characters — one page)",
+  "search.error.tooLongBook": "text too long (max {n} characters — one book)",
+  "search.error.tooShortBook":
+    "book locate needs more than {n} characters (one page) — shorten to page search or paste more",
   "search.error.titleTooLong": "title too long (max {n} characters)",
   "search.error.pageRoom":
     "text needs {need} pages but only {room} remain in this book — try a shorter phrase",
@@ -633,9 +645,12 @@ Page-linked rooms and text search: URL flags under
   "book.next": "next ›",
   "book.pageInd": "page {page} / {total}",
   "book.pagePlaceholder": "page",
-  "book.waitMbit": "Mbit range — building this book. Can take a few.",
-  "book.waitMbitImage": "Mbit range — building the color map. Can take a few.",
-  "book.waitMbitBorrow": "Mbit range — writing the full book text. Can take a few.",
+  "book.waitMbit":
+    "<span class=\"unit-mbit\">Mbit</span> range — building this book. Can take a few.",
+  "book.waitMbitImage":
+    "<span class=\"unit-mbit\">Mbit</span> range — building the color map. Can take a few.",
+  "book.waitMbitBorrow":
+    "<span class=\"unit-mbit\">Mbit</span> range — writing the full book text. Can take a few.",
   "book.wall": "Wall {n}",
   "book.wallBook": "Wall {n} · book {book}",
 

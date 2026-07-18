@@ -4,6 +4,7 @@
 import init, {
   mosaic_find_book_locate,
   mosaic_find_book_finish,
+  locate_book_json,
   set_universe,
   warm_book_basile,
 } from "../../pkg/lib_of_babel.js";
@@ -37,7 +38,41 @@ function workerLog(debug, ...args) {
 
 self.onmessage = async (ev) => {
   const msg = ev.data;
-  if (!msg || msg.type !== "find") return;
+  if (!msg) return;
+
+  // Whole-book text locate (THI-149) — warm + invert only, no colour map.
+  if (msg.type === "locate_book") {
+    const { id, text, alphabetId, universe, debug } = msg;
+    const t0 = performance.now();
+    try {
+      await ensureWasm();
+      set_universe(asUniverseSeed(universe));
+      const alpha = asU32(alphabetId);
+      postProgress(id, "warm");
+      warm_book_basile(alpha);
+      postProgress(id, "invert");
+      const resultsJson = locate_book_json(String(text ?? ""), alpha);
+      self.postMessage({
+        id,
+        ok: true,
+        kind: "locate_book",
+        resultsJson,
+      });
+      workerLog(debug, `job#${id} · locate_book ok`, {
+        totalMs: (performance.now() - t0).toFixed(0),
+      });
+    } catch (err) {
+      const error =
+        typeof err === "string"
+          ? err
+          : err?.message || (err && String(err)) || "locate_book failed";
+      workerLog(debug, `job#${id} · locate_book error`, error);
+      self.postMessage({ id, ok: false, kind: "locate_book", error });
+    }
+    return;
+  }
+
+  if (msg.type !== "find") return;
   const { id, rgba, alphabetId, hue, chroma, light, universe, debug } = msg;
   let locate = null;
   const t0 = performance.now();

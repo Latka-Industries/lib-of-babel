@@ -37,6 +37,7 @@ import { coordForWasm } from "../lib/coords.js";
 import { titleEmbedFlat } from "../reader/search.js";
 import { sigilSvg } from "./sigil.js";
 import { setAccentFavicon } from "../chrome/favicon.js";
+import { stopLoadingTypewriter } from "../chrome/loading-wave.js";
 import { step } from "./nav.js";
 import { openBook } from "../reader/book.js";
 import { t } from "../lib/i18n.js";
@@ -144,6 +145,7 @@ export function render() {
   const prevScroll = [...wallsEl.querySelectorAll(".shelf-track")].map(
     (node) => node.scrollLeft,
   );
+  stopLoadingTypewriter();
   wallsEl.innerHTML = "";
   const spineBudget = spineCharBudget();
   const touch = galleryIsTouch();

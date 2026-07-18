@@ -1,16 +1,19 @@
-//! Search-by-content and search-by-title: Basile invert + pad planning.
+//! Search-by-content, search-by-title, and whole-book text locate.
 //!
-//! Content locate uses the **page-linked** bijection (padded page 0). Photo /
-//! Babelgram full-book identity uses [`crate::basile::invert_book_symbols`]
-//! directly (book-linked), not this module.
+//! Content locate (≤ one page) uses the **page-linked** bijection (padded page 0).
+//! Longer content pastes use [`locate_book`] — pad to [`BOOK_CONTENT_SYMBOLS`] and
+//! [`crate::basile::invert_book_symbols`] (same book map as photo Find).
 
 use core::fmt::Write;
 
 use num_bigint::BigInt;
 
-use crate::basile::{filler_digits, invert_page_symbols, invert_title_symbols, title_symbols_at};
+use crate::basile::{
+    filler_digits, invert_book_symbols, invert_page_symbols, invert_title_symbols, title_symbols_at,
+};
 use crate::config::{
-    GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, TITLE_LEN, alphabet,
+    BOOK_CONTENT_SYMBOLS, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS,
+    PAGES_PER_BOOK, TITLE_LEN, alphabet,
 };
 use crate::search_segment::{
     count_cells, flatten_to_cells, text_to_cell_indices, text_to_cell_indices_n,
@@ -53,6 +56,25 @@ pub struct TitleLocateResult {
     pub location: PageLocation,
     /// Cell count after normalization.
     pub char_count: usize,
+}
+
+/// Whole-book text locate — book-linked invert of a padded full-book flat.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BookLocateResult {
+    pub location: PageLocation,
+    /// Pages spanned by the query prefix (ceil(char_count / PAGE)).
+    pub page_span: u32,
+    pub char_count: usize,
+    /// Padded letter flat (`BOOK_CONTENT_SYMBOLS`) — identity for handoff.
+    pub flat: String,
+}
+
+fn symbols_to_flat(symbols: &[u16], ab: &[&str]) -> String {
+    let mut out = String::with_capacity(symbols.len().saturating_mul(2));
+    for &i in symbols {
+        out.push_str(ab[i as usize]);
+    }
+    out
 }
 
 fn normalize_search_text(text: &str) -> String {
@@ -240,6 +262,60 @@ pub fn locate_page(
         },
         page_span,
         char_count,
+    })
+}
+
+/// Reverse lookup: long phrase → book-map coordinates (pad + book invert).
+///
+/// Requires **more than one page** of cells (`> PAGE_CONTENT_SYMBOLS`). Shorter
+/// queries must use [`locate_page`]. Query is placed at the start of the book;
+/// the remainder is deterministic filler (same family as page/title pad).
+///
+/// # Errors
+///
+/// Returns [`LocateError::InvalidChars`] or [`LocateError::Message`] for empty,
+/// ≤ one page, or over one full book.
+pub fn locate_book(
+    text: &str,
+    alphabet_id: u32,
+    universe_seed: u64,
+) -> Result<BookLocateResult, LocateError> {
+    let text = normalize_search_text(text);
+    let flat = flatten_search_text(&text, alphabet_id)?;
+    if flat.is_empty() {
+        return Err(LocateError::Message("search text is empty".into()));
+    }
+    let ab = alphabet(alphabet_id);
+    let alpha_len = ab.len() as u32;
+    let query = text_to_symbols(&flat, alphabet_id).map_err(LocateError::Message)?;
+    let char_count = query.len();
+    if char_count <= PAGE_CONTENT_SYMBOLS {
+        return Err(LocateError::Message(format!(
+            "text too short for book locate (need more than {PAGE_CONTENT_SYMBOLS} characters — one page)"
+        )));
+    }
+    if char_count > BOOK_CONTENT_SYMBOLS {
+        return Err(LocateError::Message(format!(
+            "text too long (max {BOOK_CONTENT_SYMBOLS} characters — one book)"
+        )));
+    }
+    let mut symbols = filler_digits(&flat, alpha_len, BOOK_CONTENT_SYMBOLS);
+    symbols[..char_count].copy_from_slice(&query);
+    let (z, n, book_index) = invert_book_symbols(&symbols, universe_seed, alphabet_id, alpha_len);
+    let page_span = char_count.div_ceil(PAGE_CONTENT_SYMBOLS) as u32;
+    let page_span = page_span.clamp(1, PAGES_PER_BOOK);
+    Ok(BookLocateResult {
+        location: PageLocation {
+            universe_seed,
+            z,
+            n,
+            book_index,
+            page: 0,
+            alphabet_id,
+        },
+        page_span,
+        char_count,
+        flat: symbols_to_flat(&symbols, ab),
     })
 }
 

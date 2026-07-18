@@ -37,6 +37,7 @@ import { syncUrl } from "../gallery/url.js";
 import { coordForWasm } from "../lib/coords.js";
 import {
   book_image_dims,
+  book_image_from_flat,
   gallery_titles_json,
   book_text_for,
   book_text_book_scope_for,
@@ -219,7 +220,7 @@ function needsMbitBookWait(book = S.currentBook) {
 function showBookWait(labelKey, { image = false } = {}) {
   const root = el(image ? "imageWait" : "bookWait");
   const label = el(image ? "imageWaitLabel" : "bookWaitLabel");
-  if (label) label.textContent = t(labelKey);
+  if (label) label.innerHTML = t(labelKey);
   if (!root) return;
   root.hidden = false;
   root.setAttribute("aria-busy", "true");
@@ -647,9 +648,13 @@ export async function renderBookImage() {
   imageMeta.textContent = `gallery ${formatCoordDisplay(S.z, S.n)} · book ${book.index + 1} · rendering…`;
   imageMeta.title = `gallery ${formatCoordFull(S.z, S.n)} · shelf index ${book.index} (0–699)`;
 
+  const paintFromFlat =
+    !book.imageRgba?.length &&
+    typeof book.contentFlat === "string" &&
+    book.contentFlat.length > 0;
   const heavyBookScope =
-    S.bijectionScope === "book" && !book.imageRgba?.length;
-  if (heavyBookScope) showBookWait("book.waitMbitImage", { image: true });
+    S.bijectionScope === "book" && !book.imageRgba?.length && !paintFromFlat;
+  if (heavyBookScope || paintFromFlat) showBookWait("book.waitMbitImage", { image: true });
 
   let width;
   let height;
@@ -661,6 +666,30 @@ export async function renderBookImage() {
       width = book.imageW || d[0];
       height = book.imageH || d[1];
       pixels = book.imageRgba;
+    } else if (paintFromFlat) {
+      // Text Find letter flat — paint room accent colours (do not rematerialise virgin book).
+      await yieldToUi();
+      await yieldToUi();
+      const img = book_image_from_flat(
+        coordForWasm(S.z),
+        coordForWasm(S.n),
+        S.alphabetId,
+        book.contentFlat,
+      );
+      if (gen !== bookImageRenderGen || S.currentBook !== book) return;
+      width = img.width;
+      height = img.height;
+      pixels = img.pixels;
+      // Cache so save / reopen skip a second paint.
+      book.imageRgba = pixels;
+      book.imageW = width;
+      book.imageH = height;
+      rememberBookIdentity(book.index, {
+        flat: book.contentFlat,
+        imageRgba: pixels,
+        imageW: width,
+        imageH: height,
+      });
     } else {
       if (heavyBookScope) {
         await yieldToUi();
@@ -699,7 +728,7 @@ export async function renderBookImage() {
       `gallery ${formatCoordDisplay(S.z, S.n)} · book ${S.currentBook.index + 1} · whole book · ${width}×${height}`;
     imageMeta.title = `gallery ${formatCoordFull(S.z, S.n)} · shelf index ${S.currentBook.index} (0–699)`;
   } finally {
-    if (heavyBookScope && gen === bookImageRenderGen) {
+    if ((heavyBookScope || paintFromFlat) && gen === bookImageRenderGen) {
       hideBookWait({ image: true });
     }
   }

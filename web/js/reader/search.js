@@ -5,9 +5,12 @@ import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js
 import {
   TITLE_LEN,
   MAX_SEARCH_CHARS,
+  MAX_BOOK_SEARCH_CHARS,
+  PAGE_CONTENT_SYMBOLS,
   formatAlphabetSymbolLabel,
   alphabetIsRtl,
   alphabetLang,
+  alphabetCells,
 } from "../lib/constants.js";
 import { t, getLocale } from "../lib/i18n.js";
 import {
@@ -20,16 +23,24 @@ import {
   findActionRow,
   wireFindActions,
 } from "../lib/util.js";
+import { buildAlphabetPalette, wireRollingPaletteSpin } from "../lib/color.js";
 import {
   normalizeSearchQuery,
   validateSearchQuery,
   countSearchCells,
 } from "./search-query.js";
-import { locate_page_json, locate_title_json, node_hash_hex } from "../lib/wasm.js";
+import {
+  locate_page_json,
+  locate_title_json,
+  node_hash_hex,
+  get_universe,
+} from "../lib/wasm.js";
 import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
 import { decodeCoordParam, coordForWasm } from "../lib/coords.js";
-import { permalink, findPermalink } from "../gallery/url.js";
+import { permalink, findPermalink, bookOpenShareUrl } from "../gallery/url.js";
+import { locateBookAsync } from "./mosaic-find-pool.js";
+import { stashBookOpen } from "./book-handoff.js";
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));
@@ -68,6 +79,13 @@ function localizeLocateError(error) {
   }
   let m = /^text too long \(max (\d+) characters — one page\)$/.exec(error);
   if (m) return t("search.error.tooLong", { n: m[1] });
+  m = /^text too long \(max (\d+) characters — one book\)$/.exec(error);
+  if (m) return t("search.error.tooLongBook", { n: m[1] });
+  m =
+    /^text too short for book locate \(need more than (\d+) characters — one page\)$/.exec(
+      error,
+    );
+  if (m) return t("search.error.tooShortBook", { n: m[1] });
   m = /^title too long \(max (\d+) characters\)$/.exec(error);
   if (m) return t("search.error.titleTooLong", { n: m[1] });
   m =
@@ -76,6 +94,11 @@ function localizeLocateError(error) {
     );
   if (m) return t("search.error.pageRoom", { need: m[1], room: m[2] });
   return error;
+}
+
+/** Content cells → page locate (≤3200) or book-map locate (>3200). */
+export function contentLocateBand(cellCount) {
+  return cellCount > PAGE_CONTENT_SYMBOLS ? "book" : "page";
 }
 
 /** Normalized title embed for the current gallery, if any. */
@@ -90,8 +113,13 @@ export function syncSearchKindUI() {
   const kind = el("searchKind")?.value || "content";
   const isTitle = kind === "title";
   const input = el("searchInput");
+  const cells = isTitle
+    ? 0
+    : countSearchCells(normalizeSearchQuery(input?.value || ""), S.alphabetId);
+  const bookBand = !isTitle && contentLocateBand(cells) === "book";
   if (input) {
-    input.maxLength = isTitle ? TITLE_LEN : MAX_SEARCH_CHARS;
+    // Content always allows up to one book so paste can cross into book band.
+    input.maxLength = isTitle ? TITLE_LEN : MAX_BOOK_SEARCH_CHARS;
     input.rows = isTitle ? 2 : 6;
     input.placeholder = isTitle
       ? t("search.placeholderTitle")
@@ -116,9 +144,13 @@ export function syncSearchKindUI() {
   }
   const hint = el("searchHint");
   if (hint) {
-    hint.textContent = isTitle
-      ? t("search.hintTitle", { n: TITLE_LEN })
-      : t("search.hintContent");
+    if (isTitle) {
+      hint.textContent = t("search.hintTitle", { n: TITLE_LEN });
+    } else if (bookBand) {
+      hint.innerHTML = t("search.hintContentBook");
+    } else {
+      hint.textContent = t("search.hintContent");
+    }
   }
   syncSearchCount();
   syncSearchChrome();
@@ -130,17 +162,32 @@ export function syncSearchCount() {
   const input = el("searchInput");
   if (!countEl || !input) return;
   const isTitle = el("searchKind")?.value === "title";
-  const max = isTitle ? TITLE_LEN : MAX_SEARCH_CHARS;
   const n = countSearchCells(normalizeSearchQuery(input.value), S.alphabetId);
+  const bookBand = !isTitle && contentLocateBand(n) === "book";
+  const displayMax = isTitle
+    ? TITLE_LEN
+    : bookBand
+      ? MAX_BOOK_SEARCH_CHARS
+      : MAX_SEARCH_CHARS;
   countEl.textContent = t("search.count", {
     n: n.toLocaleString(getLocale()),
-    max: max.toLocaleString(getLocale()),
+    max: displayMax.toLocaleString(getLocale()),
   });
-  countEl.classList.toggle("search-count-over", n > max);
+  countEl.classList.toggle("search-count-over", n > (isTitle ? TITLE_LEN : MAX_BOOK_SEARCH_CHARS));
   countEl.title = t("search.countTip", {
     n: String(n),
-    max: String(max),
+    max: String(isTitle ? TITLE_LEN : MAX_BOOK_SEARCH_CHARS),
   });
+  // Live copy flip when crossing the page/book boundary.
+  if (!isTitle) syncSearchChrome();
+  const hint = el("searchHint");
+  if (hint && !isTitle) {
+    if (bookBand) {
+      hint.innerHTML = t("search.hintContentBook");
+    } else {
+      hint.textContent = t("search.hintContent");
+    }
+  }
 }
 
 /**
@@ -178,11 +225,28 @@ function syncSearchChrome() {
     return;
   }
   const isTitle = el("searchKind")?.value === "title";
+  const cells = isTitle
+    ? 0
+    : countSearchCells(
+        normalizeSearchQuery(el("searchInput")?.value || ""),
+        S.alphabetId,
+      );
+  const bookBand = !isTitle && contentLocateBand(cells) === "book";
   if (head) {
-    head.textContent = isTitle ? t("search.headTitle") : t("search.headContent");
+    head.textContent = isTitle
+      ? t("search.headTitle")
+      : bookBand
+        ? t("search.headContentBook")
+        : t("search.headContent");
   }
   if (meta) {
-    meta.textContent = isTitle ? t("search.metaTitle") : t("search.metaContent");
+    if (isTitle) {
+      meta.textContent = t("search.metaTitle");
+    } else if (bookBand) {
+      meta.innerHTML = t("search.metaContentBook");
+    } else {
+      meta.textContent = t("search.metaContent");
+    }
   }
 }
 
@@ -270,11 +334,29 @@ function syncSearchUniverse() {
   applyUniverseFromInput(el("universe")?.value);
 }
 
+/**
+ * Match backdrop wrap width to the textarea content box.
+ * Without this, a vertical scrollbar shrinks the textarea but not the overlay,
+ * so the caret drifts away from the glyph it appears over.
+ */
+export function syncSearchBackdropLayout() {
+  const input = el("searchInput");
+  const backdrop = el("searchBackdrop");
+  if (!input || !backdrop) return;
+  const cs = getComputedStyle(input);
+  const borderX =
+    (Number.parseFloat(cs.borderLeftWidth) || 0) +
+    (Number.parseFloat(cs.borderRightWidth) || 0);
+  const scrollbar = Math.max(0, input.offsetWidth - input.clientWidth - borderX);
+  backdrop.style.right = `${scrollbar}px`;
+}
+
 /** Keep the search backdrop overlay scrolled in sync with the textarea. */
 export function syncSearchBackdropScroll() {
   const input = el("searchInput");
   const backdrop = el("searchBackdrop");
   if (input && backdrop) {
+    syncSearchBackdropLayout();
     backdrop.scrollTop = input.scrollTop;
     backdrop.scrollLeft = input.scrollLeft;
   }
@@ -307,8 +389,16 @@ export function clearSearchHighlights() {
 /** Lowercase the search field in place; returns the normalized query. */
 export function syncSearchInput() {
   const input = el("searchInput");
-  const normalized = normalizeSearchQuery(input.value);
-  if (input.value !== normalized) input.value = normalized;
+  if (!input) return "";
+  const raw = input.value;
+  const normalized = normalizeSearchQuery(raw);
+  if (raw !== normalized) {
+    const start = input.selectionStart ?? normalized.length;
+    const end = input.selectionEnd ?? normalized.length;
+    input.value = normalized;
+    const max = normalized.length;
+    input.setSelectionRange(Math.min(start, max), Math.min(end, max));
+  }
   return normalized;
 }
 
@@ -338,7 +428,7 @@ function locateWith(jsonFn, text, alphabetId = S.alphabetId) {
   return result;
 }
 
-/** Reverse lookup (content) in the current universe. */
+/** Reverse lookup (content, page band) in the current universe. */
 export function locateText(text, alphabetId = S.alphabetId) {
   return locateWith(locate_page_json, text, alphabetId);
 }
@@ -348,15 +438,101 @@ export function locateTitle(text, alphabetId = S.alphabetId) {
   return locateWith(locate_title_json, text, alphabetId);
 }
 
+function paintTextBookProgress(phase) {
+  const box = el("searchResult");
+  if (!box) return;
+  const labelKey =
+    phase === "warm"
+      ? "search.mosaic.progressWarm"
+      : phase === "invert"
+        ? "search.mosaic.progressInvert"
+        : "search.mosaic.searching";
+  const label = t(labelKey, { slow: t("search.canTakeAFew") });
+  const existing = box.querySelector(".find-progress");
+  if (existing) {
+    const lab = existing.querySelector(".find-progress-label");
+    if (lab) lab.textContent = label;
+    return;
+  }
+  box.innerHTML = `<div class="find-progress">
+      <div class="find-progress-row">
+        <span class="find-progress-label">${escapeHtml(label)}</span>
+        <span class="find-progress-track" aria-hidden="true">
+          <span class="find-progress-run">
+            <span class="find-progress-spin"></span>
+          </span>
+        </span>
+      </div>
+    </div>`;
+  box.classList.add("show");
+  const spin = box.querySelector(".find-progress-spin");
+  try {
+    const palette = buildAlphabetPalette(
+      alphabetCells(S.alphabetId),
+      S.accentHue,
+      S.accentChroma,
+      S.accentLightness,
+    );
+    wireRollingPaletteSpin(spin, palette);
+  } catch {
+    /* default ink */
+  }
+}
+
+/** Whole-book text locate off the main thread (warm + invert). */
+export async function locateTextBook(text, alphabetId = S.alphabetId) {
+  syncSearchUniverse();
+  const { resultsJson } = await locateBookAsync(text, alphabetId, get_universe(), {
+    onProgress: paintTextBookProgress,
+  });
+  let result;
+  try {
+    result = JSON.parse(resultsJson);
+  } catch {
+    return { ok: false, error: "invalid response from generator" };
+  }
+  if (!result.ok) {
+    const wasmInvalid = invalidFromResult(result);
+    if (wasmInvalid.length) {
+      renderSearchHighlights(wasmInvalid);
+      result.error = formatInvalidMessage(wasmInvalid, alphabetId);
+    } else if (result.error) {
+      result.error = localizeLocateError(result.error);
+    }
+  }
+  return result;
+}
+
 /** Coerce locate JSON `z`/`n` (decimal or compact `c…`) to BigInt. */
 function asBigInt(v) {
   if (typeof v === "bigint") return v;
   return decodeCoordParam(typeof v === "string" || typeof v === "number" ? v : String(v));
 }
 
-/** Permalink for a search hit — short `#q=&find=` (re-locate on open). */
-export function searchPermalink(result, query, kind = "content") {
+/** Permalink for a search hit — page: `#q=&find=`; book: `#bo=` handoff. */
+export async function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
+  if (result.scope === "book") {
+    const bookOpenId = await stashBookOpen(
+      {
+        z: result.z,
+        n: result.n,
+        book: result.book,
+        alphabet: result.alphabet,
+        scope: "book",
+      },
+      {
+        flat: result.flat || null,
+        image: false,
+        scope: "book",
+      },
+    );
+    return bookOpenShareUrl(bookOpenId, {
+      book: result.book,
+      image: false,
+      alpha: result.alphabet ?? S.alphabetId,
+    });
+  }
   const short = findPermalink(
     query,
     kind === "title" ? "title" : "content",
@@ -378,6 +554,16 @@ export function searchPermalink(result, query, kind = "content") {
     S.universeName,
     null,
   );
+}
+
+/** Human elapsed for Find results (`took 4m 57s`). */
+function formatFindElapsed(ms) {
+  if (ms == null || !Number.isFinite(ms) || ms < 0) return "";
+  const sec = Math.round(ms / 1000);
+  if (sec < 60) return t("search.mosaic.elapsedSec", { n: String(sec) });
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return t("search.mosaic.elapsedMinSec", { m: String(m), s: String(s) });
 }
 
 /** Render hit coordinates or validation error into the search result panel. */
@@ -407,6 +593,7 @@ export function renderSearchResult(result, box, kind = "content") {
           end: result.page_end,
         })
       : t("search.result.page", { n: result.page });
+  const bookHit = result.scope === "book";
   const detail =
     kind === "title"
       ? t("search.result.detailTitle", {
@@ -414,11 +601,21 @@ export function renderSearchResult(result, box, kind = "content") {
           chars: charLabel,
           alphabet,
         })
-      : t("search.result.detailContent", {
-          pages,
-          chars: charLabel,
-          alphabet,
-        });
+      : bookHit
+        ? t("search.result.detailContentBook", {
+            pages,
+            chars: charLabel,
+            alphabet,
+          })
+        : t("search.result.detailContent", {
+            pages,
+            chars: charLabel,
+            alphabet,
+          });
+  const elapsed = formatFindElapsed(result.elapsedMs);
+  const elapsedHtml = elapsed
+    ? `<p class="find-dim">${safe(elapsed)}</p>`
+    : "";
 
   box.innerHTML =
     `<div class="find-big" title="${safe(formatCoordFull(result.z, result.n))}">${safe(
@@ -435,6 +632,10 @@ export function renderSearchResult(result, box, kind = "content") {
       detail,
     }) +
     `</div>` +
+    elapsedHtml +
+    (bookHit
+      ? `<p class="find-dim">${t("search.result.bookHandoffNote")}</p>`
+      : "") +
     findActionRow([
       { id: "go", label: t("search.go") },
       { id: "link", label: t("actions.copy") },
@@ -442,14 +643,20 @@ export function renderSearchResult(result, box, kind = "content") {
   box.classList.add("show");
 
   wireFindActions(box, {
-    go: () => goToSearchResult(result, query, kind),
-    link: (_ev, btn) =>
-      copyText(searchPermalink(result, query, kind), btn, t("common.copied")),
+    go: () => {
+      void goToSearchResult(result, query, kind);
+    },
+    link: (_ev, btn) => {
+      void (async () => {
+        const url = await searchPermalink(result, query, kind);
+        copyText(url, btn, t("common.copied"));
+      })();
+    },
   });
 }
 
 /** Navigate to a search hit without switching universe. */
-export function goToSearchResult(result, query, kind = "content") {
+export async function goToSearchResult(result, query, kind = "content") {
   syncSearchUniverse();
   if (result.alphabet !== S.alphabetId) {
     S.alphabetId = result.alphabet;
@@ -464,6 +671,29 @@ export function goToSearchResult(result, query, kind = "content") {
     };
   } else {
     S.titleEmbed = null;
+  }
+  if (result.scope === "book") {
+    const bookOpenId = await stashBookOpen(
+      {
+        z: result.z,
+        n: result.n,
+        book: result.book,
+        alphabet: result.alphabet,
+        scope: "book",
+      },
+      {
+        flat: result.flat || null,
+        image: false,
+        scope: "book",
+      },
+    );
+    S.bookOpenId = bookOpenId;
+    jumpTo(result.z, result.n, { scope: "book" });
+    openBook(result.book, null, 1, query || null, result.page_span || 1, {
+      contentFlat: result.flat || null,
+    });
+    el("searchModal").close();
+    return;
   }
   jumpTo(result.z, result.n, { scope: "page" });
   openBook(
@@ -497,12 +727,40 @@ export function openSearch({ tab = "text" } = {}) {
 }
 
 /** Run the current search field against title or content. */
-export function runSearch() {
+export async function runSearch() {
   if (searchMode() !== "text") return;
   const text = syncSearchInput();
   if (!text.trim()) return;
   const kind = searchKind();
-  const result =
-    kind === "title" ? locateTitle(text, S.alphabetId) : locateText(text, S.alphabetId);
-  renderSearchResult(result, el("searchResult"), kind);
+  const box = el("searchResult");
+  const findBtn = el("searchFind");
+  const t0 = performance.now();
+  if (kind === "title") {
+    const result = locateTitle(text, S.alphabetId);
+    if (result.ok) result.elapsedMs = Math.round(performance.now() - t0);
+    renderSearchResult(result, box, kind);
+    return;
+  }
+  const cells = countSearchCells(text, S.alphabetId);
+  if (contentLocateBand(cells) === "page") {
+    const result = locateText(text, S.alphabetId);
+    if (result.ok) result.elapsedMs = Math.round(performance.now() - t0);
+    renderSearchResult(result, box, kind);
+    return;
+  }
+  if (findBtn) findBtn.disabled = true;
+  try {
+    paintTextBookProgress("warm");
+    const result = await locateTextBook(text, S.alphabetId);
+    if (result.ok) result.elapsedMs = Math.round(performance.now() - t0);
+    renderSearchResult(result, box, kind);
+  } catch (err) {
+    const msg = err?.message || String(err);
+    if (box) {
+      box.innerHTML = `<p class="find-dim search-error">${escapeHtml(msg)}</p>`;
+      box.classList.add("show");
+    }
+  } finally {
+    if (findBtn) findBtn.disabled = false;
+  }
 }

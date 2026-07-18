@@ -31,7 +31,7 @@ export const de = {
   "minimap.sigilTitle":
     "Siegel dieser Galerie — klicken Sie, um das SVG herunterzuladen",
   "minimap.hint": "Klicken Sie auf einen Ausgang, um zu gehen",
-  "loading.building": "Bibliothek wird gebaut…",
+  "loading.building": "Bibliothek wird gebaut",
   "loading.failed": "Laden fehlgeschlagen: {err}",
 
   "footer.wanderings": "Wanderungen · {n}/{max}",
@@ -396,12 +396,15 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
 
   "search.head": "Suche",
   "search.headContent": "Suche nach Inhalt",
+  "search.headContentBook": "Suche nach Inhalt (Ganzbuch)",
   "search.headTitle": "Suche nach Titel",
   "search.headMosaic": "Suche nach Farbmosaik",
   "search.metaText":
     "Eine Phrase finden, ein Foto-Mosaik matchen oder ein Babelgram öffnen.",
   "search.metaContent":
     "Geben Sie eine Phrase ein — die Bibliothek findet, wo sie bereits existiert (mit Leerzeichen auf eine volle Seite aufgefüllt).",
+  "search.metaContentBook":
+    "Länger als eine Seite — Buchkarten-Invert (gleiche Pipeline wie <span class=\"ui\">Suchen…</span> → <span class=\"ui ui-tab\">Foto</span>). Treffer meist ein <span class=\"unit-mbit\">Mbit</span>-Raum: keine URL; Babelgram speichern zum erneuten Öffnen. Erster <span class=\"ui\">find</span> kann Warm-up + Warten brauchen.",
   "search.metaTitle":
     "Geben Sie einen Rücken-Titel ein — die Bibliothek findet Galerie und Regal.",
   "search.metaMosaic":
@@ -519,6 +522,8 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "search.countTip": "{n} Alphabet-Zellen von {max} erlaubt",
   "search.hintContent":
     "nutzt die aktuelle Alphabet-Linse · bis eine Seite",
+  "search.hintContentBook":
+    "Buchkarte / <span class=\"unit-mbit\">Mbit</span>",
   "search.hintTitle":
     "nutzt die aktuelle Alphabet-Linse · bis {n} Rückentitel-Zellen",
   "search.canTakeAFew": "kann etwas dauern",
@@ -603,6 +608,10 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "search.result.pages": "Seiten {start}–{end}",
   "search.result.chars": "{n} Zeichen",
   "search.result.detailContent": "{pages} · {chars} · Alphabet {alphabet}",
+  "search.result.detailContentBook":
+    "{pages} · {chars} · Alphabet {alphabet} · Buchkarte",
+  "search.result.bookHandoffNote":
+    "<span class=\"unit-mbit\">Mbit</span>-Raum — Kopieren nutzt einen lokalen <code>#bo=</code>-Handoff (dieser Browser). Babelgram speichern zum Öffnen woanders.",
   "search.result.detailTitle": "Titel {query} · {chars} · Alphabet {alphabet}",
   "search.error.invalid":
     "Ungültiges Zeichen für dieses Alphabet (nur {alphabet}): {shown}",
@@ -612,6 +621,9 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "search.error.moreKinds": " (+{n} weitere Arten)",
   "search.error.empty": "Suchtext ist leer",
   "search.error.tooLong": "Text zu lang (max. {n} Zeichen — eine Seite)",
+  "search.error.tooLongBook": "Text zu lang (max. {n} Zeichen — ein Buch)",
+  "search.error.tooShortBook":
+    "Buch-Locate braucht mehr als {n} Zeichen (eine Seite) — kürzen für Seitensuche oder mehr einfügen",
   "search.error.titleTooLong": "Titel zu lang (max. {n} Zeichen)",
   "search.error.pageRoom":
     "Text braucht {need} Seiten, aber nur {room} bleiben in diesem Buch — kürzere Phrase versuchen",
@@ -636,10 +648,12 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "book.next": "Weiter ›",
   "book.pageInd": "Seite {page} / {total}",
   "book.pagePlaceholder": "Seite",
-  "book.waitMbit": "Mbit-Bereich — Buch wird aufgebaut. Kann etwas dauern.",
-  "book.waitMbitImage": "Mbit-Bereich — Farbkarte wird aufgebaut. Kann etwas dauern.",
+  "book.waitMbit":
+    "<span class=\"unit-mbit\">Mbit</span>-Bereich — Buch wird aufgebaut. Kann etwas dauern.",
+  "book.waitMbitImage":
+    "<span class=\"unit-mbit\">Mbit</span>-Bereich — Farbkarte wird aufgebaut. Kann etwas dauern.",
   "book.waitMbitBorrow":
-    "Mbit-Bereich — vollständiger Buchtext wird geschrieben. Kann etwas dauern.",
+    "<span class=\"unit-mbit\">Mbit</span>-Bereich — vollständiger Buchtext wird geschrieben. Kann etwas dauern.",
   "book.wall": "Wand {n}",
   "book.wallBook": "Wand {n} · Buch {book}",
 

@@ -10,11 +10,13 @@ use wasm_bindgen::prelude::*;
 
 use crate::basile::book_symbols_at;
 use crate::config::{
-    CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK, alphabet,
+    BOOK_CONTENT_SYMBOLS, CHARS_PER_LINE, LINES_PER_PAGE, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
+    alphabet,
 };
 use crate::gallery::node_fingerprint;
 use crate::gallery::parse_coord;
 use crate::page::{PageAddr, PageRender, page_symbols};
+use crate::search_segment::text_to_cell_indices;
 use crate::universe::universe;
 
 /// Arc width for the punct/digit stratum (degrees).
@@ -248,6 +250,57 @@ pub fn book_image_book_scope(z: &str, n: &str, book_index: u32, alphabet_id: u32
     book_image_book_scope_at(&parse_coord(z), &parse_coord(n), book_index, alphabet_id)
 }
 
+/// Paint a full-book letter flat with the room accent palette (text Find → Babelgram).
+///
+/// Identity is the flat from [`crate::search::locate_book`] / photo Find — not a virgin
+/// rematerialise of `(z, n, book)`, which would diverge from the planted query.
+#[wasm_bindgen]
+pub fn book_image_from_flat(
+    z: &str,
+    n: &str,
+    alphabet_id: u32,
+    flat: &str,
+) -> Result<BookImage, JsValue> {
+    book_image_from_flat_at(&parse_coord(z), &parse_coord(n), alphabet_id, flat)
+        .map_err(|e| JsValue::from_str(&e))
+}
+
+/// Native helper — paint [`BOOK_CONTENT_SYMBOLS`] cells from a letter flat.
+pub fn book_image_from_flat_at(
+    z: &BigInt,
+    n: &BigInt,
+    alphabet_id: u32,
+    flat: &str,
+) -> Result<BookImage, String> {
+    let ab = alphabet(alphabet_id);
+    let indices = text_to_cell_indices(flat, ab)
+        .map_err(|(off, sample)| format!("invalid flat at byte {off}: {sample:?}"))?;
+    if indices.len() != BOOK_CONTENT_SYMBOLS {
+        return Err(format!(
+            "flat must be {BOOK_CONTENT_SYMBOLS} cells, got {}",
+            indices.len()
+        ));
+    }
+    let universe_seed = universe();
+    let accent = room_accent_at(z, n, universe_seed);
+    let palette = build_glyph_palette(ab, accent[0], accent[1], accent[2]);
+    let mut pixels = vec![0u8; indices.len() * 4];
+    for (i, &idx) in indices.iter().enumerate() {
+        let rgb = palette[idx as usize];
+        let o = i * 4;
+        pixels[o] = rgb[0];
+        pixels[o + 1] = rgb[1];
+        pixels[o + 2] = rgb[2];
+        pixels[o + 3] = 255;
+    }
+    let (width, height) = book_grid_dims();
+    Ok(BookImage {
+        width,
+        height,
+        pixels,
+    })
+}
+
 /// Page-range RGBA strip for worker parallelization (THI-144).
 /// `page_end` is exclusive; clamped to `[0, PAGES_PER_BOOK]`.
 /// Flat cell order matches full [`book_image`] — stitch by byte offset
@@ -456,6 +509,29 @@ mod tests {
         let a_idx = ab.iter().position(|c| *c == "a").unwrap();
         let b_idx = ab.iter().position(|c| *c == "b").unwrap();
         assert_ne!(p0[a_idx], p0[b_idx]);
+    }
+
+    #[test]
+    fn paint_from_flat_matches_book_grid() {
+        use crate::config::BOOK_CONTENT_SYMBOLS;
+        use num_bigint::BigInt;
+        let ab = alphabet(ALPHABET_ID.basile);
+        let space = ab.iter().position(|c| *c == " ").unwrap();
+        let mut flat = String::new();
+        for i in 0..BOOK_CONTENT_SYMBOLS {
+            flat.push_str(ab[if i % 17 == 0 { 0 } else { space }]);
+        }
+        let img = book_image_from_flat_at(
+            &BigInt::from(1),
+            &BigInt::from(2),
+            ALPHABET_ID.basile,
+            &flat,
+        )
+        .expect("paint");
+        let (w, h) = book_grid_dims();
+        assert_eq!(img.width, w);
+        assert_eq!(img.height, h);
+        assert_eq!(img.pixels.len(), BOOK_CONTENT_SYMBOLS * 4);
     }
 
     #[test]
