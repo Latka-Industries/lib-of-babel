@@ -1,0 +1,148 @@
+<section class="sheet-sec" id="controls">
+  <h2>Controls</h2>
+  <p class="sheet-lead">
+    Buttons, fields, chips, dropdowns, ranges. Chip kinds + path recipes are
+    scraped from loaded CSS / the active locale (EN·DE·NL tabs under Mbit).
+  </p>
+  <div class="sheet-row">
+    <span class="sheet-label">buttons</span>
+    <div class="sheet-row-controls">
+      <button type="button">default</button>
+      <button type="button" class="dice" title="random">&#9860;</button>
+      <button type="button" class="theme-toggle" aria-hidden="true" tabindex="-1">☀</button>
+      <button type="button" class="dialog-close" aria-label="close">close</button>
+      <button type="button" class="history-btn" id="sheetControlsHistory">wanderings · 0/1000</button>
+      <button type="button" class="help-btn" id="sheetControlsHelp" title="">
+        <span class="help-btn-q" aria-hidden="true">?</span>
+        <span id="sheetControlsHelpLabel">- Help</span>
+      </button>
+    </div>
+  </div>
+  <div class="sheet-row">
+    <span class="sheet-label">fields</span>
+    <div class="sheet-row-controls">
+      <input class="universe" type="text" value="default universe" readonly />
+      <button type="button" class="alphabet">a–z · Basile</button>
+      <label class="mosaic-file-label">
+        <span>upload Babelgram PNG</span>
+        <input type="file" accept="image/png" disabled />
+      </label>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack about-body">
+    <span class="sheet-label">chips</span>
+    <div id="chipMount" class="sheet-chip-mount">
+      <p class="find-dim">Discovering chip classes from CSS + locale recipes…</p>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack">
+    <span class="sheet-label">dropdown</span>
+    <div>
+      <div class="dd" id="sheetDd">
+        <button type="button" class="dd-trigger" aria-expanded="false" aria-haspopup="menu">
+          <span class="dd-label">actions…</span>
+          <span class="dd-chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </button>
+        <div class="dd-menu" role="menu" hidden>
+          <button type="button" role="menuitem" class="dd-item" data-action="copy" id="sheetDdCopy">copy link</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="search" id="sheetDdSearch">search…</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="export" id="sheetDdExport">export journey</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="verify" id="sheetDdVerify">verify journey</button>
+          <div class="dd-sep" role="separator"></div>
+          <button type="button" role="menuitem" class="dd-item" data-action="reset" id="sheetDdReset">new walk</button>
+        </div>
+      </div>
+      <p class="find-dim" style="margin: 0.35rem 0 0">click — same <code>.dd</code> as the header (full <code>actions…</code> menu)</p>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack">
+    <span class="sheet-label">save dropdown</span>
+    <div>
+      <div class="dd" id="sheetSaveDd">
+        <button type="button" class="dd-trigger" id="sheetSaveTrig" aria-expanded="false" aria-haspopup="menu">
+          <span class="dd-label" id="sheetSaveLabel">save…</span>
+          <span class="dd-chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </button>
+        <div class="dd-menu" role="menu" hidden>
+          <button type="button" role="menuitem" class="dd-item" data-action="txt" id="sheetSaveBorrow">borrow book</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="img" id="sheetSaveImage">Babelgram</button>
+        </div>
+      </div>
+      <p class="find-dim" style="margin: 0.35rem 0 0">same <code>.dd</code> as the book reader's <code>save…</code></p>
+    </div>
+  </div>
+  <div class="sheet-row">
+    <span class="sheet-label">link button</span>
+    <div class="sheet-row-controls">
+      <button type="button" id="sheetLinkBtn">
+        <span class="btn-label" id="sheetLinkLabel">link</span>
+        <span class="btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </span>
+      </button>
+      <span class="find-dim"><code>.btn-label</code> shows on desktop, <code>.btn-icon</code> on mobile chrome</span>
+    </div>
+  </div>
+  <div class="sheet-row">
+    <span class="sheet-label">search kind</span>
+    <div class="sheet-row-controls">
+      <label><span id="sheetSearchKindLabel">search</span>
+        <select id="sheetSearchKindSelect">
+          <option value="content" selected id="sheetKindContentOpt">content</option>
+          <option value="title" id="sheetKindTitleOpt">title</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="sheet-row">
+    <span class="sheet-label">search tabs</span>
+    <div class="search-tabs" role="tablist">
+      <button type="button" class="search-tab" aria-selected="true">text</button>
+      <button type="button" class="search-tab" aria-selected="false">photo</button>
+      <button type="button" class="search-tab" aria-selected="false">Babelgram</button>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack">
+    <span class="sheet-label">about tabs</span>
+    <div class="about-tabs" id="sheetAboutTabs" role="tablist" aria-label="About sections" style="border: 1px solid var(--line); border-radius: 6px; padding: 0 0.5rem; flex-wrap: wrap">
+      <button type="button" class="about-tab" aria-selected="true" data-key="about.tab.overview">overview</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.wander">wander</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.engines">engines</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.scale">scale</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.alphabets">alphabets</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.books">books</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.search">search</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.url">url</button>
+      <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.more">more</button>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack">
+    <span class="sheet-label">jump</span>
+    <div class="jump-body" style="padding: 0; border: none">
+      <label>z <input type="text" inputmode="numeric" value="0" readonly /></label>
+      <label>n <input type="text" inputmode="numeric" value="-12" readonly /></label>
+      <button type="button">go</button>
+    </div>
+  </div>
+  <div class="sheet-row sheet-row-stack">
+    <span class="sheet-label">knobs</span>
+    <div class="mosaic-knobs sheet-knobs-demo mosaic-knobs-source">
+      <p class="mosaic-knobs-head">original image</p>
+      <label class="mosaic-knob">
+        <span data-tip="Brighten or darken the upload before it is mosaiced">brightness</span>
+        <input type="range" min="-40" max="40" step="1" value="8" />
+      </label>
+      <label class="mosaic-knob">
+        <span data-tip="Raise or lower contrast of the upload before mosaicing">contrast</span>
+        <input type="range" min="-40" max="40" step="1" value="-12" />
+      </label>
+    </div>
+  </div>
+</section>

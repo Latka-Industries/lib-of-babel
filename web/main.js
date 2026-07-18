@@ -33,6 +33,7 @@ import { render } from "./js/gallery/view.js";
 import { newWalk, resetTrail } from "./js/gallery/nav.js";
 import { openBook, openBookImage } from "./js/reader/book.js";
 import { wireControls } from "./js/chrome/controls.js";
+import { startLoadingTypewriter, ensureLoadingMinLoops } from "./js/chrome/loading-wave.js";
 import "./js/lib/find-debug.js";
 import {
   openAboutGuide,
@@ -118,6 +119,16 @@ async function openBookFromPermalink(link) {
     openBookImage(link.b);
     return;
   }
+  // Whole-book text Find `#bo=` — flat without opening the Babelgram modal.
+  if (link.flat || link.imageRgba?.length) {
+    openBook(link.b, null, link.p || 1, null, 1, {
+      contentFlat: link.flat || null,
+      imageRgba: link.imageRgba || null,
+      imageW: link.imageW || 0,
+      imageH: link.imageH || 0,
+    });
+    return;
+  }
   openBook(
     link.b,
     null,
@@ -176,6 +187,7 @@ async function applyBookOpenHandoff(link) {
 }
 
 async function boot() {
+  startLoadingTypewriter();
   await init();
   S.gv = generator_version();
   document.querySelectorAll("[data-window-max]").forEach((node) => {
@@ -220,6 +232,9 @@ async function boot() {
     saved.current.n === coordForWasm(link.n) &&
     (saved.universe || "") === S.universeName &&
     (saved.generator_version == null || saved.generator_version === S.gv);
+
+  // Let the stage loading animation play one typewriter loop before first paint.
+  await ensureLoadingMinLoops(1);
 
   if (link && isLegacyPermalink(link, S.gv) && !isOwnRefresh) {
     const migrated = await migrateLegacyLink(link);

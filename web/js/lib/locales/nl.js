@@ -28,7 +28,7 @@ export const nl = {
   "minimap.here": "je bent hier",
   "minimap.sigilTitle": "zegel van deze galerij — klik om de SVG te downloaden",
   "minimap.hint": "klik een uitgang om te bewegen",
-  "loading.building": "bibliotheek wordt gebouwd…",
+  "loading.building": "bibliotheek wordt gebouwd",
   "loading.failed": "laden mislukt: {err}",
 
   "footer.wanderings": "dwaaltochten · {n}/{max}",
@@ -390,12 +390,15 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
 
   "search.head": "zoeken",
   "search.headContent": "zoeken op inhoud",
+  "search.headContentBook": "zoeken op inhoud (vol boek)",
   "search.headTitle": "zoeken op titel",
   "search.headMosaic": "zoeken op kleurenmozaïek",
   "search.metaText":
     "Vind een zin, match een fotomozaïek, of open een Babelgram.",
   "search.metaContent":
     "Typ een zin — de bibliotheek vindt waar die al bestaat (opgevuld met spaties tot een volle pagina).",
+  "search.metaContentBook":
+    "Langer dan één pagina — boekkaart-invert (zelfde pipeline als <span class=\"ui\">zoeken…</span> → <span class=\"ui ui-tab\">foto</span>). Hit is meestal een <span class=\"unit-mbit\">Mbit</span>-kamer: geen URL; bewaar een Babelgram om opnieuw te openen. Eerste <span class=\"ui\">find</span> kan warm-up + wachten nodig hebben.",
   "search.metaTitle":
     "Typ een rugtitel — de bibliotheek vindt galerij en plank.",
   "search.metaMosaic":
@@ -513,6 +516,8 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "search.countTip": "{n} alfabetcellen van {max} toegestaan",
   "search.hintContent":
     "gebruikt de huidige alfabetlens · tot één pagina",
+  "search.hintContentBook":
+    "boekkaart / <span class=\"unit-mbit\">Mbit</span>",
   "search.hintTitle":
     "gebruikt de huidige alfabetlens · tot {n} rugtitel-cellen",
   "search.canTakeAFew": "kan even duren",
@@ -597,6 +602,10 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "search.result.pages": "pagina’s {start}–{end}",
   "search.result.chars": "{n} tekens",
   "search.result.detailContent": "{pages} · {chars} · alfabet {alphabet}",
+  "search.result.detailContentBook":
+    "{pages} · {chars} · alfabet {alphabet} · boekkaart",
+  "search.result.bookHandoffNote":
+    "<span class=\"unit-mbit\">Mbit</span>-kamer — kopiëren gebruikt een lokale <code>#bo=</code>-handoff (deze browser). Bewaar een Babelgram om elders te openen.",
   "search.result.detailTitle": "titel {query} · {chars} · alfabet {alphabet}",
   "search.error.invalid":
     "ongeldig teken voor dit alfabet (alleen {alphabet}): {shown}",
@@ -606,6 +615,9 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "search.error.moreKinds": " (+{n} andere soorten)",
   "search.error.empty": "zoektekst is leeg",
   "search.error.tooLong": "tekst te lang (max. {n} tekens — één pagina)",
+  "search.error.tooLongBook": "tekst te lang (max. {n} tekens — één boek)",
+  "search.error.tooShortBook":
+    "boek-locate heeft meer dan {n} tekens nodig (één pagina) — verkort voor paginazoek of plak meer",
   "search.error.titleTooLong": "titel te lang (max. {n} tekens)",
   "search.error.pageRoom":
     "tekst heeft {need} pagina’s nodig, maar er blijven er maar {room} in dit boek — probeer een kortere zin",
@@ -630,10 +642,12 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "book.next": "volgende ›",
   "book.pageInd": "pagina {page} / {total}",
   "book.pagePlaceholder": "pagina",
-  "book.waitMbit": "Mbit-bereik — boek wordt opgebouwd. Kan even duren.",
-  "book.waitMbitImage": "Mbit-bereik — kleurenkaart wordt opgebouwd. Kan even duren.",
+  "book.waitMbit":
+    "<span class=\"unit-mbit\">Mbit</span>-bereik — boek wordt opgebouwd. Kan even duren.",
+  "book.waitMbitImage":
+    "<span class=\"unit-mbit\">Mbit</span>-bereik — kleurenkaart wordt opgebouwd. Kan even duren.",
   "book.waitMbitBorrow":
-    "Mbit-bereik — volledige boektekst wordt geschreven. Kan even duren.",
+    "<span class=\"unit-mbit\">Mbit</span>-bereik — volledige boektekst wordt geschreven. Kan even duren.",
   "book.wall": "Wand {n}",
   "book.wallBook": "Wand {n} · boek {book}",
 

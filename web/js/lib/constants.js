@@ -18,7 +18,9 @@ export const PAGE_CONTENT_SYMBOLS = LINES_PER_PAGE * CHARS_PER_LINE; // 3200 con
 /** Full-book letter grid (photo Find / book-linked invert). */
 export const BOOK_CONTENT_SYMBOLS = PAGES_PER_BOOK * PAGE_CONTENT_SYMBOLS; // 1_312_000
 export const PAGE_CHARS = (CHARS_PER_LINE + 1) * LINES_PER_PAGE; // chars + newline per line
-export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS; // one page of content search
+export const MAX_SEARCH_CHARS = PAGE_CONTENT_SYMBOLS; // page-band content search
+/** Content textarea / book-band locate ceiling (full book). */
+export const MAX_BOOK_SEARCH_CHARS = BOOK_CONTENT_SYMBOLS;
 export const TITLE_LEN = 24; // spine title length (mirror src/config/)
 
 // Legacy i64 bounds (pre-Basile UI clamp). Random walks still use a friendly

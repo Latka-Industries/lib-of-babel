@@ -1,0 +1,110 @@
+<section class="sheet-sec" id="find">
+  <h2>Find / progress</h2>
+  <p class="sheet-lead">
+    Text book-band chrome, mosaic honesty, palette strip, progress track, hit thumbs + actions.
+    Book-band head/meta/hint paint from live locale keys (EN·DE·NL under Mbit).
+  </p>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetSearchHead">search by content (whole book)</h3>
+        <small id="searchMeta" class="sheet-search-meta">…</small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="find-body" style="padding-top: 0.65rem">
+      <div class="find-row search-find-row" id="sheetSearchFindRow">
+        <button type="button" id="sheetSearchFind">find</button>
+        <span id="sheetSearchCount" class="find-dim search-count">3,301 / 1,312,000</span>
+        <span id="searchHint" class="find-dim">book-map / <span class="unit-mbit">Mbit</span></span>
+      </div>
+      <p class="find-dim" id="sheetSearchHandoff" style="margin: 0.65rem 0 0">…</p>
+      <p class="find-dim" style="margin: 0.45rem 0 0; font-size: 0.75rem">
+        Page band (contrast): head / meta / hint flip when cells ≤ 3,200 —
+        <span id="sheetSearchPageHint">uses the current alphabet lens · up to one page</span>
+      </p>
+    </div>
+  </div>
+  <div class="sheet-panel">
+    <p class="find-dim" id="sheetMosaicHonesty"></p>
+    <div class="mosaic-palette-block" style="margin-top: 0.65rem">
+      <p class="find-dim mosaic-palette-note" id="sheetMosaicPaletteNote"></p>
+      <div
+        class="find-palette-gradient"
+        id="sheetPalette"
+        role="img"
+        aria-label="sample palette"
+        style="background-image: linear-gradient(90deg, #1a1520, #5a3a2a, #c9a227, #8f7016, #d8d4c8)"
+      ></div>
+    </div>
+    <div class="find-progress" style="margin-top: 0.85rem">
+      <div class="find-progress-row">
+        <span class="find-progress-label" id="sheetWarmLabel"></span>
+        <div class="find-progress-track" aria-hidden="true">
+          <span class="find-progress-run">
+            <span class="find-progress-spin"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-panel">
+    <p class="find-dim" id="sheetHitIntro">Best mosaic match · took 4m 57s</p>
+    <div class="mosaic-hit" style="display: flex; gap: 0.75rem; align-items: flex-start; margin-top: 0.5rem">
+      <div class="mosaic-hit-thumbs">
+        <div class="mosaic-hit-thumb-wrap">
+          <canvas class="mosaic-hit-thumb" width="72" height="58" style="background: linear-gradient(135deg, #5a3a2a, #c9a227)"></canvas>
+          <span class="mosaic-hit-thumb-cap" id="sheetHitThumbCap">found babelgram</span>
+        </div>
+      </div>
+      <div class="mosaic-hit-body">
+        <div class="mosaic-hit-main">
+          <span class="mosaic-hit-metrics">
+            <span class="mosaic-hit-metric" id="sheetHitRms">rms 99.97%</span>
+            <span class="mosaic-hit-metric" id="sheetHitMae">mae 0.012</span>
+            <span class="mosaic-hit-metric" id="sheetHitCorr">corr 1.0000</span>
+          </span>
+          <span class="mosaic-hit-ok" id="sheetHitExact">exact decode</span>
+        </div>
+        <div class="find-dim" id="sheetHitGalleryLine">gallery (0, -12) · book 12 · a–z · Basile</div>
+        <div class="find-row find-actions" style="margin-top: 0.45rem">
+          <button type="button" id="sheetHitGo">go there</button>
+          <button type="button" id="sheetHitCopy">copy link</button>
+          <button type="button" id="sheetHitCheckDiff">check diff</button>
+          <button type="button" id="sheetHitCompareLetters">compare letters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub" id="searchBands">Mode bands</h3>
+  <p class="sheet-lead" style="margin: -0.35rem 0 0.75rem">
+    head / meta / hint for every search mode — painted live from the active locale catalog.
+  </p>
+  <div id="sheetSearchBands"></div>
+
+  <h3 class="sheet-sub">Search editor</h3>
+  <div class="sheet-panel">
+    <div class="search-editor" id="sheetSearchEditor">
+      <div class="search-backdrop" id="sheetSearchBackdrop" aria-hidden="true"></div>
+      <textarea id="sheetSearchEditorInput" rows="3" spellcheck="false"></textarea>
+    </div>
+    <p class="find-dim" style="margin: 0.5rem 0 0">
+      valid field — <code>.search-backdrop</code> mirrors the (caret-only) textarea text
+    </p>
+  </div>
+  <div class="sheet-panel" style="margin-top: 0.65rem">
+    <div class="search-editor search-invalid-field" id="sheetSearchEditorInvalid">
+      <div class="search-backdrop" id="sheetSearchBackdrop2" aria-hidden="true"></div>
+      <textarea id="sheetSearchEditorInvalidInput" rows="3" spellcheck="false"></textarea>
+    </div>
+    <p class="find-dim search-error" id="sheetSearchErrorSample" style="margin: 0.5rem 0 0"></p>
+  </div>
+
+  <h3 class="sheet-sub">Text hit result</h3>
+  <div class="sheet-panel">
+    <div class="find-result show" id="sheetSearchHitResult"></div>
+  </div>
+</section>

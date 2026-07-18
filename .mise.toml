@@ -63,7 +63,7 @@ run = [
 
 [tasks.asset-sheet]
 description = "UI asset sheet (tokens, chrome, find, mbit copy) — mise run serve/dev only; stripped from Pages"
-run = "echo \"Open http://127.0.0.1:${PORT:-8777}/asset-sheet.html (mise run serve / mise run dev first)\""
+run = "echo \"Open http://127.0.0.1:${PORT:-8777}/asset-sheet/ (mise run serve / mise run dev first)\""
 
 [tasks.gen-alphabets]
 description = "Regenerate Rust alphabet packs from data/alphabets/*.txt"

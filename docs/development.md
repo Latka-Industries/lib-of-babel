@@ -13,12 +13,13 @@ lib-of-babel/
 │   ├── css/      chrome + reader styles
 │   ├── fonts/
 │   ├── pkg/      wasm-pack output
+│   ├── asset-sheet/  dev UI inventory (index + sections + paint; stripped from Pages)
 │   ├── main.js   boot
 │   └── js/       static ESM UI
 │       ├── lib/      util, color, lattice, wasm, db, constants, i18n
-│       ├── chrome/   controls, dropdown, theme, favicon, alphabet-picker
+│       ├── chrome/   controls, dropdown, theme, favicon, alphabet-picker, loading-wave
 │       ├── gallery/  view, nav, state, url, sigil, migrate
-│       ├── reader/   book, search, search-query, mosaic-search, verify
+│       ├── reader/   book, search, search-query, mosaic-search, book-handoff, verify
 │       └── about/    About / Help guide
 ├── docs/         design, development, alphabets
 ├── data/         alphabet packs + baked Basile scramble blob — see [data/README.md](../data/README.md)
@@ -48,22 +49,22 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
 | `mise run gen-basile-scramble` | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
 | `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing) |
-| `mise run asset-sheet` | prints URL for `web/asset-sheet.html` (dev UI inventory via `mise run serve`; stripped from Pages) |
+| `mise run asset-sheet` | prints URL for `web/asset-sheet/` (dev UI inventory via `mise run serve`; stripped from Pages) |
 | `mise run clean` | remove `target/` and `web/pkg` |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
 Universe renames / dice rolls at the same `(z, n)` append a wander step (`◇`).
 Permalinks: room links need `z`/`n` (compact `c…` encoding when huge) plus optional
-`u`, `a`, `book`, `page`, `img=1`, `gv`. Search shares use `#q=&find=content|title`
+`u`, `a`, `book`, `page`, `img=1`, `gv`. Page-band text shares use `#q=&find=content|title`
 (boot re-locates; no huge coords in the hash). Shareable `&q=` is soft-capped;
-mosaic / full-book flats stay out of the URL. Photo / Babelgram **go there** and
-**copy link** prefer short same-browser `&bo=` (IndexedDB: Basile coords + optional
-RGBA cache + letter `flat` so open/save can seal without re-projecting). That handoff is
-local to this browser — not a shareable Mbit URL; cross-device reopen is Babelgram verify.
-Babelgram go/copy run only after stamp verify (or legacy unsealed v1/v2). Other-universe
-Babelgram **go there** may also add short-lived `&be=` for the print flat. Param order puts
-`bo` / `img` / `b` before huge `z`/`n` so truncation still opens the book. Legacy / missing
-`gv` opens the migrate modal.
+mosaic / full-book flats stay out of the URL. Photo / whole-book text / Babelgram
+**go there** and **copy link** prefer short same-browser `&bo=` (IndexedDB: Basile coords +
+optional RGBA cache + letter `flat` so open/save can seal without re-projecting; text book
+go opens a new tab). That handoff is local to this browser — not a shareable Mbit URL;
+cross-device reopen is Babelgram verify. Babelgram go/copy run only after stamp verify
+(or legacy unsealed v1/v2). Other-universe Babelgram **go there** may also add short-lived
+`&be=` for the print flat. Param order puts `bo` / `img` / `b` before huge `z`/`n` so
+truncation still opens the book. Legacy / missing `gv` opens the migrate modal.
 
 ## UI notes
 
@@ -72,10 +73,12 @@ Babelgram **go there** may also add short-lived `&be=` for the print flat. Param
 - Mbit rooms: footer `12345…67890`; hover = scientific + bit width; click **gallery (z, n)** → notice with Axes + **Digits (z, n)**. About → scale table **Comparison** column is analogy only (not “digit count equals book length”). Scalar cells show `≈N` + `.unit-mbit` then `10^…` on a second line.
 - Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html`. Two canvases from `node scripts/make-og.mjs` (needs ImageMagick): **`og.png`** — sigil fills the frame (Open Graph / Slack / iMessage thumbnails); **`og-large.png`** — sigil + wordmark + tagline (`twitter:image`). Crawlers do not pick by preview size; this is a platform split, not responsive media.
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
-- Search modes shipped in UI: **text** (content ≤ one page / 3200 cells; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
+- Search modes shipped in UI: **text** (content ≤ one page / 3200 cells **or** whole-book book-map when longer; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; letters or luma ramp; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
+- Whole-book text locate: WASM `locate_book_json` off the UI thread (`mosaic-find-pool` / worker); UI in `search.js`; `#bo=` via `book-handoff.js` (`bookOpenHandoffUrl`). Babelgram from that hit paints `contentFlat` with `book_image_from_flat` (`book.js`)
 - Babelgram stamp/verify: `web/js/lib/png-babel.js` (`lob:babel` v3 `seal` + `h`); save seals from on-screen pixels + current room accent (`book.js`); locate/UI in `mosaic-search.js`. Go/copy stash letter `flat` in `&bo=` (and `&be=` cross-universe). Compact axes shorten in download filenames (`c…`). Round-trip: `node scripts/test-png-babel.mjs`
 - Virgin `book_image` (wander): **page-linked** paint — worker page-range strips are fine again. Search → photo proof uses book-linked paint inside `mosaic_find_book`.
 - Search → photo: WASM `mosaic_find_book` off the UI thread (`mosaic-find-worker.js` + pool; main-thread fallback) — letter mosaic → book-linked invert → book-scope virgin RGBA; handoff stores compact `c…` coords + `scope=book`
+- Dev asset sheet: `web/asset-sheet/` (`mise run asset-sheet` → `/asset-sheet/`); section HTML partials + `js/paint.js`; stripped from Pages (`rm -rf web/asset-sheet`)
 - Photo tab flag: `PHOTO_SEARCH_TAB_ENABLED` in `web/js/reader/search.js` (on)
 - Lens registry for the UI lives in `web/js/lib/constants.js` (kept in sync with Rust via tests)
 - Chrome: Overpass Mono; About prose: Lato

@@ -1,0 +1,50 @@
+<section class="sheet-sec" id="stage">
+  <h2>Stage · minimap · walls</h2>
+  <p class="sheet-lead">
+    Real <code>.stage</code> / <code>.minimap-wrap</code> / <code>.wall</code> / <code>.book</code> chrome —
+    labels from live locale; spines are fake short titles (no WASM). Flip EN·DE·NL under Mbit.
+  </p>
+  <div class="stage sheet-stage-demo">
+    <aside class="minimap-wrap">
+      <div class="minimap-title" id="sheetMinimapTitle">you are here</div>
+      <div class="sigil" id="sheetSigil">
+        <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
+          <circle cx="50" cy="50" r="46.5" fill="none" stroke="var(--accent)" stroke-width="0.8" opacity="0.3"/>
+          <polygon points="50,8 84,30 74,80 26,80 16,30" fill="color-mix(in oklab, var(--accent) 16%, transparent)" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
+          <line x1="50" y1="8" x2="26" y2="80" stroke="var(--accent-link)" stroke-width="0.8" opacity="0.7"/>
+          <line x1="84" y1="30" x2="74" y2="80" stroke="var(--accent-link)" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="50" cy="50" r="3" fill="var(--accent)"/>
+        </svg>
+      </div>
+      <div id="sheetMinimap" class="find-dim" style="text-align: center; font-size: 0.72rem; padding: 0.3rem 0 0.15rem"></div>
+      <div class="minimap-hint" id="sheetMinimapHint">click an exit to move</div>
+    </aside>
+    <div class="walls sheet-walls-demo">
+      <div class="wall">
+        <h2 id="sheetWallHead1">Wall 1</h2>
+        <div class="shelf-track" id="sheetShelfTrack1"></div>
+      </div>
+      <div class="wall">
+        <h2 id="sheetWallHead2">Wall 2 · book 7</h2>
+        <div class="shelf-track" id="sheetShelfTrack2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-panel" style="margin-top: 0.75rem">
+    <p class="find-dim" style="margin: 0 0 0.5rem; font-size: 0.75rem">
+      Same stage loading as the live app (typewriter + square wave).
+    </p>
+    <div class="loading loading-wave" id="loadingWave" aria-busy="true" aria-label="building library">
+      <p class="loading-copy" id="loadingCopy" aria-hidden="true"></p>
+      <div class="loading-wave-track" aria-hidden="true">
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+        <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+      </div>
+    </div>
+  </div>
+</section>

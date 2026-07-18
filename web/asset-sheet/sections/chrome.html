@@ -1,0 +1,58 @@
+<section class="sheet-sec" id="chrome">
+  <h2>Chrome</h2>
+  <p class="sheet-lead">
+    Header / footer / book nav — labels from live locale; coords via
+    <code>formatCoordDisplay</code> / <code>formatCoordFull</code> (not hand-typed Mbit).
+    Flip EN·DE·NL under Mbit.
+  </p>
+  <header class="sheet-fake-header" id="sheetChromeHeader">
+    <div class="header-bar" style="overflow: visible">
+      <button type="button" class="logo" id="sheetLogo" title="">LIB·OF·BABEL</button>
+      <div class="header-controls">
+        <input class="universe" id="sheetUniverse" type="text" readonly style="width: 7rem" />
+        <button type="button" class="alphabet" id="sheetAlphabet">a–z · Basile</button>
+        <button type="button" class="dd-trigger" id="sheetActionsTrig">
+          <span class="dd-label" id="sheetActionsLabel">actions…</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="sheet-fake-footer" id="sheetChromeFooter" style="margin-top: 0.75rem">
+    <button type="button" class="history-btn" id="sheetHistoryBtn">wanderings · 0/1000</button>
+    <div class="sheet-stat">
+      <span class="stat-label" id="sheetGalleryLabel">gallery</span>
+      <b class="coord" id="sheetCoord">(0, 0)</b>
+    </div>
+    <div class="sheet-stat">
+      <span class="stat-label" id="sheetHashLabel">hash</span>
+      <b class="hash" id="sheetHash">a1b2c3d4e5f6</b>
+    </div>
+    <div class="sheet-stat">
+      <span class="stat-label" id="sheetStepsLabel">steps</span>
+      <b id="sheetSteps">12</b>
+    </div>
+    <button type="button" class="help-btn" id="sheetHelpBtn" title="">
+      <span class="help-btn-q" aria-hidden="true">?</span>
+      <span id="sheetHelpLabel">- Help</span>
+    </button>
+  </div>
+  <p class="find-dim" id="sheetCoordNote" style="margin: 0.45rem 0 0; font-size: 0.75rem"></p>
+  <div class="sheet-book-nav" id="sheetBookNav">
+    <div class="book-nav" style="position: static; border: none; padding: 0; background: transparent">
+      <button type="button" id="sheetViewToggle">color</button>
+      <button type="button" id="sheetClearMark">clear mark</button>
+      <span class="grow grow-start"></span>
+      <span class="page-turn">
+        <button type="button"><span class="nav-label" id="sheetPrev">‹ prev</span></button>
+        <span id="sheetPageInd">page 12 / 410</span>
+        <button type="button"><span class="nav-label" id="sheetNext">next ›</span></button>
+      </span>
+      <span class="grow grow-end"></span>
+      <span class="page-jump-wrap">
+        <input type="number" id="sheetPageJump" min="1" max="410" value="12" aria-label="page" />
+        <span class="page-total" id="sheetPageTotal" aria-hidden="true">/ 410</span>
+      </span>
+      <button type="button" id="sheetPageGo">go</button>
+    </div>
+  </div>
+</section>

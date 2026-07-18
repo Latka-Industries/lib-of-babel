@@ -21,7 +21,7 @@ import {
   BOOK_CONTENT_SYMBOLS,
   alphabetCells,
 } from "../lib/constants.js";
-import { permalink, bookOpenShareUrl } from "../gallery/url.js";
+import { permalink } from "../gallery/url.js";
 import { encodeCoordParam, coordForWasm } from "../lib/coords.js";
 import {
   readBabelMeta,
@@ -47,55 +47,15 @@ import {
 } from "./mosaic-find-pool.js";
 import { PHOTO_SEARCH_TAB_ENABLED } from "./search.js";
 import { createFindTrace } from "../lib/find-debug.js";
+import {
+  bookOpenHandoffUrl,
+  openHandoffInNewTab,
+} from "./book-handoff.js";
+import { formatFindElapsed } from "./find-format.js";
+
+export { stashBookOpen } from "./book-handoff.js";
 
 const BABEL_EMBED_KEY = (id) => `babel-embed:${id}`;
-const BOOK_OPEN_KEY = (id) => `book-open:${id}`;
-
-function newHandoffId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/** Same-browser handoff so paste truncation cannot drop &b=&img=1.
- * Optional `imageRgba` skips slow virgin `book_image` on open.
- * Stores compact `c…` z/n + `scope` — never megadigit decimals. */
-async function stashBookOpen(
-  hit,
-  {
-    universe = S.universeName,
-    image = true,
-    imageRgba = null,
-    imageW = 0,
-    imageH = 0,
-    flat = null,
-    scope = hit.scope || "book",
-  } = {},
-) {
-  const id = newHandoffId();
-  const payload = {
-    z: encodeCoordParam(hit.z),
-    n: encodeCoordParam(hit.n),
-    b: Number(hit.book),
-    a: hit.alphabet ?? S.alphabetId,
-    u: universe ?? "",
-    img: !!image,
-    imageW: imageW || 0,
-    imageH: imageH || 0,
-    scope: scope === "page" ? "page" : "book",
-  };
-  if (typeof flat === "string" && flat.length) {
-    // Letter grid from Find — source of truth for book text on open.
-    payload.flat = flat;
-  }
-  if (imageRgba?.length) {
-    // Own a JS copy before IDB clone (WASM getters already copy; stay defensive).
-    payload.imageRgba =
-      imageRgba instanceof Uint8Array
-        ? imageRgba.slice()
-        : new Uint8Array(imageRgba);
-  }
-  await kvSet(BOOK_OPEN_KEY(id), payload);
-  return id;
-}
 
 /** @type {"photo"|"babel"} */
 let mosaicMode = PHOTO_SEARCH_TAB_ENABLED ? "photo" : "babel";
@@ -953,16 +913,6 @@ function findProgressText(phase) {
   return t(key);
 }
 
-/** Human elapsed for Find results (`took 4m 57s`). */
-function formatFindElapsed(ms) {
-  if (ms == null || !Number.isFinite(ms) || ms < 0) return "";
-  const sec = Math.round(ms / 1000);
-  if (sec < 60) return t("search.mosaic.elapsedSec", { n: String(sec) });
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return t("search.mosaic.elapsedMinSec", { m: String(m), s: String(s) });
-}
-
 /**
  * Letter mosaic → book-linked invert → proof RGBA.
  * Runs in a dedicated WASM worker so the UI thread stays responsive;
@@ -1082,16 +1032,11 @@ function photoPermalink(hit) {
 /** Prefer short `&bo=` share — full Basile z/n blow past clipboard / paste limits. */
 async function photoShareUrl(hit, proof = {}) {
   const d = dims();
-  const bookOpenId = await stashBookOpen(hit, {
+  return bookOpenHandoffUrl(hit, {
     flat: proof.flat || null,
     imageRgba: proof.bookRgba || null,
     imageW: proof.diffW || d.w,
     imageH: proof.diffH || d.h,
-  });
-  return bookOpenShareUrl(bookOpenId, {
-    book: hit.book,
-    image: true,
-    alpha: hit.alphabet ?? S.alphabetId,
   });
 }
 
@@ -1106,12 +1051,11 @@ async function goToPhotoHit(hit, proof = {}) {
   box?.prepend(busy);
   try {
     await yieldToUi();
-    const url = await photoShareUrl(hit, proof);
-    window.open(url, "_blank", "noopener,noreferrer");
+    openHandoffInNewTab(await photoShareUrl(hit, proof));
   } catch (err) {
     console.error(err);
     try {
-      window.open(photoPermalink(hit), "_blank", "noopener,noreferrer");
+      openHandoffInNewTab(photoPermalink(hit));
     } catch (err2) {
       console.error(err2);
     }
@@ -1516,7 +1460,7 @@ async function babelShareUrl(
     sameUniverse && babelMeta?.name != null ? babelMeta.name : S.universeName;
   // Cache upload pixels + locate flat so open/save can seal without re-projecting
   // (upload was painted with the export gallery’s accent, not the destination’s).
-  const bookOpenId = await stashBookOpen(hit, {
+  let url = await bookOpenHandoffUrl(hit, {
     universe: uni,
     imageRgba: reshaped?.rgba || null,
     imageW: reshaped?.w || 0,
@@ -1528,12 +1472,6 @@ async function babelShareUrl(
         : babelMeta?.scope === "page"
           ? "page"
           : "book",
-  });
-  // Prefer short handoff — full Basile address is multi-KB.
-  let url = bookOpenShareUrl(bookOpenId, {
-    book: hit.book,
-    image: true,
-    alpha: hit.alphabet ?? S.alphabetId,
   });
   // Other-universe print payload still needs &be= on the short link.
   if (embedId) url += `&be=${encodeURIComponent(embedId)}`;
@@ -1554,19 +1492,13 @@ async function goToBabelHit(hit, sameUniverse = false, flat = null) {
         imageH: reshaped.h,
       });
     }
-    window.open(
+    openHandoffInNewTab(
       await babelShareUrl(hit, { sameUniverse, embedId, flat }),
-      "_blank",
-      "noopener,noreferrer",
     );
   } catch (err) {
     console.error(err);
     try {
-      window.open(
-        babelPermalink(hit, { sameUniverse }),
-        "_blank",
-        "noopener,noreferrer",
-      );
+      openHandoffInNewTab(babelPermalink(hit, { sameUniverse }));
     } catch (err2) {
       console.error(err2);
     }

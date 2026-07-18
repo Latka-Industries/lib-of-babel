@@ -22,8 +22,8 @@ mod wasm_api;
 
 pub use color::{
     BookImage, book_cell_count, book_grid_dims, book_image, book_image_at, book_image_book_scope,
-    book_image_book_scope_at, book_image_dims, book_image_pages, book_image_pages_at,
-    book_image_search, room_accent, room_accent_at,
+    book_image_book_scope_at, book_image_dims, book_image_from_flat, book_image_from_flat_at,
+    book_image_pages, book_image_pages_at, book_image_search, room_accent, room_accent_at,
 };
 pub use config::{
     BOOK_CONTENT_SYMBOLS, BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, MAX_SEARCH_CHARS,
@@ -40,8 +40,9 @@ pub use mosaic::{
 };
 pub use page::{PageAddr, PageRender, book_text, book_text_book_scope, page_symbols, page_text};
 pub use search::{
-    LocateError, LocateResult, PageLocation, TitleLocateResult, locate_page, locate_title,
-    search_offset, search_page_segment, search_page_span, spine_title_at, text_to_symbols,
+    BookLocateResult, LocateError, LocateResult, PageLocation, TitleLocateResult, locate_book,
+    locate_page, locate_title, search_offset, search_page_segment, search_page_span,
+    spine_title_at, text_to_symbols,
 };
 pub use wasm_api::*;
 
@@ -503,6 +504,20 @@ mod tests {
         assert!(locate_page(&page, 29, 0).is_ok());
         // Span helper still reports multi-page lengths (not used for locate accept).
         assert_eq!(crate::search::search_page_span(&over, 29), 2);
+    }
+
+    #[test]
+    fn book_locate_rejects_one_page_or_less() {
+        use crate::config::PAGE_CONTENT_SYMBOLS;
+        let page = "a".repeat(PAGE_CONTENT_SYMBOLS);
+        assert!(matches!(
+            locate_book(&page, 29, 0),
+            Err(LocateError::Message(msg)) if msg.contains("too short")
+        ));
+        assert!(matches!(
+            locate_book("", 29, 0),
+            Err(LocateError::Message(msg)) if msg.contains("empty")
+        ));
     }
 
     #[test]

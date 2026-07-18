@@ -12,8 +12,8 @@ use crate::page::{
     PageAddr, PageRender, book_text, book_text_book_scope, page_text, page_text_book_scope,
 };
 use crate::search::{
-    LocateError, PageLocation, json_char_literal, json_string_literal, locate_page, locate_title,
-    normalize_query, push_json_string, search_page_segment, search_page_span,
+    LocateError, PageLocation, json_char_literal, json_string_literal, locate_book, locate_page,
+    locate_title, normalize_query, push_json_string, search_page_segment, search_page_span,
 };
 use crate::universe::{self, universe as active_universe};
 
@@ -320,6 +320,50 @@ pub fn max_title_len() -> u32 {
 pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
     match locate_title(text, alphabet_id, active_universe()) {
         Ok(res) => locate_hit_json(&res.location, res.char_count, 1, 1, 1),
+        Err(e) => locate_error_json(e),
+    }
+}
+
+#[wasm_bindgen]
+#[must_use]
+/// Whole-book text locate → JSON hit `{ ok, z, n, book, scope:"book", flat, … }`.
+///
+/// Requires more than one page of cells; pads to a full book then book-map invert.
+pub fn locate_book_json(text: &str, alphabet_id: u32) -> String {
+    match locate_book(text, alphabet_id, active_universe()) {
+        Ok(res) => {
+            let loc = &res.location;
+            let (wall, shelf, book_on_shelf) = book_index_to_shelf(loc.book_index);
+            let mut out = String::with_capacity(res.flat.len().saturating_add(256));
+            let _ = write!(
+                out,
+                concat!(
+                    "{{\"ok\":true,",
+                    "\"universe_seed\":\"{}\",\"z\":\"{}\",\"n\":\"{}\",",
+                    "\"book\":{},\"page\":{},\"page_end\":{},\"page_span\":{},",
+                    "\"char_count\":{},\"alphabet\":{},",
+                    "\"wall\":{},\"shelf\":{},\"book_on_shelf\":{},",
+                    "\"scope\":\"book\",\"flat\":"
+                ),
+                loc.universe_seed,
+                crate::gallery::format_coord(&loc.z),
+                crate::gallery::format_coord(&loc.n),
+                loc.book_index,
+                1,
+                res.page_span,
+                res.page_span,
+                res.char_count,
+                loc.alphabet_id,
+                wall + 1,
+                shelf + 1,
+                book_on_shelf + 1,
+            );
+            push_json_string(&mut out, &res.flat);
+            // Literal `}` — not `}}` (that is only for `format!` escapes). Extra brace
+            // made JS `JSON.parse` fail → "invalid response from generator".
+            out.push('}');
+            out
+        }
         Err(e) => locate_error_json(e),
     }
 }

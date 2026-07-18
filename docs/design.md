@@ -28,7 +28,7 @@ Canonical dimensions:
 | **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
 | **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
 | **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot). Mosaic / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png` sigil-fill for Open Graph; `og-large.png` branded for Twitter) — same for every hash URL. |
+| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot; page-band text only). Mosaic / whole-book text / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png` sigil-fill for Open Graph; `og-large.png` branded for Twitter) — same for every hash URL. |
 | **Stack** | Rust → WASM core + static web frontend (GitHub Pages). |
 | **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
 
@@ -64,11 +64,11 @@ Two universes of math share the same address labels `(z, n, book[, page])`:
 - **Page-linked** — every possible *page* exists once (`content = (addr × C) mod |Σ|^3200`).
   Wander, spines, text search (≤ one page), reader `book_image`.
 - **Book-linked** — every possible *full book* exists once
-  (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Search → photo / Babelgram identity.
-  Addresses are **Mbit-range** (~millions of bits per axis); UI shows first/last five
-  digits in the footer (hover: scientific + bit width as plain `≈N Mbit` text), Digits (z, n)
-  in the gallery notice (body copy uses the `.unit-mbit` mark), spines + colour map, but not
-  lattice wander (see About → engines / scale).
+  (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Search → photo / whole-book text /
+  Babelgram identity. Addresses are **Mbit-range** (~millions of bits per axis); UI shows
+  first/last five digits in the footer (hover: scientific + bit width as plain `≈N Mbit`
+  text), Digits (z, n) in the gallery notice (body copy uses the `.unit-mbit` mark), spines +
+  colour map, but not lattice wander (see About → engines / scale).
 
 Same shelf numbers under different scopes are different virgin content. Handoff and
 `lob:babel` stamps carry `scope=page|book`.
@@ -76,6 +76,12 @@ Same shelf numbers under different scopes are different virgin content. Handoff 
 **Content (page-linked):** query capped at one page (3200 cells); pad into page 0
 (offset + filler) → invert → virgin page contains the padded phrase. Highlight is
 UI-only. Share links prefer `#q=&find=content` (boot re-locates).
+
+**Content (book-linked):** query longer than one page (up to one book). Pad to
+`BOOK_CONTENT_SYMBOLS`, plant at book start + filler → `invert_book_symbols` (same map as
+photo Find). Hit is usually an Mbit room. **go there** / **copy link** share one
+`#bo=` handoff (IndexedDB letter `flat`; go opens a new tab). Babelgram from that book
+paints the find flat (`book_image_from_flat`) — not a virgin rematerialise.
 
 **Title:** pad to **24** cells → invert title map → virgin spine contains the phrase →
 jump and open at page 1.
@@ -120,10 +126,12 @@ To keep an Mbit hit across devices: save a Babelgram there, then search → Babe
 
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  [scope=page]
+content:  long    ──pad──▶  book digits  ──invert──▶  (z, n, book)       [scope=book]
 title:    title   ──pad──▶  spine digits ──invert──▶  (z, n, book)
 babel:    PNG     ──decode──▶  flat  ──verify seal+h──▶  trust stamp coords / rematch
 photo:    image   ──letter mosaic──▶  text  ──invert──▶  (z, n, book)  [scope=book]
 ```
 
-WASM entry points: `locate_page_json` / `locate_title_json` / `mosaic_*` /
-`page_text_book_scope_for` / `book_text_book_scope_for` (see [development.md](development.md)).
+WASM entry points: `locate_page_json` / `locate_title_json` / `locate_book_json` /
+`book_image_from_flat` / `mosaic_*` / `page_text_book_scope_for` /
+`book_text_book_scope_for` (see [development.md](development.md)).

@@ -12,7 +12,10 @@
   color: #c45c5c;
   font-weight: 600;
 }
-.search-find-row #searchHint { flex: 1 1 12rem; }
+.search-find-row #searchHint {
+  flex: 1 1 12rem;
+  margin-inline-start: 0.75rem;
+}
 .find-body select, .find-body input { padding: 0.35rem 0.5rem; }
 .find-body button { padding: 0.35rem 0.6rem; }
 .find-result { border: 1px solid var(--line); border-radius: 8px; padding: 0.75rem; display: none; }
@@ -41,13 +44,18 @@
   resize: vertical;
   position: relative;
   z-index: 1;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 .search-editor.search-invalid-field textarea {
   border-color: #c44;
 }
 .search-backdrop {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0; /* JS narrows when textarea shows a scrollbar (wrap sync) */
+  bottom: 0;
   padding: 0.5rem;
   font-family: var(--font-page);
   font-size: inherit;
@@ -58,6 +66,7 @@
   border-radius: 6px;
   overflow: hidden;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
   word-wrap: break-word;
   pointer-events: none;
   z-index: 0;
@@ -911,7 +920,104 @@ pre.page mark.search-hit {
     font-variant-numeric: tabular-nums;
   }
 }
-.loading { color: var(--muted); padding: 2rem; text-align: center; }
+.loading {
+  color: var(--muted);
+  padding: 2rem;
+  text-align: center;
+}
+/* Stage boot: typewriter line + even-stagger rotating square wave. */
+.loading.loading-wave {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 2rem 0.75rem;
+}
+.loading-wave .loading-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  min-height: 1.35em;
+  font-variant-ligatures: none;
+}
+.loading-wave .loading-copy::after {
+  content: "";
+  display: inline-block;
+  width: 0.08em;
+  height: 1em;
+  margin-inline-start: 0.12em;
+  vertical-align: -0.1em;
+  background: var(--accent);
+  animation: loading-caret 0.9s steps(1) infinite;
+}
+@keyframes loading-caret {
+  0%, 45% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.loading-wave-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  height: 5rem;
+}
+.loading-wave-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.58rem;
+  height: 0.58rem;
+  animation: loading-wave-bob 1.55s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+.loading-wave-spin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  animation: loading-wave-spin 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.loading-wave-dot:nth-child(1),
+.loading-wave-dot:nth-child(1) .loading-wave-spin { animation-delay: 0s; }
+.loading-wave-dot:nth-child(2),
+.loading-wave-dot:nth-child(2) .loading-wave-spin { animation-delay: 0.12s; }
+.loading-wave-dot:nth-child(3),
+.loading-wave-dot:nth-child(3) .loading-wave-spin { animation-delay: 0.24s; }
+.loading-wave-dot:nth-child(4),
+.loading-wave-dot:nth-child(4) .loading-wave-spin { animation-delay: 0.36s; }
+.loading-wave-dot:nth-child(5),
+.loading-wave-dot:nth-child(5) .loading-wave-spin { animation-delay: 0.48s; }
+.loading-wave-dot:nth-child(6),
+.loading-wave-dot:nth-child(6) .loading-wave-spin { animation-delay: 0.60s; }
+.loading-wave-dot:nth-child(7),
+.loading-wave-dot:nth-child(7) .loading-wave-spin { animation-delay: 0.72s; }
+@keyframes loading-wave-bob {
+  0%, 100% { transform: translateY(1.85rem); }
+  50% { transform: translateY(-1.85rem); }
+}
+@keyframes loading-wave-spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.35;
+  }
+  40% { opacity: 1; }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-wave .loading-copy::after {
+    animation: none;
+    opacity: 0.7;
+  }
+  .loading-wave-dot,
+  .loading-wave-spin {
+    animation: none;
+  }
+  .loading-wave-spin { opacity: 0.7; }
+}
 .about-tabs,
 .search-tabs {
   display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line);
@@ -962,6 +1068,8 @@ pre.page mark.search-hit {
 .about-body kbd,
 .about-body .ui,
 .find-dim .ui,
+#searchMeta .ui,
+.sheet-search-meta .ui,
 .about-body .alpha-family-rail,
 .about-body .alpha-family-select,
 .about-body .alpha-shift-btn,
@@ -1037,7 +1145,9 @@ pre.page mark.search-hit {
 }
 /* Inline stand-in for real controls (buttons, menus, options). */
 .about-body .ui,
-.find-dim .ui {
+.find-dim .ui,
+#searchMeta .ui,
+.sheet-search-meta .ui {
   display: inline-flex;
   align-items: center;
   vertical-align: baseline;
@@ -1055,7 +1165,9 @@ pre.page mark.search-hit {
 }
 /* Illustrative dialog/search tab — not a chrome button, not an About transfer. */
 .about-body .ui.ui-tab,
-.find-dim .ui.ui-tab {
+.find-dim .ui.ui-tab,
+#searchMeta .ui.ui-tab,
+.sheet-search-meta .ui.ui-tab {
   border-radius: 6px 6px 2px 2px;
   border-style: solid;
   border-bottom-style: dashed;
