@@ -42,19 +42,11 @@
         letter-spacing: 0.12em;
         font-weight: 600;
       }
-      .sheet-top .sheet-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem 0.75rem;
+      .sheet-top .sheet-nav-dd {
         margin-inline-start: auto;
-        font-size: 0.8rem;
       }
-      .sheet-top .sheet-nav a {
-        color: var(--accent-link);
-        text-decoration: none;
-      }
-      .sheet-top .sheet-nav a:hover {
-        color: var(--accent-link-hover);
+      .sheet-top .sheet-nav-dd .dd-trigger {
+        min-width: 9.5rem;
       }
       .sheet-main {
         max-width: 52rem;
@@ -318,21 +310,75 @@
         font-size: 0.72rem;
         color: var(--muted);
       }
+      .sheet-sub {
+        margin: 1.5rem 0 0.65rem;
+        font-size: 0.82rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .sheet-sub:first-of-type {
+        margin-top: 0.5rem;
+      }
+      /* Stage sample: drop the app's sticky minimap + fixed 2-col walls (compact card, not full viewport). */
+      .sheet-stage-demo .minimap-wrap {
+        position: static;
+      }
+      .sheet-walls-demo {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .sheet-walls-demo .shelf-track {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .sheet-band-card .book-head-text-like h3 {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+      .sheet-band-card .book-head-text-like small {
+        color: var(--muted);
+      }
+      .sheet-wait-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        align-items: stretch;
+      }
+      .sheet-wait-row .sheet-panel {
+        flex: 1 1 14rem;
+        position: relative;
+        min-height: 5rem;
+      }
+      .sheet-alpha-picker-demo {
+        height: 13rem;
+      }
     </style>
   </head>
   <body>
     <div class="sheet-top">
       <h1>ASSET SHEET</h1>
       <span class="find-dim">lib-of-babel · real CSS · no WASM</span>
-      <nav class="sheet-nav" aria-label="sections">
-        <a href="#tokens">tokens</a>
-        <a href="#type">type</a>
-        <a href="#controls">controls</a>
-        <a href="#chrome">chrome</a>
-        <a href="#find">find</a>
-        <a href="#compare">compare</a>
-        <a href="#dialogs">dialogs</a>
-        <a href="#mbit">mbit copy</a>
+      <nav class="sheet-nav-dd dd" id="sheetNavDd" aria-label="sections">
+        <button type="button" class="dd-trigger" aria-expanded="false" aria-haspopup="menu"
+          aria-controls="sheetNavMenu" aria-labelledby="sheetNavLabel">
+          <span class="dd-label" id="sheetNavLabel">sections…</span>
+          <span class="dd-chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </button>
+        <div class="dd-menu" id="sheetNavMenu" role="menu" hidden>
+          <button type="button" role="menuitem" class="dd-item" data-action="tokens">tokens</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="type">type</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="controls">controls</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="chrome">chrome</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="stage">stage</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="find">find</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="searchBands">search</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="compare">compare</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="dialogs">dialogs</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="reader">reader</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="history">history</button>
+          <button type="button" role="menuitem" class="dd-item" data-action="mbit">mbit copy</button>
+        </div>
       </nav>
       <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false" title="toggle theme">☀</button>
     </div>
@@ -364,7 +410,7 @@
           <p class="sheet-type-sample">
             Unit — <span class="unit-mbit">Mbit</span> (sharp megabit chip in body copy).
           </p>
-          <p class="sheet-type-sample mono">hash a1b2c3d4 · coords (≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>)</p>
+          <p class="sheet-type-sample mono" id="sheetTypeCoords">hash a1b2c3d4 · coords …</p>
           <p class="sheet-type-sample prose">
             Prose — Lato for About. An endless library you can walk. Each hexagonal gallery has four
             walls of bookshelves and two hallways to the next gallery.
@@ -385,10 +431,10 @@
             <button type="button" class="dice" title="random">&#9860;</button>
             <button type="button" class="theme-toggle" aria-hidden="true" tabindex="-1">☀</button>
             <button type="button" class="dialog-close" aria-label="close">close</button>
-            <button type="button" class="history-btn">wanderings · 12/1000</button>
-            <button type="button" class="help-btn" title="Help">
+            <button type="button" class="history-btn" id="sheetControlsHistory">wanderings · 0/1000</button>
+            <button type="button" class="help-btn" id="sheetControlsHelp" title="">
               <span class="help-btn-q" aria-hidden="true">?</span>
-              <span>· Help</span>
+              <span id="sheetControlsHelpLabel">- Help</span>
             </button>
           </div>
         </div>
@@ -420,13 +466,59 @@
                 </span>
               </button>
               <div class="dd-menu" role="menu" hidden>
-                <button type="button" role="menuitem" class="dd-item" data-action="copy">copy link</button>
-                <button type="button" role="menuitem" class="dd-item" data-action="search">search…</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="copy" id="sheetDdCopy">copy link</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="search" id="sheetDdSearch">search…</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="export" id="sheetDdExport">export journey</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="verify" id="sheetDdVerify">verify journey</button>
                 <div class="dd-sep" role="separator"></div>
-                <button type="button" role="menuitem" class="dd-item" data-action="reset">new walk</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="reset" id="sheetDdReset">new walk</button>
               </div>
             </div>
-            <p class="find-dim" style="margin: 0.35rem 0 0">click — same <code>.dd</code> as the header</p>
+            <p class="find-dim" style="margin: 0.35rem 0 0">click — same <code>.dd</code> as the header (full <code>actions…</code> menu)</p>
+          </div>
+        </div>
+        <div class="sheet-row sheet-row-stack">
+          <span class="sheet-label">save dropdown</span>
+          <div>
+            <div class="dd" id="sheetSaveDd">
+              <button type="button" class="dd-trigger" id="sheetSaveTrig" aria-expanded="false" aria-haspopup="menu">
+                <span class="dd-label" id="sheetSaveLabel">save…</span>
+                <span class="dd-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </button>
+              <div class="dd-menu" role="menu" hidden>
+                <button type="button" role="menuitem" class="dd-item" data-action="txt" id="sheetSaveBorrow">borrow book</button>
+                <button type="button" role="menuitem" class="dd-item" data-action="img" id="sheetSaveImage">Babelgram</button>
+              </div>
+            </div>
+            <p class="find-dim" style="margin: 0.35rem 0 0">same <code>.dd</code> as the book reader's <code>save…</code></p>
+          </div>
+        </div>
+        <div class="sheet-row">
+          <span class="sheet-label">link button</span>
+          <div class="sheet-row-controls">
+            <button type="button" id="sheetLinkBtn">
+              <span class="btn-label" id="sheetLinkLabel">link</span>
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </span>
+            </button>
+            <span class="find-dim"><code>.btn-label</code> shows on desktop, <code>.btn-icon</code> on mobile chrome</span>
+          </div>
+        </div>
+        <div class="sheet-row">
+          <span class="sheet-label">search kind</span>
+          <div class="sheet-row-controls">
+            <label><span id="sheetSearchKindLabel">search</span>
+              <select id="sheetSearchKindSelect">
+                <option value="content" selected id="sheetKindContentOpt">content</option>
+                <option value="title" id="sheetKindTitleOpt">title</option>
+              </select>
+            </label>
           </div>
         </div>
         <div class="sheet-row">
@@ -439,11 +531,16 @@
         </div>
         <div class="sheet-row sheet-row-stack">
           <span class="sheet-label">about tabs</span>
-          <div class="about-tabs" role="tablist" aria-label="About sections" style="border: 1px solid var(--line); border-radius: 6px; padding: 0 0.5rem">
-            <button type="button" class="about-tab" aria-selected="true">overview</button>
-            <button type="button" class="about-tab" aria-selected="false">wander</button>
-            <button type="button" class="about-tab" aria-selected="false">engines</button>
-            <button type="button" class="about-tab" aria-selected="false">search</button>
+          <div class="about-tabs" id="sheetAboutTabs" role="tablist" aria-label="About sections" style="border: 1px solid var(--line); border-radius: 6px; padding: 0 0.5rem; flex-wrap: wrap">
+            <button type="button" class="about-tab" aria-selected="true" data-key="about.tab.overview">overview</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.wander">wander</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.engines">engines</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.scale">scale</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.alphabets">alphabets</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.books">books</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.search">search</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.url">url</button>
+            <button type="button" class="about-tab" aria-selected="false" data-key="about.tab.more">more</button>
           </div>
         </div>
         <div class="sheet-row sheet-row-stack">
@@ -472,63 +569,147 @@
 
       <section class="sheet-sec" id="chrome">
         <h2>Chrome</h2>
-        <p class="sheet-lead">Header / footer fragments (static layout).</p>
-        <header class="sheet-fake-header">
+        <p class="sheet-lead">
+          Header / footer / book nav — labels from live locale; coords via
+          <code>formatCoordDisplay</code> / <code>formatCoordFull</code> (not hand-typed Mbit).
+          Flip EN·DE·NL under Mbit.
+        </p>
+        <header class="sheet-fake-header" id="sheetChromeHeader">
           <div class="header-bar" style="overflow: visible">
-            <button type="button" class="logo">LIB·OF·BABEL</button>
+            <button type="button" class="logo" id="sheetLogo" title="">LIB·OF·BABEL</button>
             <div class="header-controls">
-              <input class="universe" type="text" value="pilot" readonly style="width: 7rem" />
-              <button type="button" class="alphabet">a–z · Basile</button>
-              <button type="button" class="dd-trigger"><span class="dd-label">actions…</span></button>
+              <input class="universe" id="sheetUniverse" type="text" readonly style="width: 7rem" />
+              <button type="button" class="alphabet" id="sheetAlphabet">a–z · Basile</button>
+              <button type="button" class="dd-trigger" id="sheetActionsTrig">
+                <span class="dd-label" id="sheetActionsLabel">actions…</span>
+              </button>
             </div>
           </div>
         </header>
-        <div class="sheet-fake-footer" style="margin-top: 0.75rem">
-          <button type="button" class="history-btn">wanderings · 12/1000</button>
+        <div class="sheet-fake-footer" id="sheetChromeFooter" style="margin-top: 0.75rem">
+          <button type="button" class="history-btn" id="sheetHistoryBtn">wanderings · 0/1000</button>
           <div class="sheet-stat">
-            <span class="stat-label">gallery</span>
-            <b class="coord">(≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>)</b>
+            <span class="stat-label" id="sheetGalleryLabel">gallery</span>
+            <b class="coord" id="sheetCoord">(0, 0)</b>
           </div>
           <div class="sheet-stat">
-            <span class="stat-label">hash</span>
-            <b class="hash">a1b2c3d4e5f6</b>
+            <span class="stat-label" id="sheetHashLabel">hash</span>
+            <b class="hash" id="sheetHash">a1b2c3d4e5f6</b>
           </div>
           <div class="sheet-stat">
-            <span class="stat-label">steps</span>
-            <b>12</b>
+            <span class="stat-label" id="sheetStepsLabel">steps</span>
+            <b id="sheetSteps">12</b>
           </div>
-          <button type="button" class="help-btn" title="Help">
+          <button type="button" class="help-btn" id="sheetHelpBtn" title="">
             <span class="help-btn-q" aria-hidden="true">?</span>
-            <span>· Help</span>
+            <span id="sheetHelpLabel">- Help</span>
           </button>
         </div>
-        <div class="sheet-book-nav">
+        <p class="find-dim" id="sheetCoordNote" style="margin: 0.45rem 0 0; font-size: 0.75rem"></p>
+        <div class="sheet-book-nav" id="sheetBookNav">
           <div class="book-nav" style="position: static; border: none; padding: 0; background: transparent">
-            <button type="button">color</button>
-            <button type="button">clear mark</button>
+            <button type="button" id="sheetViewToggle">color</button>
+            <button type="button" id="sheetClearMark">clear mark</button>
             <span class="grow grow-start"></span>
             <span class="page-turn">
-              <button type="button"><span class="nav-label">‹ prev</span></button>
-              <span>page 12 / 410</span>
-              <button type="button"><span class="nav-label">next ›</span></button>
+              <button type="button"><span class="nav-label" id="sheetPrev">‹ prev</span></button>
+              <span id="sheetPageInd">page 12 / 410</span>
+              <button type="button"><span class="nav-label" id="sheetNext">next ›</span></button>
             </span>
             <span class="grow grow-end"></span>
             <span class="page-jump-wrap">
-              <input type="number" min="1" max="410" value="12" aria-label="page" />
-              <span class="page-total" aria-hidden="true">/ 410</span>
+              <input type="number" id="sheetPageJump" min="1" max="410" value="12" aria-label="page" />
+              <span class="page-total" id="sheetPageTotal" aria-hidden="true">/ 410</span>
             </span>
-            <button type="button">go</button>
+            <button type="button" id="sheetPageGo">go</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-sec" id="stage">
+        <h2>Stage · minimap · walls</h2>
+        <p class="sheet-lead">
+          Real <code>.stage</code> / <code>.minimap-wrap</code> / <code>.wall</code> / <code>.book</code> chrome —
+          labels from live locale; spines are fake short titles (no WASM). Flip EN·DE·NL under Mbit.
+        </p>
+        <div class="stage sheet-stage-demo">
+          <aside class="minimap-wrap">
+            <div class="minimap-title" id="sheetMinimapTitle">you are here</div>
+            <div class="sigil" id="sheetSigil">
+              <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
+                <circle cx="50" cy="50" r="46.5" fill="none" stroke="var(--accent)" stroke-width="0.8" opacity="0.3"/>
+                <polygon points="50,8 84,30 74,80 26,80 16,30" fill="color-mix(in oklab, var(--accent) 16%, transparent)" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
+                <line x1="50" y1="8" x2="26" y2="80" stroke="var(--accent-link)" stroke-width="0.8" opacity="0.7"/>
+                <line x1="84" y1="30" x2="74" y2="80" stroke="var(--accent-link)" stroke-width="0.8" opacity="0.7"/>
+                <circle cx="50" cy="50" r="3" fill="var(--accent)"/>
+              </svg>
+            </div>
+            <div id="sheetMinimap" class="find-dim" style="text-align: center; font-size: 0.72rem; padding: 0.3rem 0 0.15rem"></div>
+            <div class="minimap-hint" id="sheetMinimapHint">click an exit to move</div>
+          </aside>
+          <div class="walls sheet-walls-demo">
+            <div class="wall">
+              <h2 id="sheetWallHead1">Wall 1</h2>
+              <div class="shelf-track" id="sheetShelfTrack1"></div>
+            </div>
+            <div class="wall">
+              <h2 id="sheetWallHead2">Wall 2 · book 7</h2>
+              <div class="shelf-track" id="sheetShelfTrack2"></div>
+            </div>
+          </div>
+        </div>
+        <div class="sheet-panel" style="margin-top: 0.75rem">
+          <p class="find-dim" style="margin: 0 0 0.5rem; font-size: 0.75rem">
+            Same stage loading as the live app (typewriter + square wave).
+          </p>
+          <div class="loading loading-wave" id="loadingWave" aria-busy="true" aria-label="building library">
+            <p class="loading-copy" id="loadingCopy" aria-hidden="true"></p>
+            <div class="loading-wave-track" aria-hidden="true">
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+              <span class="loading-wave-dot"><span class="loading-wave-spin"></span></span>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="sheet-sec" id="find">
         <h2>Find / progress</h2>
-        <p class="sheet-lead">Honesty copy, palette strip, progress track, hit thumbs + actions.</p>
+        <p class="sheet-lead">
+          Text book-band chrome, mosaic honesty, palette strip, progress track, hit thumbs + actions.
+          Book-band head/meta/hint paint from live locale keys (EN·DE·NL under Mbit).
+        </p>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetSearchHead">search by content (whole book)</h3>
+              <small id="searchMeta" class="sheet-search-meta">…</small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <div class="find-body" style="padding-top: 0.65rem">
+            <div class="find-row search-find-row" id="sheetSearchFindRow">
+              <button type="button" id="sheetSearchFind">find</button>
+              <span id="sheetSearchCount" class="find-dim search-count">3,301 / 1,312,000</span>
+              <span id="searchHint" class="find-dim">book-map / <span class="unit-mbit">Mbit</span></span>
+            </div>
+            <p class="find-dim" id="sheetSearchHandoff" style="margin: 0.65rem 0 0">…</p>
+            <p class="find-dim" style="margin: 0.45rem 0 0; font-size: 0.75rem">
+              Page band (contrast): head / meta / hint flip when cells ≤ 3,200 —
+              <span id="sheetSearchPageHint">uses the current alphabet lens · up to one page</span>
+            </p>
+          </div>
+        </div>
         <div class="sheet-panel">
-          <p class="find-dim">Same universe → exact export book. Other universe → same Babelgram print, different contents.</p>
+          <p class="find-dim" id="sheetMosaicHonesty"></p>
           <div class="mosaic-palette-block" style="margin-top: 0.65rem">
-            <p class="find-dim mosaic-palette-note">current palette for this gallery at this alphabet lens + universe</p>
+            <p class="find-dim mosaic-palette-note" id="sheetMosaicPaletteNote"></p>
             <div
               class="find-palette-gradient"
               id="sheetPalette"
@@ -537,13 +718,9 @@
               style="background-image: linear-gradient(90deg, #1a1520, #5a3a2a, #c9a227, #8f7016, #d8d4c8)"
             ></div>
           </div>
-          <p class="find-dim about-body" style="margin-top: 0.75rem">
-            410 pages · 1,312,000 cells · address magnitude ≈10^(1.9×10^6) — first
-            <span class="ui">find</span> can take a few
-          </p>
           <div class="find-progress" style="margin-top: 0.85rem">
             <div class="find-progress-row">
-              <span class="find-progress-label">warming book map (first search attempt can take a few)</span>
+              <span class="find-progress-label" id="sheetWarmLabel"></span>
               <div class="find-progress-track" aria-hidden="true">
                 <span class="find-progress-run">
                   <span class="find-progress-spin"></span>
@@ -553,32 +730,61 @@
           </div>
         </div>
         <div class="sheet-panel">
-          <p class="find-dim">Best mosaic match · took 4m 57s</p>
+          <p class="find-dim" id="sheetHitIntro">Best mosaic match · took 4m 57s</p>
           <div class="mosaic-hit" style="display: flex; gap: 0.75rem; align-items: flex-start; margin-top: 0.5rem">
             <div class="mosaic-hit-thumbs">
               <div class="mosaic-hit-thumb-wrap">
                 <canvas class="mosaic-hit-thumb" width="72" height="58" style="background: linear-gradient(135deg, #5a3a2a, #c9a227)"></canvas>
-                <span class="mosaic-hit-thumb-cap">found babelgram</span>
+                <span class="mosaic-hit-thumb-cap" id="sheetHitThumbCap">found babelgram</span>
               </div>
             </div>
             <div class="mosaic-hit-body">
               <div class="mosaic-hit-main">
                 <span class="mosaic-hit-metrics">
-                  <span class="mosaic-hit-metric" data-tip="root-mean-square similarity">rms 99.97%</span>
-                  <span class="mosaic-hit-metric" data-tip="mean absolute error">mae 0.012</span>
-                  <span class="mosaic-hit-metric" data-tip="Pearson correlation">corr 1.0000</span>
+                  <span class="mosaic-hit-metric" id="sheetHitRms">rms 99.97%</span>
+                  <span class="mosaic-hit-metric" id="sheetHitMae">mae 0.012</span>
+                  <span class="mosaic-hit-metric" id="sheetHitCorr">corr 1.0000</span>
                 </span>
-                <span class="mosaic-hit-ok">exact decode</span>
+                <span class="mosaic-hit-ok" id="sheetHitExact">exact decode</span>
               </div>
-              <div class="find-dim">gallery (≈6.4 <span class="unit-mbit">Mbit</span>, ≈6.4 <span class="unit-mbit">Mbit</span>) · book 12 · Basile</div>
+              <div class="find-dim" id="sheetHitGalleryLine">gallery (0, -12) · book 12 · a–z · Basile</div>
               <div class="find-row find-actions" style="margin-top: 0.45rem">
-                <button type="button">go there</button>
-                <button type="button">copy link</button>
-                <button type="button">check diff</button>
-                <button type="button">compare letters</button>
+                <button type="button" id="sheetHitGo">go there</button>
+                <button type="button" id="sheetHitCopy">copy link</button>
+                <button type="button" id="sheetHitCheckDiff">check diff</button>
+                <button type="button" id="sheetHitCompareLetters">compare letters</button>
               </div>
             </div>
           </div>
+        </div>
+
+        <h3 class="sheet-sub" id="searchBands">Mode bands</h3>
+        <p class="sheet-lead" style="margin: -0.35rem 0 0.75rem">
+          head / meta / hint for every search mode — painted live from the active locale catalog.
+        </p>
+        <div id="sheetSearchBands"></div>
+
+        <h3 class="sheet-sub">Search editor</h3>
+        <div class="sheet-panel">
+          <div class="search-editor" id="sheetSearchEditor">
+            <div class="search-backdrop" id="sheetSearchBackdrop" aria-hidden="true"></div>
+            <textarea id="sheetSearchEditorInput" rows="3" spellcheck="false"></textarea>
+          </div>
+          <p class="find-dim" style="margin: 0.5rem 0 0">
+            valid field — <code>.search-backdrop</code> mirrors the (caret-only) textarea text
+          </p>
+        </div>
+        <div class="sheet-panel" style="margin-top: 0.65rem">
+          <div class="search-editor search-invalid-field" id="sheetSearchEditorInvalid">
+            <div class="search-backdrop" id="sheetSearchBackdrop2" aria-hidden="true"></div>
+            <textarea id="sheetSearchEditorInvalidInput" rows="3" spellcheck="false"></textarea>
+          </div>
+          <p class="find-dim search-error" id="sheetSearchErrorSample" style="margin: 0.5rem 0 0"></p>
+        </div>
+
+        <h3 class="sheet-sub">Text hit result</h3>
+        <div class="sheet-panel">
+          <div class="find-result show" id="sheetSearchHitResult"></div>
         </div>
       </section>
 
@@ -610,47 +816,244 @@
 
       <section class="sheet-sec" id="dialogs">
         <h2>Dialogs</h2>
-        <p class="sheet-lead">Shared dialog head + wait overlay + notice facts.</p>
+        <p class="sheet-lead">
+          Shared dialog head + wait overlays + notice facts + history / verify / alphabet /
+          jump / book reader / legacy panels. Labels paint from live locale (EN·DE·NL under Mbit).
+        </p>
+
+        <h3 class="sheet-sub">Mbit range notice</h3>
         <div class="sheet-panel" style="padding: 0; overflow: hidden">
           <div class="book-head">
             <div class="book-head-text">
-              <h3>MBIT range</h3>
-              <small>This gallery uses the <b>book-linked</b> map. Hallway arrows and jump are off. <span class="unit-mbit">Mbit</span> rooms cannot be stored in a URL.</small>
+              <h3 id="sheetMbitTitle">MBIT range</h3>
+              <small id="sheetMbitBody"></small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close" id="sheetMbitClose">close</button>
+            </div>
+          </div>
+          <div class="mbit-notice-facts">
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k" id="sheetMbitHashLabel">Room hash</span>
+              <code class="mbit-notice-v">0123456789abcdef0123456789abcdef</code>
+            </div>
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k" id="sheetMbitCoordsLabel">Axes (magnitude)</span>
+              <code class="mbit-notice-v">(-88004…82659, 21377…06503)</code>
+            </div>
+            <div class="mbit-notice-row">
+              <span class="mbit-notice-k" id="sheetMbitDigitsLabel">Digits (z, n)</span>
+              <code class="mbit-notice-v">(959,331, 959,331)</code>
+            </div>
+          </div>
+          <div class="mbit-notice-actions">
+            <button type="button" class="primary" id="sheetMbitGotIt">Got it</button>
+            <button type="button" id="sheetMbitEngines">LIB-OF-BABEL → SCALE</button>
+            <button type="button" id="sheetMbitMute">Don't show again</button>
+          </div>
+        </div>
+
+        <h3 class="sheet-sub">Book-wait overlays</h3>
+        <div class="sheet-wait-row">
+          <div class="sheet-panel">
+            <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+              <div class="book-wait-panel" style="width: 100%">
+                <p class="book-wait-copy" id="sheetWaitBook"></p>
+                <div class="find-progress-track book-wait-track" aria-hidden="true">
+                  <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sheet-panel">
+            <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+              <div class="book-wait-panel" style="width: 100%">
+                <p class="book-wait-copy" id="sheetWaitImage"></p>
+                <div class="find-progress-track book-wait-track" aria-hidden="true">
+                  <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sheet-panel">
+            <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+              <div class="book-wait-panel" style="width: 100%">
+                <p class="book-wait-copy" id="sheetWaitBorrow"></p>
+                <div class="find-progress-track book-wait-track" aria-hidden="true">
+                  <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="sheet-sub" id="history">Wanderings history</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetHistoryTitle">wanderings</h3>
+              <small id="sheetHistoryMeta"></small>
             </div>
             <div class="book-head-actions">
               <button type="button" class="dialog-close">close</button>
             </div>
           </div>
-          <div class="mbit-notice-facts">
-            <div class="mbit-notice-row">
-              <span class="mbit-notice-k">Room hash</span>
-              <code class="mbit-notice-v">0123456789abcdef0123456789abcdef</code>
+          <div class="history-list" id="sheetHistoryList"></div>
+        </div>
+
+        <h3 class="sheet-sub">Verify journey</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetVerifyTitle">verify journey</h3>
+              <small id="sheetVerifyMeta"></small>
             </div>
-            <div class="mbit-notice-row">
-              <span class="mbit-notice-k">Axes (magnitude)</span>
-              <code class="mbit-notice-v">(-88004…82659, 21377…06503)</code>
-            </div>
-            <div class="mbit-notice-row">
-              <span class="mbit-notice-k">Digits (z, n)</span>
-              <code class="mbit-notice-v">(959,331, 959,331)</code>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
             </div>
           </div>
-          <div class="mbit-notice-actions">
-            <button type="button">Got it</button>
-            <button type="button">LIB-OF-BABEL → ENGINES</button>
-            <button type="button">Don't show again</button>
+          <div class="verify-body">
+            <div class="verify-verdict verify-ok">
+              <span class="badge">✓</span><span>verified</span>
+            </div>
+            <p class="verify-reason">all 3 steps verified</p>
+            <ul class="verify-facts">
+              <li>universe(s): <b>default</b></li>
+              <li>alphabet(s): <b id="sheetVerifyAlphaOk">a–z · Basile</b></li>
+              <li>generator: <b>v4</b></li>
+              <li>steps checked: <b>3 / 3</b></li>
+            </ul>
           </div>
         </div>
-        <div class="sheet-panel" style="margin-top: 0.75rem; position: relative; min-height: 6rem">
-          <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
-            <div class="book-wait-panel" style="width: 100%">
-              <p class="book-wait-copy">Mbit range — building this book. Can take a few.</p>
-              <div class="find-progress-track book-wait-track" aria-hidden="true">
-                <span class="find-progress-run">
-                  <span class="find-progress-spin"></span>
-                </span>
+        <div class="sheet-panel" style="padding: 1rem 1.25rem 1.25rem">
+          <div class="verify-verdict verify-bad">
+            <span class="badge">✕</span><span>rejected</span>
+          </div>
+          <p class="verify-reason">step 2: hash mismatch at (0, -12) in default — recomputed a1b2c3d4e5f6…, file claims f6e5d4c3b2a1…</p>
+          <ul class="verify-facts">
+            <li>universe(s): <b>default</b></li>
+            <li>alphabet(s): <b id="sheetVerifyAlphaBad">a–z · Basile</b></li>
+            <li>generator: <b>v4</b></li>
+            <li>steps checked: <b>1 / 3</b></li>
+          </ul>
+        </div>
+
+        <h3 class="sheet-sub">Alphabet lens picker</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetAlphaPickerH">Alphabet lens</h3>
+              <small id="sheetAlphaPickerSub"></small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <div class="alpha-browse sheet-alpha-picker-demo">
+            <div class="alpha-family-rail">
+              <nav class="alpha-family-list" aria-label="family" id="sheetAlphaFamilyList">
+                <button type="button" class="alpha-family-btn" aria-current="true">
+                  <span class="alpha-family-name" id="sheetAlphaFamily1">Latin base</span><span class="alpha-family-count">4</span>
+                </button>
+                <button type="button" class="alpha-family-btn">
+                  <span class="alpha-family-name" id="sheetAlphaFamily2">Romance</span><span class="alpha-family-count">6</span>
+                </button>
+                <button type="button" class="alpha-family-btn">
+                  <span class="alpha-family-name" id="sheetAlphaFamily3">Germanic</span><span class="alpha-family-count">6</span>
+                </button>
+              </nav>
+            </div>
+            <div class="alphabet-pick-panel">
+              <div class="alphabet-pick-lenses">
+                <button type="button" class="alphabet-pick-lens is-current" aria-current="true">
+                  <span class="alphabet-pick-short">a–z</span><span class="alphabet-pick-native">Basile</span><span class="alphabet-pick-meta">29</span>
+                </button>
+                <button type="button" class="alphabet-pick-lens">
+                  <span class="alphabet-pick-short">a–z+</span><span class="alphabet-pick-native">Basile++</span><span class="alphabet-pick-meta">48</span>
+                </button>
+                <button type="button" class="alphabet-pick-lens">
+                  <span class="alphabet-pick-short">a–v</span><span class="alphabet-pick-native">Borges</span><span class="alphabet-pick-meta">25</span>
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <h3 class="sheet-sub">Jump dialog</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetJumpTitle">jump to a gallery</h3>
+              <small id="sheetJumpSubtitle"></small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <div class="jump-body">
+            <label>z <input type="text" inputmode="numeric" value="0" readonly /></label>
+            <label>n <input type="text" inputmode="numeric" value="-12" readonly /></label>
+            <button type="button" id="sheetJumpGo">go</button>
+          </div>
+        </div>
+
+        <h3 class="sheet-sub" id="reader">Book reader</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetBookReaderTitle">book 12</h3>
+              <small id="sheetBookReaderMeta">page 205 / 410</small>
+            </div>
+            <div class="book-head-actions">
+              <div class="book-head-tools">
+                <div class="dd" id="sheetBookSaveDd">
+                  <button type="button" class="dd-trigger" id="sheetBookSaveTrig" aria-expanded="false" aria-haspopup="menu">
+                    <span class="dd-label" id="sheetBookSaveLabel">save…</span>
+                    <span class="dd-chevron" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                  </button>
+                  <div class="dd-menu" role="menu" hidden>
+                    <button type="button" role="menuitem" class="dd-item" data-action="txt" id="sheetBookSaveBorrow">borrow book</button>
+                    <button type="button" role="menuitem" class="dd-item" data-action="img" id="sheetBookSaveImage">Babelgram</button>
+                  </div>
+                </div>
+                <button type="button" id="sheetBookLinkBtn">
+                  <span class="btn-label" id="sheetBookLinkLabel">link</span>
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <pre class="page" id="sheetBookPage" style="max-height: 8rem">…otis sat on a <mark class="search-hit">pan</mark> and read a book in the gallery…</pre>
+          <canvas class="page-canvas" width="4" height="4" hidden></canvas>
+          <p class="find-dim" style="margin: 0 0 0.85rem; padding: 0 1rem">
+            <code id="sheetViewColorLabel">color</code> swaps <code>pre.page</code> above for a hidden
+            <code>canvas.page-canvas</code> (character-color view — no WASM render here).
+          </p>
+        </div>
+
+        <h3 class="sheet-sub">Legacy generator-version link</h3>
+        <div class="sheet-panel" style="padding: 0; overflow: hidden">
+          <div class="book-head">
+            <div class="book-head-text">
+              <h3 id="sheetLegacyTitle">older library link</h3>
+              <small id="sheetLegacyBody"></small>
+            </div>
+            <div class="book-head-actions">
+              <button type="button" class="dialog-close">close</button>
+            </div>
+          </div>
+          <div class="legacy-gv-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.75rem 1rem 1rem">
+            <button type="button" class="primary" id="sheetLegacyContinue">Continue</button>
+            <button type="button" id="sheetLegacyWipe">Wipe local data &amp; refresh</button>
+            <button type="button" id="sheetLegacySkip">Don't show again this session</button>
           </div>
         </div>
       </section>
@@ -678,6 +1081,23 @@
         mbitScaleTier,
         mbitScaleVars,
       } from "./js/lib/mbit-scale.js";
+      import {
+        WINDOW_MAX,
+        PAGES_PER_BOOK,
+        DEFAULT_ALPHABET_ID,
+        TITLE_LEN,
+        alphabetEntry,
+      } from "./js/lib/constants.js";
+      import { alphabetPickerLabel } from "./js/chrome/alphabet-picker.js";
+      import { startLoadingTypewriter } from "./js/chrome/loading-wave.js";
+      import {
+        formatCoordDisplay,
+        formatCoordFull,
+        formatUniverseLabel,
+        findActionRow,
+        escapeHtml,
+      } from "./js/lib/util.js";
+      import { formatBitMagnitude } from "./js/lib/coords.js";
 
       const CATALOGS = { en, de, nl };
 
@@ -687,6 +1107,20 @@
           s = s.replaceAll(`{${k}}`, String(v));
         }
         return s;
+      }
+
+      /**
+       * WASM-free stand-in for `formatAlphabetSymbolLabel` (real one calls into
+       * the WASM `alphabet_symbols_json` via `alphabetCells`, which this sheet
+       * never initializes). Registry ids double as glyph counts (e.g. 29 for
+       * Basile a-z), so the sample label is accurate without loading WASM.
+       */
+      function sheetAlphabetSymbolLabel(alphabetId, translate) {
+        const entry = alphabetEntry(alphabetId);
+        return translate("alphabet.symbolLabel", {
+          name: entry.native || entry.name,
+          n: alphabetId,
+        });
       }
 
       /** Walk nested CSSRuleList (supports @media / @supports wrapping theme rules). */
@@ -904,6 +1338,487 @@
         mount.innerHTML = `${kinds}${recipeBlock}`;
       }
 
+      /** Text content search · book band — head/meta/hint/handoff from live locale. */
+      function paintSearchBook(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const head = document.getElementById("sheetSearchHead");
+        const meta = document.getElementById("searchMeta");
+        const hint = document.getElementById("searchHint");
+        const handoff = document.getElementById("sheetSearchHandoff");
+        const findBtn = document.getElementById("sheetSearchFind");
+        const count = document.getElementById("sheetSearchCount");
+        const pageHint = document.getElementById("sheetSearchPageHint");
+        if (head) head.textContent = translate("search.headContentBook");
+        if (meta) meta.innerHTML = translate("search.metaContentBook");
+        if (hint) hint.innerHTML = translate("search.hintContentBook");
+        if (handoff) handoff.innerHTML = translate("search.result.bookHandoffNote");
+        if (findBtn) findBtn.textContent = translate("search.find");
+        if (count) {
+          count.textContent = translate("search.count", {
+            n: (3301).toLocaleString(locale),
+            max: (1312000).toLocaleString(locale),
+          });
+        }
+        if (pageHint) pageHint.textContent = translate("search.hintContent");
+      }
+
+      /**
+       * Header / footer / book nav from live locale + real coord formatters.
+       * Sample book-scale axes: bit-width just over page-map ceiling (head…tail),
+       * not a fake `(≈6.4 Mbit, ≈6.4 Mbit)` label — Mbit lives in tooltips / notices.
+       */
+      const SHEET_SAMPLE_STEPS = 12;
+      const SHEET_SAMPLE_PAGE = 12;
+      /** Just above PAGE_MAP_MAX_BITS so display uses head…tail preview. */
+      const SHEET_SAMPLE_HUGE = 1n << 50_000n;
+
+      function paintChrome(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const setText = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = text;
+        };
+        const setTitle = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.title = text;
+        };
+
+        setTitle("sheetLogo", translate("header.aboutTitle"));
+        const uni = document.getElementById("sheetUniverse");
+        if (uni) {
+          uni.value = translate("header.universePlaceholder");
+          uni.title = translate("header.universeTitle");
+          uni.placeholder = translate("header.universePlaceholder");
+        }
+        setText("sheetAlphabet", alphabetPickerLabel(DEFAULT_ALPHABET_ID));
+        setTitle("sheetAlphabet", translate("header.alphabetTitle"));
+        setText("sheetActionsLabel", translate("actions.placeholder"));
+        setTitle("sheetActionsTrig", translate("header.actionsTitle"));
+
+        const wander = translate("footer.wanderings", {
+          n: String(SHEET_SAMPLE_STEPS),
+          max: String(WINDOW_MAX),
+        });
+        setText("sheetHistoryBtn", wander);
+        setText("sheetControlsHistory", wander);
+        setText("sheetGalleryLabel", translate("footer.gallery"));
+        setText("sheetHashLabel", translate("footer.hash"));
+        setText("sheetStepsLabel", translate("footer.steps"));
+        setText("sheetSteps", String(SHEET_SAMPLE_STEPS));
+        setText("sheetHash", "a1b2c3d4e5f6");
+        setTitle("sheetHash", translate("footer.hashTitle"));
+
+        const pageCoords = formatCoordDisplay(0n, -12n);
+        const bookCoords = formatCoordDisplay(SHEET_SAMPLE_HUGE, SHEET_SAMPLE_HUGE);
+        const bookFull = formatCoordFull(SHEET_SAMPLE_HUGE, SHEET_SAMPLE_HUGE);
+        setText("sheetCoord", bookCoords);
+        setTitle(
+          "sheetCoord",
+          translate("gallery.coordsHuge.title", {
+            scope: "book-linked",
+            coords: bookFull,
+          }),
+        );
+        const note = document.getElementById("sheetCoordNote");
+        if (note) {
+          note.innerHTML =
+            `Footer sample is <b>book-scale</b> display (<code>head…tail</code>), not Mbit chips. ` +
+            `Page-scale would read <code>${pageCoords}</code>. ` +
+            `Tooltip magnitude uses real formatter (e.g. ${formatBitMagnitude(6_400_000)}).`;
+        }
+        const typeCoords = document.getElementById("sheetTypeCoords");
+        if (typeCoords) {
+          typeCoords.textContent = `hash a1b2c3d4 · page ${pageCoords} · book ${bookCoords}`;
+        }
+
+        setText("sheetHelpLabel", translate("footer.help"));
+        setText("sheetControlsHelpLabel", translate("footer.help"));
+        setTitle("sheetHelpBtn", translate("footer.helpTitle"));
+        setTitle("sheetControlsHelp", translate("footer.helpTitle"));
+
+        setText("sheetViewToggle", translate("book.viewColor"));
+        setText("sheetClearMark", translate("book.clearSearch"));
+        setText("sheetPrev", translate("book.prev"));
+        setText("sheetNext", translate("book.next"));
+        setText(
+          "sheetPageInd",
+          translate("book.pageInd", {
+            page: String(SHEET_SAMPLE_PAGE),
+            total: String(PAGES_PER_BOOK),
+          }),
+        );
+        setText("sheetPageTotal", `/ ${PAGES_PER_BOOK}`);
+        setText("sheetPageGo", translate("common.go"));
+        const pageJump = document.getElementById("sheetPageJump");
+        if (pageJump) {
+          pageJump.max = String(PAGES_PER_BOOK);
+          pageJump.value = String(SHEET_SAMPLE_PAGE);
+          pageJump.placeholder = translate("book.pagePlaceholder");
+          pageJump.setAttribute("aria-label", translate("book.pagePlaceholder"));
+        }
+      }
+
+      /** Fake spine titles — cosmetic only, not locale text; built once. */
+      const SHEET_WALL_SPINES = [
+        ["OTIS", "PANE", "RUTH", "SILO", "ACRE", "VEIN", "MOTH", "GLEN", "DUSK", "FERN", "IVEN", "COVE"],
+        ["ELMO", "GRIT", "NOVA", "PLUM", "QUAY", "RIFT", "SAGE", "TARN", "URNS", "VOID", "WISP", "YARE"],
+      ];
+
+      /** Stage: minimap + wall labels from live locale; spines built once (fake). */
+      function paintStage(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const setText = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = text;
+        };
+        const setTitle = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.title = text;
+        };
+
+        setText("sheetMinimapTitle", translate("minimap.here"));
+        setTitle("sheetSigil", translate("minimap.sigilTitle"));
+        setText("sheetMinimapHint", translate("minimap.hint"));
+        const mm = document.getElementById("sheetMinimap");
+        if (mm) mm.textContent = translate("gallery.coordsHuge.minimapShort");
+        setText("sheetWallHead1", translate("book.wall", { n: "1" }));
+        setText("sheetWallHead2", translate("book.wallBook", { n: "2", book: "7" }));
+        startLoadingTypewriter(translate("loading.building"));
+
+        ["sheetShelfTrack1", "sheetShelfTrack2"].forEach((trackId, wallIdx) => {
+          const track = document.getElementById(trackId);
+          if (!track || track.childElementCount) return; // fake spines, build once
+          track.innerHTML = SHEET_WALL_SPINES[wallIdx]
+            .map((title, i) => {
+              const hue = (wallIdx * 12 + i) * 41;
+              const picked = wallIdx === 0 && i === 3 ? " last-picked-up" : "";
+              return `<div class="book${picked}" title="${title}" style="background: linear-gradient(180deg, hsl(${hue} 48% 44%), hsl(${hue} 52% 22%))">${title}</div>`;
+            })
+            .join("");
+        });
+      }
+
+      /** Controls: full actions/save dropdown items, about tabs, search kind, link button. */
+      function paintControlsMenus(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const setText = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = text;
+        };
+        const setTitle = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.title = text;
+        };
+
+        setText("sheetDdCopy", translate("actions.copy"));
+        setText("sheetDdSearch", translate("actions.search"));
+        setText("sheetDdExport", translate("actions.export"));
+        setText("sheetDdVerify", translate("actions.verify"));
+        setText("sheetDdReset", translate("actions.reset"));
+
+        setText("sheetSaveLabel", translate("book.savePlaceholder"));
+        setTitle("sheetSaveTrig", translate("book.saveTitle"));
+        setText("sheetSaveBorrow", translate("book.borrow"));
+        setText("sheetSaveImage", translate("book.image"));
+
+        setText("sheetLinkLabel", translate("common.link"));
+        setTitle("sheetLinkBtn", translate("book.linkTitle"));
+        document.getElementById("sheetLinkBtn")?.setAttribute("aria-label", translate("common.link"));
+
+        setText("sheetSearchKindLabel", translate("search.label"));
+        document
+          .getElementById("sheetSearchKindSelect")
+          ?.setAttribute("title", translate("search.kindTitle"));
+        setText("sheetKindContentOpt", translate("search.kindContent"));
+        setText("sheetKindTitleOpt", translate("search.kindTitleOpt"));
+
+        document.querySelectorAll("#sheetAboutTabs [data-key]").forEach((btn) => {
+          btn.textContent = translate(btn.dataset.key);
+        });
+      }
+
+      /** Mode band cards (default / page / book / title / photo / babel) from live locale. */
+      const SHEET_SEARCH_BAND_SPECS = [
+        { key: "default", label: "default", head: "search.head", meta: "search.metaText" },
+        {
+          key: "content",
+          label: "page content",
+          head: "search.headContent",
+          meta: "search.metaContent",
+          hint: "search.hintContent",
+        },
+        {
+          key: "contentBook",
+          label: "book content",
+          head: "search.headContentBook",
+          meta: "search.metaContentBook",
+          hint: "search.hintContentBook",
+        },
+        {
+          key: "title",
+          label: "title",
+          head: "search.headTitle",
+          meta: "search.metaTitle",
+          hint: "search.hintTitle",
+          hintVars: { n: String(TITLE_LEN) },
+        },
+        { key: "photo", label: "photo mosaic", head: "search.headMosaic", meta: "search.metaMosaic" },
+        {
+          key: "babel",
+          label: "Babelgram",
+          head: "search.headBabel",
+          meta: "search.metaBabel",
+          honesty: "search.babel.honesty",
+        },
+      ];
+
+      function paintSearchBands(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const mount = document.getElementById("sheetSearchBands");
+        if (!mount) return;
+        mount.innerHTML = SHEET_SEARCH_BAND_SPECS.map((spec) => {
+          const head = translate(spec.head);
+          const meta = translate(spec.meta);
+          const hint = spec.hint ? translate(spec.hint, spec.hintVars) : "";
+          const honesty = spec.honesty
+            ? translate(spec.honesty, { go: translate("search.go"), copy: translate("actions.copy") })
+            : "";
+          return `<article class="sheet-mbit-card sheet-band-card">
+            <header>
+              <code>${spec.key}</code>
+              <span class="sheet-mbit-meta">${spec.label}</span>
+            </header>
+            <h3 style="margin: 0 0 0.15rem; font-size: 0.92rem">${head}</h3>
+            <p class="find-dim sheet-search-meta" style="margin: 0">${meta}</p>
+            ${hint ? `<p class="find-dim" style="margin: 0.4rem 0 0; font-size: 0.75rem">${hint}</p>` : ""}
+            ${honesty ? `<p class="find-dim" style="margin: 0.4rem 0 0; font-size: 0.75rem">${honesty}</p>` : ""}
+          </article>`;
+        }).join("");
+      }
+
+      /** Search editor samples — valid field + invalid-character highlight. */
+      function paintSearchEditors(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const sample = translate("search.placeholderContent");
+
+        const ta1 = document.getElementById("sheetSearchEditorInput");
+        const bd1 = document.getElementById("sheetSearchBackdrop");
+        if (ta1) {
+          ta1.placeholder = sample;
+          ta1.value = sample;
+        }
+        if (bd1) bd1.textContent = sample;
+
+        const invalidChar = "9";
+        const ta2 = document.getElementById("sheetSearchEditorInvalidInput");
+        const bd2 = document.getElementById("sheetSearchBackdrop2");
+        if (ta2) ta2.value = `${sample}${invalidChar}`;
+        if (bd2) {
+          bd2.innerHTML = `${escapeHtml(sample)}<mark class="search-invalid">${escapeHtml(invalidChar)}</mark>`;
+        }
+
+        const err = document.getElementById("sheetSearchErrorSample");
+        if (err) {
+          err.textContent = translate("search.error.invalid", {
+            alphabet: sheetAlphabetSymbolLabel(DEFAULT_ALPHABET_ID, translate),
+            shown: `"${invalidChar}"`,
+          });
+        }
+      }
+
+      /** Mosaic honesty / palette / warm-progress copy + the "best mosaic match" hit card. */
+      function paintSearchMosaicSample(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const setText = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = text;
+        };
+
+        setText("sheetMosaicHonesty", translate("search.metaBabel"));
+        setText("sheetMosaicPaletteNote", translate("search.mosaic.progressPalette"));
+        setText(
+          "sheetWarmLabel",
+          translate("search.mosaic.progressWarm", { slow: translate("search.canTakeAFew") }),
+        );
+
+        const elapsed = translate("search.mosaic.elapsedMinSec", { m: "4", s: "57" });
+        setText("sheetHitIntro", `${translate("search.mosaic.resultsIntroBest")} · ${elapsed}`);
+        setText("sheetHitThumbCap", translate("search.mosaic.thumbMosaic"));
+
+        const rms = document.getElementById("sheetHitRms");
+        if (rms) {
+          rms.textContent = translate("search.babel.metric.rms", { n: "99.97" });
+          rms.dataset.tip = translate("search.mosaic.tip.rms");
+        }
+        const mae = document.getElementById("sheetHitMae");
+        if (mae) {
+          mae.textContent = translate("search.babel.metric.mae", { n: "0.012" });
+          mae.dataset.tip = translate("search.mosaic.tip.mae");
+        }
+        const corr = document.getElementById("sheetHitCorr");
+        if (corr) {
+          corr.textContent = translate("search.babel.metric.corr", { n: "1.0000" });
+          corr.dataset.tip = translate("search.mosaic.tip.corr");
+        }
+        const exact = document.getElementById("sheetHitExact");
+        if (exact) {
+          exact.textContent = translate("search.mosaic.exactOk");
+          exact.dataset.tip = translate("search.mosaic.tip.exactOk");
+        }
+
+        const galleryLine = document.getElementById("sheetHitGalleryLine");
+        if (galleryLine) {
+          galleryLine.innerHTML =
+            `${translate("search.result.gallery", { coords: formatCoordDisplay(0n, -12n) })} · ` +
+            `${translate("search.mosaic.hitBook", { book: "12" })} · ` +
+            `${sheetAlphabetSymbolLabel(DEFAULT_ALPHABET_ID, translate)}`;
+        }
+
+        setText("sheetHitGo", translate("search.go"));
+        setText("sheetHitCopy", translate("actions.copy"));
+        setText("sheetHitCheckDiff", translate("search.babel.compare.checkDiff"));
+        setText("sheetHitCompareLetters", translate("search.mosaic.compare.checkDiff"));
+      }
+
+      /** Text-hit result card (`.find-result.show`) — book-scope hit, same builder as production. */
+      function paintSearchHit(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const box = document.getElementById("sheetSearchHitResult");
+        if (!box) return;
+        const alphabet = sheetAlphabetSymbolLabel(DEFAULT_ALPHABET_ID, translate);
+        const chars = translate("search.result.chars", { n: (842).toLocaleString(locale) });
+        const pages = translate("search.result.page", { n: "205" });
+        const detail = translate("search.result.detailContentBook", { pages, chars, alphabet });
+        box.innerHTML =
+          `<div class="find-big" title="${formatCoordFull(SHEET_SAMPLE_HUGE, SHEET_SAMPLE_HUGE)}">${translate(
+            "search.result.gallery",
+            { coords: formatCoordDisplay(SHEET_SAMPLE_HUGE, SHEET_SAMPLE_HUGE) },
+          )}</div>` +
+          `<div class="find-dim">${translate("search.result.coords", {
+            universe: `<b>${formatUniverseLabel("")}</b>`,
+            wall: "2",
+            shelf: "3",
+            book: "14",
+            detail,
+          })}</div>` +
+          `<p class="find-dim">${translate("search.result.bookHandoffNote")}</p>` +
+          findActionRow([
+            { id: "go", label: translate("search.go") },
+            { id: "link", label: translate("actions.copy") },
+          ]);
+      }
+
+      /** Sample wanderings rows — fake trail, real `.hrow` grid + copy-button label from locale. */
+      const SHEET_HISTORY_SAMPLE = [
+        { step: 126, coords: "(1234, -87)", move: "▷", uni: "default", alpha: "a–z · Basile", hash: "a1b2c3d4e5f6", current: true },
+        { step: 125, coords: "(1233, -87)", move: "▲", uni: "default", alpha: "a–z · Basile", hash: "9f8e7d6c5b4a", current: false },
+        { step: 124, coords: "(1233, -88)", move: "◇", uni: "wonderland", alpha: "de · Deutsch", hash: "0011223344ff", current: false },
+      ];
+
+      function paintHistoryRows(translate) {
+        const list = document.getElementById("sheetHistoryList");
+        if (!list) return;
+        const copyLabel = translate("common.link");
+        list.innerHTML = SHEET_HISTORY_SAMPLE.map(
+          (row) => `<div class="hrow${row.current ? " current" : ""}">
+            <span class="step">${row.step}</span>
+            <span class="coord">${row.coords}</span>
+            <span class="move">${row.move}</span>
+            <span class="uni">${row.uni}</span>
+            <span class="alpha">${row.alpha}</span>
+            <span class="hh">${row.hash}</span>
+            <button type="button" class="copy">${copyLabel}</button>
+          </div>`,
+        ).join("");
+      }
+
+      /** Dialogs: mbit-notice fixed CTAs, wait variants, history, verify, alphabet picker, jump, book reader, legacy. */
+      function paintDialogsInventory(locale = "en") {
+        const catalog = CATALOGS[locale] || en;
+        const translate = (key, vars) => tCatalog(catalog, key, vars);
+        const setText = (id, text) => {
+          const node = document.getElementById(id);
+          if (node) node.textContent = text;
+        };
+        const setHtml = (id, html) => {
+          const node = document.getElementById(id);
+          if (node) node.innerHTML = html;
+        };
+
+        setHtml("sheetMbitTitle", translate("gallery.mbitNotice.title"));
+        setHtml("sheetMbitBody", translate("gallery.mbitNotice.body"));
+        setText("sheetMbitHashLabel", translate("gallery.mbitNotice.hashLabel"));
+        setText("sheetMbitCoordsLabel", translate("gallery.mbitNotice.coordsLabel"));
+        setText("sheetMbitDigitsLabel", translate("gallery.mbitNotice.digitsLabel"));
+        setText("sheetMbitGotIt", translate("gallery.mbitNotice.gotIt"));
+        setText("sheetMbitEngines", translate("gallery.mbitNotice.engines"));
+        setText("sheetMbitMute", translate("gallery.mbitNotice.mute"));
+        setText("sheetMbitClose", translate("common.close"));
+
+        setHtml("sheetWaitBook", translate("book.waitMbit"));
+        setHtml("sheetWaitImage", translate("book.waitMbitImage"));
+        setHtml("sheetWaitBorrow", translate("book.waitMbitBorrow"));
+
+        setText("sheetHistoryTitle", translate("history.title"));
+        setText("sheetHistoryMeta", translate("history.meta", { shown: "3", total: "128" }));
+        paintHistoryRows(translate);
+
+        setText("sheetVerifyTitle", translate("verify.title"));
+        setText("sheetVerifyMeta", translate("verify.meta"));
+        const alphaLabel = sheetAlphabetSymbolLabel(DEFAULT_ALPHABET_ID, translate);
+        setText("sheetVerifyAlphaOk", alphaLabel);
+        setText("sheetVerifyAlphaBad", alphaLabel);
+
+        setText("sheetAlphaPickerH", translate("alphabet.picker.h"));
+        setText("sheetAlphaPickerSub", translate("alphabet.picker.sub"));
+        setText("sheetAlphaFamily1", translate("alphabet.group.Latin base"));
+        setText("sheetAlphaFamily2", translate("alphabet.group.Romance"));
+        setText("sheetAlphaFamily3", translate("alphabet.group.Germanic"));
+
+        setText("sheetJumpTitle", translate("jump.title"));
+        setText("sheetJumpSubtitle", translate("jump.subtitle"));
+        setText("sheetJumpGo", translate("common.go"));
+
+        setText("sheetBookReaderTitle", translate("search.mosaic.hitBook", { book: "12" }));
+        setText(
+          "sheetBookReaderMeta",
+          translate("book.pageInd", { page: "205", total: String(PAGES_PER_BOOK) }),
+        );
+        setText("sheetBookSaveLabel", translate("book.savePlaceholder"));
+        setText("sheetBookSaveBorrow", translate("book.borrow"));
+        setText("sheetBookSaveImage", translate("book.image"));
+        setText("sheetBookLinkLabel", translate("common.link"));
+        setText("sheetViewColorLabel", translate("book.viewColor"));
+
+        setText("sheetLegacyTitle", translate("legacy.gv.title"));
+        setText("sheetLegacyBody", translate("legacy.gv.bodyJourney", { old: "3", cur: "4" }));
+        setText("sheetLegacyContinue", translate("legacy.gv.continue"));
+        setText("sheetLegacyWipe", translate("legacy.gv.wipe"));
+        setText("sheetLegacySkip", translate("legacy.gv.skipSession"));
+      }
+
+      /** Paints every dynamic sample on the sheet for one locale — called on load + locale tab clicks. */
+      function paintInventory(locale = "en") {
+        paintChrome(locale);
+        paintSearchBook(locale);
+        paintChips(locale);
+        paintStage(locale);
+        paintControlsMenus(locale);
+        paintSearchBands(locale);
+        paintSearchEditors(locale);
+        paintSearchMosaicSample(locale);
+        paintSearchHit(locale);
+        paintDialogsInventory(locale);
+      }
+
       function paintMbit(locale) {
         const catalog = CATALOGS[locale] || en;
         const translate = (key, vars) => tCatalog(catalog, key, vars);
@@ -955,12 +1870,55 @@
             : k,
       );
       paintSwatches();
-      paintChips("en");
+      paintInventory("en");
+
+      const SHEET_NAV = {
+        tokens: "tokens",
+        type: "type",
+        controls: "controls",
+        chrome: "chrome",
+        stage: "stage",
+        find: "find",
+        searchBands: "search",
+        compare: "compare",
+        dialogs: "dialogs",
+        reader: "reader",
+        history: "history",
+        mbit: "mbit copy",
+      };
+      function jumpSheetSection(id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.replaceState(null, "", `#${id}`);
+        const label = document.getElementById("sheetNavLabel");
+        if (label) label.textContent = SHEET_NAV[id] || "sections…";
+      }
+      wireDropdownMenu(
+        "sheetNavDd",
+        Object.fromEntries(
+          Object.keys(SHEET_NAV).map((id) => [id, () => jumpSheetSection(id)]),
+        ),
+      );
+      {
+        const hash = location.hash.replace(/^#/, "");
+        if (hash && SHEET_NAV[hash]) jumpSheetSection(hash);
+      }
 
       wireDropdownMenu("sheetDd", {
         copy: () => {},
         search: () => {},
+        export: () => {},
+        verify: () => {},
         reset: () => {},
+      });
+      wireDropdownMenu("sheetSaveDd", {
+        txt: () => {},
+        img: () => {},
+      });
+      wireDropdownMenu("sheetBookSaveDd", {
+        txt: () => {},
+        img: () => {},
       });
 
       /** Fake reproject (warm mosaic) ↔ near-black diff wipe — same cut as production. */
@@ -1017,7 +1975,7 @@
             b.setAttribute("aria-pressed", b === btn ? "true" : "false");
           });
           paintMbit(locale);
-          paintChips(locale);
+          paintInventory(locale);
         });
       });
       paintMbit(locale);
