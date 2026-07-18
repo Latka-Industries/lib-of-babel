@@ -38,9 +38,10 @@ import {
 import { jumpTo } from "../gallery/nav.js";
 import { openBook } from "./book.js";
 import { decodeCoordParam, coordForWasm } from "../lib/coords.js";
-import { permalink, findPermalink, bookOpenShareUrl } from "../gallery/url.js";
+import { permalink, findPermalink } from "../gallery/url.js";
 import { locateBookAsync } from "./mosaic-find-pool.js";
-import { stashBookOpen } from "./book-handoff.js";
+import { bookOpenHandoffUrl, openHandoffInNewTab } from "./book-handoff.js";
+import { formatFindElapsed } from "./find-format.js";
 
 function invalidFromResult(result) {
   return (result.invalid || []).map((x) => ({ i: x.i, ch: x.c ?? x.ch }));
@@ -513,7 +514,7 @@ function asBigInt(v) {
 export async function searchPermalink(result, query, kind = "content") {
   syncSearchUniverse();
   if (result.scope === "book") {
-    const bookOpenId = await stashBookOpen(
+    return bookOpenHandoffUrl(
       {
         z: result.z,
         n: result.n,
@@ -527,11 +528,6 @@ export async function searchPermalink(result, query, kind = "content") {
         scope: "book",
       },
     );
-    return bookOpenShareUrl(bookOpenId, {
-      book: result.book,
-      image: false,
-      alpha: result.alphabet ?? S.alphabetId,
-    });
   }
   const short = findPermalink(
     query,
@@ -554,16 +550,6 @@ export async function searchPermalink(result, query, kind = "content") {
     S.universeName,
     null,
   );
-}
-
-/** Human elapsed for Find results (`took 4m 57s`). */
-function formatFindElapsed(ms) {
-  if (ms == null || !Number.isFinite(ms) || ms < 0) return "";
-  const sec = Math.round(ms / 1000);
-  if (sec < 60) return t("search.mosaic.elapsedSec", { n: String(sec) });
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return t("search.mosaic.elapsedMinSec", { m: String(m), s: String(s) });
 }
 
 /** Render hit coordinates or validation error into the search result panel. */
@@ -662,6 +648,15 @@ export async function goToSearchResult(result, query, kind = "content") {
     S.alphabetId = result.alphabet;
     syncLensControls();
   }
+  // Whole-book locate — same as photo Find: open `#bo=` handoff in a new tab.
+  if (result.scope === "book") {
+    try {
+      openHandoffInNewTab(await searchPermalink(result, query, kind));
+    } catch (err) {
+      console.error(err);
+    }
+    return;
+  }
   if (kind === "title") {
     S.titleEmbed = {
       flat: query,
@@ -671,29 +666,6 @@ export async function goToSearchResult(result, query, kind = "content") {
     };
   } else {
     S.titleEmbed = null;
-  }
-  if (result.scope === "book") {
-    const bookOpenId = await stashBookOpen(
-      {
-        z: result.z,
-        n: result.n,
-        book: result.book,
-        alphabet: result.alphabet,
-        scope: "book",
-      },
-      {
-        flat: result.flat || null,
-        image: false,
-        scope: "book",
-      },
-    );
-    S.bookOpenId = bookOpenId;
-    jumpTo(result.z, result.n, { scope: "book" });
-    openBook(result.book, null, 1, query || null, result.page_span || 1, {
-      contentFlat: result.flat || null,
-    });
-    el("searchModal").close();
-    return;
   }
   jumpTo(result.z, result.n, { scope: "page" });
   openBook(

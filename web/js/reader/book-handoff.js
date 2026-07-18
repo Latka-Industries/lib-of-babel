@@ -1,6 +1,7 @@
 // Same-browser `#bo=` handoff for book-map Find hits (photo + whole-book text).
 
 import { S } from "../gallery/state.js";
+import { bookOpenShareUrl } from "../gallery/url.js";
 import { encodeCoordParam } from "../lib/coords.js";
 import { kvSet } from "../lib/db.js";
 
@@ -49,4 +50,20 @@ export async function stashBookOpen(
   }
   await kvSet(BOOK_OPEN_KEY(id), payload);
   return id;
+}
+
+/** Stash handoff + return short `#bo=` share URL (go there / copy link). */
+export async function bookOpenHandoffUrl(hit, handoff = {}) {
+  const id = await stashBookOpen(hit, handoff);
+  return bookOpenShareUrl(id, {
+    book: hit.book,
+    image: handoff.image !== false,
+    alpha: hit.alphabet ?? S.alphabetId,
+  });
+}
+
+/** Open a `#bo=` (or fallback) handoff URL in a new tab. */
+export function openHandoffInNewTab(url) {
+  if (!url) return;
+  window.open(url, "_blank", "noopener,noreferrer");
 }

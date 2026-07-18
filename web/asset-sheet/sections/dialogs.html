@@ -1,0 +1,243 @@
+<section class="sheet-sec" id="dialogs">
+  <h2>Dialogs</h2>
+  <p class="sheet-lead">
+    Shared dialog head + wait overlays + notice facts + history / verify / alphabet /
+    jump / book reader / legacy panels. Labels paint from live locale (EN·DE·NL under Mbit).
+  </p>
+
+  <h3 class="sheet-sub">Mbit range notice</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetMbitTitle">MBIT range</h3>
+        <small id="sheetMbitBody"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close" id="sheetMbitClose">close</button>
+      </div>
+    </div>
+    <div class="mbit-notice-facts">
+      <div class="mbit-notice-row">
+        <span class="mbit-notice-k" id="sheetMbitHashLabel">Room hash</span>
+        <code class="mbit-notice-v">0123456789abcdef0123456789abcdef</code>
+      </div>
+      <div class="mbit-notice-row">
+        <span class="mbit-notice-k" id="sheetMbitCoordsLabel">Axes (magnitude)</span>
+        <code class="mbit-notice-v">(-88004…82659, 21377…06503)</code>
+      </div>
+      <div class="mbit-notice-row">
+        <span class="mbit-notice-k" id="sheetMbitDigitsLabel">Digits (z, n)</span>
+        <code class="mbit-notice-v">(959,331, 959,331)</code>
+      </div>
+    </div>
+    <div class="mbit-notice-actions">
+      <button type="button" class="primary" id="sheetMbitGotIt">Got it</button>
+      <button type="button" id="sheetMbitEngines">LIB-OF-BABEL → SCALE</button>
+      <button type="button" id="sheetMbitMute">Don't show again</button>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub">Book-wait overlays</h3>
+  <div class="sheet-wait-row">
+    <div class="sheet-panel">
+      <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+        <div class="book-wait-panel" style="width: 100%">
+          <p class="book-wait-copy" id="sheetWaitBook"></p>
+          <div class="find-progress-track book-wait-track" aria-hidden="true">
+            <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-panel">
+      <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+        <div class="book-wait-panel" style="width: 100%">
+          <p class="book-wait-copy" id="sheetWaitImage"></p>
+          <div class="find-progress-track book-wait-track" aria-hidden="true">
+            <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-panel">
+      <div class="book-wait" style="position: relative; inset: auto; background: transparent; backdrop-filter: none; padding: 0">
+        <div class="book-wait-panel" style="width: 100%">
+          <p class="book-wait-copy" id="sheetWaitBorrow"></p>
+          <div class="find-progress-track book-wait-track" aria-hidden="true">
+            <span class="find-progress-run"><span class="find-progress-spin"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub" id="history">Wanderings history</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetHistoryTitle">wanderings</h3>
+        <small id="sheetHistoryMeta"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="history-list" id="sheetHistoryList"></div>
+  </div>
+
+  <h3 class="sheet-sub">Verify journey</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetVerifyTitle">verify journey</h3>
+        <small id="sheetVerifyMeta"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="verify-body">
+      <div class="verify-verdict verify-ok">
+        <span class="badge">✓</span><span>verified</span>
+      </div>
+      <p class="verify-reason">all 3 steps verified</p>
+      <ul class="verify-facts">
+        <li>universe(s): <b>default</b></li>
+        <li>alphabet(s): <b id="sheetVerifyAlphaOk">a–z · Basile</b></li>
+        <li>generator: <b>v4</b></li>
+        <li>steps checked: <b>3 / 3</b></li>
+      </ul>
+    </div>
+  </div>
+  <div class="sheet-panel" style="padding: 1rem 1.25rem 1.25rem">
+    <div class="verify-verdict verify-bad">
+      <span class="badge">✕</span><span>rejected</span>
+    </div>
+    <p class="verify-reason">step 2: hash mismatch at (0, -12) in default — recomputed a1b2c3d4e5f6…, file claims f6e5d4c3b2a1…</p>
+    <ul class="verify-facts">
+      <li>universe(s): <b>default</b></li>
+      <li>alphabet(s): <b id="sheetVerifyAlphaBad">a–z · Basile</b></li>
+      <li>generator: <b>v4</b></li>
+      <li>steps checked: <b>1 / 3</b></li>
+    </ul>
+  </div>
+
+  <h3 class="sheet-sub">Alphabet lens picker</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetAlphaPickerH">Alphabet lens</h3>
+        <small id="sheetAlphaPickerSub"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="alpha-browse sheet-alpha-picker-demo">
+      <div class="alpha-family-rail">
+        <nav class="alpha-family-list" aria-label="family" id="sheetAlphaFamilyList">
+          <button type="button" class="alpha-family-btn" aria-current="true">
+            <span class="alpha-family-name" id="sheetAlphaFamily1">Latin base</span><span class="alpha-family-count">4</span>
+          </button>
+          <button type="button" class="alpha-family-btn">
+            <span class="alpha-family-name" id="sheetAlphaFamily2">Romance</span><span class="alpha-family-count">6</span>
+          </button>
+          <button type="button" class="alpha-family-btn">
+            <span class="alpha-family-name" id="sheetAlphaFamily3">Germanic</span><span class="alpha-family-count">6</span>
+          </button>
+        </nav>
+      </div>
+      <div class="alphabet-pick-panel">
+        <div class="alphabet-pick-lenses">
+          <button type="button" class="alphabet-pick-lens is-current" aria-current="true">
+            <span class="alphabet-pick-short">a–z</span><span class="alphabet-pick-native">Basile</span><span class="alphabet-pick-meta">29</span>
+          </button>
+          <button type="button" class="alphabet-pick-lens">
+            <span class="alphabet-pick-short">a–z+</span><span class="alphabet-pick-native">Basile++</span><span class="alphabet-pick-meta">48</span>
+          </button>
+          <button type="button" class="alphabet-pick-lens">
+            <span class="alphabet-pick-short">a–v</span><span class="alphabet-pick-native">Borges</span><span class="alphabet-pick-meta">25</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub">Jump dialog</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetJumpTitle">jump to a gallery</h3>
+        <small id="sheetJumpSubtitle"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="jump-body">
+      <label>z <input type="text" inputmode="numeric" value="0" readonly /></label>
+      <label>n <input type="text" inputmode="numeric" value="-12" readonly /></label>
+      <button type="button" id="sheetJumpGo">go</button>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub" id="reader">Book reader</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetBookReaderTitle">book 12</h3>
+        <small id="sheetBookReaderMeta">page 205 / 410</small>
+      </div>
+      <div class="book-head-actions">
+        <div class="book-head-tools">
+          <div class="dd" id="sheetBookSaveDd">
+            <button type="button" class="dd-trigger" id="sheetBookSaveTrig" aria-expanded="false" aria-haspopup="menu">
+              <span class="dd-label" id="sheetBookSaveLabel">save…</span>
+              <span class="dd-chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </button>
+            <div class="dd-menu" role="menu" hidden>
+              <button type="button" role="menuitem" class="dd-item" data-action="txt" id="sheetBookSaveBorrow">borrow book</button>
+              <button type="button" role="menuitem" class="dd-item" data-action="img" id="sheetBookSaveImage">Babelgram</button>
+            </div>
+          </div>
+          <button type="button" id="sheetBookLinkBtn">
+            <span class="btn-label" id="sheetBookLinkLabel">link</span>
+            <span class="btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <pre class="page" id="sheetBookPage" style="max-height: 8rem">…otis sat on a <mark class="search-hit">pan</mark> and read a book in the gallery…</pre>
+    <canvas class="page-canvas" width="4" height="4" hidden></canvas>
+    <p class="find-dim" style="margin: 0 0 0.85rem; padding: 0 1rem">
+      <code id="sheetViewColorLabel">color</code> swaps <code>pre.page</code> above for a hidden
+      <code>canvas.page-canvas</code> (character-color view — no WASM render here).
+    </p>
+  </div>
+
+  <h3 class="sheet-sub">Legacy generator-version link</h3>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetLegacyTitle">older library link</h3>
+        <small id="sheetLegacyBody"></small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="legacy-gv-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.75rem 1rem 1rem">
+      <button type="button" class="primary" id="sheetLegacyContinue">Continue</button>
+      <button type="button" id="sheetLegacyWipe">Wipe local data &amp; refresh</button>
+      <button type="button" id="sheetLegacySkip">Don't show again this session</button>
+    </div>
+  </div>
+</section>

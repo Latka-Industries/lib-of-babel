@@ -1,0 +1,25 @@
+<section class="sheet-sec" id="compare">
+  <h2>Check diff · wipe slider</h2>
+  <p class="sheet-lead">
+    Same markup as <code>#babelCompareModal</code> — drag to wipe reproject ↔ diff.
+  </p>
+  <div class="sheet-panel sheet-compare" style="padding: 0.85rem 1rem 1rem">
+    <div class="book-head" style="position: static; padding: 0 0 0.65rem; background: none; border: none; backdrop-filter: none">
+      <div class="book-head-text">
+        <h3 style="margin: 0; font-size: 1rem">compare</h3>
+        <small>wipe reproject ↔ diff — exact decode makes the diff side near-black</small>
+      </div>
+    </div>
+    <div class="babel-compare-body">
+      <canvas id="sheetCompareCanvas" width="320" height="160" aria-label="compare wipe sample"></canvas>
+      <label class="babel-compare-slider">
+        <span class="babel-compare-ends">
+          <span>reproject</span>
+          <span>diff</span>
+        </span>
+        <input id="sheetCompareRange" type="range" min="0" max="100" step="1" value="50"
+          aria-label="wipe between reproject and diff" />
+      </label>
+    </div>
+  </div>
+</section>

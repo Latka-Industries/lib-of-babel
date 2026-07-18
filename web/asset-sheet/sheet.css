@@ -1,0 +1,329 @@
+/* Sheet chrome only — samples use real app classes. */
+.sheet-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1.25rem;
+  background: color-mix(in oklab, var(--bg-deep) 88%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+.sheet-top h1 {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.sheet-top .sheet-nav-dd {
+  margin-inline-start: auto;
+}
+.sheet-top .sheet-nav-dd .dd-trigger {
+  min-width: 9.5rem;
+}
+.sheet-main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+.sheet-sec {
+  margin: 2.25rem 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+.sheet-sec > h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+}
+.sheet-sec > .sheet-lead {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.sheet-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+.sheet-row-stack {
+  align-items: start;
+}
+.sheet-row-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+.sheet-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sheet-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.sheet-swatch {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  align-items: stretch;
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+.sheet-swatch:first-child {
+  border-top: none;
+}
+.sheet-swatch-chip {
+  min-height: 2.35rem;
+  border-right: 1px solid var(--line);
+}
+.sheet-swatch figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.85rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.sheet-swatch code {
+  color: var(--ink);
+  font-size: 0.72rem;
+}
+.sheet-swatch .sheet-swatch-val {
+  font-family: "Overpass Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  word-break: break-all;
+}
+.sheet-panel {
+  padding: 1rem 1.1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.sheet-panel + .sheet-panel {
+  margin-top: 0.75rem;
+}
+.sheet-type-sample {
+  margin: 0.5rem 0;
+}
+.sheet-type-sample.brand {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+.sheet-type-sample.prose {
+  font-family: "Lato", var(--font);
+  font-size: 1rem;
+  line-height: 1.55;
+  max-width: 36rem;
+}
+.sheet-type-sample.mono {
+  font-family: "Overpass Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+.sheet-type-sample.muted {
+  color: var(--muted);
+}
+.sheet-fake-header {
+  position: static;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.sheet-fake-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--bg-deep) 40%, var(--panel));
+}
+.sheet-stat .stat-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sheet-mbit-card {
+  margin: 0.65rem 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.sheet-mbit-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  margin-bottom: 0.4rem;
+  position: static;
+  padding: 0;
+  background: none;
+  border: none;
+  backdrop-filter: none;
+}
+.sheet-mbit-card header code {
+  color: var(--accent);
+  font-weight: 700;
+}
+.sheet-mbit-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.sheet-mbit-vars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.72rem;
+  color: var(--accent-link);
+  margin-bottom: 0.45rem;
+}
+.sheet-locale-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+.sheet-locale-tabs button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sheet-locale-block[hidden] {
+  display: none;
+}
+/* Compare sample: reuse real classes, keep canvas readable on the sheet. */
+.sheet-compare .babel-compare-body {
+  padding: 0;
+}
+.sheet-compare .babel-compare-body canvas {
+  width: 100%;
+  max-width: 22rem;
+  max-height: 12rem;
+}
+.sheet-knobs-demo {
+  max-width: 22rem;
+}
+.sheet-book-nav {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.sheet-token-misc {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+}
+.sheet-token-misc-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--line) 70%, transparent);
+}
+.sheet-token-misc-row code:first-child {
+  color: var(--accent);
+}
+.sheet-token-misc-row .sheet-swatch-val {
+  word-break: break-word;
+  color: var(--muted);
+}
+.sheet-chip-mount {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.sheet-chip-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+  align-items: center;
+}
+.sheet-chip-kind {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+.sheet-chip-kind .sheet-chip-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+.sheet-chip-recipes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.sheet-chip-recipe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.sheet-chip-recipe .sheet-chip-meta {
+  flex: 0 0 100%;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.sheet-sub {
+  margin: 1.5rem 0 0.65rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sheet-sub:first-of-type {
+  margin-top: 0.5rem;
+}
+/* Stage sample: drop the app's sticky minimap + fixed 2-col walls (compact card, not full viewport). */
+.sheet-stage-demo .minimap-wrap {
+  position: static;
+}
+.sheet-walls-demo {
+  grid-template-columns: repeat(2, 1fr);
+}
+.sheet-walls-demo .shelf-track {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.sheet-band-card .book-head-text-like h3 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+.sheet-band-card .book-head-text-like small {
+  color: var(--muted);
+}
+.sheet-wait-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+.sheet-wait-row .sheet-panel {
+  flex: 1 1 14rem;
+  position: relative;
+  min-height: 5rem;
+}
+.sheet-alpha-picker-demo {
+  height: 13rem;
+}
