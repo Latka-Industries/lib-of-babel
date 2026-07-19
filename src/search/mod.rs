@@ -12,12 +12,15 @@ pub mod segment;
 use num_bigint::BigInt;
 
 use crate::basile::{
-    filler_digits, invert_book_symbols, invert_page_symbols, invert_title_symbols, title_symbols_at,
+    PageKey, filler_digits, invert_book_symbols, invert_page_symbols, invert_title_symbols,
+    title_symbols_at,
 };
 use crate::config::{
     BOOK_CONTENT_SYMBOLS, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS,
     PAGES_PER_BOOK, TITLE_LEN, alphabet,
 };
+use crate::page::PageAddr;
+
 use segment::{count_cells, flatten_to_cells, text_to_cell_indices, text_to_cell_indices_n};
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
@@ -29,6 +32,51 @@ pub struct PageLocation {
     pub book_index: u32,
     pub page: u32,
     pub alphabet_id: u32,
+}
+
+impl From<&PageKey> for PageLocation {
+    fn from(k: &PageKey) -> Self {
+        Self {
+            universe_seed: k.universe_seed,
+            z: k.z.clone(),
+            n: k.n.clone(),
+            book_index: k.book_index,
+            page: k.page,
+            alphabet_id: k.alphabet_id,
+        }
+    }
+}
+
+impl From<PageKey> for PageLocation {
+    fn from(k: PageKey) -> Self {
+        Self::from(&k)
+    }
+}
+
+impl From<&PageLocation> for PageKey {
+    fn from(l: &PageLocation) -> Self {
+        Self {
+            universe_seed: l.universe_seed,
+            z: l.z.clone(),
+            n: l.n.clone(),
+            book_index: l.book_index,
+            page: l.page,
+            alphabet_id: l.alphabet_id,
+        }
+    }
+}
+
+impl From<&PageAddr> for PageLocation {
+    fn from(a: &PageAddr) -> Self {
+        Self {
+            universe_seed: a.universe_seed,
+            z: a.z.clone(),
+            n: a.n.clone(),
+            book_index: a.book_index,
+            page: a.page,
+            alphabet_id: a.alphabet_id,
+        }
+    }
 }
 
 /// Search hit — content locate is capped at one page (`MAX_SEARCH_CHARS`).
@@ -253,16 +301,11 @@ pub fn locate_page(
     // only happens when invert lands in the last `span-1` pages).
     let max_start = PAGES_PER_BOOK - page_span;
     let page = key.page.min(max_start);
+    let mut location = PageLocation::from(&key);
+    location.page = page;
 
     Ok(LocateResult {
-        location: PageLocation {
-            universe_seed,
-            z: key.z,
-            n: key.n,
-            book_index: key.book_index,
-            page,
-            alphabet_id,
-        },
+        location,
         page_span,
         char_count,
     })
@@ -308,14 +351,14 @@ pub fn locate_book(
     let page_span = char_count.div_ceil(PAGE_CONTENT_SYMBOLS) as u32;
     let page_span = page_span.clamp(1, PAGES_PER_BOOK);
     Ok(BookLocateResult {
-        location: PageLocation {
+        location: PageLocation::from(&PageKey {
             universe_seed,
             z,
             n,
             book_index,
             page: 0,
             alphabet_id,
-        },
+        }),
         page_span,
         char_count,
         flat: symbols_to_flat(&symbols, ab),
@@ -365,14 +408,14 @@ pub fn locate_title(
     symbols[off..off + char_count].copy_from_slice(&query);
     let (z, n, book_index) = invert_title_symbols(&symbols, universe_seed, alphabet_id, alpha_len);
     Ok(TitleLocateResult {
-        location: PageLocation {
+        location: PageLocation::from(&PageKey {
             universe_seed,
             z,
             n,
             book_index,
             page: 0,
             alphabet_id,
-        },
+        }),
         char_count,
     })
 }

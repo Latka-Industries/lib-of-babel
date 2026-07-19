@@ -38,7 +38,10 @@ pub use mosaic::{
     mosaic_find_book, mosaic_find_book_finish, mosaic_find_book_locate, mosaic_flat_for,
     mosaic_project, mosaic_project_preview,
 };
-pub use page::{PageAddr, PageRender, book_text, book_text_book_scope, page_symbols, page_text};
+pub use page::{
+    ContentScope, PageAddr, PageRender, book_text, book_text_book_scope, page_symbols,
+    page_symbols_book_scope, page_text, page_text_book_scope,
+};
 pub use search::{
     BookLocateResult, LocateError, LocateResult, PageLocation, TitleLocateResult, locate_book,
     locate_page, locate_title, search_offset, search_page_segment, search_page_span,
