@@ -372,6 +372,7 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+  "about.emailTitle": "E-Mail — tlon@lib-of-babel.xyz",
 
   "history.title": "Wanderungen",
   "history.meta": "{shown} von {total} Schritten · neueste zuerst",
@@ -452,6 +453,8 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
     "Genaues Buch in {universe} (Seed {seed}) — gleiches Universum wie der Export:",
   "search.babel.resultsIntroOther":
     "Gleicher Babelgram-Druck in {universe} (Seed {seed}):",
+  "search.babel.universeShifted":
+    "Sitzung auf gestempeltes <span class=\"unit-mbit\">Mbit</span>-Export-Universum <b>{universe}</b> (Seed {seed}) umgestellt — Header-<span class=\"ui\">Universum</span> aktualisiert.",
   "search.babel.thumbAlt": "hochgeladenes Babelgram",
   "search.babel.diffAlt": "Dekodierungsdifferenz (|Upload − Reprojektion|)",
   "search.babel.exactOk": "exakte Dekodierung",

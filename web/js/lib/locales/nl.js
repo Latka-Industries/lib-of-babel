@@ -367,6 +367,7 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+  "about.emailTitle": "E-mail — tlon@lib-of-babel.xyz",
 
   "history.title": "dwaaltochten",
   "history.meta": "{shown} van {total} stappen · nieuwste eerst",
@@ -446,6 +447,8 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
     "Exact boek in {universe} (seed {seed}) — zelfde universum als de export:",
   "search.babel.resultsIntroOther":
     "Zelfde Babelgram-afdruk in {universe} (seed {seed}):",
+  "search.babel.universeShifted":
+    "Sessie overgeschakeld naar gestempeld <span class=\"unit-mbit\">Mbit</span>-exportuniversum <b>{universe}</b> (seed {seed}) — header-<span class=\"ui\">universum</span> bijgewerkt.",
   "search.babel.thumbAlt": "geüploade Babelgram",
   "search.babel.diffAlt": "decode-verschil (|upload − reprojectie|)",
   "search.babel.exactOk": "exacte decode",

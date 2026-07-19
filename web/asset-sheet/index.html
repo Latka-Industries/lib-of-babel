@@ -26,7 +26,7 @@
   <body>
     <div class="sheet-top">
       <h1>ASSET SHEET</h1>
-      <span class="find-dim">lib-of-babel · real CSS · no WASM</span>
+      <span class="find-dim">lib-of-babel · real CSS · WASM for alphabets</span>
       <nav class="sheet-nav-dd dd" id="sheetNavDd" aria-label="sections">
         <button type="button" class="dd-trigger" aria-expanded="false" aria-haspopup="menu"
           aria-controls="sheetNavMenu" aria-labelledby="sheetNavLabel">
@@ -36,18 +36,7 @@
           </span>
         </button>
         <div class="dd-menu" id="sheetNavMenu" role="menu" hidden>
-          <button type="button" role="menuitem" class="dd-item" data-action="tokens">tokens</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="type">type</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="controls">controls</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="chrome">chrome</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="stage">stage</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="find">find</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="searchBands">search</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="compare">compare</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="dialogs">dialogs</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="reader">reader</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="history">history</button>
-          <button type="button" role="menuitem" class="dd-item" data-action="mbit">mbit copy</button>
+          <!-- filled from SHEET_NAV in boot.js -->
         </div>
       </nav>
       <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false" title="toggle theme">☀</button>
@@ -58,6 +47,7 @@
         Continuous inventory of static chrome and dynamic copy samples.
         Dev-only (<code>mise run serve</code> / <code>mise run dev</code>; stripped from Pages).
         Toggle theme anytime — same <code>data-theme</code> / localStorage key as the app.
+        WASM loads for the LIB·OF·BABEL alphabet browser (glyph tiles).
       </p>
 
       <div data-section="tokens"></div>
@@ -68,6 +58,7 @@
       <div data-section="find"></div>
       <div data-section="compare"></div>
       <div data-section="dialogs"></div>
+      <div data-section="about"></div>
       <div data-section="mbit"></div>
     </main>
 

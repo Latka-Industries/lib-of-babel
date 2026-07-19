@@ -1,0 +1,98 @@
+<section class="sheet-sec" id="about">
+  <h2>LIB·OF·BABEL guide</h2>
+  <p class="sheet-lead">
+    Full about dialog innards — same tabs, panels, scale table, and alphabet browser as
+    production. Copy paints from live locale keys (EN·DE·NL under Mbit). Deep-link chips
+    (<code>about-goto-tab</code>) switch tabs here too.
+  </p>
+
+  <div class="sheet-panel sheet-about-shell" style="padding: 0; overflow: hidden">
+    <!-- id=aboutModal so production about.js tab / goto wiring works on this page -->
+    <div id="aboutModal" class="sheet-about-modal">
+      <div class="book-head">
+        <div class="book-head-text">
+          <h3>LIB&middot;OF&middot;BABEL</h3>
+          <small class="dim" data-i18n="about.subtitle" id="sheetAboutSubtitle">a walkable Library of Babel</small>
+        </div>
+        <div class="book-head-actions">
+          <button type="button" class="dialog-close" data-i18n="common.close" data-i18n-aria-label="common.close" aria-label="close">close</button>
+        </div>
+      </div>
+      <div class="about-tabs" role="tablist" data-i18n-aria-label="about.tabsLabel" aria-label="About sections">
+        <button type="button" class="about-tab" role="tab" id="aboutTab-overview" aria-selected="true" aria-controls="aboutPanel-overview" data-i18n="about.tab.overview">overview</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-wander" aria-selected="false" aria-controls="aboutPanel-wander" tabindex="-1" data-i18n="about.tab.wander">wander</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-engines" aria-selected="false" aria-controls="aboutPanel-engines" tabindex="-1" data-i18n="about.tab.engines">engines</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-scale" aria-selected="false" aria-controls="aboutPanel-scale" tabindex="-1" data-i18n="about.tab.scale">scale</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-alphabets" aria-selected="false" aria-controls="aboutPanel-alphabets" tabindex="-1" data-i18n="about.tab.alphabets">alphabets</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-books" aria-selected="false" aria-controls="aboutPanel-books" tabindex="-1" data-i18n="about.tab.books">books</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-search" aria-selected="false" aria-controls="aboutPanel-search" tabindex="-1" data-i18n="about.tab.search">search</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-url" aria-selected="false" aria-controls="aboutPanel-url" tabindex="-1" data-i18n="about.tab.url">url</button>
+        <button type="button" class="about-tab" role="tab" id="aboutTab-more" aria-selected="false" aria-controls="aboutPanel-more" tabindex="-1" data-i18n="about.tab.more">more</button>
+      </div>
+      <div class="about-body">
+        <div class="about-panel active" role="tabpanel" id="aboutPanel-overview" aria-labelledby="aboutTab-overview">
+          <div data-i18n-html="about.overview"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-wander" aria-labelledby="aboutTab-wander" hidden>
+          <div data-i18n-html="about.wander"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-engines" aria-labelledby="aboutTab-engines" hidden>
+          <div data-i18n-html="about.engines"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-scale" aria-labelledby="aboutTab-scale" hidden>
+          <div data-i18n-html="about.scale.intro"></div>
+          <div id="aboutScaleTable" class="about-scale-mount"></div>
+          <p class="dim" data-i18n-html="about.scale.outro"></p>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-alphabets" aria-labelledby="aboutTab-alphabets" hidden>
+          <h4 data-i18n="about.alphabets.h">Alphabet lenses</h4>
+          <p class="dim" data-i18n-html="about.alphabets.intro"></p>
+          <div id="aboutAlphabetList"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-books" aria-labelledby="aboutTab-books" hidden>
+          <div data-i18n-html="about.books"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-search" aria-labelledby="aboutTab-search" hidden>
+          <div data-i18n-html="about.search"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-url" aria-labelledby="aboutTab-url" hidden>
+          <div data-i18n-html="about.url"></div>
+        </div>
+
+        <div class="about-panel" role="tabpanel" id="aboutPanel-more" aria-labelledby="aboutTab-more" hidden>
+          <div data-i18n-html="about.more"></div>
+          <p class="about-links">
+            <a href="https://github.com/Latka-Industries/lib-of-babel"
+              class="about-link"
+              target="_blank" rel="noopener noreferrer"
+              data-i18n-title="about.githubTitle"
+              data-i18n-aria-label="about.githubTitle"
+              title="GitHub — Latka-Industries/lib-of-babel"
+              aria-label="GitHub — Latka-Industries/lib-of-babel">
+              <svg class="about-link-icon" viewBox="0 0 16 16" width="22" height="22" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+              </svg>
+            </a>
+            <a href="mailto:tlon@lib-of-babel.xyz"
+              class="about-link"
+              data-i18n-title="about.emailTitle"
+              data-i18n-aria-label="about.emailTitle"
+              title="Email — tlon@lib-of-babel.xyz"
+              aria-label="Email — tlon@lib-of-babel.xyz">
+              <svg class="about-link-icon" viewBox="0 0 16 16" width="22" height="22" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+              </svg>
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

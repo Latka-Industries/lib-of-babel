@@ -370,6 +370,7 @@ Page-linked rooms and text search: URL flags under
 </p>`,
 
   "about.githubTitle": "GitHub — Latka-Industries/lib-of-babel",
+  "about.emailTitle": "Email — tlon@lib-of-babel.xyz",
 
   "history.title": "wanderings",
   "history.meta": "{shown} of {total} steps · newest first",
@@ -449,6 +450,8 @@ Page-linked rooms and text search: URL flags under
     "Exact book in {universe} (seed {seed}) — same universe as the export:",
   "search.babel.resultsIntroOther":
     "Same Babelgram print in {universe} (seed {seed}):",
+  "search.babel.universeShifted":
+    "Switched session to stamped <span class=\"unit-mbit\">Mbit</span> export universe <b>{universe}</b> (seed {seed}) — header <span class=\"ui\">universe</span> updated.",
   "search.babel.thumbAlt": "uploaded Babelgram",
   "search.babel.diffAlt": "decode difference (|upload − reproject|)",
   "search.babel.exactOk": "exact decode",

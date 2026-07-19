@@ -60,6 +60,16 @@ export function applyI18n(root = document, vars = {}) {
   });
 }
 
+/** Set active UI locale (EN/DE/NL catalogs). */
+export function setLocale(next) {
+  if (!CATALOGS[next]) return locale;
+  locale = next;
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = locale;
+  }
+  return locale;
+}
+
 /** Set locale from alphabet lens and repaint static chrome. */
 export function setLocaleFromAlphabet(alphabetId, vars = {}) {
   locale = localeForAlphabet(alphabetId);

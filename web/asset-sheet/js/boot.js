@@ -1,5 +1,7 @@
 import { THEME_KEY, getTheme, toggleTheme, syncThemeToggle } from "../../js/chrome/theme.js";
 import { wireDropdownMenu } from "../../js/chrome/dropdown.js";
+import { init } from "../../js/lib/wasm.js";
+import { wireAboutTabs } from "../../js/about/about.js";
 import { loadSections } from "./includes.js";
 import {
   paintInventory,
@@ -17,13 +19,26 @@ const SHEET_NAV = {
   chrome: "chrome",
   stage: "stage",
   find: "find",
-  searchBands: "search",
+  searchBands: "search bands",
   compare: "compare",
   dialogs: "dialogs",
-  reader: "reader",
   history: "history",
+  reader: "reader",
+  about: "LIB·OF·BABEL",
   mbit: "mbit copy",
 };
+
+/** Keep the sections dropdown in sync with {@link SHEET_NAV}. */
+function paintNavMenu() {
+  const menu = document.getElementById("sheetNavMenu");
+  if (!menu) return;
+  menu.innerHTML = Object.entries(SHEET_NAV)
+    .map(
+      ([id, label]) =>
+        `<button type="button" role="menuitem" class="dd-item" data-action="${id}">${label}</button>`,
+    )
+    .join("");
+}
 
 function jumpSheetSection(id) {
   const target = document.getElementById(id);
@@ -57,6 +72,7 @@ function wireTheme() {
 }
 
 function wireNav() {
+  paintNavMenu();
   wireDropdownMenu(
     "sheetNavDd",
     Object.fromEntries(
@@ -111,6 +127,12 @@ function wireLocale() {
 
 async function main() {
   try {
+    await init();
+  } catch (err) {
+    console.warn("asset-sheet: WASM init failed — alphabet guide glyphs may be empty", err);
+  }
+
+  try {
     await loadSections();
   } catch (err) {
     console.error(err);
@@ -127,6 +149,7 @@ async function main() {
   wireTheme();
   paintSwatches();
   paintInventory("en");
+  wireAboutTabs();
   wireNav();
   wireDemoDropdowns();
   wireCompare();
