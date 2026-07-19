@@ -19,14 +19,26 @@ const SHEET_NAV = {
   chrome: "chrome",
   stage: "stage",
   find: "find",
-  searchBands: "search",
+  searchBands: "search bands",
   compare: "compare",
   dialogs: "dialogs",
-  about: "about",
-  reader: "reader",
   history: "history",
+  reader: "reader",
+  about: "LIB·OF·BABEL",
   mbit: "mbit copy",
 };
+
+/** Keep the sections dropdown in sync with {@link SHEET_NAV}. */
+function paintNavMenu() {
+  const menu = document.getElementById("sheetNavMenu");
+  if (!menu) return;
+  menu.innerHTML = Object.entries(SHEET_NAV)
+    .map(
+      ([id, label]) =>
+        `<button type="button" role="menuitem" class="dd-item" data-action="${id}">${label}</button>`,
+    )
+    .join("");
+}
 
 function jumpSheetSection(id) {
   const target = document.getElementById(id);
@@ -60,6 +72,7 @@ function wireTheme() {
 }
 
 function wireNav() {
+  paintNavMenu();
   wireDropdownMenu(
     "sheetNavDd",
     Object.fromEntries(
