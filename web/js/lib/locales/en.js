@@ -57,13 +57,13 @@ export const en = {
   "about.tab.more": "more",
   "about.tabsLabel": "About sections",
   "gallery.coordsHuge.hint":
-    "Mbit-range room (book-linked) — spines and color map work; hallway wander and jump are off. Full book text / color map can take minutes the first time.",
+    "Mbit-space room (book-linked) — spines and color map work; hallway wander and jump are off. Full book text / color map can take minutes the first time.",
   "gallery.coordsHuge.title":
-    "{scope} · Mbit-range {coords} — not hallway-wanderable",
+    "{scope} · Mbit-space {coords} — not hallway-wanderable",
   "gallery.coordsHuge.minimap":
-    "Mbit-range room — lattice exits disabled. See LIB-OF-BABEL → SCALE.",
+    "Mbit-space room — lattice exits disabled. See LIB-OF-BABEL → SCALE.",
   "gallery.coordsHuge.minimapShort": "Mbit · no exits",
-  "gallery.mbitNotice.title": "MBIT range",
+  "gallery.mbitNotice.title": "MBIT space",
   "gallery.mbitNotice.body":
     "This gallery uses the <b>book-linked</b> map. Spines and color maps still work. Hallway arrows and jump are off. <span class=\"unit-mbit\">Mbit</span> rooms cannot be stored in a URL — open any book here, save a Babelgram, then <span class=\"ui\">search…</span> → <span class=\"ui ui-tab\">Babelgram</span> to verify and open that room. Opening or borrowing a book can take a few.",
   "gallery.mbitNotice.scale.slim":
@@ -172,7 +172,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, “The Library of B
 <li>The header <span class="ui">theme</span> control (sun/moon) switches light and dark; the choice is remembered in this browser.</li>
 <li>Use the <b>minimap</b> — click an exit hash to move. <kbd>arrow keys</kbd> walk hallways and stairs (unless a dialog is open).</li>
 <li>Click <span class="ui">gallery&nbsp;(z,&nbsp;n)</span> to jump anywhere on the lattice — only in the <b>page-linked</b> (wanderable) range.</li>
-<li><span class="ui">search…</span> → <span class="ui ui-tab">photo</span> / <span class="ui ui-tab">Babelgram</span> can land you in the <b><span class="unit-mbit">Mbit</span> range</b> (book-linked): spines work, hallway wander does not.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
+<li><span class="ui">search…</span> → <span class="ui ui-tab">photo</span> / <span class="ui ui-tab">Babelgram</span> can land you in the <b><span class="unit-mbit">Mbit</span> space</b> (book-linked): spines work, hallway wander does not.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Each gallery has a <b>sigil</b> — an emblem from its <b>room</b> hash. Same place, same sigil (lens does not change it); click to download the <b>SVG</b>.</li>
 <li>Type a <span class="ui">universe</span> name or roll <span class="ui">&#9860;</span> for a random one; blank returns to default. Same coordinates, new library — trail stays.</li>
 <li>The <span class="ui">alphabet</span> menu switches the <b>lens only</b> — new spines and text; hash, sigil, and trail stay.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETS</button></li>
@@ -261,10 +261,10 @@ Bijection over <code>|Σ|^BOOK</code>. Every full book exists once.
 <span class="ui ui-tab">photo</span> and <span class="ui ui-tab">Babelgram</span> identity:
 the letter mosaic <b>is</b> that book.
 </p>
-<h4>MBIT range</h4>
+<h4>MBIT space</h4>
 <p class="dim">
 When axes are book-map sized (Basile ≈ 3–6 <span class="unit-mbit">Mbit</span> per axis after unpack), the UI calls that
-the <b><span class="unit-mbit">Mbit</span> range</b>: footer shows first/last five digits; hover adds scientific form + bit width;
+the <b><span class="unit-mbit">Mbit</span> space</b>: footer shows first/last five digits; hover adds scientific form + bit width;
 click <span class="ui">gallery (z, n)</span> for Axes + Digits (z, n) in the room notice. No full decimal;
 no hallway arrows / minimap exits / jump. Spines, open book, color map, lens, universe still work.
 A full <code>z</code>/<code>n</code> is about a megabyte each — too large for a URL.
@@ -278,7 +278,7 @@ Comparative bands:
 <h4>How coordinates are shown</h4>
 <p class="dim">
 Footer <span class="ui">gallery (z, n)</span>: page-map → scientific notation when long;
-book-map / <span class="unit-mbit">Mbit</span> range → first/last five digits (<code>12345…67890</code>); hover shows
+book-map / <span class="unit-mbit">Mbit</span> space → first/last five digits (<code>12345…67890</code>); hover shows
 scientific form and bit magnitude. Click opens the room notice with per-axis digit counts.
 Wire form <code>c…</code> (base64url) when axes outgrow short decimals.
 </p>
@@ -298,12 +298,12 @@ Wander exports are page-linked; book-map exports are book-linked. Grid must be e
 Everything after <code>#</code> is a room or search address for <b>page-linked</b> (wanderable) coords
 and text search. Same address → same room forever (under the same generator). Short flags are listed
 <b>before</b> large <code>z</code>/<code>n</code> so a truncated paste can still open a book.
-<span class="unit-mbit">Mbit</span>-range axes are <b>not</b> put in the URL — they are too large. <span class="unit-mbit">Mbit</span> rooms cannot be stored in a URL: save a Babelgram from any book in the room, then <span class="ui">search…</span> → <span class="ui ui-tab">Babelgram</span> to verify and open it.
+<span class="unit-mbit">Mbit</span>-space axes are <b>not</b> put in the URL — they are too large. <span class="unit-mbit">Mbit</span> rooms cannot be stored in a URL: save a Babelgram from any book in the room, then <span class="ui">search…</span> → <span class="ui ui-tab">Babelgram</span> to verify and open it.
 &nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button>
 </p>
 <h4>Room flags</h4>
 <ul>
-<li><code>z</code> / <code>n</code> — gallery coordinates (short decimal, or compact <code>c…</code> when large but still page-map sized). Omitted in <span class="unit-mbit">Mbit</span> range.</li>
+<li><code>z</code> / <code>n</code> — gallery coordinates (short decimal, or compact <code>c…</code> when large but still page-map sized). Omitted in <span class="unit-mbit">Mbit</span> space.</li>
 <li><code>h</code> — 16-hex prefix of the room <b>BLAKE3</b> hash (proof token; not reversible to coords).</li>
 <li><code>a</code> — alphabet lens id (restores the shelf language).</li>
 <li><code>u</code> — universe name (omitted or blank → default).</li>
@@ -518,9 +518,9 @@ Page-linked rooms and text search: URL flags under
   "search.count": "{n} / {max}",
   "search.countTip": "{n} alphabet cells of {max} allowed",
   "search.hintContent":
-    "uses the current alphabet lens · up to one page",
+    "uses the current alphabet lens · ≤3,200 = page · past that → book / <span class=\"unit-mbit\">Mbit</span> space",
   "search.hintContentBook":
-    "book-map / <span class=\"unit-mbit\">Mbit</span>",
+    "book-map / <span class=\"unit-mbit\">Mbit</span> space",
   "search.hintTitle":
     "uses the current alphabet lens · up to {n} spine-title cells",
   "search.canTakeAFew": "can take a few",
@@ -646,11 +646,11 @@ Page-linked rooms and text search: URL flags under
   "book.pageInd": "page {page} / {total}",
   "book.pagePlaceholder": "page",
   "book.waitMbit":
-    "<span class=\"unit-mbit\">Mbit</span> range — building this book. Can take a few.",
+    "<span class=\"unit-mbit\">Mbit</span> space — building this book. Can take a few.",
   "book.waitMbitImage":
-    "<span class=\"unit-mbit\">Mbit</span> range — building the color map. Can take a few.",
+    "<span class=\"unit-mbit\">Mbit</span> space — building the color map. Can take a few.",
   "book.waitMbitBorrow":
-    "<span class=\"unit-mbit\">Mbit</span> range — writing the full book text. Can take a few.",
+    "<span class=\"unit-mbit\">Mbit</span> space — writing the full book text. Can take a few.",
   "book.wall": "Wall {n}",
   "book.wallBook": "Wall {n} · book {book}",
 

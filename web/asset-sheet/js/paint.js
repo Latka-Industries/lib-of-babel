@@ -12,6 +12,8 @@ import {
   PAGES_PER_BOOK,
   DEFAULT_ALPHABET_ID,
   TITLE_LEN,
+  MAX_SEARCH_CHARS,
+  MAX_BOOK_SEARCH_CHARS,
   alphabetEntry,
 } from "../../js/lib/constants.js";
 import { alphabetPickerLabel } from "../../js/chrome/alphabet-picker.js";
@@ -264,29 +266,45 @@ function paintChips(locale = "en") {
   mount.innerHTML = `${kinds}${recipeBlock}`;
 }
 
-/** Text content search · book band — head/meta/hint/handoff from live locale. */
+/** Text content search · page + book bands — head/meta/hint/count from live locale. */
 function paintSearchBook(locale = "en") {
   const catalog = CATALOGS[locale] || en;
   const translate = (key, vars) => tCatalog(catalog, key, vars);
+  const findLabel = translate("search.find");
+
+  const pageHead = document.getElementById("sheetSearchPageHead");
+  const pageMeta = document.getElementById("sheetSearchPageMeta");
+  const pageHint = document.getElementById("sheetSearchPageHint");
+  const pageFind = document.getElementById("sheetSearchPageFind");
+  const pageCount = document.getElementById("sheetSearchPageCount");
+  if (pageHead) pageHead.textContent = translate("search.headContent");
+  if (pageMeta) pageMeta.innerHTML = translate("search.metaContent");
+  if (pageHint) pageHint.innerHTML = translate("search.hintContent");
+  if (pageFind) pageFind.textContent = findLabel;
+  if (pageCount) {
+    pageCount.textContent = translate("search.count", {
+      n: (0).toLocaleString(locale),
+      max: MAX_SEARCH_CHARS.toLocaleString(locale),
+    });
+  }
+
   const head = document.getElementById("sheetSearchHead");
   const meta = document.getElementById("searchMeta");
   const hint = document.getElementById("searchHint");
   const handoff = document.getElementById("sheetSearchHandoff");
   const findBtn = document.getElementById("sheetSearchFind");
   const count = document.getElementById("sheetSearchCount");
-  const pageHint = document.getElementById("sheetSearchPageHint");
   if (head) head.textContent = translate("search.headContentBook");
   if (meta) meta.innerHTML = translate("search.metaContentBook");
   if (hint) hint.innerHTML = translate("search.hintContentBook");
   if (handoff) handoff.innerHTML = translate("search.result.bookHandoffNote");
-  if (findBtn) findBtn.textContent = translate("search.find");
+  if (findBtn) findBtn.textContent = findLabel;
   if (count) {
     count.textContent = translate("search.count", {
-      n: (3301).toLocaleString(locale),
-      max: (1312000).toLocaleString(locale),
+      n: (MAX_SEARCH_CHARS + 101).toLocaleString(locale),
+      max: MAX_BOOK_SEARCH_CHARS.toLocaleString(locale),
     });
   }
-  if (pageHint) pageHint.textContent = translate("search.hintContent");
 }
 
 /**
@@ -467,23 +485,9 @@ function paintControlsMenus(locale = "en") {
   });
 }
 
-/** Mode band cards (default / page / book / title / photo / babel) from live locale. */
+/** Mode band cards (default / title / photo / babel). Page + book content use the dialog mocks above. */
 const SHEET_SEARCH_BAND_SPECS = [
   { key: "default", label: "default", head: "search.head", meta: "search.metaText" },
-  {
-    key: "content",
-    label: "page content",
-    head: "search.headContent",
-    meta: "search.metaContent",
-    hint: "search.hintContent",
-  },
-  {
-    key: "contentBook",
-    label: "book content",
-    head: "search.headContentBook",
-    meta: "search.metaContentBook",
-    hint: "search.hintContentBook",
-  },
   {
     key: "title",
     label: "title",

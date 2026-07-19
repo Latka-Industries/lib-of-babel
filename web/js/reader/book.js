@@ -47,6 +47,7 @@ import {
   get_universe,
   node_hash_hex,
   mosaic_flat_for,
+  MosaicOpts,
   room_accent,
 } from "../lib/wasm.js";
 import { babelExportFilename, injectBabelChunk, contentSeal } from "../lib/png-babel.js";
@@ -793,13 +794,7 @@ export function saveBookImage() {
       const accent = room_accent(zW, nW, get_universe());
       const flat = mosaic_flat_for(
         rgba,
-        S.alphabetId,
-        accent[0],
-        accent[1],
-        accent[2],
-        0,
-        false,
-        1, // glyph / letter colour map
+        new MosaicOpts(S.alphabetId, accent[0], accent[1], accent[2], 0, false, 1),
       );
       const seal = await contentSeal(flat);
       const hRoom = node_hash_hex(zW, nW);

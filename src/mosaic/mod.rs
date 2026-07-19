@@ -8,26 +8,31 @@
 //! - [`lab`] — sRGB/OKLab + nearest LUT
 //! - [`project`] — palette quantization / dither
 //! - [`score`] — RGB + perceptual fit, downsample
-//! - [`flat`] — indices → flat string + locate
+//! - [`util`] — accent / alphabet / flat / hit JSON helpers
 //! - [`api`] — WASM project / flat preview
-//! - [`candidates`] — babel decode, photo `mosaic_find_book`, legacy packs
+//! - [`find`] — babel exact + photo find-book
+//! - [`candidates`] — multi-hypothesis packs / locate
 
 mod api;
 mod candidates;
-mod flat;
+mod find;
 mod lab;
 mod project;
 mod score;
+mod util;
 
 #[cfg(test)]
 mod tests;
 
 pub use api::{MosaicImage, mosaic_flat_for, mosaic_project, mosaic_project_preview};
 pub use candidates::{
-    BabelLocateResult, FindBookLocate, mosaic_babel_json, mosaic_candidate_eval_json,
-    mosaic_candidate_packs_json, mosaic_candidates_json, mosaic_find_book, mosaic_find_book_finish,
-    mosaic_find_book_locate,
+    mosaic_candidate_eval_json, mosaic_candidate_packs_json, mosaic_candidates_json,
 };
+pub use find::{
+    BabelLocateResult, FindBookLocate, mosaic_babel_json, mosaic_find_book,
+    mosaic_find_book_finish, mosaic_find_book_locate,
+};
+pub use project::MosaicOpts;
 
 // Re-export internals into this module so `tests` can `use super::…`.
 #[cfg(test)]
@@ -38,14 +43,11 @@ use crate::color::{book_cell_count, book_grid_dims};
 use candidates::COARSE_FACTOR;
 #[cfg(test)]
 #[allow(unused_imports)]
-use flat::{indices_to_flat, locate_mosaic_flat};
-#[cfg(test)]
-#[allow(unused_imports)]
 use lab::{build_nearest_lut, nearest_index, oklab_dist_sq, srgb_to_oklab};
 #[cfg(test)]
 #[allow(unused_imports)]
 use project::{
-    MosaicOpts, PhotoPaletteKind, alphabet_space_idx, project_indices, project_indices_sized,
+    PhotoPaletteKind, alphabet_space_idx, project_indices, project_indices_sized,
     project_photo_preview,
 };
 #[cfg(test)]

@@ -1,5 +1,7 @@
 //! Quantize RGBA onto an alphabet palette (with optional dither).
 
+use wasm_bindgen::prelude::*;
+
 use crate::color::{
     book_cell_count, book_grid_dims, build_glyph_palette, build_photo_luma_palette,
 };
@@ -24,15 +26,20 @@ impl PhotoPaletteKind {
 }
 
 /// Shared knobs for photo→alphabet projection / candidate search.
+///
+/// Construct from JS with `new MosaicOpts(alphabetId, hue, chroma, light, space, dither, paletteKind)`
+/// (`paletteKind`: `0` luma, `1` glyph), then pass to `mosaic_project*` / candidate exports.
+#[wasm_bindgen]
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct MosaicOpts {
-    pub alphabet_id: u32,
-    pub hue: f64,
-    pub chroma: f64,
-    pub light: f64,
-    pub space_threshold: f64,
-    pub dither: bool,
-    pub palette_kind: PhotoPaletteKind,
+pub struct MosaicOpts {
+    pub(crate) alphabet_id: u32,
+    pub(crate) hue: f64,
+    pub(crate) chroma: f64,
+    pub(crate) light: f64,
+    pub(crate) space_threshold: f64,
+    pub(crate) dither: bool,
+    /// `0` luma, `1` glyph — kept as `u32` so wasm-bindgen can expose the struct cleanly.
+    palette_kind: u32,
 }
 
 impl MosaicOpts {
@@ -53,13 +60,25 @@ impl MosaicOpts {
             light,
             space_threshold: space_threshold.clamp(0.0, 255.0),
             dither,
-            palette_kind,
+            palette_kind: match palette_kind {
+                PhotoPaletteKind::Luma => 0,
+                PhotoPaletteKind::Glyph => 1,
+            },
         }
     }
 
-    /// Pack flat wasm-bindgen args (`palette_kind`: `0` luma, `1` glyph).
     #[must_use]
-    pub(crate) fn from_wasm(
+    pub(crate) fn palette_kind(self) -> PhotoPaletteKind {
+        PhotoPaletteKind::from_u32(self.palette_kind)
+    }
+}
+
+#[wasm_bindgen]
+impl MosaicOpts {
+    /// Pack flat JS knobs (`palette_kind`: `0` luma, `1` glyph).
+    #[wasm_bindgen(constructor)]
+    #[must_use]
+    pub fn create(
         alphabet_id: u32,
         hue: f64,
         chroma: f64,
@@ -67,7 +86,7 @@ impl MosaicOpts {
         space_threshold: f64,
         dither: bool,
         palette_kind: u32,
-    ) -> Self {
+    ) -> MosaicOpts {
         Self::new(
             alphabet_id,
             hue,
@@ -180,7 +199,7 @@ pub(crate) fn ensure_book_rgba(src: &[u8]) -> Result<(u32, u32), String> {
 fn build_photo_palette(opts: &MosaicOpts) -> (usize, Vec<[u8; 3]>) {
     let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
-    let palette = match opts.palette_kind {
+    let palette = match opts.palette_kind() {
         PhotoPaletteKind::Luma => build_photo_luma_palette(ab, opts.hue, opts.chroma, opts.light),
         PhotoPaletteKind::Glyph => build_glyph_palette(ab, opts.hue, opts.chroma, opts.light),
     };

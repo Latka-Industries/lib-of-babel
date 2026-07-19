@@ -14,10 +14,9 @@ mod config;
 mod gallery;
 mod mosaic;
 mod page;
-mod prng;
 mod search;
-mod search_segment;
 mod universe;
+mod utils;
 mod wasm_api;
 
 pub use color::{
@@ -34,15 +33,16 @@ pub use gallery::{
     node_fingerprint, node_hash_bytes, parse_coord,
 };
 pub use mosaic::{
-    BabelLocateResult, FindBookLocate, MosaicImage, mosaic_babel_json, mosaic_candidate_eval_json,
-    mosaic_candidate_packs_json, mosaic_candidates_json, mosaic_find_book, mosaic_find_book_finish,
-    mosaic_find_book_locate, mosaic_flat_for, mosaic_project, mosaic_project_preview,
+    BabelLocateResult, FindBookLocate, MosaicImage, MosaicOpts, mosaic_babel_json,
+    mosaic_candidate_eval_json, mosaic_candidate_packs_json, mosaic_candidates_json,
+    mosaic_find_book, mosaic_find_book_finish, mosaic_find_book_locate, mosaic_flat_for,
+    mosaic_project, mosaic_project_preview,
 };
 pub use page::{PageAddr, PageRender, book_text, book_text_book_scope, page_symbols, page_text};
 pub use search::{
     BookLocateResult, LocateError, LocateResult, PageLocation, TitleLocateResult, locate_book,
     locate_page, locate_title, search_offset, search_page_segment, search_page_span,
-    spine_title_at, text_to_symbols,
+    spine_title_at, symbols_to_flat, text_to_symbols,
 };
 pub use wasm_api::*;
 
@@ -85,8 +85,14 @@ mod tests {
 
     #[test]
     fn gallery_titles_json_escapes_quotes() {
-        use crate::search::json_string_literal;
         use crate::universe::{lock_for_tests, set_universe};
+        use crate::utils::push_json_string;
+
+        fn json_string_literal(s: &str) -> String {
+            let mut out = String::with_capacity(s.len() + 2);
+            push_json_string(&mut out, s);
+            out
+        }
 
         assert_eq!(json_string_literal(r#"a"b\c"#), r#""a\"b\\c""#);
         assert_eq!(json_string_literal("line\nbreak"), r#""line\nbreak""#);

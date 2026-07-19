@@ -56,13 +56,13 @@ export const nl = {
   "about.tab.url": "url",
   "about.tab.more": "meer",
   "gallery.coordsHuge.hint":
-    "Mbit-bereik (boekgekoppeld) — ruggen en kleurenkaart werken; gangdwalen en sprong zijn uit. Volledige boektekst / kleurenkaart kan de eerste keer minuten duren.",
+    "Mbit-ruimte (boekgekoppeld) — ruggen en kleurenkaart werken; gangdwalen en sprong zijn uit. Volledige boektekst / kleurenkaart kan de eerste keer minuten duren.",
   "gallery.coordsHuge.title":
-    "{scope} · Mbit-bereik {coords} — niet gang-dwaalbaar",
+    "{scope} · Mbit-ruimte {coords} — niet gang-dwaalbaar",
   "gallery.coordsHuge.minimap":
-    "Mbit-bereik — roosteruitgangen uit. Zie LIB-OF-BABEL → SCHAAL.",
+    "Mbit-ruimte — roosteruitgangen uit. Zie LIB-OF-BABEL → SCHAAL.",
   "gallery.coordsHuge.minimapShort": "Mbit · geen uitgangen",
-  "gallery.mbitNotice.title": "MBIT-bereik",
+  "gallery.mbitNotice.title": "MBIT-ruimte",
   "gallery.mbitNotice.body":
     "Deze galerij ligt op de <b>boekgekoppelde</b> kaart. Ruggen en kleurenkaarten werken. Gangpijlen en sprong zijn uit. <span class=\"unit-mbit\">Mbit</span>-kamers kunnen niet in een URL worden opgeslagen — open hier een willekeurig boek, bewaar een Babelgram, dan <span class=\"ui\">zoeken…</span> → <span class=\"ui ui-tab\">Babelgram</span> om te verifiëren en de gestempelde kamer te openen. Een boek openen of lenen kan even duren.",
   "gallery.mbitNotice.scale.slim":
@@ -169,7 +169,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „De Bibliotheek v
 <li>De kop-<span class="ui">thema</span>knop (zon/maan) wisselt licht en donker; de keuze blijft in deze browser.</li>
 <li>Gebruik de <b>minikaart</b> — klik een uitgangs-hash. <kbd>pijltjestoetsen</kbd> lopen gangen en trappen (tenzij een dialoog open is).</li>
 <li>Klik <span class="ui">galerij&nbsp;(z,&nbsp;n)</span> om te springen — alleen in het <b>paginagekoppelde</b> (dwaalbare) bereik.</li>
-<li><span class="ui">zoeken…</span> → <span class="ui ui-tab">foto</span> / <span class="ui ui-tab">Babelgram</span> kan je in het <b><span class="unit-mbit">Mbit</span>-bereik</b> (boekgekoppeld) brengen: ruggen werken, gangdwalen niet.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
+<li><span class="ui">zoeken…</span> → <span class="ui ui-tab">foto</span> / <span class="ui ui-tab">Babelgram</span> kan je in de <b><span class="unit-mbit">Mbit</span>-ruimte</b> (boekgekoppeld) brengen: ruggen werken, gangdwalen niet.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Elke galerij heeft een <b>zegel</b> — een embleem uit de <b>kamer</b>-hash. Zelfde plek, zelfde zegel; klik om de <b>SVG</b> te laden.</li>
 <li>Typ een <span class="ui">universum</span>naam of gooi <span class="ui">&#9860;</span>; leeg is standaard. Zelfde coördinaten, nieuwe bibliotheek — spoor blijft.</li>
 <li>Het <span class="ui">alfabet</span>menu wisselt alleen de <b>lens</b> — nieuwe ruggen en tekst; hash, zegel en spoor blijven.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALFABETTEN</button></li>
@@ -258,7 +258,7 @@ Bijectie over <code>|Σ|^BOOK</code>. Elk vol boek één keer.
 <span class="ui ui-tab">foto</span> en <span class="ui ui-tab">Babelgram</span>-identiteit:
 het lettermozaïek <b>is</b> dat boek.
 </p>
-<h4>MBIT-bereik</h4>
+<h4>MBIT-ruimte</h4>
 <p class="dim">
 Boekkaart-assen (Basile ≈ 3–6 <span class="unit-mbit">Mbit</span> per as na uitpakken): voet
 eerste/laatste vijf cijfers; hover: wetenschappelijk + bitbreedte; klik
@@ -275,7 +275,7 @@ Vergelijkingsbanden:
 <h4>Coördinaatweergave</h4>
 <p class="dim">
 Voet <span class="ui">galerij (z, n)</span>: paginakaart → wetenschappelijke notatie als lang;
-boekkaart / <span class="unit-mbit">Mbit</span>-bereik → eerste/laatste vijf cijfers (<code>12345…67890</code>); hover toont
+boekkaart / <span class="unit-mbit">Mbit</span>-ruimte → eerste/laatste vijf cijfers (<code>12345…67890</code>); hover toont
 wetenschappelijke vorm en bitbreedte. Klik opent de kamer-melding met cijfers per as.
 Draadvorm <code>c…</code> (base64url) als assen korte decimalen ontgroeien.
 </p>
@@ -299,7 +299,7 @@ en tekstzoeken. Zelfde adres → altijd dezelfde kamer. Korte flags staan <b>vó
 </p>
 <h4>Kamerflags</h4>
 <ul>
-<li><code>z</code> / <code>n</code> — galerijcoördinaten (decimaal of compact <code>c…</code>, zolang paginakaart-groot). In <span class="unit-mbit">Mbit</span>-bereik weggelaten.</li>
+<li><code>z</code> / <code>n</code> — galerijcoördinaten (decimaal of compact <code>c…</code>, zolang paginakaart-groot). In <span class="unit-mbit">Mbit</span>-ruimte weggelaten.</li>
 <li><code>h</code> — 16 hex-tekens van de kamer-<b>BLAKE3</b>-hash (bewijs; niet omkeerbaar naar coords).</li>
 <li><code>a</code> — alfabetlens-id.</li>
 <li><code>u</code> — universumnaam (ontbreekt / leeg → standaard).</li>
@@ -515,9 +515,9 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "search.count": "{n} / {max}",
   "search.countTip": "{n} alfabetcellen van {max} toegestaan",
   "search.hintContent":
-    "gebruikt de huidige alfabetlens · tot één pagina",
+    "gebruikt de huidige alfabetlens · ≤3.200 = pagina · langer → boek / <span class=\"unit-mbit\">Mbit</span>-ruimte",
   "search.hintContentBook":
-    "boekkaart / <span class=\"unit-mbit\">Mbit</span>",
+    "boekkaart / <span class=\"unit-mbit\">Mbit</span>-ruimte",
   "search.hintTitle":
     "gebruikt de huidige alfabetlens · tot {n} rugtitel-cellen",
   "search.canTakeAFew": "kan even duren",
@@ -643,11 +643,11 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "book.pageInd": "pagina {page} / {total}",
   "book.pagePlaceholder": "pagina",
   "book.waitMbit":
-    "<span class=\"unit-mbit\">Mbit</span>-bereik — boek wordt opgebouwd. Kan even duren.",
+    "<span class=\"unit-mbit\">Mbit</span>-ruimte — boek wordt opgebouwd. Kan even duren.",
   "book.waitMbitImage":
-    "<span class=\"unit-mbit\">Mbit</span>-bereik — kleurenkaart wordt opgebouwd. Kan even duren.",
+    "<span class=\"unit-mbit\">Mbit</span>-ruimte — kleurenkaart wordt opgebouwd. Kan even duren.",
   "book.waitMbitBorrow":
-    "<span class=\"unit-mbit\">Mbit</span>-bereik — volledige boektekst wordt geschreven. Kan even duren.",
+    "<span class=\"unit-mbit\">Mbit</span>-ruimte — volledige boektekst wordt geschreven. Kan even duren.",
   "book.wall": "Wand {n}",
   "book.wallBook": "Wand {n} · boek {book}",
 
