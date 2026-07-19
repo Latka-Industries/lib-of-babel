@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::color::{book_grid_dims, book_image_book_scope_at, paint_indices_rgba};
 use crate::config::{BOOK_CONTENT_SYMBOLS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK};
+use crate::page::ContentScope;
 use crate::universe::universe as active_universe;
 
 use super::project::{Accent, PhotoPaletteKind, ensure_book_rgba, project_indices};
@@ -135,7 +136,8 @@ pub fn mosaic_babel_json(
         dither: false,
         label: "babel exact",
         alphabet_id,
-        babel_exact: true,
+        scope: ContentScope::PageLinked,
+        tight_metrics: true,
     }]);
     Ok(BabelLocateResult {
         results_json,
@@ -260,7 +262,7 @@ pub fn mosaic_find_book_finish(locate: &FindBookLocate) -> Result<BabelLocateRes
     let fit = rgb_fit_triple(&proof, &book_pixels, 1);
     let (width, height) = book_grid_dims();
     let diff_pixels = rgba_abs_diff(&proof, &book_pixels);
-    let babel_exact = fit.rms_percent >= 99.9 && fit.mae <= 0.5;
+    let tight = fit.rms_percent >= 99.9 && fit.mae <= 0.5;
     let results_json = json_results(&[JsonHit {
         percent: fit.rms_percent,
         mae: fit.mae,
@@ -277,7 +279,8 @@ pub fn mosaic_find_book_finish(locate: &FindBookLocate) -> Result<BabelLocateRes
         dither: false,
         label: "alphabet mosaic (full book)",
         alphabet_id,
-        babel_exact,
+        scope: ContentScope::BookLinked,
+        tight_metrics: tight,
     }]);
     Ok(BabelLocateResult {
         results_json,

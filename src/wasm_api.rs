@@ -90,7 +90,7 @@ fn locate_hit_json(
     page: u32,
     page_end: u32,
     page_span: u32,
-    scope: &str,
+    scope: ContentScope,
     flat: Option<&str>,
 ) -> String {
     let (wall, shelf, book_on_shelf) = gallery::book_index_to_shelf(loc.book_index);
@@ -112,7 +112,7 @@ fn locate_hit_json(
         obj.u32("wall", wall + 1);
         obj.u32("shelf", shelf + 1);
         obj.u32("book_on_shelf", book_on_shelf + 1);
-        obj.str("scope", scope);
+        obj.str("scope", scope.as_str());
         if let Some(flat) = flat {
             obj.str("flat", flat);
         }
@@ -330,7 +330,7 @@ pub fn locate_page_json(text: &str, alphabet_id: u32) -> String {
                 loc.page + 1,
                 loc.page + res.page_span,
                 res.page_span,
-                "page",
+                ContentScope::PageLinked,
                 None,
             )
         }
@@ -354,7 +354,15 @@ pub fn max_title_len() -> u32 {
 /// Reverse lookup: spine title → JSON hit `{ ok, z, n, book, … }` or validation error.
 pub fn locate_title_json(text: &str, alphabet_id: u32) -> String {
     match search::locate_title(text, alphabet_id, active_universe()) {
-        Ok(res) => locate_hit_json(&res.location, res.char_count, 1, 1, 1, "page", None),
+        Ok(res) => locate_hit_json(
+            &res.location,
+            res.char_count,
+            1,
+            1,
+            1,
+            ContentScope::PageLinked,
+            None,
+        ),
         Err(e) => locate_error_json(e),
     }
 }
@@ -372,7 +380,7 @@ pub fn locate_book_json(text: &str, alphabet_id: u32) -> String {
             1,
             res.page_span,
             res.page_span,
-            "book",
+            ContentScope::BookLinked,
             Some(&res.flat),
         ),
         Err(e) => locate_error_json(e),

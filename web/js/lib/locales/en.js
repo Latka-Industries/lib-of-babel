@@ -572,9 +572,8 @@ Page-linked rooms and text search: URL flags under
   "search.mosaic.badImage": "could not decode that image",
   "search.mosaic.palette": "palette",
   "search.mosaic.palette.glyph": "letters",
-  "search.mosaic.palette.luma": "luma ramp",
   "search.mosaic.tip.palette":
-    "Letters = Babelgram-style per-glyph colors. Luma ramp = brightness ladder (structure-first).",
+    "Letters = Babelgram-style per-glyph colors.",
   "search.mosaic.dither": "dither",
   "search.mosaic.brightness": "brightness",
   "search.mosaic.contrast": "contrast",
