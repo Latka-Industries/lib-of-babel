@@ -1,8 +1,37 @@
 <section class="sheet-sec" id="find">
   <h2>Find / progress</h2>
   <p class="sheet-lead">
-    Text book-band chrome, mosaic honesty, palette strip, progress track, hit thumbs + actions.
-    Book-band head/meta/hint paint from live locale keys (EN·DE·NL under Mbit).
+    Content search chrome for both bands (page ≤3,200 · book &gt;3,200), mosaic honesty,
+    palette strip, progress track, hit thumbs + actions. Head/meta/hint/count paint from
+    live locale keys (EN·DE·NL).
+  </p>
+
+  <h3 class="sheet-sub">Content · page band</h3>
+  <p class="sheet-lead" style="margin: -0.35rem 0 0.75rem">
+    Empty / short paste — page-linked invert. Counter max is one page; hint explains the flip past 3,200.
+  </p>
+  <div class="sheet-panel" style="padding: 0; overflow: hidden">
+    <div class="book-head">
+      <div class="book-head-text">
+        <h3 id="sheetSearchPageHead">search by content</h3>
+        <small id="sheetSearchPageMeta" class="sheet-search-meta">…</small>
+      </div>
+      <div class="book-head-actions">
+        <button type="button" class="dialog-close">close</button>
+      </div>
+    </div>
+    <div class="find-body" style="padding-top: 0.65rem">
+      <div class="find-row search-find-row" id="sheetSearchPageFindRow">
+        <button type="button" id="sheetSearchPageFind">find</button>
+        <span id="sheetSearchPageCount" class="find-dim search-count">0 / 3,200</span>
+        <span id="sheetSearchPageHint" class="find-dim">…</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sheet-sub">Content · book band</h3>
+  <p class="sheet-lead" style="margin: -0.35rem 0 0.75rem">
+    Paste past one page — book-map / Mbit space. Counter max is a full book.
   </p>
   <div class="sheet-panel" style="padding: 0; overflow: hidden">
     <div class="book-head">
@@ -21,10 +50,6 @@
         <span id="searchHint" class="find-dim">book-map / <span class="unit-mbit">Mbit</span></span>
       </div>
       <p class="find-dim" id="sheetSearchHandoff" style="margin: 0.65rem 0 0">…</p>
-      <p class="find-dim" style="margin: 0.45rem 0 0; font-size: 0.75rem">
-        Page band (contrast): head / meta / hint flip when cells ≤ 3,200 —
-        <span id="sheetSearchPageHint">uses the current alphabet lens · up to one page</span>
-      </p>
     </div>
   </div>
   <div class="sheet-panel">
@@ -81,7 +106,8 @@
 
   <h3 class="sheet-sub" id="searchBands">Mode bands</h3>
   <p class="sheet-lead" style="margin: -0.35rem 0 0.75rem">
-    head / meta / hint for every search mode — painted live from the active locale catalog.
+    head / meta / hint for the other search modes (title · photo · Babelgram). Page and book
+    content chrome are the dialog mocks above.
   </p>
   <div id="sheetSearchBands"></div>
 

@@ -150,7 +150,7 @@ export function syncSearchKindUI() {
     } else if (bookBand) {
       hint.innerHTML = t("search.hintContentBook");
     } else {
-      hint.textContent = t("search.hintContent");
+      hint.innerHTML = t("search.hintContent");
     }
   }
   syncSearchCount();
@@ -186,7 +186,7 @@ export function syncSearchCount() {
     if (bookBand) {
       hint.innerHTML = t("search.hintContentBook");
     } else {
-      hint.textContent = t("search.hintContent");
+      hint.innerHTML = t("search.hintContent");
     }
   }
 }

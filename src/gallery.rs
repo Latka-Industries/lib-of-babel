@@ -8,10 +8,12 @@ use num_bigint::{BigInt, Sign};
 use num_traits::Zero;
 
 use crate::config::{BOOKS_PER_GALLERY, BOOKS_PER_SHELF, GENERATOR_VERSION, SHELVES_PER_WALL};
-use crate::prng::mix2;
+use crate::utils::mix2;
 
 const B64URL: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
+/// Encode a byte slice as a base64url string.
+#[must_use]
 fn b64url_encode(data: &[u8]) -> String {
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     let mut i = 0;
@@ -37,6 +39,8 @@ fn b64url_encode(data: &[u8]) -> String {
     out
 }
 
+/// Decode a base64url string as a byte slice.
+#[must_use]
 fn b64url_decode(input: &str) -> Option<Vec<u8>> {
     fn val(byte: u8) -> Option<u8> {
         match byte {

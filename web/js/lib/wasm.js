@@ -24,6 +24,7 @@ export {
   mosaic_candidates_json,
   mosaic_candidate_packs_json,
   mosaic_candidate_eval_json,
+  MosaicOpts,
   mosaic_babel_json,
   mosaic_find_book,
   mosaic_find_book_locate,

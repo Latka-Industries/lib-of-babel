@@ -22,5 +22,5 @@ dist
 .DS_Store
 *.log
 
-# Local UBLX browser prefs
 .ublx.toml
+.cursor

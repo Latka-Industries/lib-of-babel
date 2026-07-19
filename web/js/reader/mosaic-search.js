@@ -34,6 +34,7 @@ import { kvSet } from "../lib/db.js";
 import {
   book_image_dims,
   mosaic_project_preview,
+  MosaicOpts,
   mosaic_babel_json,
   room_accent,
   node_hash_hex,
@@ -486,13 +487,15 @@ function refreshPreview(opts = {}) {
   try {
     img = mosaic_project_preview(
       ingested.rgba,
-      S.alphabetId,
-      p.hue,
-      p.chroma,
-      p.light,
-      p.space,
-      dither,
-      p.paletteKind,
+      new MosaicOpts(
+        S.alphabetId,
+        p.hue,
+        p.chroma,
+        p.light,
+        p.space,
+        dither,
+        p.paletteKind,
+      ),
       factor,
     );
     paintCanvas(el("mosaicPreview"), img.pixels, img.width, img.height);

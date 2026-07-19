@@ -16,7 +16,7 @@ use crate::config::{
 use crate::gallery::node_fingerprint;
 use crate::gallery::parse_coord;
 use crate::page::{PageAddr, PageRender, page_symbols};
-use crate::search_segment::text_to_cell_indices;
+use crate::search::segment::text_to_cell_indices;
 use crate::universe::universe;
 
 /// Arc width for the punct/digit stratum (degrees).
@@ -254,6 +254,11 @@ pub fn book_image_book_scope(z: &str, n: &str, book_index: u32, alphabet_id: u32
 ///
 /// Identity is the flat from [`crate::search::locate_book`] / photo Find — not a virgin
 /// rematerialise of `(z, n, book)`, which would diverge from the planted query.
+///
+/// # Errors
+///
+/// String `JsValue` when the flat has invalid alphabet cells or is not exactly
+/// [`BOOK_CONTENT_SYMBOLS`] cells (see [`book_image_from_flat_at`]).
 #[wasm_bindgen]
 pub fn book_image_from_flat(
     z: &str,
@@ -266,6 +271,11 @@ pub fn book_image_from_flat(
 }
 
 /// Native helper — paint [`BOOK_CONTENT_SYMBOLS`] cells from a letter flat.
+///
+/// # Errors
+///
+/// Returns an error string when `flat` contains a character that is not a cell of
+/// the alphabet, or when the cell count is not exactly [`BOOK_CONTENT_SYMBOLS`].
 pub fn book_image_from_flat_at(
     z: &BigInt,
     n: &BigInt,
@@ -282,17 +292,8 @@ pub fn book_image_from_flat_at(
         ));
     }
     let universe_seed = universe();
-    let accent = room_accent_at(z, n, universe_seed);
-    let palette = build_glyph_palette(ab, accent[0], accent[1], accent[2]);
-    let mut pixels = vec![0u8; indices.len() * 4];
-    for (i, &idx) in indices.iter().enumerate() {
-        let rgb = palette[idx as usize];
-        let o = i * 4;
-        pixels[o] = rgb[0];
-        pixels[o + 1] = rgb[1];
-        pixels[o + 2] = rgb[2];
-        pixels[o + 3] = 255;
-    }
+    let palette = room_palette(z, n, alphabet_id, universe_seed);
+    let pixels = paint_indices_rgba(&indices, &palette);
     let (width, height) = book_grid_dims();
     Ok(BookImage {
         width,
@@ -354,6 +355,26 @@ fn book_image_inner(
     }
 }
 
+/// Paint glyph indices with a palette → interleaved RGBA (`len * 4`).
+pub(crate) fn paint_indices_rgba(indices: &[u16], palette: &[[u8; 3]]) -> Vec<u8> {
+    let mut pixels = vec![0u8; indices.len() * 4];
+    for (i, &idx) in indices.iter().enumerate() {
+        let rgb = palette[idx as usize];
+        let o = i * 4;
+        pixels[o] = rgb[0];
+        pixels[o + 1] = rgb[1];
+        pixels[o + 2] = rgb[2];
+        pixels[o + 3] = 255;
+    }
+    pixels
+}
+
+fn room_palette(z: &BigInt, n: &BigInt, alphabet_id: u32, universe_seed: u64) -> Vec<[u8; 3]> {
+    let ab = alphabet(alphabet_id);
+    let [hue, chroma, light] = room_accent_at(z, n, universe_seed);
+    build_glyph_palette(ab, hue, chroma, light)
+}
+
 fn book_image_pages_inner(
     z: &BigInt,
     n: &BigInt,
@@ -364,23 +385,11 @@ fn book_image_pages_inner(
 ) -> Vec<u8> {
     let start = page_start.min(PAGES_PER_BOOK);
     let end = page_end.min(PAGES_PER_BOOK).max(start);
-    let page_count = (end - start) as usize;
-    // Snapshot once — parallel tests may mutate the global mid-call.
     let universe_seed = universe();
-
-    let ab = alphabet(alphabet_id);
-    let len = ab.len();
-    let space_idx = len - 3;
-
-    let fp = node_fingerprint(z, n, universe_seed);
-    let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
-    let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
-    let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
-    let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
+    let palette = room_palette(z, n, alphabet_id, universe_seed);
 
     // Page-linked: each page is an independent virgin page (fast wander).
-    let mut pixels = vec![0u8; page_count * PAGE_CONTENT_SYMBOLS * 4];
-    let mut px_idx = 0;
+    let mut symbols = Vec::with_capacity((end - start) as usize * PAGE_CONTENT_SYMBOLS);
     for page in start..end {
         let req = PageRender::new(PageAddr::new(
             z.clone(),
@@ -390,24 +399,9 @@ fn book_image_pages_inner(
             alphabet_id,
             universe_seed,
         ));
-        let state = page_symbols(&req);
-        for &sym in &state {
-            let idx = sym as usize;
-            let rgb = if idx == space_idx {
-                SPACE_RGB
-            } else {
-                palette[idx]
-            };
-            let px = &mut pixels[px_idx * 4..(px_idx + 1) * 4];
-            px[0] = rgb[0];
-            px[1] = rgb[1];
-            px[2] = rgb[2];
-            px[3] = 255;
-            px_idx += 1;
-        }
+        symbols.extend_from_slice(&page_symbols(&req));
     }
-
-    pixels
+    paint_indices_rgba(&symbols, &palette)
 }
 
 /// Book-linked paint — used only for mosaic Find proof (expensive).
@@ -421,40 +415,20 @@ fn book_image_book_scope_pages_inner(
 ) -> Vec<u8> {
     let start = page_start.min(PAGES_PER_BOOK);
     let end = page_end.min(PAGES_PER_BOOK).max(start);
-    let page_count = (end - start) as usize;
     let universe_seed = universe();
-
     let ab = alphabet(alphabet_id);
-    let len = ab.len();
-    let space_idx = len - 3;
-
-    let fp = node_fingerprint(z, n, universe_seed);
-    let accent_hue = (((fp >> 48) & 0xffff) % 360) as f64;
-    let accent_chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
-    let accent_light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
-    let palette = build_glyph_palette(ab, accent_hue, accent_chroma, accent_light);
-
-    let book = book_symbols_at(z, n, book_index, universe_seed, alphabet_id, len as u32);
+    let palette = room_palette(z, n, alphabet_id, universe_seed);
+    let book = book_symbols_at(
+        z,
+        n,
+        book_index,
+        universe_seed,
+        alphabet_id,
+        ab.len() as u32,
+    );
     let sym_start = start as usize * PAGE_CONTENT_SYMBOLS;
     let sym_end = end as usize * PAGE_CONTENT_SYMBOLS;
-    let slice = &book[sym_start..sym_end];
-
-    let mut pixels = vec![0u8; page_count * PAGE_CONTENT_SYMBOLS * 4];
-    for (px_idx, &sym) in slice.iter().enumerate() {
-        let idx = sym as usize;
-        let rgb = if idx == space_idx {
-            SPACE_RGB
-        } else {
-            palette[idx]
-        };
-        let px = &mut pixels[px_idx * 4..(px_idx + 1) * 4];
-        px[0] = rgb[0];
-        px[1] = rgb[1];
-        px[2] = rgb[2];
-        px[3] = 255;
-    }
-
-    pixels
+    paint_indices_rgba(&book[sym_start..sym_end], &palette)
 }
 
 #[wasm_bindgen]
@@ -470,17 +444,17 @@ pub fn book_image_dims() -> Vec<u32> {
 #[wasm_bindgen]
 #[must_use]
 pub fn room_accent(z: &str, n: &str, universe_seed: u64) -> Vec<f64> {
-    room_accent_at(&parse_coord(z), &parse_coord(n), universe_seed)
+    room_accent_at(&parse_coord(z), &parse_coord(n), universe_seed).to_vec()
 }
 
 /// Native helper for tests / mosaic (`BigInt` coords).
 #[must_use]
-pub fn room_accent_at(z: &BigInt, n: &BigInt, universe_seed: u64) -> Vec<f64> {
+pub fn room_accent_at(z: &BigInt, n: &BigInt, universe_seed: u64) -> [f64; 3] {
     let fp = node_fingerprint(z, n, universe_seed);
     let hue = (((fp >> 48) & 0xffff) % 360) as f64;
     let chroma = 0.08 + 0.14 * (((fp >> 32) & 0xffff) as f64 / 65535.0);
     let light = 0.55 + 0.23 * (((fp >> 16) & 0xffff) as f64 / 65535.0);
-    vec![hue, chroma, light]
+    [hue, chroma, light]
 }
 
 #[cfg(test)]

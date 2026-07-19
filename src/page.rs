@@ -2,7 +2,7 @@
 
 use num_bigint::BigInt;
 
-use crate::basile::{PageKey, page_symbols_at};
+use crate::basile::{PageKey, book_symbols_at, page_symbols_at};
 use crate::config::{
     CHARS_PER_LINE, LINES_PER_PAGE, MAX_ALPHABET_LEN, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
     alphabet,
@@ -83,7 +83,27 @@ pub fn page_symbols(req: &PageRender) -> [u16; PAGE_CONTENT_SYMBOLS] {
     page_symbols_at(&req.addr.to_key(), alpha_len_usize as u32)
 }
 
-fn symbols_to_page_text(symbols: &[u16; PAGE_CONTENT_SYMBOLS], ab: &[&str]) -> String {
+/// One page slice of the **book-linked** map.
+#[must_use]
+pub fn page_symbols_book_scope(req: &PageRender) -> [u16; PAGE_CONTENT_SYMBOLS] {
+    let ab = alphabet(req.addr.alphabet_id);
+    let book = book_symbols_at(
+        &req.addr.z,
+        &req.addr.n,
+        req.addr.book_index,
+        req.addr.universe_seed,
+        req.addr.alphabet_id,
+        ab.len() as u32,
+    );
+    let page = (req.addr.page % PAGES_PER_BOOK) as usize;
+    let start = page * PAGE_CONTENT_SYMBOLS;
+    let mut page_syms = [0u16; PAGE_CONTENT_SYMBOLS];
+    page_syms.copy_from_slice(&book[start..start + PAGE_CONTENT_SYMBOLS]);
+    page_syms
+}
+
+fn symbols_to_page_text(symbols: &[u16], ab: &[&str]) -> String {
+    debug_assert_eq!(symbols.len(), PAGE_CONTENT_SYMBOLS);
     let mut out = String::with_capacity(PAGE_CONTENT_SYMBOLS * 4 + LINES_PER_PAGE as usize);
     for row in 0..LINES_PER_PAGE {
         for col in 0..CHARS_PER_LINE {
@@ -98,31 +118,16 @@ fn symbols_to_page_text(symbols: &[u16; PAGE_CONTENT_SYMBOLS], ab: &[&str]) -> S
 /// One page of content at the address in `req` (**page-linked**).
 #[must_use]
 pub fn page_text(req: &PageRender) -> String {
-    let ab = alphabet(req.addr.alphabet_id);
-    let state = page_symbols(req);
-    symbols_to_page_text(&state, ab)
+    symbols_to_page_text(&page_symbols(req), alphabet(req.addr.alphabet_id))
 }
 
 /// One page slice of the **book-linked** map (photo Find / Babelgram).
 #[must_use]
 pub fn page_text_book_scope(req: &PageRender) -> String {
-    use crate::basile::book_symbols_at;
-
-    let ab = alphabet(req.addr.alphabet_id);
-    let alpha_len = ab.len() as u32;
-    let book = book_symbols_at(
-        &req.addr.z,
-        &req.addr.n,
-        req.addr.book_index,
-        req.addr.universe_seed,
-        req.addr.alphabet_id,
-        alpha_len,
-    );
-    let page = (req.addr.page % PAGES_PER_BOOK) as usize;
-    let start = page * PAGE_CONTENT_SYMBOLS;
-    let mut page_syms = [0u16; PAGE_CONTENT_SYMBOLS];
-    page_syms.copy_from_slice(&book[start..start + PAGE_CONTENT_SYMBOLS]);
-    symbols_to_page_text(&page_syms, ab)
+    symbols_to_page_text(
+        &page_symbols_book_scope(req),
+        alphabet(req.addr.alphabet_id),
+    )
 }
 
 /// Full text of one book — **page-linked** (wander / short search).
@@ -147,13 +152,14 @@ pub fn book_text(
             alphabet_id,
             universe_seed,
         ));
-        let state = page_symbols(&req);
-        out.push_str(&symbols_to_page_text(&state, ab));
+        out.push_str(&symbols_to_page_text(&page_symbols(&req), ab));
     }
     out
 }
 
 /// Full text of one book — **book-linked** (photo Find / Babelgram identity).
+///
+/// Loads the book map once, then formats each page slice.
 #[must_use]
 pub fn book_text_book_scope(
     z: &BigInt,
@@ -162,20 +168,24 @@ pub fn book_text_book_scope(
     alphabet_id: u32,
     universe_seed: u64,
 ) -> String {
-    use crate::basile::book_symbols_at;
-
     let ab = alphabet(alphabet_id);
-    let alpha_len = ab.len() as u32;
-    let book = book_symbols_at(z, n, book_index, universe_seed, alphabet_id, alpha_len);
+    let book = book_symbols_at(
+        z,
+        n,
+        book_index,
+        universe_seed,
+        alphabet_id,
+        ab.len() as u32,
+    );
     let mut out = String::with_capacity(
         (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
     );
     for page in 0..PAGES_PER_BOOK {
         let start = page as usize * PAGE_CONTENT_SYMBOLS;
-        let slice = &book[start..start + PAGE_CONTENT_SYMBOLS];
-        let mut page_syms = [0u16; PAGE_CONTENT_SYMBOLS];
-        page_syms.copy_from_slice(slice);
-        out.push_str(&symbols_to_page_text(&page_syms, ab));
+        out.push_str(&symbols_to_page_text(
+            &book[start..start + PAGE_CONTENT_SYMBOLS],
+            ab,
+        ));
     }
     out
 }

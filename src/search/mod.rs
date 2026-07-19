@@ -3,8 +3,11 @@
 //! Content locate (≤ one page) uses the **page-linked** bijection (padded page 0).
 //! Longer content pastes use [`locate_book`] — pad to [`BOOK_CONTENT_SYMBOLS`] and
 //! [`crate::basile::invert_book_symbols`] (same book map as photo Find).
+//!
+//! Modules:
+//! - [`segment`] — longest-prefix cell match / flatten / slice
 
-use core::fmt::Write;
+pub mod segment;
 
 use num_bigint::BigInt;
 
@@ -15,9 +18,7 @@ use crate::config::{
     BOOK_CONTENT_SYMBOLS, GENERATOR_VERSION, MAX_SEARCH_CHARS, PAGE_CONTENT_SYMBOLS,
     PAGES_PER_BOOK, TITLE_LEN, alphabet,
 };
-use crate::search_segment::{
-    count_cells, flatten_to_cells, text_to_cell_indices, text_to_cell_indices_n,
-};
+use segment::{count_cells, flatten_to_cells, text_to_cell_indices, text_to_cell_indices_n};
 
 /// Result of a reverse lookup — the canonical address where a search phrase lives.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,14 +63,16 @@ pub struct TitleLocateResult {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BookLocateResult {
     pub location: PageLocation,
-    /// Pages spanned by the query prefix (ceil(char_count / PAGE)).
+    /// Pages spanned by the query prefix (`ceil(char_count` / PAGE)).
     pub page_span: u32,
     pub char_count: usize,
     /// Padded letter flat (`BOOK_CONTENT_SYMBOLS`) — identity for handoff.
     pub flat: String,
 }
 
-fn symbols_to_flat(symbols: &[u16], ab: &[&str]) -> String {
+/// Join symbol indices into a concatenated alphabet flat (no newlines).
+#[must_use]
+pub fn symbols_to_flat(symbols: &[u16], ab: &[&str]) -> String {
     let mut out = String::with_capacity(symbols.len().saturating_mul(2));
     for &i in symbols {
         out.push_str(ab[i as usize]);
@@ -377,37 +380,6 @@ pub fn locate_title(
 /// Lowercase a search query (matches frontend path).
 pub fn normalize_query(text: &str) -> String {
     normalize_search_text(text)
-}
-
-/// Append `s` as a JSON string literal (quotes + escapes).
-pub fn push_json_string(out: &mut String, s: &str) {
-    out.push('"');
-    for c in s.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => {
-                let _ = write!(out, "\\u{:04x}", c as u32);
-            }
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-}
-
-/// Escape a string as a JSON string literal.
-pub fn json_string_literal(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 2);
-    push_json_string(&mut out, s);
-    out
-}
-
-/// Escape a short invalid sample as a JSON string literal.
-pub fn json_char_literal(c: &str) -> String {
-    json_string_literal(c)
 }
 
 /// Spine title string at `(z, n, book)` under the Basile title map.

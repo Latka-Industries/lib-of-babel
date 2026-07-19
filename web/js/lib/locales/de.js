@@ -61,13 +61,13 @@ export const de = {
   "about.tab.more": "Mehr",
   "about.tabsLabel": "Abschnitte",
   "gallery.coordsHuge.hint":
-    "Mbit-Bereich (buchgebunden) — Rücken und Farbkarte funktionieren; Flurwandern und Sprung sind aus. Ganzbuch-Text / Farbkarte können beim ersten Mal Minuten dauern.",
+    "Mbit-All (buchgebunden) — Rücken und Farbkarte funktionieren; Flurwandern und Sprung sind aus. Ganzbuch-Text / Farbkarte können beim ersten Mal Minuten dauern.",
   "gallery.coordsHuge.title":
-    "{scope} · Mbit-Bereich {coords} — nicht flurwanderbar",
+    "{scope} · Mbit-All {coords} — nicht flurwanderbar",
   "gallery.coordsHuge.minimap":
-    "Mbit-Bereich — Gitterausgänge deaktiviert. Siehe LIB-OF-BABEL → GRÖSSE.",
+    "Mbit-All — Gitterausgänge deaktiviert. Siehe LIB-OF-BABEL → GRÖSSE.",
   "gallery.coordsHuge.minimapShort": "Mbit · keine Ausgänge",
-  "gallery.mbitNotice.title": "MBIT-Bereich",
+  "gallery.mbitNotice.title": "MBIT-All",
   "gallery.mbitNotice.body":
     "Diese Galerie liegt auf der <b>buchgebundenen</b> Karte. Rücken und Farbkarten funktionieren. Flurpfeile und Sprung sind aus. <span class=\"unit-mbit\">Mbit</span>-Räume lassen sich nicht in einer URL speichern — öffnen Sie hier ein beliebiges Buch, speichern Sie ein Babelgram, dann <span class=\"ui\">Suchen…</span> → <span class=\"ui ui-tab\">Babelgram</span> zum Prüfen und Öffnen des gestempelten Raums. Buch öffnen oder ausleihen kann etwas dauern.",
   "gallery.mbitNotice.scale.slim":
@@ -174,7 +174,7 @@ target="_blank" rel="noopener noreferrer">Jorge Luis Borges, „Die Bibliothek v
 <li>Die Kopfzeilen-<span class="ui">Thema</span>-Schaltfläche (Sonne/Mond) wechselt Hell- und Dunkelmodus; die Wahl bleibt in diesem Browser.</li>
 <li>Nutzen Sie die <b>Minikarte</b> — klicken Sie auf einen Ausgangs-Hash. Mit den <kbd>Pfeiltasten</kbd> gehen Sie Flure und Treppen (außer bei offenem Dialog).</li>
 <li>Klicken Sie auf <span class="ui">Galerie&nbsp;(z,&nbsp;n)</span>, um zu springen — nur im <b>seitengebundenen</b> (wanderbaren) Bereich.</li>
-<li><span class="ui">Suchen…</span> → <span class="ui ui-tab">Foto</span> / <span class="ui ui-tab">Babelgram</span> kann Sie in den <b><span class="unit-mbit">Mbit</span>-Bereich</b> (buchgebunden) bringen: Rücken funktionieren, Flurwandern nicht.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
+<li><span class="ui">Suchen…</span> → <span class="ui ui-tab">Foto</span> / <span class="ui ui-tab">Babelgram</span> kann Sie in das <b><span class="unit-mbit">Mbit</span>-All</b> (buchgebunden) bringen: Rücken funktionieren, Flurwandern nicht.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-engines">ENGINES</button></li>
 <li>Jede Galerie hat ein <b>Siegel</b> — ein Emblem aus dem <b>Raum</b>-Hash. Gleicher Ort, gleiches Siegel; klicken Sie, um das <b>SVG</b> herunterzuladen.</li>
 <li>Geben Sie einen <span class="ui">Universum</span>-Namen ein oder würfeln Sie mit <span class="ui">&#9860;</span>; leer ist Standard. Gleiche Koordinaten, neue Bibliothek — die Spur bleibt.</li>
 <li>Das <span class="ui">Alphabet</span>-Menü wechselt nur die <b>Linse</b> — neue Rücken und Texte; Hash, Siegel und Spur bleiben.&nbsp;&nbsp;&nbsp; <button type="button" class="ui about-goto-tab" data-about-tab="aboutTab-alphabets">ALPHABETE</button></li>
@@ -263,7 +263,7 @@ Bijektion über <code>|Σ|^BOOK</code>. Jedes volle Buch einmal.
 <span class="ui ui-tab">Foto</span> und <span class="ui ui-tab">Babelgram</span>-Identität:
 das Buchstabenmosaik <b>ist</b> dieses Buch.
 </p>
-<h4>MBIT-Bereich</h4>
+<h4>MBIT-All</h4>
 <p class="dim">
 Buchkarten-Achsen (Basile ≈ 3–6 <span class="unit-mbit">Mbit</span> pro Achse nach Entpacken): Fußzeile
 erste/letzte fünf Ziffern; Hover: wissenschaftlich + Bitbreite; Klick auf
@@ -280,7 +280,7 @@ Vergleichsbänder:
 <h4>Koordinatenanzeige</h4>
 <p class="dim">
 Fußzeile <span class="ui">Galerie (z, n)</span>: Seitenkarte → wissenschaftliche Notation wenn lang;
-Buchkarte / <span class="unit-mbit">Mbit</span>-Bereich → erste/letzte fünf Ziffern (<code>12345…67890</code>); Hover zeigt
+Buchkarte / <span class="unit-mbit">Mbit</span>-All → erste/letzte fünf Ziffern (<code>12345…67890</code>); Hover zeigt
 wissenschaftliche Form und Bitbreite. Klick öffnet den Raumhinweis mit Stellen pro Achse.
 Drahtform <code>c…</code> (base64url), wenn Achsen kurze Dezimalzahlen sprengen.
 </p>
@@ -304,7 +304,7 @@ und Textsuche. Gleiche Adresse → immer derselbe Raum. Kurze Flags stehen <b>vo
 </p>
 <h4>Raum-Flags</h4>
 <ul>
-<li><code>z</code> / <code>n</code> — Galeriekoordinaten (Dezimal oder kompakt <code>c…</code>, solange seitenkarten-groß). Im <span class="unit-mbit">Mbit</span>-Bereich weggelassen.</li>
+<li><code>z</code> / <code>n</code> — Galeriekoordinaten (Dezimal oder kompakt <code>c…</code>, solange seitenkarten-groß). Im <span class="unit-mbit">Mbit</span>-All weggelassen.</li>
 <li><code>h</code> — 16 Hex-Zeichen des Raum-<b>BLAKE3</b>-Hashs (Beweis; nicht zu Koordinaten umkehrbar).</li>
 <li><code>a</code> — Alphabet-Linsen-ID.</li>
 <li><code>u</code> — Universumsname (fehlt / leer → Standard).</li>
@@ -521,9 +521,9 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "search.count": "{n} / {max}",
   "search.countTip": "{n} Alphabet-Zellen von {max} erlaubt",
   "search.hintContent":
-    "nutzt die aktuelle Alphabet-Linse · bis eine Seite",
+    "nutzt die aktuelle Alphabet-Linse · ≤3.200 = Seite · länger → Buch / <span class=\"unit-mbit\">Mbit</span>-All",
   "search.hintContentBook":
-    "Buchkarte / <span class=\"unit-mbit\">Mbit</span>",
+    "Buchkarte / <span class=\"unit-mbit\">Mbit</span>-All",
   "search.hintTitle":
     "nutzt die aktuelle Alphabet-Linse · bis {n} Rückentitel-Zellen",
   "search.canTakeAFew": "kann etwas dauern",
@@ -649,11 +649,11 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "book.pageInd": "Seite {page} / {total}",
   "book.pagePlaceholder": "Seite",
   "book.waitMbit":
-    "<span class=\"unit-mbit\">Mbit</span>-Bereich — Buch wird aufgebaut. Kann etwas dauern.",
+    "<span class=\"unit-mbit\">Mbit</span>-All — Buch wird aufgebaut. Kann etwas dauern.",
   "book.waitMbitImage":
-    "<span class=\"unit-mbit\">Mbit</span>-Bereich — Farbkarte wird aufgebaut. Kann etwas dauern.",
+    "<span class=\"unit-mbit\">Mbit</span>-All — Farbkarte wird aufgebaut. Kann etwas dauern.",
   "book.waitMbitBorrow":
-    "<span class=\"unit-mbit\">Mbit</span>-Bereich — vollständiger Buchtext wird geschrieben. Kann etwas dauern.",
+    "<span class=\"unit-mbit\">Mbit</span>-All — vollständiger Buchtext wird geschrieben. Kann etwas dauern.",
   "book.wall": "Wand {n}",
   "book.wallBook": "Wand {n} · Buch {book}",
 
