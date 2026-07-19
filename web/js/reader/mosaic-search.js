@@ -1,7 +1,13 @@
 // Babelgram: stamped PNG → locate → go / copy short handoff link.
 // Photo: mosaic_find_book in a dedicated worker (main-thread fallback).
 
-import { S, applyUniverseFromInput, syncLensControls } from "../gallery/state.js";
+import {
+  S,
+  applyUniverse,
+  applyUniverseSeed,
+  applyUniverseFromInput,
+  syncLensControls,
+} from "../gallery/state.js";
 import {
   el,
   escapeHtml,
@@ -40,6 +46,7 @@ import {
   node_hash_hex,
   get_universe,
   set_universe,
+  universe_seed_for,
   alphabet_len,
 } from "../lib/wasm.js";
 import {
@@ -842,6 +849,7 @@ function paintModeResult() {
       diffRgba: payload.diffRgba || null,
       diffW: payload.diffW || 0,
       diffH: payload.diffH || 0,
+      universeShifted: !!payload.universeShifted,
     });
     return;
   }
@@ -1299,6 +1307,12 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
       seed,
     },
   );
+  const shiftNote = proof.universeShifted
+    ? `<p class="find-dim">${t("search.babel.universeShifted", {
+        universe: escapeHtml(universeLabel),
+        seed: escapeHtml(seed),
+      })}</p>`
+    : "";
   const verify = proof.verify || { sealed: false, ok: null };
   let verifyLine = "";
   if (verify.sealed && verify.ok) {
@@ -1400,7 +1414,7 @@ function paintBabelHits(box, hits, sameUniverse, flat, proof = {}) {
       </div>`;
     })
     .join("");
-  box.innerHTML = `<p class="find-dim">${escapeHtml(intro)}</p>${rows}`;
+  box.innerHTML = `${shiftNote}<p class="find-dim">${escapeHtml(intro)}</p>${rows}`;
   box.classList.add("show");
   babelCompareFrames = canCompare
     ? {
@@ -1516,6 +1530,18 @@ export function clearMosaicResults() {
   paintModeResult();
 }
 
+/** Apply stamp universe for book-scope (Mbit) Babelgrams when session differs. */
+function applyBabelStampUniverse(meta) {
+  const seed = typeof meta.u === "bigint" ? meta.u : BigInt(meta.u);
+  const name = typeof meta.name === "string" ? meta.name : null;
+  if (name != null && universe_seed_for(name) === seed) {
+    applyUniverse(name);
+  } else {
+    applyUniverseSeed(seed);
+  }
+  syncLensControls();
+}
+
 async function runBabelLocate(modeAtStart, findBtn) {
   try {
     if (mosaicMode !== modeAtStart || !babelMeta) return;
@@ -1524,6 +1550,17 @@ async function runBabelLocate(modeAtStart, findBtn) {
     if (alphabetId !== S.alphabetId) {
       S.alphabetId = alphabetId;
       syncLensControls();
+    }
+    // Mbit (book-scope) stamps are the return ticket — follow their universe.
+    let universeShifted = false;
+    const stampSeed =
+      typeof babelMeta.u === "bigint" ? babelMeta.u : BigInt(babelMeta.u);
+    if (
+      babelMeta.scope === "book" &&
+      BigInt(get_universe()) !== stampSeed
+    ) {
+      applyBabelStampUniverse(babelMeta);
+      universeShifted = true;
     }
     const accent = room_accent(
       coordForWasm(babelMeta.z),
@@ -1576,19 +1613,25 @@ async function runBabelLocate(modeAtStart, findBtn) {
     }
     const seal = await contentSeal(flat);
     if (mosaicMode !== modeAtStart) return;
-    const sameUniverse = BigInt(get_universe()) === BigInt(babelMeta.u);
-    const savedU = get_universe();
+    const sameUniverse = BigInt(get_universe()) === stampSeed;
+    // Room hash must be under the stamp universe (session already matches after Mbit shift).
     let roomHash;
-    try {
-      set_universe(
-        typeof babelMeta.u === "bigint" ? babelMeta.u : BigInt(babelMeta.u),
-      );
+    if (sameUniverse) {
       roomHash = node_hash_hex(
         coordForWasm(babelMeta.z),
         coordForWasm(babelMeta.n),
       );
-    } finally {
-      set_universe(savedU);
+    } else {
+      const savedU = get_universe();
+      try {
+        set_universe(stampSeed);
+        roomHash = node_hash_hex(
+          coordForWasm(babelMeta.z),
+          coordForWasm(babelMeta.n),
+        );
+      } finally {
+        set_universe(savedU);
+      }
     }
     const verify = verifyBabelProof(babelMeta, { seal, roomHash });
     const proof = {
@@ -1599,6 +1642,7 @@ async function runBabelLocate(modeAtStart, findBtn) {
       diffRgba,
       diffW,
       diffH,
+      universeShifted,
     };
     // Same-universe: go to stamp coords only when seal+hash pass (or legacy unsealed).
     const trustStamp = !verify.sealed || verify.ok === true;

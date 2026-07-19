@@ -1202,12 +1202,15 @@ pre.page mark.search-hit {
 .about-body .dim { color: var(--muted); }
 .about-body a { color: var(--accent-link); }
 .about-body a:hover { color: var(--accent-link-hover); }
-.about-github {
+.about-links {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin: 1.25rem 0 0;
   padding-top: 0.85rem;
   border-top: 1px solid var(--line);
 }
-.about-github-link {
+.about-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1216,15 +1219,15 @@ pre.page mark.search-hit {
   padding: 0.25rem;
   line-height: 0;
 }
-.about-github-link:hover,
-.about-github-link:focus-visible {
+.about-link:hover,
+.about-link:focus-visible {
   color: var(--ink);
 }
-.about-github-link:focus-visible {
+.about-link:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.about-github-icon {
+.about-link-icon {
   display: block;
 }
 .alpha-browse {

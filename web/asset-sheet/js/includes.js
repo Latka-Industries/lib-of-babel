@@ -9,6 +9,7 @@ const SECTIONS = [
   "find",
   "compare",
   "dialogs",
+  "about",
   "mbit",
 ];
 

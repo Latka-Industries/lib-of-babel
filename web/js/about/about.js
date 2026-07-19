@@ -47,9 +47,10 @@ function aboutBodyMaxHeightPx() {
 }
 
 export function selectAboutTab(tabId, { animate = true } = {}) {
-  const tabs = [...document.querySelectorAll(".about-tab")];
-  const panels = [...document.querySelectorAll(".about-panel")];
   const modal = el("aboutModal");
+  const root = modal || document;
+  const tabs = [...root.querySelectorAll(".about-tab")];
+  const panels = [...root.querySelectorAll(".about-panel")];
   const body = modal?.querySelector(".about-body");
   const current = tabs.find((t) => t.getAttribute("aria-selected") === "true");
   if (current?.id === tabId) return;
@@ -116,7 +117,9 @@ export function selectAboutTab(tabId, { animate = true } = {}) {
 }
 
 export function stepAboutTab(dir) {
-  const tabs = [...document.querySelectorAll(".about-tab")];
+  const modal = el("aboutModal");
+  const root = modal || document;
+  const tabs = [...root.querySelectorAll(".about-tab")];
   const i = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
   const next = tabs[(i + dir + tabs.length) % tabs.length];
   selectAboutTab(next.id);
@@ -352,13 +355,15 @@ export function renderAboutScale() {
 }
 
 export function wireAboutTabs() {
-  document.querySelectorAll(".about-tab").forEach((tab) => {
+  const modal = el("aboutModal");
+  const root = modal || document;
+  root.querySelectorAll(".about-tab").forEach((tab) => {
     tab.addEventListener("click", () => selectAboutTab(tab.id));
   });
   // Guide copy can deep-link to another section (ALPHABETS / BOOKS / SEARCH chips).
-  el("aboutModal")?.addEventListener("click", (e) => {
+  modal?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-about-tab]");
-    if (!btn || !el("aboutModal")?.contains(btn)) return;
+    if (!btn || !modal.contains(btn)) return;
     const tabId = btn.getAttribute("data-about-tab");
     if (tabId) selectAboutTab(tabId);
   });

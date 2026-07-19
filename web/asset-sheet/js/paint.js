@@ -26,6 +26,11 @@ import {
   escapeHtml,
 } from "../../js/lib/util.js";
 import { formatBitMagnitude } from "../../js/lib/coords.js";
+import { setLocale, applyI18n } from "../../js/lib/i18n.js";
+import {
+  renderAboutAlphabets,
+  renderAboutScale,
+} from "../../js/about/about.js";
 
 const CATALOGS = { en, de, nl };
 
@@ -615,6 +620,34 @@ function paintSearchMosaicSample(locale = "en") {
   setText("sheetHitCopy", translate("actions.copy"));
   setText("sheetHitCheckDiff", translate("search.babel.compare.checkDiff"));
   setText("sheetHitCompareLetters", translate("search.mosaic.compare.checkDiff"));
+
+  // Babelgram Mbit universe-shift sample (exact-book path after session follows stamp).
+  const shiftUni = "wonderland";
+  const shiftSeed = "0x9f8e7d6c5b4a";
+  const shiftNote = document.getElementById("sheetBabelShiftNote");
+  if (shiftNote) {
+    shiftNote.innerHTML = translate("search.babel.universeShifted", {
+      universe: escapeHtml(formatUniverseLabel(shiftUni)),
+      seed: escapeHtml(shiftSeed),
+    });
+  }
+  const babelIntro = document.getElementById("sheetBabelIntroSame");
+  if (babelIntro) {
+    babelIntro.textContent = translate("search.babel.resultsIntroSame", {
+      universe: formatUniverseLabel(shiftUni),
+      seed: shiftSeed,
+    });
+  }
+  setText("sheetBabelVerifyOk", translate("search.babel.verifyOk"));
+  const babelGal = document.getElementById("sheetBabelGalleryLine");
+  if (babelGal) {
+    babelGal.innerHTML =
+      `${translate("search.result.gallery", { coords: formatCoordDisplay(SHEET_SAMPLE_HUGE, SHEET_SAMPLE_HUGE) })} · ` +
+      `${translate("search.mosaic.hitBook", { book: "14" })} · ` +
+      `${sheetAlphabetSymbolLabel(DEFAULT_ALPHABET_ID, translate)}`;
+  }
+  setText("sheetBabelGo", translate("search.go"));
+  setText("sheetBabelCopy", translate("actions.copy"));
 }
 
 /** Text-hit result card (`.find-result.show`) — book-scope hit, same builder as production. */
@@ -737,6 +770,7 @@ function paintDialogsInventory(locale = "en") {
 
 /** Paints every dynamic sample on the sheet for one locale — called on load + locale tab clicks. */
 function paintInventory(locale = "en") {
+  setLocale(locale);
   paintChrome(locale);
   paintSearchBook(locale);
   paintChips(locale);
@@ -747,6 +781,17 @@ function paintInventory(locale = "en") {
   paintSearchMosaicSample(locale);
   paintSearchHit(locale);
   paintDialogsInventory(locale);
+  paintAboutGuide(locale);
+}
+
+/** Full LIB·OF·BABEL guide — same locale keys + scale/alphabet renderers as production. */
+function paintAboutGuide(locale = "en") {
+  setLocale(locale);
+  const modal = document.getElementById("aboutModal");
+  if (!modal) return;
+  applyI18n(modal);
+  renderAboutScale();
+  renderAboutAlphabets();
 }
 
 function paintMbit(locale) {

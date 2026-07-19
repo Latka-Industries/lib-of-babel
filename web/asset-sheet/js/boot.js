@@ -1,5 +1,7 @@
 import { THEME_KEY, getTheme, toggleTheme, syncThemeToggle } from "../../js/chrome/theme.js";
 import { wireDropdownMenu } from "../../js/chrome/dropdown.js";
+import { init } from "../../js/lib/wasm.js";
+import { wireAboutTabs } from "../../js/about/about.js";
 import { loadSections } from "./includes.js";
 import {
   paintInventory,
@@ -20,6 +22,7 @@ const SHEET_NAV = {
   searchBands: "search",
   compare: "compare",
   dialogs: "dialogs",
+  about: "about",
   reader: "reader",
   history: "history",
   mbit: "mbit copy",
@@ -111,6 +114,12 @@ function wireLocale() {
 
 async function main() {
   try {
+    await init();
+  } catch (err) {
+    console.warn("asset-sheet: WASM init failed — alphabet guide glyphs may be empty", err);
+  }
+
+  try {
     await loadSections();
   } catch (err) {
     console.error(err);
@@ -127,6 +136,7 @@ async function main() {
   wireTheme();
   paintSwatches();
   paintInventory("en");
+  wireAboutTabs();
   wireNav();
   wireDemoDropdowns();
   wireCompare();

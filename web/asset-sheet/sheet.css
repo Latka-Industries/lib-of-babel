@@ -25,7 +25,7 @@
   min-width: 9.5rem;
 }
 .sheet-main {
-  max-width: 52rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: 1.5rem 1.25rem 4rem;
 }
@@ -327,3 +327,13 @@
 .sheet-alpha-picker-demo {
   height: 13rem;
 }
+.sheet-about-shell {
+  max-width: 100%;
+}
+.sheet-about-modal .about-body {
+  max-height: min(74vh, 36rem);
+}
+.sheet-about-modal .about-tabs {
+  flex-wrap: wrap;
+}
+
