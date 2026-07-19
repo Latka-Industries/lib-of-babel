@@ -1,4 +1,4 @@
-//! Page and book text generation (page-linked Basile virgin pages — no search overlay).
+//! Page and book text generation (Basile virgin pages — no search overlay).
 
 use num_bigint::BigInt;
 
@@ -7,6 +7,15 @@ use crate::config::{
     CHARS_PER_LINE, LINES_PER_PAGE, MAX_ALPHABET_LEN, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK,
     alphabet,
 };
+
+/// Which Basile bijection feeds text / colour paint.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ContentScope {
+    /// Page-linked map — wander, spines, short text search, reader `book_image`.
+    PageLinked,
+    /// Book-linked map — photo Find / Babelgram identity.
+    BookLinked,
+}
 
 /// Gallery coordinate + page identity for text generation.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -45,16 +54,37 @@ impl PageAddr {
             universe_seed,
         }
     }
+}
 
-    fn to_key(&self) -> PageKey {
-        PageKey {
-            universe_seed: self.universe_seed,
-            z: self.z.clone(),
-            n: self.n.clone(),
-            book_index: self.book_index,
-            page: self.page,
-            alphabet_id: self.alphabet_id,
+impl From<&PageAddr> for PageKey {
+    fn from(a: &PageAddr) -> Self {
+        Self {
+            universe_seed: a.universe_seed,
+            z: a.z.clone(),
+            n: a.n.clone(),
+            book_index: a.book_index,
+            page: a.page,
+            alphabet_id: a.alphabet_id,
         }
+    }
+}
+
+impl From<&PageKey> for PageAddr {
+    fn from(k: &PageKey) -> Self {
+        Self {
+            z: k.z.clone(),
+            n: k.n.clone(),
+            book_index: k.book_index,
+            page: k.page,
+            alphabet_id: k.alphabet_id,
+            universe_seed: k.universe_seed,
+        }
+    }
+}
+
+impl From<PageKey> for PageAddr {
+    fn from(k: PageKey) -> Self {
+        Self::from(&k)
     }
 }
 
@@ -72,34 +102,45 @@ impl PageRender {
     }
 }
 
-/// Raw symbol indices for one virgin page (Basile map).
+/// Raw symbol indices for one virgin page under `scope`.
 #[must_use]
-pub fn page_symbols(req: &PageRender) -> [u16; PAGE_CONTENT_SYMBOLS] {
-    let alpha_len_usize = alphabet(req.addr.alphabet_id).len();
+pub fn page_symbols_for(req: &PageRender, scope: ContentScope) -> [u16; PAGE_CONTENT_SYMBOLS] {
+    let ab = alphabet(req.addr.alphabet_id);
+    let alpha_len = ab.len() as u32;
     debug_assert!(
-        alpha_len_usize > 0 && alpha_len_usize <= MAX_ALPHABET_LEN as usize,
+        alpha_len > 0 && alpha_len <= u32::from(MAX_ALPHABET_LEN),
         "alphabet must fit u16 soft cap"
     );
-    page_symbols_at(&req.addr.to_key(), alpha_len_usize as u32)
+    match scope {
+        ContentScope::PageLinked => page_symbols_at(&PageKey::from(&req.addr), alpha_len),
+        ContentScope::BookLinked => {
+            let book = book_symbols_at(
+                &req.addr.z,
+                &req.addr.n,
+                req.addr.book_index,
+                req.addr.universe_seed,
+                req.addr.alphabet_id,
+                alpha_len,
+            );
+            let page = (req.addr.page % PAGES_PER_BOOK) as usize;
+            let start = page * PAGE_CONTENT_SYMBOLS;
+            let mut page_syms = [0u16; PAGE_CONTENT_SYMBOLS];
+            page_syms.copy_from_slice(&book[start..start + PAGE_CONTENT_SYMBOLS]);
+            page_syms
+        }
+    }
+}
+
+/// Raw symbol indices for one virgin page (**page-linked**).
+#[must_use]
+pub fn page_symbols(req: &PageRender) -> [u16; PAGE_CONTENT_SYMBOLS] {
+    page_symbols_for(req, ContentScope::PageLinked)
 }
 
 /// One page slice of the **book-linked** map.
 #[must_use]
 pub fn page_symbols_book_scope(req: &PageRender) -> [u16; PAGE_CONTENT_SYMBOLS] {
-    let ab = alphabet(req.addr.alphabet_id);
-    let book = book_symbols_at(
-        &req.addr.z,
-        &req.addr.n,
-        req.addr.book_index,
-        req.addr.universe_seed,
-        req.addr.alphabet_id,
-        ab.len() as u32,
-    );
-    let page = (req.addr.page % PAGES_PER_BOOK) as usize;
-    let start = page * PAGE_CONTENT_SYMBOLS;
-    let mut page_syms = [0u16; PAGE_CONTENT_SYMBOLS];
-    page_syms.copy_from_slice(&book[start..start + PAGE_CONTENT_SYMBOLS]);
-    page_syms
+    page_symbols_for(req, ContentScope::BookLinked)
 }
 
 fn symbols_to_page_text(symbols: &[u16], ab: &[&str]) -> String {
@@ -115,19 +156,77 @@ fn symbols_to_page_text(symbols: &[u16], ab: &[&str]) -> String {
     out
 }
 
+/// One page of content at the address in `req` under `scope`.
+#[must_use]
+pub fn page_text_for(req: &PageRender, scope: ContentScope) -> String {
+    symbols_to_page_text(
+        &page_symbols_for(req, scope),
+        alphabet(req.addr.alphabet_id),
+    )
+}
+
 /// One page of content at the address in `req` (**page-linked**).
 #[must_use]
 pub fn page_text(req: &PageRender) -> String {
-    symbols_to_page_text(&page_symbols(req), alphabet(req.addr.alphabet_id))
+    page_text_for(req, ContentScope::PageLinked)
 }
 
 /// One page slice of the **book-linked** map (photo Find / Babelgram).
 #[must_use]
 pub fn page_text_book_scope(req: &PageRender) -> String {
-    symbols_to_page_text(
-        &page_symbols_book_scope(req),
-        alphabet(req.addr.alphabet_id),
-    )
+    page_text_for(req, ContentScope::BookLinked)
+}
+
+/// Full text of one book under `scope`.
+#[must_use]
+pub fn book_text_for(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    universe_seed: u64,
+    scope: ContentScope,
+) -> String {
+    let ab = alphabet(alphabet_id);
+    let mut out = String::with_capacity(
+        (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
+    );
+    match scope {
+        ContentScope::PageLinked => {
+            for page in 0..PAGES_PER_BOOK {
+                let req = PageRender::new(PageAddr::new(
+                    z.clone(),
+                    n.clone(),
+                    book_index,
+                    page,
+                    alphabet_id,
+                    universe_seed,
+                ));
+                out.push_str(&symbols_to_page_text(
+                    &page_symbols_for(&req, ContentScope::PageLinked),
+                    ab,
+                ));
+            }
+        }
+        ContentScope::BookLinked => {
+            let book = book_symbols_at(
+                z,
+                n,
+                book_index,
+                universe_seed,
+                alphabet_id,
+                ab.len() as u32,
+            );
+            for page in 0..PAGES_PER_BOOK {
+                let start = page as usize * PAGE_CONTENT_SYMBOLS;
+                out.push_str(&symbols_to_page_text(
+                    &book[start..start + PAGE_CONTENT_SYMBOLS],
+                    ab,
+                ));
+            }
+        }
+    }
+    out
 }
 
 /// Full text of one book — **page-linked** (wander / short search).
@@ -139,27 +238,17 @@ pub fn book_text(
     alphabet_id: u32,
     universe_seed: u64,
 ) -> String {
-    let ab = alphabet(alphabet_id);
-    let mut out = String::with_capacity(
-        (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
-    );
-    for page in 0..PAGES_PER_BOOK {
-        let req = PageRender::new(PageAddr::new(
-            z.clone(),
-            n.clone(),
-            book_index,
-            page,
-            alphabet_id,
-            universe_seed,
-        ));
-        out.push_str(&symbols_to_page_text(&page_symbols(&req), ab));
-    }
-    out
+    book_text_for(
+        z,
+        n,
+        book_index,
+        alphabet_id,
+        universe_seed,
+        ContentScope::PageLinked,
+    )
 }
 
 /// Full text of one book — **book-linked** (photo Find / Babelgram identity).
-///
-/// Loads the book map once, then formats each page slice.
 #[must_use]
 pub fn book_text_book_scope(
     z: &BigInt,
@@ -168,24 +257,12 @@ pub fn book_text_book_scope(
     alphabet_id: u32,
     universe_seed: u64,
 ) -> String {
-    let ab = alphabet(alphabet_id);
-    let book = book_symbols_at(
+    book_text_for(
         z,
         n,
         book_index,
-        universe_seed,
         alphabet_id,
-        ab.len() as u32,
-    );
-    let mut out = String::with_capacity(
-        (PAGES_PER_BOOK as usize) * (PAGE_CONTENT_SYMBOLS + LINES_PER_PAGE as usize),
-    );
-    for page in 0..PAGES_PER_BOOK {
-        let start = page as usize * PAGE_CONTENT_SYMBOLS;
-        out.push_str(&symbols_to_page_text(
-            &book[start..start + PAGE_CONTENT_SYMBOLS],
-            ab,
-        ));
-    }
-    out
+        universe_seed,
+        ContentScope::BookLinked,
+    )
 }

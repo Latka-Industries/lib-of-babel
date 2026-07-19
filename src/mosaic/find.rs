@@ -6,10 +6,11 @@ use crate::color::{book_grid_dims, book_image_book_scope_at, paint_indices_rgba}
 use crate::config::{BOOK_CONTENT_SYMBOLS, PAGE_CONTENT_SYMBOLS, PAGES_PER_BOOK};
 use crate::universe::universe as active_universe;
 
-use super::project::{PhotoPaletteKind, ensure_book_rgba, project_indices};
+use super::project::{Accent, PhotoPaletteKind, ensure_book_rgba, project_indices};
 use super::score::{fit_percent, rgb_fit_triple};
-use super::util::indices_to_flat;
-use super::util::{Accent, JsonHit, alphabet_ctx, json_results, palette_for, rgba_abs_diff};
+use super::util::{
+    JsonHit, alphabet_ctx, indices_to_flat, json_results, palette_for, rgba_abs_diff,
+};
 
 /// Babel / photo locate → results JSON + full-book flat + proof frames.
 ///
@@ -158,9 +159,7 @@ pub struct FindBookLocate {
     alphabet_id: u32,
     flat: String,
     indices: Vec<u16>,
-    room_hue: f64,
-    room_chroma: f64,
-    room_light: f64,
+    room: Accent,
 }
 
 #[wasm_bindgen]
@@ -217,9 +216,7 @@ pub fn mosaic_find_book_locate(
         indices = next;
         let (z2, n2, b2) = invert_book_symbols(&indices, universe_seed, alphabet_id, alpha_len);
         let room = Accent::for_room(&z2, &n2, universe_seed);
-        let same_room = (room.hue - accent.hue).abs() < 1e-9
-            && (room.chroma - accent.chroma).abs() < 1e-9
-            && (room.light - accent.light).abs() < 1e-9;
+        let same_room = room.approx_eq(accent);
         z = z2;
         n = n2;
         book_index = b2;
@@ -236,9 +233,7 @@ pub fn mosaic_find_book_locate(
         alphabet_id,
         flat,
         indices,
-        room_hue: accent.hue,
-        room_chroma: accent.chroma,
-        room_light: accent.light,
+        room: accent,
     })
 }
 
@@ -259,7 +254,7 @@ pub fn mosaic_find_book_finish(locate: &FindBookLocate) -> Result<BabelLocateRes
     // Proof must use book-linked paint (page-linked `book_image` is a different map).
     let book = book_image_book_scope_at(&z, &n, book_index, alphabet_id);
     let book_pixels = book.pixels();
-    let room = Accent::new(locate.room_hue, locate.room_chroma, locate.room_light);
+    let room = locate.room;
     let room_palette = palette_for(ab, room, PhotoPaletteKind::Glyph);
     let proof = paint_indices_rgba(&locate.indices, &room_palette);
     let fit = rgb_fit_triple(&proof, &book_pixels, 1);

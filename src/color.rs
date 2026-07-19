@@ -15,7 +15,7 @@ use crate::config::{
 };
 use crate::gallery::node_fingerprint;
 use crate::gallery::parse_coord;
-use crate::page::{PageAddr, PageRender, page_symbols};
+use crate::page::{ContentScope, PageAddr, PageRender, page_symbols_for};
 use crate::search::segment::text_to_cell_indices;
 use crate::universe::universe;
 
@@ -375,6 +375,55 @@ fn room_palette(z: &BigInt, n: &BigInt, alphabet_id: u32, universe_seed: u64) ->
     build_glyph_palette(ab, hue, chroma, light)
 }
 
+fn book_image_pages_for(
+    z: &BigInt,
+    n: &BigInt,
+    book_index: u32,
+    alphabet_id: u32,
+    page_start: u32,
+    page_end: u32,
+    scope: ContentScope,
+) -> Vec<u8> {
+    let start = page_start.min(PAGES_PER_BOOK);
+    let end = page_end.min(PAGES_PER_BOOK).max(start);
+    let universe_seed = universe();
+    let palette = room_palette(z, n, alphabet_id, universe_seed);
+
+    match scope {
+        ContentScope::PageLinked => {
+            // Each page is an independent virgin page (fast wander).
+            let mut symbols = Vec::with_capacity((end - start) as usize * PAGE_CONTENT_SYMBOLS);
+            for page in start..end {
+                let req = PageRender::new(PageAddr::new(
+                    z.clone(),
+                    n.clone(),
+                    book_index,
+                    page,
+                    alphabet_id,
+                    universe_seed,
+                ));
+                symbols.extend_from_slice(&page_symbols_for(&req, ContentScope::PageLinked));
+            }
+            paint_indices_rgba(&symbols, &palette)
+        }
+        ContentScope::BookLinked => {
+            // Mosaic Find proof — one book materialisation, then page slices.
+            let ab = alphabet(alphabet_id);
+            let book = book_symbols_at(
+                z,
+                n,
+                book_index,
+                universe_seed,
+                alphabet_id,
+                ab.len() as u32,
+            );
+            let sym_start = start as usize * PAGE_CONTENT_SYMBOLS;
+            let sym_end = end as usize * PAGE_CONTENT_SYMBOLS;
+            paint_indices_rgba(&book[sym_start..sym_end], &palette)
+        }
+    }
+}
+
 fn book_image_pages_inner(
     z: &BigInt,
     n: &BigInt,
@@ -383,25 +432,15 @@ fn book_image_pages_inner(
     page_start: u32,
     page_end: u32,
 ) -> Vec<u8> {
-    let start = page_start.min(PAGES_PER_BOOK);
-    let end = page_end.min(PAGES_PER_BOOK).max(start);
-    let universe_seed = universe();
-    let palette = room_palette(z, n, alphabet_id, universe_seed);
-
-    // Page-linked: each page is an independent virgin page (fast wander).
-    let mut symbols = Vec::with_capacity((end - start) as usize * PAGE_CONTENT_SYMBOLS);
-    for page in start..end {
-        let req = PageRender::new(PageAddr::new(
-            z.clone(),
-            n.clone(),
-            book_index,
-            page,
-            alphabet_id,
-            universe_seed,
-        ));
-        symbols.extend_from_slice(&page_symbols(&req));
-    }
-    paint_indices_rgba(&symbols, &palette)
+    book_image_pages_for(
+        z,
+        n,
+        book_index,
+        alphabet_id,
+        page_start,
+        page_end,
+        ContentScope::PageLinked,
+    )
 }
 
 /// Book-linked paint — used only for mosaic Find proof (expensive).
@@ -413,22 +452,15 @@ fn book_image_book_scope_pages_inner(
     page_start: u32,
     page_end: u32,
 ) -> Vec<u8> {
-    let start = page_start.min(PAGES_PER_BOOK);
-    let end = page_end.min(PAGES_PER_BOOK).max(start);
-    let universe_seed = universe();
-    let ab = alphabet(alphabet_id);
-    let palette = room_palette(z, n, alphabet_id, universe_seed);
-    let book = book_symbols_at(
+    book_image_pages_for(
         z,
         n,
         book_index,
-        universe_seed,
         alphabet_id,
-        ab.len() as u32,
-    );
-    let sym_start = start as usize * PAGE_CONTENT_SYMBOLS;
-    let sym_end = end as usize * PAGE_CONTENT_SYMBOLS;
-    paint_indices_rgba(&book[sym_start..sym_end], &palette)
+        page_start,
+        page_end,
+        ContentScope::BookLinked,
+    )
 }
 
 #[wasm_bindgen]

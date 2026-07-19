@@ -3,12 +3,44 @@
 use wasm_bindgen::prelude::*;
 
 use crate::color::{
-    book_cell_count, book_grid_dims, build_glyph_palette, build_photo_luma_palette,
+    book_cell_count, book_grid_dims, build_glyph_palette, build_photo_luma_palette, room_accent_at,
 };
 use crate::config::alphabet;
 
 use super::lab::{build_nearest_lut, clamp_channel, nearest_index};
 use super::score::downsample_rgba;
+
+/// OKLCH accent knobs shared by projection / room palette.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct Accent {
+    pub hue: f64,
+    pub chroma: f64,
+    pub light: f64,
+}
+
+impl Accent {
+    pub(crate) fn new(hue: f64, chroma: f64, light: f64) -> Self {
+        Self { hue, chroma, light }
+    }
+
+    pub(crate) fn from_array([hue, chroma, light]: [f64; 3]) -> Self {
+        Self { hue, chroma, light }
+    }
+
+    pub(crate) fn for_room(
+        z: &num_bigint::BigInt,
+        n: &num_bigint::BigInt,
+        universe_seed: u64,
+    ) -> Self {
+        Self::from_array(room_accent_at(z, n, universe_seed))
+    }
+
+    pub(crate) fn approx_eq(self, other: Self) -> bool {
+        (self.hue - other.hue).abs() < 1e-9
+            && (self.chroma - other.chroma).abs() < 1e-9
+            && (self.light - other.light).abs() < 1e-9
+    }
+}
 
 /// Which alphabet colour map to project the photo onto.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -23,6 +55,13 @@ impl PhotoPaletteKind {
     pub(crate) fn from_u32(v: u32) -> Self {
         if v == 0 { Self::Luma } else { Self::Glyph }
     }
+
+    pub(crate) fn build(self, ab: &[&str], accent: Accent) -> Vec<[u8; 3]> {
+        match self {
+            Self::Luma => build_photo_luma_palette(ab, accent.hue, accent.chroma, accent.light),
+            Self::Glyph => build_glyph_palette(ab, accent.hue, accent.chroma, accent.light),
+        }
+    }
 }
 
 /// Shared knobs for photo→alphabet projection / candidate search.
@@ -33,9 +72,7 @@ impl PhotoPaletteKind {
 #[derive(Clone, Copy, Debug)]
 pub struct MosaicOpts {
     pub(crate) alphabet_id: u32,
-    pub(crate) hue: f64,
-    pub(crate) chroma: f64,
-    pub(crate) light: f64,
+    pub(crate) accent: Accent,
     pub(crate) space_threshold: f64,
     pub(crate) dither: bool,
     /// `0` luma, `1` glyph — kept as `u32` so wasm-bindgen can expose the struct cleanly.
@@ -55,9 +92,7 @@ impl MosaicOpts {
     ) -> Self {
         Self {
             alphabet_id,
-            hue,
-            chroma,
-            light,
+            accent: Accent::new(hue, chroma, light),
             space_threshold: space_threshold.clamp(0.0, 255.0),
             dither,
             palette_kind: match palette_kind {
@@ -199,10 +234,7 @@ pub(crate) fn ensure_book_rgba(src: &[u8]) -> Result<(u32, u32), String> {
 fn build_photo_palette(opts: &MosaicOpts) -> (usize, Vec<[u8; 3]>) {
     let ab = alphabet(opts.alphabet_id);
     let space_idx = alphabet_space_idx(ab);
-    let palette = match opts.palette_kind() {
-        PhotoPaletteKind::Luma => build_photo_luma_palette(ab, opts.hue, opts.chroma, opts.light),
-        PhotoPaletteKind::Glyph => build_glyph_palette(ab, opts.hue, opts.chroma, opts.light),
-    };
+    let palette = opts.palette_kind().build(ab, opts.accent);
     (space_idx, palette)
 }
 

@@ -8,11 +8,11 @@ use crate::universe::universe as active_universe;
 use crate::utils::JsonObject;
 
 use super::project::{
-    MosaicOpts, PhotoPaletteKind, ensure_book_rgba, project_indices, project_indices_sized,
+    Accent, MosaicOpts, PhotoPaletteKind, ensure_book_rgba, project_indices, project_indices_sized,
 };
 use super::score::{downsample_rgba, rgb_fit_triple};
 use super::util::{
-    Accent, ERR_BOOK_GRID, JsonHit, alphabet_ctx, by_percent_desc, indices_to_flat, json_results,
+    ERR_BOOK_GRID, JsonHit, alphabet_ctx, by_percent_desc, indices_to_flat, json_results,
     locate_mosaic_flat, palette_for,
 };
 
@@ -27,9 +27,7 @@ const FINE_TOP: usize = 4;
 
 #[derive(Clone)]
 pub(crate) struct CandidatePack {
-    hue: f64,
-    chroma: f64,
-    light: f64,
+    accent: Accent,
     space_threshold: f64,
     dither: bool,
     label: &'static str,
@@ -38,9 +36,7 @@ pub(crate) struct CandidatePack {
 impl CandidatePack {
     fn from_opts(opts: &MosaicOpts, label: &'static str) -> Self {
         Self {
-            hue: opts.hue,
-            chroma: opts.chroma,
-            light: opts.light,
+            accent: opts.accent,
             space_threshold: opts.space_threshold,
             dither: opts.dither,
             label,
@@ -49,24 +45,18 @@ impl CandidatePack {
 
     fn with_accent(opts: &MosaicOpts, accent: Accent, label: &'static str) -> Self {
         Self {
-            hue: accent.hue,
-            chroma: accent.chroma,
-            light: accent.light,
+            accent,
             space_threshold: opts.space_threshold,
             dither: opts.dither,
             label,
         }
     }
 
-    fn accent(&self) -> Accent {
-        Accent::new(self.hue, self.chroma, self.light)
-    }
-
     fn dedup_key(&self) -> (i32, i32, i32, bool) {
         (
-            (self.hue / 5.0).round() as i32,
-            (self.chroma * 100.0).round() as i32,
-            (self.light * 100.0).round() as i32,
+            (self.accent.hue / 5.0).round() as i32,
+            (self.accent.chroma * 100.0).round() as i32,
+            (self.accent.light * 100.0).round() as i32,
             self.dither,
         )
     }
@@ -90,7 +80,7 @@ fn evaluate_pack(
     palette_kind: PhotoPaletteKind,
 ) -> Option<PackEval> {
     let (ab, space_idx, _) = alphabet_ctx(alphabet_id);
-    let palette = palette_for(ab, pack.accent(), palette_kind);
+    let palette = palette_for(ab, pack.accent, palette_kind);
     let space = pack.space_threshold.clamp(0.0, 255.0);
     let (indices, mosaic) = project_indices(src, &palette, space_idx, space, pack.dither);
     let triple = rgb_fit_triple(src, &mosaic, 1);
@@ -115,7 +105,7 @@ fn score_coarse_photo(
     pack: &CandidatePack,
     palette_kind: PhotoPaletteKind,
 ) -> f64 {
-    let palette = palette_for(ab, pack.accent(), palette_kind);
+    let palette = palette_for(ab, pack.accent, palette_kind);
     let (_ix, mosaic) = project_indices_sized(
         coarse_src,
         cw,
@@ -135,9 +125,7 @@ struct LocateHit {
     corr: f64,
     /// Joint sort key (rms/mae/corr).
     rank: f64,
-    hue: f64,
-    chroma: f64,
-    light: f64,
+    accent: Accent,
     space_threshold: f64,
     dither: bool,
     label: String,
@@ -156,9 +144,7 @@ impl LocateHit {
             mae: ev.mae,
             corr: ev.corr,
             rank: ev.rank_percent,
-            hue: pack.hue,
-            chroma: pack.chroma,
-            light: pack.light,
+            accent: pack.accent,
             space_threshold: pack.space_threshold,
             dither: pack.dither,
             label: ev.label,
@@ -179,9 +165,7 @@ impl LocateHit {
         self.mae = ev.mae;
         self.corr = ev.corr;
         self.rank = ev.rank_percent;
-        self.hue = pack.hue;
-        self.chroma = pack.chroma;
-        self.light = pack.light;
+        self.accent = pack.accent;
         self.space_threshold = pack.space_threshold;
         self.dither = pack.dither;
         self.label = ev.label;
@@ -282,9 +266,9 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
             book: h.book,
             page: h.page,
             page_span: h.page_span,
-            hue: h.hue,
-            chroma: h.chroma,
-            light: h.light,
+            hue: h.accent.hue,
+            chroma: h.accent.chroma,
+            light: h.accent.light,
             space_threshold: h.space_threshold,
             dither: h.dither,
             label: &h.label,
@@ -311,9 +295,9 @@ pub fn mosaic_candidate_packs_json(src_rgba: &[u8], opts: &MosaicOpts) -> String
             out.push(',');
         }
         let mut obj = JsonObject::begin(&mut out);
-        obj.f64("hue", p.hue, 3);
-        obj.f64("chroma", p.chroma, 4);
-        obj.f64("light", p.light, 4);
+        obj.f64("hue", p.accent.hue, 3);
+        obj.f64("chroma", p.accent.chroma, 4);
+        obj.f64("light", p.accent.light, 4);
         obj.f64("space_threshold", p.space_threshold, 2);
         obj.bool("dither", p.dither);
         obj.str("label", p.label);

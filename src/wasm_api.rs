@@ -8,7 +8,8 @@ use wasm_bindgen::prelude::*;
 use crate::config::{BOOKS_PER_GALLERY, DEFAULT_ALPHABET, GENERATOR_VERSION, alphabet};
 use crate::gallery;
 use crate::page::{
-    PageAddr, PageRender, book_text, book_text_book_scope, page_text, page_text_book_scope,
+    ContentScope, PageAddr, PageRender, book_text_for as page_book_text,
+    page_text_for as page_page_text,
 };
 use crate::search;
 use crate::universe::{self, universe as active_universe};
@@ -232,7 +233,14 @@ pub fn node_hash_full_hex(z: &str, n: &str) -> String {
 /// Full text of one book (410 pages) — **page-linked**. Expensive — download only.
 pub fn book_text_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> String {
     let (z, n) = parse_zn(z, n);
-    book_text(&z, &n, book_index, alphabet_id, active_universe())
+    page_book_text(
+        &z,
+        &n,
+        book_index,
+        alphabet_id,
+        active_universe(),
+        ContentScope::PageLinked,
+    )
 }
 
 #[wasm_bindgen]
@@ -240,7 +248,14 @@ pub fn book_text_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> Str
 /// Full text of one book — **book-linked** (photo Find / Babelgram). Coords may be `c…`.
 pub fn book_text_book_scope_for(z: &str, n: &str, book_index: u32, alphabet_id: u32) -> String {
     let (z, n) = parse_zn(z, n);
-    book_text_book_scope(&z, &n, book_index, alphabet_id, active_universe())
+    page_book_text(
+        &z,
+        &n,
+        book_index,
+        alphabet_id,
+        active_universe(),
+        ContentScope::BookLinked,
+    )
 }
 
 #[wasm_bindgen]
@@ -263,7 +278,7 @@ pub fn page_text_for(
     let hit_start = u32::try_from(search_start_page).ok();
     let req = page_render_for(z, n, book_index, page, alphabet_id);
     let _ = (q, hit_start); // highlight is UI-only; virgin page text is Basile
-    page_text(&req)
+    page_page_text(&req, ContentScope::PageLinked)
 }
 
 #[wasm_bindgen]
@@ -277,7 +292,10 @@ pub fn page_text_book_scope_for(
     page: u32,
     alphabet_id: u32,
 ) -> String {
-    page_text_book_scope(&page_render_for(z, n, book_index, page, alphabet_id))
+    page_page_text(
+        &page_render_for(z, n, book_index, page, alphabet_id),
+        ContentScope::BookLinked,
+    )
 }
 
 #[wasm_bindgen]

@@ -1,13 +1,12 @@
-//! Shared mosaic helpers: accent, alphabet context, palettes, diffs, hit JSON.
+//! Shared mosaic helpers: alphabet context, diffs, hit JSON.
 
 use std::cmp::Ordering;
 
-use crate::color::{build_glyph_palette, build_photo_luma_palette, room_accent_at};
 use crate::config::alphabet;
 use crate::search::{LocateError, LocateResult, symbols_to_flat};
 use crate::utils::JsonObject;
 
-use super::project::{PhotoPaletteKind, alphabet_space_idx};
+use super::project::{Accent, PhotoPaletteKind, alphabet_space_idx};
 
 pub(crate) const ERR_BOOK_GRID: &str =
     r#"{"ok":false,"error":"image must match the full-book colour grid"}"#;
@@ -26,32 +25,6 @@ pub(crate) fn locate_mosaic_flat(
     crate::search::locate_page(flat, alphabet_id, universe_seed)
 }
 
-/// OKLCH accent knobs shared by projection / room palette.
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct Accent {
-    pub hue: f64,
-    pub chroma: f64,
-    pub light: f64,
-}
-
-impl Accent {
-    pub(crate) fn new(hue: f64, chroma: f64, light: f64) -> Self {
-        Self { hue, chroma, light }
-    }
-
-    pub(crate) fn from_array([hue, chroma, light]: [f64; 3]) -> Self {
-        Self { hue, chroma, light }
-    }
-
-    pub(crate) fn for_room(
-        z: &num_bigint::BigInt,
-        n: &num_bigint::BigInt,
-        universe_seed: u64,
-    ) -> Self {
-        Self::from_array(room_accent_at(z, n, universe_seed))
-    }
-}
-
 /// Alphabet slice + space cell index (+ length) for one lens.
 pub(crate) fn alphabet_ctx(alphabet_id: u32) -> (&'static [&'static str], usize, u32) {
     let ab = alphabet(alphabet_id);
@@ -59,12 +32,7 @@ pub(crate) fn alphabet_ctx(alphabet_id: u32) -> (&'static [&'static str], usize,
 }
 
 pub(crate) fn palette_for(ab: &[&str], accent: Accent, kind: PhotoPaletteKind) -> Vec<[u8; 3]> {
-    match kind {
-        PhotoPaletteKind::Luma => {
-            build_photo_luma_palette(ab, accent.hue, accent.chroma, accent.light)
-        }
-        PhotoPaletteKind::Glyph => build_glyph_palette(ab, accent.hue, accent.chroma, accent.light),
-    }
+    kind.build(ab, accent)
 }
 
 /// Per-pixel `|src − mosaic|` (alpha forced opaque). Exact babel decode → near black.
