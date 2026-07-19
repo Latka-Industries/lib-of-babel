@@ -92,6 +92,11 @@ jump and open at page 1.
 2. **Search** → Babelgram uploads that PNG, decodes the print, verifies the stamp,
    then **go there** opens the stamped room (same universe) or a rematch (other universe).
 
+**Book-scope (`scope=book` / Mbit) stamps:** on **Find**, if the stamp universe differs from
+the session, the UI switches header + WASM to the stamped universe (and shows
+`search.babel.universeShifted`), then takes the same-universe exact path. Page-scope
+other-universe uploads still rematch without forcing a session switch.
+
 Stamp wire (`web/js/lib/png-babel.js`):
 
 | Version | Payload |
@@ -101,13 +106,14 @@ Stamp wire (`web/js/lib/png-babel.js`):
 | **v1** | address only, no `scope` (treated as `page`) |
 
 Verify on locate: recompute seal from decoded flat + room hash under stamp `u`; both must
-match. **Fail** → go / copy blocked (check-diff still works). **Pass** (same universe) →
-**go there** uses stamp `z`/`n`/`b`, not a rematch guess. Other universe → rematch print; seal still
-checked before go. **go there** / **copy link** stash a short same-browser `&bo=` handoff in
-IndexedDB (coords + print RGBA + letter `flat`) — useful for a new tab *here*, not a portable
-URL. Other-universe go also stashes `&be=`. Cross-device reopen: Babelgram PNG → search → verify.
-Re-export seals from on-screen pixels under the *current* room accent (matches verify;
-safe after other-universe rematch where the print still uses export colours).
+match. **Fail** → go / copy blocked (check-diff still works). **Pass** (same universe, including
+after a book-scope auto-switch) → **go there** uses stamp `z`/`n`/`b`, not a rematch guess.
+Page-scope other universe → rematch print; seal still checked before go. **go there** /
+**copy link** stash a short same-browser `&bo=` handoff in IndexedDB (coords + print RGBA +
+letter `flat`) — useful for a new tab *here*, not a portable URL. Other-universe go also
+stashes `&be=`. Cross-device reopen: Babelgram PNG → search → verify. Re-export seals from
+on-screen pixels under the *current* room accent (matches verify; safe after other-universe
+rematch where the print still uses export colours).
 
 Filename hint (not authoritative — stamp wins):
 `babel-u{seedHex}-z{z}-n{n}-b{book}-a{alphabet}-s{page\|book}-colors.png`
