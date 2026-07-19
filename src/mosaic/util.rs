@@ -3,6 +3,7 @@
 use std::cmp::Ordering;
 
 use crate::config::alphabet;
+use crate::page::ContentScope;
 use crate::search::{LocateError, LocateResult, symbols_to_flat};
 use crate::utils::JsonObject;
 
@@ -73,19 +74,20 @@ pub(crate) struct JsonHit<'a> {
     pub dither: bool,
     pub label: &'a str,
     pub alphabet_id: u32,
-    /// Babel exact uses tighter float precision than photo candidates.
-    pub babel_exact: bool,
+    /// Bijection scope for the hit (`"page"` / `"book"` in JSON).
+    pub scope: ContentScope,
+    /// Babel stamp decode uses tighter float precision than photo candidates.
+    pub tight_metrics: bool,
 }
 
 fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
     // Compact z/n — never emit megadigit decimals into JSON (freezes JS).
     let z = crate::gallery::format_coord(h.z);
     let n = crate::gallery::format_coord(h.n);
-    // babel exact → tighter floats + page scope; photo candidates → book scope.
-    let (p_pct, p_mae, p_corr, p_hue, p_chr, p_lit, scope) = if h.babel_exact {
-        (4, 6, 6, 6, 6, 6, "page")
+    let (p_pct, p_mae, p_corr, p_hue, p_chr, p_lit) = if h.tight_metrics {
+        (4, 6, 6, 6, 6, 6)
     } else {
-        (2, 3, 4, 3, 4, 4, "book")
+        (2, 3, 4, 3, 4, 4)
     };
 
     let mut obj = JsonObject::begin(out);
@@ -100,7 +102,7 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
     obj.f64("hue", h.hue, p_hue);
     obj.f64("chroma", h.chroma, p_chr);
     obj.f64("light", h.light, p_lit);
-    if h.babel_exact {
+    if h.tight_metrics {
         obj.raw("space_threshold", "0");
         obj.bool("dither", false);
     } else {
@@ -109,7 +111,7 @@ fn write_hit_json(out: &mut String, h: &JsonHit<'_>) {
     }
     obj.str("label", h.label);
     obj.u32("alphabet", h.alphabet_id);
-    obj.str("scope", scope);
+    obj.str("scope", h.scope.as_str());
     obj.finish();
 }
 

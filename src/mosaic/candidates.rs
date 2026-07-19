@@ -15,6 +15,7 @@ use super::util::{
     ERR_BOOK_GRID, JsonHit, alphabet_ctx, by_percent_desc, indices_to_flat, json_results,
     locate_mosaic_flat, palette_for,
 };
+use crate::page::ContentScope;
 
 /// Coarse photo search: subsample every Nth cell, sweep hue × chroma × light.
 pub(crate) const COARSE_FACTOR: usize = 8;
@@ -273,7 +274,8 @@ fn hits_to_json(hits: &[LocateHit], alphabet_id: u32) -> String {
             dither: h.dither,
             label: &h.label,
             alphabet_id,
-            babel_exact: false,
+            scope: ContentScope::BookLinked,
+            tight_metrics: false,
         })
         .collect();
     json_results(&json_hits)

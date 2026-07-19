@@ -569,9 +569,8 @@ Paginagekoppelde kamers en tekstzoeken: URL-flags onder
   "search.mosaic.badImage": "beeld kon niet worden gelezen",
   "search.mosaic.palette": "palet",
   "search.mosaic.palette.glyph": "letters",
-  "search.mosaic.palette.luma": "luma-helling",
   "search.mosaic.tip.palette":
-    "Letters = Babelgram-glyfkleuren. Luma-helling = helderheidstrap (structuur eerst).",
+    "Letters = Babelgram-glyfkleuren.",
   "search.mosaic.dither": "dither",
   "search.mosaic.brightness": "helderheid",
   "search.mosaic.contrast": "contrast",

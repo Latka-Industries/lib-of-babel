@@ -17,6 +17,29 @@ pub enum ContentScope {
     BookLinked,
 }
 
+impl ContentScope {
+    /// Wire / JSON token (`"page"` / `"book"`).
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::PageLinked => "page",
+            Self::BookLinked => "book",
+        }
+    }
+}
+
+impl core::fmt::Display for ContentScope {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl From<ContentScope> for &'static str {
+    fn from(scope: ContentScope) -> Self {
+        scope.as_str()
+    }
+}
+
 /// Gallery coordinate + page identity for text generation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageAddr {

@@ -575,9 +575,8 @@ Seitengebundene Räume und Textsuche: URL-Flags unter
   "search.mosaic.badImage": "Bild konnte nicht gelesen werden",
   "search.mosaic.palette": "Palette",
   "search.mosaic.palette.glyph": "Buchstaben",
-  "search.mosaic.palette.luma": "Luma-Rampe",
   "search.mosaic.tip.palette":
-    "Buchstaben = Babelgram-Glyphenfarben. Luma-Rampe = Helligkeitsleiter (strukturtreu).",
+    "Buchstaben = Babelgram-Glyphenfarben.",
   "search.mosaic.dither": "Dither",
   "search.mosaic.brightness": "Helligkeit",
   "search.mosaic.contrast": "Kontrast",

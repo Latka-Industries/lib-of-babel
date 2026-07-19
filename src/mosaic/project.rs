@@ -2,9 +2,7 @@
 
 use wasm_bindgen::prelude::*;
 
-use crate::color::{
-    book_cell_count, book_grid_dims, build_glyph_palette, build_photo_luma_palette, room_accent_at,
-};
+use crate::color::{book_cell_count, book_grid_dims, build_glyph_palette, room_accent_at};
 use crate::config::alphabet;
 
 use super::lab::{build_nearest_lut, clamp_channel, nearest_index};
@@ -45,29 +43,42 @@ impl Accent {
 /// Which alphabet colour map to project the photo onto.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum PhotoPaletteKind {
-    /// Lightness ramp (structure-first greys).
-    Luma,
     /// Reading glyph colours (per-letter hues — Babelgram stamp map).
     Glyph,
 }
 
 impl PhotoPaletteKind {
-    pub(crate) fn from_u32(v: u32) -> Self {
-        if v == 0 { Self::Luma } else { Self::Glyph }
+    pub(crate) fn from_u32(_v: u32) -> Self {
+        Self::Glyph
+    }
+
+    pub(crate) fn as_u32(self) -> u32 {
+        1
     }
 
     pub(crate) fn build(self, ab: &[&str], accent: Accent) -> Vec<[u8; 3]> {
         match self {
-            Self::Luma => build_photo_luma_palette(ab, accent.hue, accent.chroma, accent.light),
             Self::Glyph => build_glyph_palette(ab, accent.hue, accent.chroma, accent.light),
         }
+    }
+}
+
+impl From<u32> for PhotoPaletteKind {
+    fn from(v: u32) -> Self {
+        Self::from_u32(v)
+    }
+}
+
+impl From<PhotoPaletteKind> for u32 {
+    fn from(kind: PhotoPaletteKind) -> Self {
+        kind.as_u32()
     }
 }
 
 /// Shared knobs for photo→alphabet projection / candidate search.
 ///
 /// Construct from JS with `new MosaicOpts(alphabetId, hue, chroma, light, space, dither, paletteKind)`
-/// (`paletteKind`: `0` luma, `1` glyph), then pass to `mosaic_project*` / candidate exports.
+/// (`paletteKind` is reserved; always glyph today), then pass to `mosaic_project*` / candidate exports.
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug)]
 pub struct MosaicOpts {
@@ -75,8 +86,8 @@ pub struct MosaicOpts {
     pub(crate) accent: Accent,
     pub(crate) space_threshold: f64,
     pub(crate) dither: bool,
-    /// `0` luma, `1` glyph — kept as `u32` so wasm-bindgen can expose the struct cleanly.
-    palette_kind: u32,
+    /// Stored as the enum; JS ctor still takes `u32` (ignored → glyph).
+    palette_kind: PhotoPaletteKind,
 }
 
 impl MosaicOpts {
@@ -95,22 +106,19 @@ impl MosaicOpts {
             accent: Accent::new(hue, chroma, light),
             space_threshold: space_threshold.clamp(0.0, 255.0),
             dither,
-            palette_kind: match palette_kind {
-                PhotoPaletteKind::Luma => 0,
-                PhotoPaletteKind::Glyph => 1,
-            },
+            palette_kind,
         }
     }
 
     #[must_use]
     pub(crate) fn palette_kind(self) -> PhotoPaletteKind {
-        PhotoPaletteKind::from_u32(self.palette_kind)
+        self.palette_kind
     }
 }
 
 #[wasm_bindgen]
 impl MosaicOpts {
-    /// Pack flat JS knobs (`palette_kind`: `0` luma, `1` glyph).
+    /// Pack flat JS knobs (`palette_kind` reserved; always glyph).
     #[wasm_bindgen(constructor)]
     #[must_use]
     pub fn create(
@@ -129,7 +137,7 @@ impl MosaicOpts {
             light,
             space_threshold,
             dither,
-            PhotoPaletteKind::from_u32(palette_kind),
+            PhotoPaletteKind::from(palette_kind),
         )
     }
 }

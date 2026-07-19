@@ -116,45 +116,6 @@ pub(crate) fn build_glyph_palette(
     palette
 }
 
-/// Photo-mosaic palette: non-space glyphs on a lightness ramp (structure-first).
-///
-/// Reading colour maps ([`build_glyph_palette`]) scatter hues so alphabet text looks
-/// speckled. Photos need the opposite — nearby greys must stay nearby — so we place
-/// every non-space cell on an OKLCH lightness ladder with a subdued accent tint.
-pub(crate) fn build_photo_luma_palette(
-    ab: &[&str],
-    accent_hue: f64,
-    accent_chroma: f64,
-    accent_light: f64,
-) -> Vec<[u8; 3]> {
-    let len = ab.len();
-    let mut palette = vec![SPACE_RGB; len];
-    let mut ramp = Vec::with_capacity(len);
-    for (i, cell) in ab.iter().enumerate() {
-        if *cell != " " {
-            ramp.push(i);
-        }
-    }
-    if ramp.is_empty() {
-        return palette;
-    }
-    let mid = accent_light.clamp(0.35, 0.85);
-    let lo = (mid - 0.38).clamp(0.06, 0.45);
-    let hi = (mid + 0.38).clamp(0.55, 0.96);
-    let chroma = (accent_chroma * 0.32).clamp(0.0, 0.12);
-    let n = ramp.len();
-    for (k, &idx) in ramp.iter().enumerate() {
-        let t = if n == 1 {
-            0.5
-        } else {
-            k as f64 / (n - 1) as f64
-        };
-        let light = lo + (hi - lo) * t;
-        palette[idx] = oklch_to_srgb(light, chroma, accent_hue.rem_euclid(360.0));
-    }
-    palette
-}
-
 /// One RGBA image of a whole book, ready for `ctx.putImageData`.
 #[wasm_bindgen]
 pub struct BookImage {
@@ -538,24 +499,5 @@ mod tests {
         assert_eq!(img.width, w);
         assert_eq!(img.height, h);
         assert_eq!(img.pixels.len(), BOOK_CONTENT_SYMBOLS * 4);
-    }
-
-    #[test]
-    fn photo_luma_palette_is_monotonic_in_luminance() {
-        let ab = alphabet(ALPHABET_ID.basile);
-        let palette = build_photo_luma_palette(ab, 40.0, 0.15, 0.66);
-        let mut last = -1.0;
-        for (i, cell) in ab.iter().enumerate() {
-            if *cell == " " {
-                continue;
-            }
-            let [r, g, b] = palette[i];
-            let y = 0.2126 * f64::from(r) + 0.7152 * f64::from(g) + 0.0722 * f64::from(b);
-            assert!(
-                y + 1e-6 >= last,
-                "luma ramp must be non-decreasing (got {last} then {y} at {cell})"
-            );
-            last = y;
-        }
     }
 }
