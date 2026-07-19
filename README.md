@@ -16,11 +16,11 @@ keep is the **journey**: the path and a cryptographic fingerprint of each room.
 
 ## Docs
 
-| Doc | What’s in it |
-| --- | --- |
-| [docs/design.md](docs/design.md) | Concept, design decisions, generation chain, storage, search |
-| [docs/development.md](docs/development.md) | Layout, mise tasks, WASM API, UI notes |
-| [docs/alphabets.md](docs/alphabets.md) | Alphabet lens table (ids, glyph counts, UI packs) |
+| Doc                                        | What’s in it                                                 |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| [docs/design.md](docs/design.md)           | Concept, design decisions, generation chain, storage, search |
+| [docs/development.md](docs/development.md) | Layout, mise tasks, WASM API, UI notes                       |
+| [docs/alphabets.md](docs/alphabets.md)     | Alphabet lens table (ids, glyph counts, UI packs)            |
 
 ## Inspiration
 
