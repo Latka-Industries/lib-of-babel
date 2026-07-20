@@ -53,7 +53,7 @@ import {
   mosaicFindBookAsync,
   cancelMosaicFind,
 } from "./mosaic-find-pool.js";
-import { PHOTO_SEARCH_TAB_ENABLED } from "./search.js";
+import { PHOTO_SEARCH_TAB_ENABLED, selectSearchTab } from "./search.js";
 import { createFindTrace } from "../lib/find-debug.js";
 import {
   bookOpenHandoffUrl,
@@ -86,6 +86,108 @@ let lastBitmap = null;
 let babelMeta = null;
 /** Soft parse of the upload filename (for confirmation UI). */
 let babelNameMeta = null;
+
+/**
+ * @typedef {{
+ *   bitmap: ImageBitmap | null,
+ *   sourceName: string | null,
+ *   babelMeta: typeof babelMeta,
+ *   babelNameMeta: typeof babelNameMeta,
+ * }} ModeUploadSlot
+ */
+
+/**
+ * Per-tab uploads — photo and Babelgram do not share a bitmap.
+ * Switching tabs stashes/restores so a Babelgram never appears on Photo Find.
+ * @type {{ photo: ModeUploadSlot, babel: ModeUploadSlot }}
+ */
+const modeUploads = {
+  photo: emptyUploadSlot(),
+  babel: emptyUploadSlot(),
+};
+
+function emptyUploadSlot() {
+  return {
+    bitmap: null,
+    sourceName: null,
+    babelMeta: null,
+    babelNameMeta: null,
+  };
+}
+
+/** Stamp fields only live on the Babelgram tab. */
+function babelOnly(value) {
+  return mosaicMode === "babel" ? value : null;
+}
+
+function clearIngestCache() {
+  reshaped = null;
+  ingestCacheKey = "";
+}
+
+function closeLiveBitmap() {
+  lastBitmap?.close?.();
+  lastBitmap = null;
+}
+
+function captureUploadSlot() {
+  return {
+    bitmap: lastBitmap,
+    sourceName,
+    babelMeta: babelOnly(babelMeta),
+    babelNameMeta: babelOnly(babelNameMeta),
+  };
+}
+
+/** @param {ModeUploadSlot} slot */
+function applyUploadSlot(slot) {
+  lastBitmap = slot.bitmap;
+  sourceName = slot.sourceName;
+  babelMeta = babelOnly(slot.babelMeta);
+  babelNameMeta = babelOnly(slot.babelNameMeta);
+  clearIngestCache();
+  const fileInput = el("mosaicFile");
+  if (fileInput) fileInput.value = "";
+}
+
+function persistLiveUpload() {
+  modeUploads[mosaicMode] = captureUploadSlot();
+}
+
+/**
+ * @param {string | null} name
+ * @param {{ meta?: typeof babelMeta, nameMeta?: typeof babelNameMeta }} [opts]
+ */
+function assignLiveUpload(name, { meta = null, nameMeta = null } = {}) {
+  sourceName = name;
+  babelMeta = babelOnly(meta);
+  babelNameMeta = nameMeta;
+}
+
+/** Photo tab: record filename and clear any prior Find hit. */
+function resetPhotoUpload(name) {
+  assignLiveUpload(name, { nameMeta: parseBabelFilename(name) });
+  modeResults.photo = null;
+  paintModeResult();
+}
+
+/**
+ * Reject a Babelgram upload (wrong size / not stamped) and blank the preview.
+ * @param {string} messageHtml
+ * @param {string} [name] When set, records the attempted filename first.
+ */
+function rejectBabelFile(messageHtml, name) {
+  if (name != null) assignLiveUpload(name);
+  babelMeta = null;
+  babelNameMeta = null;
+  modeResults.babel = null;
+  paintModeResult();
+  closeLiveBitmap();
+  persistLiveUpload();
+  setMosaicFileMeta(messageHtml, { html: true });
+  clearPreviewCanvases();
+}
+
 /**
  * Last locate proof frames for the compare wipe.
  * Babel: reproject = stamp mosaic; diff = `|upload − reproject|`.
@@ -331,10 +433,15 @@ export function syncMosaicKnobsFromGallery() {
 /** Apply photo vs babel copy / knobs visibility. */
 export function syncMosaicModeUI(mode = mosaicMode) {
   const prev = mosaicMode;
-  mosaicMode =
+  const next =
     mode === "babel" || !PHOTO_SEARCH_TAB_ENABLED ? "babel" : "photo";
-  if (prev === "photo" && mosaicMode !== "photo") {
-    cancelMosaicFind();
+  if (prev !== next) {
+    modeUploads[prev] = captureUploadSlot();
+    mosaicMode = next;
+    applyUploadSlot(modeUploads[next]);
+    if (prev === "photo") cancelMosaicFind();
+  } else {
+    mosaicMode = next;
   }
   const babel = mosaicMode === "babel";
   document.querySelectorAll(".mosaic-photo-only").forEach((node) => {
@@ -343,6 +450,8 @@ export function syncMosaicModeUI(mode = mosaicMode) {
   el("mosaicCompare")?.classList.toggle("mosaic-compare-solo", babel);
   const size = findSizeVars();
   const slow = t("search.canTakeAFew");
+  const go = t("search.go");
+  const copy = t("actions.copy");
   const setI18nText = (node, key, vars = {}) => {
     if (!node) return;
     node.dataset.i18n = key;
@@ -355,37 +464,30 @@ export function syncMosaicModeUI(mode = mosaicMode) {
     delete node.dataset.i18n;
     node.innerHTML = t(key, vars);
   };
-  if (babel) {
-    setI18nHtml(el("mosaicHonesty"), "search.babel.honesty", {
-      go: t("search.go"),
-      copy: t("actions.copy"),
-    });
-  } else {
-    setI18nHtml(el("mosaicHonesty"), "search.mosaic.honesty", {
-      find: t("search.mosaic.find"),
-      go: t("search.go"),
-      copy: t("actions.copy"),
-    });
-  }
+  const setHintVisible = (node, on) => {
+    if (!node) return;
+    node.hidden = !on;
+    node.classList.toggle("hidden", !on);
+  };
+  setI18nHtml(
+    el("mosaicHonesty"),
+    babel ? "search.babel.honesty" : "search.mosaic.honesty",
+    babel
+      ? { go, copy }
+      : { find: t("search.mosaic.find"), go, copy },
+  );
   const photoHint = el("mosaicHint");
   const babelHint = el("mosaicHintBabel");
-  if (photoHint) {
-    photoHint.hidden = babel;
-    photoHint.classList.toggle("hidden", babel);
-    if (!babel) {
-      setI18nHtml(photoHint, "search.hintMosaic", {
-        ...size,
-        find: t("search.find"),
-        slow,
-      });
-    }
-  }
-  if (babelHint) {
-    babelHint.hidden = !babel;
-    babelHint.classList.toggle("hidden", !babel);
-    if (babel) {
-      setI18nText(babelHint, "search.hintBabel");
-    }
+  setHintVisible(photoHint, !babel);
+  setHintVisible(babelHint, babel);
+  if (!babel) {
+    setI18nHtml(photoHint, "search.hintMosaic", {
+      ...size,
+      find: t("search.find"),
+      slow,
+    });
+  } else {
+    setI18nText(babelHint, "search.hintBabel");
   }
   setI18nText(
     el("mosaicUploadLabel"),
@@ -395,40 +497,25 @@ export function syncMosaicModeUI(mode = mosaicMode) {
     el("mosaicOriginalCaption"),
     babel ? "search.babel.original" : "search.mosaic.original",
   );
-  setI18nText(
-    el("mosaicPaletteNote"),
-    "search.mosaic.progressPalette",
-  );
+  setI18nText(el("mosaicPaletteNote"), "search.mosaic.progressPalette");
   const findBtn = el("mosaicFind");
   if (findBtn && !findBtn.disabled) {
     setI18nText(findBtn, babel ? "search.babel.find" : "search.mosaic.find");
   }
-  const panel = el("searchPanel-mosaic");
-  if (panel) {
-    panel.setAttribute(
-      "aria-labelledby",
-      babel ? "searchTab-babel" : "searchTab-photo",
-    );
-  }
+  el("searchPanel-mosaic")?.setAttribute(
+    "aria-labelledby",
+    babel ? "searchTab-babel" : "searchTab-photo",
+  );
   const fileInput = el("mosaicFile");
   if (fileInput) {
     fileInput.accept = babel ? "image/png" : "image/png,image/*";
   }
   paintFindPaletteStrip();
-  // Babel needs a stamped PNG. A leftover photo bitmap is not a failed Babelgram —
-  // clear it so the empty state shows the grid hint, not "Not a Babelgram PNG".
-  if (babel && !babelMeta && lastBitmap) {
-    lastBitmap.close?.();
-    lastBitmap = null;
-    reshaped = null;
-    ingestCacheKey = "";
-    sourceName = "";
-    babelNameMeta = null;
-    if (fileInput) fileInput.value = "";
-    clearPreviewCanvases();
-  }
   if (lastBitmap) schedulePreview({ immediate: true });
-  else updateFileMeta();
+  else {
+    clearPreviewCanvases();
+    updateFileMeta();
+  }
   paintModeResult();
 }
 
@@ -442,8 +529,7 @@ function ensureIngested() {
     return { ok: false, error: t("search.mosaic.needImage") };
   }
   if (mosaicMode === "babel" && !babelMeta) {
-    reshaped = null;
-    ingestCacheKey = "";
+    clearIngestCache();
     return { ok: false, error: t("search.babel.notBabel") };
   }
   const p = readParams();
@@ -453,8 +539,7 @@ function ensureIngested() {
   }
   const ingested = ingestBitmap(lastBitmap);
   if (!ingested.ok) {
-    reshaped = null;
-    ingestCacheKey = "";
+    clearIngestCache();
     return ingested;
   }
   reshaped = ingested;
@@ -624,78 +709,58 @@ function updateFileMeta() {
 
 async function onFileChosen(file) {
   if (!file) return;
-  sourceName = file.name || "image";
-  babelMeta = null;
-  babelNameMeta = parseBabelFilename(sourceName);
-  reshaped = null;
-  ingestCacheKey = "";
+  const name = file.name || "image";
+  clearIngestCache();
 
-  // Stamped book-image PNG → Babelgram tab (auto-switch from photo / any mosaic tab).
+  // Stamped PNG → Babelgram tab first so Photo keeps its own empty/prior upload.
   try {
     const buf = await file.arrayBuffer();
     const stamped = await readBabelMeta(buf);
     if (stamped) {
-      babelMeta = stamped;
       modeResults.babel = null;
-      if (mosaicMode !== "babel") {
-        selectSearchTab("babel");
-        syncMosaicModeUI("babel");
-      } else {
-        paintModeResult();
-      }
+      if (mosaicMode !== "babel") selectSearchTab("babel");
+      assignLiveUpload(name, {
+        meta: stamped,
+        nameMeta: parseBabelFilename(name),
+      });
       const pngDims = readPngDims(buf);
       const { w, h } = dims();
-      const exactGrid =
-        pngDims != null && pngDims.w === w && pngDims.h === h;
-      if (!exactGrid) {
-        if (lastBitmap) lastBitmap.close?.();
-        lastBitmap = null;
-        setMosaicFileMeta(
+      if (!pngDims || pngDims.w !== w || pngDims.h !== h) {
+        rejectBabelFile(
           t("search.babel.sizeMismatch", {
             sw: String(pngDims?.w ?? "?"),
             sh: String(pngDims?.h ?? "?"),
             w: String(w),
             h: String(h),
           }),
-          { html: true },
         );
-        clearPreviewCanvases();
         return;
       }
+    } else if (mosaicMode === "babel") {
+      rejectBabelFile(t("search.babel.notBabel"), name);
+      return;
     } else {
-      babelMeta = null;
-      modeResults[mosaicMode] = null;
-      paintModeResult();
-      if (mosaicMode === "babel") {
-        if (lastBitmap) lastBitmap.close?.();
-        lastBitmap = null;
-        setMosaicFileMeta(t("search.babel.notBabel"), { html: true });
-        clearPreviewCanvases();
-        return;
-      }
+      resetPhotoUpload(name);
     }
   } catch (err) {
     console.error(err);
-    babelMeta = null;
-    modeResults[mosaicMode] = null;
-    paintModeResult();
     if (mosaicMode === "babel") {
-      setMosaicFileMeta(t("search.babel.notBabel"), { html: true });
-      clearPreviewCanvases();
+      rejectBabelFile(t("search.babel.notBabel"), name);
       return;
     }
+    resetPhotoUpload(name);
   }
 
   try {
-    if (lastBitmap) lastBitmap.close?.();
+    closeLiveBitmap();
     lastBitmap = await createImageBitmap(file);
   } catch (err) {
     console.error(err);
     el("mosaicFileMeta").textContent = t("search.mosaic.badImage");
-    reshaped = null;
-    ingestCacheKey = "";
+    clearIngestCache();
     return;
   }
+  persistLiveUpload();
   schedulePreview({ immediate: true });
 }
 

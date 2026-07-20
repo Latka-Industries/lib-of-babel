@@ -38,6 +38,7 @@ keep is the **journey**: the path and a cryptographic fingerprint of each room.
 - [x] Photo→mosaic search (alphabet lens + rms / mae / corr; this-gallery + hit-gallery palette strips; `&bo=` handoff caches scored book RGBA)
 - [x] Parallel virgin `book_image` via Web Workers (`book_image_pages` strips → stitch; main-thread chunk fallback)
 - [x] Photo Find (`mosaic_find_book`) off the UI thread (`mosaic-find-worker` + pool; main-thread fallback)
+- [x] Mbit → nearest page-scope escape (coord notice + minimap; deterministic fold)
 
 ## License
 

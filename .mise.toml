@@ -39,6 +39,13 @@ run = ["mise run build-dev", "mise run serve"]
 description = "Run host unit tests"
 run = "cargo test"
 
+[tasks.test-js]
+description = "Node unit checks for pure web/js helpers (png-babel, page-scope fold)"
+run = [
+  "node scripts/test-png-babel.mjs",
+  "node scripts/test-fold-page-scope.mjs",
+]
+
 [tasks.fmt]
 description = "cargo fmt"
 run = "cargo fmt --all"
@@ -52,11 +59,12 @@ description = "Bake default (universe 0 + Basile) book-map C/I/N into data/ (~2 
 run = "cargo run --release --bin gen_basile_scramble"
 
 [tasks.check]
-description = "fmt + clippy (-D warnings) + tests + alphabet-pack drift + baked scramble warm"
+description = "fmt + clippy (-D warnings) + tests + JS helpers + alphabet-pack drift + baked scramble warm"
 run = [
   "cargo fmt --all -- --check",
   "cargo clippy --all-targets -- -D warnings",
   "cargo test",
+  "mise run test-js",
   "mise run check-alphabets",
   "mise run verify-basile-scramble",
 ]

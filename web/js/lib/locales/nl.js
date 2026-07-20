@@ -85,8 +85,10 @@ export const nl = {
   "gallery.mbitNotice.coordsLabel": "Assen (grootte)",
   "gallery.mbitNotice.digitsLabel": "Cijfers (z, n)",
   "gallery.mbitNotice.gotIt": "Begrepen",
+  "gallery.mbitNotice.toPageScope": "Naar dichtstbijzijnde paginakaart",
+  "gallery.mbitNotice.toPageScopeTitle":
+    "Mbit verlaten — nabije gang-dwaalbare galerij (zelfde vouw elke keer)",
   "gallery.mbitNotice.engines": "LIB-OF-BABEL → SCHAAL",
-  "gallery.mbitNotice.mute": "Niet meer tonen",
   "about.tabsLabel": "Gidssecties",
   "about.scale.col.band": "Band",
   "about.scale.col.scalar": "Schaal",

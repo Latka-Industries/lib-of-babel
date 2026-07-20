@@ -251,8 +251,20 @@ function syncSearchChrome() {
   }
 }
 
+/** @type {{ onPhoto?: () => void, onBabel?: () => void } | null} */
+let searchTabHooks = null;
+
+function syncPhotoTabAvailability() {
+  const photoTab = el("searchTab-photo");
+  if (!photoTab) return;
+  photoTab.hidden = !PHOTO_SEARCH_TAB_ENABLED;
+  photoTab.disabled = !PHOTO_SEARCH_TAB_ENABLED;
+}
+
 /**
  * Switch search modal tabs: text | photo | babel.
+ * Photo / babel also run the mosaic-mode hooks so programmatic switches
+ * (e.g. Babelgram stamp on the photo tab) keep UI + mosaicMode in sync.
  * @param {"text"|"photo"|"babel"} mode
  */
 export function selectSearchTab(mode) {
@@ -272,11 +284,7 @@ export function selectSearchTab(mode) {
     tab.tabIndex = on ? 0 : -1;
   };
 
-  if (photoTab) {
-    photoTab.hidden = !PHOTO_SEARCH_TAB_ENABLED;
-    photoTab.disabled = !PHOTO_SEARCH_TAB_ENABLED;
-  }
-
+  syncPhotoTabAvailability();
   setTab(textTab, want === "text");
   setTab(photoTab, want === "photo");
   setTab(babelTab, want === "babel");
@@ -291,6 +299,8 @@ export function selectSearchTab(mode) {
   }
 
   syncSearchChrome();
+  if (want === "photo") searchTabHooks?.onPhoto?.();
+  else if (want === "babel") searchTabHooks?.onBabel?.();
 }
 
 export function searchKind() {
@@ -299,6 +309,7 @@ export function searchKind() {
 
 /** Wire text / photo / babel tab buttons (once). */
 export function wireSearchTabs({ onPhoto, onBabel } = {}) {
+  searchTabHooks = { onPhoto, onBabel };
   el("searchTab-text")?.addEventListener("click", () => {
     selectSearchTab("text");
     el("searchInput")?.focus();
@@ -306,20 +317,11 @@ export function wireSearchTabs({ onPhoto, onBabel } = {}) {
   el("searchTab-photo")?.addEventListener("click", () => {
     if (!PHOTO_SEARCH_TAB_ENABLED) return;
     selectSearchTab("photo");
-    onPhoto?.();
   });
   el("searchTab-babel")?.addEventListener("click", () => {
     selectSearchTab("babel");
-    onBabel?.();
   });
-  // Keep DOM in sync if the flag is off (hidden + disabled).
-  if (!PHOTO_SEARCH_TAB_ENABLED) {
-    const photoTab = el("searchTab-photo");
-    if (photoTab) {
-      photoTab.hidden = true;
-      photoTab.disabled = true;
-    }
-  }
+  syncPhotoTabAvailability();
 }
 
 /** Parse WASM `locate_page_json` / `locate_title_json` response. */

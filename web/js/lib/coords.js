@@ -298,6 +298,46 @@ export function peekHugeCoordDigits(value, { headLen = 5, tailLen = 5 } = {}) {
   return { neg, head, tail, digits, bits, scientific, preview };
 }
 
+/**
+ * Fold an axis into the page-map bit ceiling (low bits), keeping sign.
+ * Deterministic “nearest” page-scope neighbor for huge / Mbit coords.
+ * @returns {bigint}
+ */
+export function foldToPageScopeCoord(value) {
+  const bitsCap = BigInt(PAGE_MAP_MAX_BITS);
+  const mask = (1n << bitsCap) - 1n;
+
+  if (typeof value === "bigint") {
+    const neg = value < 0n;
+    const mag = (neg ? -value : value) & mask;
+    return neg && mag !== 0n ? -mag : mag;
+  }
+
+  if (!isHugeCoordValue(value)) {
+    try {
+      return foldToPageScopeCoord(normalizeCoordValue(value));
+    } catch {
+      return 0n;
+    }
+  }
+
+  const packed = coordMagBytes(value);
+  if (!packed) return 0n;
+  const { neg, mag } = packed;
+  let start = 0;
+  while (start < mag.length && mag[start] === 0) start++;
+  if (start >= mag.length) return 0n;
+  const m = mag.subarray(start);
+  const byteLen = Math.ceil(PAGE_MAP_MAX_BITS / 8);
+  const slice = m.length <= byteLen ? m : m.subarray(m.length - byteLen);
+  let out = 0n;
+  for (let i = 0; i < slice.length; i++) {
+    out = (out << 8n) | BigInt(slice[i]);
+  }
+  out &= mask;
+  return neg && out !== 0n ? -out : out;
+}
+
 /** Gallery label for book-scale axes: `12345…67890`. */
 export function formatHugeCoordPreview(value, opts) {
   const peek = peekHugeCoordDigits(value, opts);

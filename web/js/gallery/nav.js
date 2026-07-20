@@ -10,7 +10,11 @@ import {
 import { downloadBlob } from "../lib/util.js";
 import { neighbor, randomCoord } from "../lib/lattice.js";
 import { render } from "./view.js";
-import { normalizeCoordValue, isHugeCoordValue } from "../lib/coords.js";
+import {
+  normalizeCoordValue,
+  isHugeCoordValue,
+  foldToPageScopeCoord,
+} from "../lib/coords.js";
 
 export function resetTrail({ randomCoords = false, scope = null } = {}) {
   if (randomCoords) [S.z, S.n] = randomCoord();
@@ -92,4 +96,14 @@ export async function newWalk() {
   resetTrail({ randomCoords: true });
   await persist();
   render();
+}
+
+/**
+ * Leave Mbit / book-linked space for the deterministic nearest page-map gallery
+ * (low bits of each axis, capped at the page-map bit ceiling). Restores hallway wander.
+ */
+export function jumpToNearestPageScope() {
+  const z = foldToPageScopeCoord(S.z);
+  const n = foldToPageScopeCoord(S.n);
+  return jumpTo(z, n, { scope: "page" });
 }

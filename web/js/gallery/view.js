@@ -106,6 +106,15 @@ function renderMinimapPinned(curHash, accentHue) {
     </svg>`;
 }
 
+/** In Mbit: hide exit hint, show page-scope escape under the sigil/minimap. */
+function syncMinimapHint() {
+  const hint = el("minimapHint");
+  const toPage = el("minimapToPage");
+  const mbit = !!S.coordsHuge;
+  if (hint) hint.hidden = mbit;
+  if (toPage) toPage.hidden = !mbit;
+}
+
 export function render() {
   // Compact `c…` into WASM — never megadigit decimal String(z)/String(n).
   // Book-linked axes still yield spines (title map is tiny); lattice walk stays off.
@@ -140,6 +149,7 @@ export function render() {
   el("sigil").innerHTML = sigilSvg(hash, S.accentHue);
   if (S.coordsHuge) renderMinimapPinned(hash, S.accentHue);
   else renderMinimap(hash, S.accentHue);
+  syncMinimapHint();
 
   const wallsEl = el("walls");
   const prevScroll = [...wallsEl.querySelectorAll(".shelf-track")].map(

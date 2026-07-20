@@ -69,6 +69,10 @@ Two universes of math share the same address labels `(z, n, book[, page])`:
   first/last five digits in the footer (hover: scientific + bit width as plain `≈N Mbit`
   text), Digits (z, n) in the gallery notice (body copy uses the `.unit-mbit` mark), spines +
   colour map, but not lattice wander (see About → engines / scale).
+  Escape hatch: **Jump to nearest page-scope** on the Mbit notice and under the
+  minimap/sigil — folds each axis to the low page-map bit ceiling
+  (`foldToPageScopeCoord`) and restores hallway wander (deterministic for a given
+  `(z, n)`).
 
 Same shelf numbers under different scopes are different virgin content. Handoff and
 `lob:babel` stamps carry `scope=page|book`.
@@ -129,6 +133,8 @@ UI shows this gallery’s palette strip under the Find copy; after a hit, a seco
 **go there** / **copy link** use `&bo=` + virgin RGBA (same-browser IndexedDB handoff, not
 shareable). Huge coords stay compact (`c…`); never JS-decimal-expand into the hash.
 To keep an Mbit hit across devices: save a Babelgram there, then search → Babelgram to verify.
+Photo and Babelgram tabs keep **separate uploads**; a stamped PNG dropped on Photo
+auto-switches to the Babelgram tab without polluting Photo Find.
 
 ```text
 content:  phrase  ──pad──▶  page digits  ──invert──▶  (z, n, book, page)  [scope=page]
