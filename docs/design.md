@@ -13,24 +13,24 @@ Canonical dimensions:
 
 - 4 walls × 5 shelves × 35 books = **700 books per gallery**
 - each book: **410 pages**, **40 lines/page**, **~80 chars/line**
-- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile# plus language presets ([full table](alphabets.md)); same room hash/sigil, new spines and pages (*a new sort of translation*)
+- alphabet: **selectable lens** — Borges / Basile (default) / Basile++ / Basile# plus language presets ([full table](alphabets.md)); same room hash/sigil, new spines and pages (_a new sort of translation_)
 - universe: name a parallel infinite library (`""` = default); infinitely many, reproducible from the name
 
 ## Core design decisions
 
-| Topic | Decision |
-| --- | --- |
-| **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, stairs = `z ± 1`. |
-| **Books** | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view. |
-| **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
-| **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
-| **Wanderings** | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). Universe switches at the same gallery count as steps (`◇`); hallway/stair/jump unchanged. |
-| **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
-| **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
-| **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
-| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content|title` (re-locate on boot; page-band text only). Mosaic / whole-book text / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png` sigil-fill for Open Graph; `og-large.png` branded for Twitter) — same for every hash URL. |
-| **Stack** | Rust → WASM core + static web frontend (GitHub Pages). |
-| **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
+| Topic           | Decision                                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Topology**    | `(z, n)` lattice. Hallways = `n ± 1`, stairs = `z ± 1`.                                                                                                                      |
+| **Books**       | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view.                                                                                  |
+| **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored.                                                              |
+| **Hashing**     | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix.                                  |
+| **Wanderings**  | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). Universe switches at the same gallery count as steps (`◇`); hallway/stair/jump unchanged. |
+| **Alphabet**    | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md).                                                  |
+| **Colour map**  | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black.                                                                            |
+| **Universe**    | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports.                                                                                                       |
+| **Permalinks**  | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content                                                           | title`(re-locate on boot; page-band text only). Mosaic / whole-book text / Babelgram:`#bo=`(+ optional`#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png`sigil-fill for Open Graph;`og-large.png` branded for Twitter) — same for every hash URL. |
+| **Stack**       | Rust → WASM core + static web frontend (GitHub Pages).                                                                                                                       |
+| **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes.                                                                                   |
 
 ## The generation chain (never store text)
 
@@ -61,9 +61,9 @@ book), or **Babelgram** (stamped book-image PNG), under the active alphabet and 
 
 Two universes of math share the same address labels `(z, n, book[, page])`:
 
-- **Page-linked** — every possible *page* exists once (`content = (addr × C) mod |Σ|^3200`).
+- **Page-linked** — every possible _page_ exists once (`content = (addr × C) mod |Σ|^3200`).
   Wander, spines, text search (≤ one page), reader `book_image`.
-- **Book-linked** — every possible *full book* exists once
+- **Book-linked** — every possible _full book_ exists once
   (`content = ((addr + 1) × C) mod |Σ|^BOOK`). Search → photo / whole-book text /
   Babelgram identity. Addresses are **Mbit-range** (~millions of bits per axis); UI shows
   first/last five digits in the footer (hover: scientific + bit width as plain `≈N Mbit`
@@ -103,20 +103,20 @@ other-universe uploads still rematch without forcing a session switch.
 
 Stamp wire (`web/js/lib/png-babel.js`):
 
-| Version | Payload |
-| --- | --- |
+| Version          | Payload                                                                                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **v3** (current) | `u`, `a`, compact `z`/`n`, `b`, `scope=page\|book`, `name`, plus `seal` (12-hex SHA-256 of letter flat) and `h` (16-hex `node_hash_hex` under stamped universe) |
-| **v2** | same address fields, no seal — locate shows *legacy*; go still allowed |
-| **v1** | address only, no `scope` (treated as `page`) |
+| **v2**           | same address fields, no seal — locate shows _legacy_; go still allowed                                                                                          |
+| **v1**           | address only, no `scope` (treated as `page`)                                                                                                                    |
 
 Verify on locate: recompute seal from decoded flat + room hash under stamp `u`; both must
 match. **Fail** → go / copy blocked (check-diff still works). **Pass** (same universe, including
 after a book-scope auto-switch) → **go there** uses stamp `z`/`n`/`b`, not a rematch guess.
 Page-scope other universe → rematch print; seal still checked before go. **go there** /
 **copy link** stash a short same-browser `&bo=` handoff in IndexedDB (coords + print RGBA +
-letter `flat`) — useful for a new tab *here*, not a portable URL. Other-universe go also
+letter `flat`) — useful for a new tab _here_, not a portable URL. Other-universe go also
 stashes `&be=`. Cross-device reopen: Babelgram PNG → search → verify. Re-export seals from
-on-screen pixels under the *current* room accent (matches verify; safe after other-universe
+on-screen pixels under the _current_ room accent (matches verify; safe after other-universe
 rematch where the print still uses export colours).
 
 Filename hint (not authoritative — stamp wins):

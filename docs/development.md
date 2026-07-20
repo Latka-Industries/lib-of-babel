@@ -38,20 +38,20 @@ mise run dev                 # release build → web/pkg, then serve
 
 Open <http://127.0.0.1:8777/index.html>.
 
-| Task | What |
-| --- | --- |
-| `mise run build` | release WASM → `web/pkg` |
-| `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve |
-| `mise run serve` | serve `web/` only (no rebuild) |
-| `mise run test` | `cargo test` |
-| `mise run test-js` | Node checks: `png-babel` stamp round-trip + page-scope fold |
-| `mise run check` | fmt + clippy (`-D warnings`) + tests + JS helpers + alphabet-pack drift + baked scramble warm |
-| `mise run gen-alphabets` | regenerate Rust packs from `data/alphabets/*.txt` |
-| `mise run check-alphabets` | fail if generated Rust packs drift from the `.txt` sources |
-| `mise run gen-basile-scramble` | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
-| `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing) |
-| `mise run asset-sheet` | prints URL for `web/asset-sheet/` (dev UI inventory via `mise run serve`; stripped from Pages) |
-| `mise run clean` | remove `target/` and `web/pkg` |
+| Task                              | What                                                                                                           |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `mise run build`                  | release WASM → `web/pkg`                                                                                       |
+| `mise run build-dev` / `dev-fast` | debug WASM (faster iterate) / build-dev + serve                                                                |
+| `mise run serve`                  | serve `web/` only (no rebuild)                                                                                 |
+| `mise run test`                   | `cargo test`                                                                                                   |
+| `mise run test-js`                | Node checks: `png-babel` stamp round-trip + page-scope fold                                                    |
+| `mise run check`                  | fmt + clippy (`-D warnings`) + tests + JS helpers + alphabet-pack drift + baked scramble warm                  |
+| `mise run gen-alphabets`          | regenerate Rust packs from `data/alphabets/*.txt`                                                              |
+| `mise run check-alphabets`        | fail if generated Rust packs drift from the `.txt` sources                                                     |
+| `mise run gen-basile-scramble`    | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
+| `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing)                                                 |
+| `mise run asset-sheet`            | prints URL for `web/asset-sheet/` (dev UI inventory via `mise run serve`; stripped from Pages)                 |
+| `mise run clean`                  | remove `target/` and `web/pkg`                                                                                 |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
 Universe renames / dice rolls at the same `(z, n)` append a wander step (`◇`).
@@ -93,19 +93,19 @@ truncation still opens the book. Legacy / missing `gv` opens the migrate modal.
 
 Exports from `src/wasm_api.rs` (+ `book_image` in `src/color.rs`). Signatures abbreviated.
 
-| Export | Purpose |
-| --- | --- |
-| `generator_version()` | Schema stamp for verify/export/permalinks (currently **11** — dual bijection scopes) |
-| `books_per_gallery()` | Constant `700` |
-| `default_alphabet()` | Default lens id (`29` = Basile) |
-| `alphabet_symbols_json(a)` / `alphabet_len(a)` | Alphabet cell list / count (UI cache) |
-| `max_title_len()` | Spine title length cap (`24`) |
-| `set_universe` / `get_universe` / `universe_seed_for` | Multiverse axis (`""` / blank → `0`) |
-| `gallery_titles_json(z, n, a, title_embed)` | 700 spines (`z`/`n` decimal or compact `c…`) |
-| `node_hash_hex` / `node_hash_full_hex` | 64-bit prefix / full BLAKE3-256 |
-| `page_text_for` / `page_text_book_scope_for` | Page-linked / book-linked virgin page |
-| `locate_page_json` / `locate_title_json` | Page-linked content locate (max one page) / title locate (`scope` in JSON) |
-| `search_page_span_for` / `search_page_embed_for` | Highlight helpers (content locate itself is one page) |
+| Export                                                                                                               | Purpose                                                                              |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `generator_version()`                                                                                                | Schema stamp for verify/export/permalinks (currently **11** — dual bijection scopes) |
+| `books_per_gallery()`                                                                                                | Constant `700`                                                                       |
+| `default_alphabet()`                                                                                                 | Default lens id (`29` = Basile)                                                      |
+| `alphabet_symbols_json(a)` / `alphabet_len(a)`                                                                       | Alphabet cell list / count (UI cache)                                                |
+| `max_title_len()`                                                                                                    | Spine title length cap (`24`)                                                        |
+| `set_universe` / `get_universe` / `universe_seed_for`                                                                | Multiverse axis (`""` / blank → `0`)                                                 |
+| `gallery_titles_json(z, n, a, title_embed)`                                                                          | 700 spines (`z`/`n` decimal or compact `c…`)                                         |
+| `node_hash_hex` / `node_hash_full_hex`                                                                               | 64-bit prefix / full BLAKE3-256                                                      |
+| `page_text_for` / `page_text_book_scope_for`                                                                         | Page-linked / book-linked virgin page                                                |
+| `locate_page_json` / `locate_title_json`                                                                             | Page-linked content locate (max one page) / title locate (`scope` in JSON)           |
+| `search_page_span_for` / `search_page_embed_for`                                                                     | Highlight helpers (content locate itself is one page)                                |
 | `book_text_for` / `book_text_book_scope_for` / `book_image` / `book_image_pages` / `book_image_dims` / `room_accent` | Page-linked full text; book-linked full text; page-linked RGBA; strips; grid; accent |
-| `mosaic_find_book` / `mosaic_babel_json` / other `mosaic_*` | Book-linked Find; Babelgram locate; project/preview/packs |
-| `neighbor_json(z, n, mv)` | Lattice step (`mv` 0–3) → `[z, n]` |
+| `mosaic_find_book` / `mosaic_babel_json` / other `mosaic_*`                                                          | Book-linked Find; Babelgram locate; project/preview/packs                            |
+| `neighbor_json(z, n, mv)`                                                                                            | Lattice step (`mv` 0–3) → `[z, n]`                                                   |
