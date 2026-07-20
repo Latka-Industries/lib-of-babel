@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check:
-    name: fmt · clippy · test · alphabet packs · basile scramble
+    name: fmt · clippy · test · js helpers · alphabet packs · basile scramble
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +32,11 @@ jobs:
 
       - name: cargo test
         run: cargo test
+
+      - name: JS helper checks
+        run: |
+          node scripts/test-png-babel.mjs
+          node scripts/test-fold-page-scope.mjs
 
       - name: alphabet pack drift
         run: sh scripts/check-alphabet-packs.sh

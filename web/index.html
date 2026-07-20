@@ -121,7 +121,11 @@
           <div class="minimap-title" data-i18n="minimap.here">you are here</div>
           <div id="sigil" class="sigil" data-i18n-title="minimap.sigilTitle" title="this gallery's sigil — click to download the SVG"></div>
           <div id="minimap"></div>
-          <div class="minimap-hint" data-i18n="minimap.hint">click an exit to move</div>
+          <div class="minimap-hint" id="minimapHint" data-i18n="minimap.hint">click an exit to move</div>
+          <button type="button" class="minimap-to-page" id="minimapToPage" hidden
+            data-i18n="gallery.mbitNotice.toPageScope"
+            data-i18n-title="gallery.mbitNotice.toPageScopeTitle"
+            title="Leave Mbit for a nearby hallway-wanderable gallery">Jump to nearest page-scope</button>
         </aside>
         <div id="walls" class="walls">
           <div class="loading loading-wave" id="loadingWave" aria-busy="true"
@@ -578,8 +582,8 @@
       </div>
       <div class="mbit-notice-actions">
         <button type="button" id="mbitNoticeGotIt" class="primary" data-i18n="gallery.mbitNotice.gotIt">Got it</button>
+        <button type="button" id="mbitNoticeToPage" data-i18n="gallery.mbitNotice.toPageScope" data-i18n-title="gallery.mbitNotice.toPageScopeTitle" title="Leave Mbit for a nearby hallway-wanderable gallery">Jump to nearest page-scope</button>
         <button type="button" id="mbitNoticeEngines" data-i18n="gallery.mbitNotice.engines">LIB-OF-BABEL → SCALE</button>
-        <button type="button" id="mbitNoticeMute" data-i18n="gallery.mbitNotice.mute">Don't show again</button>
       </div>
     </dialog>
 

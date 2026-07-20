@@ -298,6 +298,52 @@ export function peekHugeCoordDigits(value, { headLen = 5, tailLen = 5 } = {}) {
   return { neg, head, tail, digits, bits, scientific, preview };
 }
 
+/** Unsigned mask for signed i64 magnitude (matches hallway / `randomCoord` scale). */
+const PAGE_SCOPE_FOLD_MASK = (1n << 63n) - 1n; // === I64_MAX
+const PAGE_SCOPE_FOLD_BYTES = 8;
+
+/**
+ * Fold an axis into signed i64 range (low 63 magnitude bits + sign).
+ * Deterministic “nearest” hallway-scale neighbor for huge / Mbit coords —
+ * same scale as normal wander, not the full page-map bit ceiling.
+ * @returns {bigint}
+ */
+export function foldToPageScopeCoord(value) {
+  const mask = PAGE_SCOPE_FOLD_MASK;
+
+  if (typeof value === "bigint") {
+    const neg = value < 0n;
+    const mag = (neg ? -value : value) & mask;
+    return neg && mag !== 0n ? -mag : mag;
+  }
+
+  if (!isHugeCoordValue(value)) {
+    try {
+      return foldToPageScopeCoord(normalizeCoordValue(value));
+    } catch {
+      return 0n;
+    }
+  }
+
+  const packed = coordMagBytes(value);
+  if (!packed) return 0n;
+  const { neg, mag } = packed;
+  let start = 0;
+  while (start < mag.length && mag[start] === 0) start++;
+  if (start >= mag.length) return 0n;
+  const m = mag.subarray(start);
+  const slice =
+    m.length <= PAGE_SCOPE_FOLD_BYTES
+      ? m
+      : m.subarray(m.length - PAGE_SCOPE_FOLD_BYTES);
+  let out = 0n;
+  for (let i = 0; i < slice.length; i++) {
+    out = (out << 8n) | BigInt(slice[i]);
+  }
+  out &= mask;
+  return neg && out !== 0n ? -out : out;
+}
+
 /** Gallery label for book-scale axes: `12345…67890`. */
 export function formatHugeCoordPreview(value, opts) {
   const peek = peekHugeCoordDigits(value, opts);

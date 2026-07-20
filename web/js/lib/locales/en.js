@@ -86,8 +86,10 @@ export const en = {
   "gallery.mbitNotice.coordsLabel": "Axes (magnitude)",
   "gallery.mbitNotice.digitsLabel": "Digits (z, n)",
   "gallery.mbitNotice.gotIt": "Got it",
+  "gallery.mbitNotice.toPageScope": "Jump to nearest page-scope",
+  "gallery.mbitNotice.toPageScopeTitle":
+    "Leave Mbit for a nearby hallway-wanderable gallery (same fold every time)",
   "gallery.mbitNotice.engines": "LIB-OF-BABEL → SCALE",
-  "gallery.mbitNotice.mute": "Don't show again",
 
   "about.scale.col.band": "Band",
   "about.scale.col.scalar": "Scalar",

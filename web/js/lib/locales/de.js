@@ -90,8 +90,10 @@ export const de = {
   "gallery.mbitNotice.coordsLabel": "Achsen (Größe)",
   "gallery.mbitNotice.digitsLabel": "Stellen (z, n)",
   "gallery.mbitNotice.gotIt": "Verstanden",
+  "gallery.mbitNotice.toPageScope": "Zur nächsten Seitenkarte springen",
+  "gallery.mbitNotice.toPageScopeTitle":
+    "Mbit verlassen — nahe flurwanderbare Galerie (immer derselbe Falt)",
   "gallery.mbitNotice.engines": "LIB-OF-BABEL → GRÖSSE",
-  "gallery.mbitNotice.mute": "Nicht mehr anzeigen",
 
   "about.scale.col.band": "Band",
   "about.scale.col.scalar": "Skalar",

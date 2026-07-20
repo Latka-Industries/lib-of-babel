@@ -42,6 +42,14 @@ function tCatalog(catalog, key, vars = {}) {
   return s;
 }
 
+/** Label + title for page-scope escape buttons (minimap + Mbit notice). */
+function paintToPageButton(id, translate) {
+  const node = document.getElementById(id);
+  if (!node) return;
+  node.textContent = translate("gallery.mbitNotice.toPageScope");
+  node.title = translate("gallery.mbitNotice.toPageScopeTitle");
+}
+
 /**
  * WASM-free stand-in for `formatAlphabetSymbolLabel` (real one calls into
  * the WASM `alphabet_symbols_json` via `alphabetCells`, which this sheet
@@ -431,6 +439,7 @@ function paintStage(locale = "en") {
   setText("sheetMinimapTitle", translate("minimap.here"));
   setTitle("sheetSigil", translate("minimap.sigilTitle"));
   setText("sheetMinimapHint", translate("minimap.hint"));
+  paintToPageButton("sheetMinimapToPage", translate);
   const mm = document.getElementById("sheetMinimap");
   if (mm) mm.textContent = translate("gallery.coordsHuge.minimapShort");
   setText("sheetWallHead1", translate("book.wall", { n: "1" }));
@@ -722,8 +731,8 @@ function paintDialogsInventory(locale = "en") {
   setText("sheetMbitCoordsLabel", translate("gallery.mbitNotice.coordsLabel"));
   setText("sheetMbitDigitsLabel", translate("gallery.mbitNotice.digitsLabel"));
   setText("sheetMbitGotIt", translate("gallery.mbitNotice.gotIt"));
+  paintToPageButton("sheetMbitToPage", translate);
   setText("sheetMbitEngines", translate("gallery.mbitNotice.engines"));
-  setText("sheetMbitMute", translate("gallery.mbitNotice.mute"));
   setText("sheetMbitClose", translate("common.close"));
 
   setHtml("sheetWaitBook", translate("book.waitMbit"));

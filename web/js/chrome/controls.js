@@ -30,7 +30,13 @@ import {
 import { currentUrl, syncUrl } from "../gallery/url.js";
 import { coordForWasm } from "../lib/coords.js";
 import { render, renderHistory } from "../gallery/view.js";
-import { step, jumpTo, exportJourney, newWalk } from "../gallery/nav.js";
+import {
+  step,
+  jumpTo,
+  exportJourney,
+  newWalk,
+  jumpToNearestPageScope,
+} from "../gallery/nav.js";
 import { showMbitNotice } from "../gallery/mbit-notice.js";
 import { verifyJourney, showVerify } from "../reader/verify.js";
 import {
@@ -60,7 +66,6 @@ import {
 import {
   wireMosaicSearch,
   syncMosaicKnobsFromGallery,
-  syncMosaicGridHint,
   syncMosaicModeUI,
   clearMosaicResults,
 } from "../reader/mosaic-search.js";
@@ -204,7 +209,7 @@ export function wireControls() {
   el("coord").addEventListener("click", () => {
     // Mbit-range: show room hash / axes notice (jump form can't take mega-axes).
     if (S.coordsHuge) {
-      showMbitNotice({ force: true });
+      showMbitNotice();
       return;
     }
     el("jumpZ").value = coordForWasm(S.z);
@@ -215,6 +220,11 @@ export function wireControls() {
   });
   el("goJump").addEventListener("click", doJump);
   wireEnter(["jumpZ", "jumpN"], doJump);
+
+  el("minimapToPage")?.addEventListener("click", () => {
+    if (!S.coordsHuge) return;
+    jumpToNearestPageScope();
+  });
 
   // click the sigil to take this gallery's emblem home as a standalone SVG
   el("sigil").addEventListener("click", () => {
@@ -259,16 +269,9 @@ export function wireControls() {
     el("searchInput").focus();
   });
   wireSearchTabs({
-    onPhoto: () => {
-      syncMosaicModeUI("photo");
-      syncMosaicKnobsFromGallery();
-      syncMosaicGridHint();
-    },
-    onBabel: () => {
-      syncMosaicModeUI("babel");
-      syncMosaicKnobsFromGallery();
-      syncMosaicGridHint();
-    },
+    // syncMosaicModeUI already restores the per-tab upload, palette strip, and meta.
+    onPhoto: () => syncMosaicModeUI("photo"),
+    onBabel: () => syncMosaicModeUI("babel"),
   });
   wireMosaicSearch();
   el("searchInput").addEventListener("input", (e) => {

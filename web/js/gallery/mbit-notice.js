@@ -7,27 +7,10 @@ import { openAboutGuide } from "../about/about.js";
 import { approxCoordMagnitude, coordForWasm, peekHugeCoordDigits } from "../lib/coords.js";
 import { mbitScaleTier, mbitScaleVars } from "../lib/mbit-scale.js";
 import { node_hash_hex, node_hash_full_hex } from "../lib/wasm.js";
-
-const MUTE_KEY = "lib-of-babel-mute-mbit-notice";
+import { jumpToNearestPageScope } from "./nav.js";
 
 /** @type {boolean} */
 let wired = false;
-
-function isMuted() {
-  try {
-    return localStorage.getItem(MUTE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function setMuted() {
-  try {
-    localStorage.setItem(MUTE_KEY, "1");
-  } catch {
-    /* private mode */
-  }
-}
 
 /** Max bit-width across gallery axes (length-only for huge `c…`). */
 function axisBits() {
@@ -57,35 +40,39 @@ function paintNotice() {
   } catch (err) {
     console.warn("mbit notice hash failed", err);
   }
-  const body = el("mbitNoticeBody");
-  if (body) body.innerHTML = t("gallery.mbitNotice.body");
+  const setHtml = (id, html) => {
+    const node = el(id);
+    if (node) node.innerHTML = html;
+  };
+  const setText = (id, text, title) => {
+    const node = el(id);
+    if (!node) return;
+    node.textContent = text;
+    if (title !== undefined) node.title = title;
+  };
 
+  setHtml("mbitNoticeBody", t("gallery.mbitNotice.body"));
   const title = el("mbitNoticeModal")?.querySelector(".book-head-text h3");
   if (title) title.innerHTML = t("gallery.mbitNotice.title");
 
   const bits = axisBits();
-  const tier = mbitScaleTier(bits);
-  const scale = el("mbitNoticeScale");
-  if (scale) {
-    scale.innerHTML = t(
-      `gallery.mbitNotice.scale.${tier}`,
+  setHtml(
+    "mbitNoticeScale",
+    t(
+      `gallery.mbitNotice.scale.${mbitScaleTier(bits)}`,
       mbitScaleVars(bits, { locale: getLocale(), t }),
-    );
-  }
-
-  const hashEl = el("mbitNoticeHash");
-  if (hashEl) {
-    hashEl.textContent = fullHash || shortHash || "—";
-    hashEl.title = shortHash ? `prefix ${shortHash}` : "";
-  }
-  const coordsEl = el("mbitNoticeCoords");
-  if (coordsEl) {
-    coordsEl.textContent = formatCoordDisplay(S.z, S.n);
-  }
-  const digitsEl = el("mbitNoticeDigits");
-  if (digitsEl) {
-    digitsEl.textContent = `(${axisDigitCount(S.z)}, ${axisDigitCount(S.n)})`;
-  }
+    ),
+  );
+  setText(
+    "mbitNoticeHash",
+    fullHash || shortHash || "—",
+    shortHash ? `prefix ${shortHash}` : "",
+  );
+  setText("mbitNoticeCoords", formatCoordDisplay(S.z, S.n));
+  setText(
+    "mbitNoticeDigits",
+    `(${axisDigitCount(S.z)}, ${axisDigitCount(S.n)})`,
+  );
 }
 
 function closeNotice() {
@@ -96,9 +83,9 @@ function ensureWired() {
   if (wired) return;
   wired = true;
   el("mbitNoticeGotIt")?.addEventListener("click", closeNotice);
-  el("mbitNoticeMute")?.addEventListener("click", () => {
-    setMuted();
+  el("mbitNoticeToPage")?.addEventListener("click", () => {
     closeNotice();
+    void jumpToNearestPageScope();
   });
   el("mbitNoticeEngines")?.addEventListener("click", () => {
     closeNotice();
@@ -106,14 +93,10 @@ function ensureWired() {
   });
 }
 
-/**
- * Open the Mbit-range notice (footer gallery coords). No-op outside Mbit.
- * Honors “Don't show again” unless `force` is set.
- */
-export function showMbitNotice({ force = false } = {}) {
+/** Open the Mbit-range notice (footer gallery coords). No-op outside Mbit. */
+export function showMbitNotice() {
   ensureWired();
   if (!S.coordsHuge) return false;
-  if (!force && isMuted()) return false;
   paintNotice();
   openModal("mbitNoticeModal");
   return true;

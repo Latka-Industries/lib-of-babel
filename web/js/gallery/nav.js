@@ -10,7 +10,12 @@ import {
 import { downloadBlob } from "../lib/util.js";
 import { neighbor, randomCoord } from "../lib/lattice.js";
 import { render } from "./view.js";
-import { normalizeCoordValue, isHugeCoordValue } from "../lib/coords.js";
+import {
+  normalizeCoordValue,
+  isHugeCoordValue,
+  foldToPageScopeCoord,
+} from "../lib/coords.js";
+import { syncUrl } from "./url.js";
 
 export function resetTrail({ randomCoords = false, scope = null } = {}) {
   if (randomCoords) [S.z, S.n] = randomCoord();
@@ -92,4 +97,26 @@ export async function newWalk() {
   resetTrail({ randomCoords: true });
   await persist();
   render();
+}
+
+/**
+ * Leave Mbit for the nearest hallway-scale gallery, then hard-reload so the
+ * page boots clean (hover / exits / footer).
+ */
+export async function jumpToNearestPageScope() {
+  const z = foldToPageScopeCoord(S.z);
+  const n = foldToPageScopeCoord(S.n);
+  S.z = z;
+  S.n = n;
+  S.coordsHuge = false;
+  S.bijectionScope = "page";
+  S.titleEmbed = null;
+  S.bookOpenId = null;
+  S.currentBook = null;
+  clearBookIdentityCache();
+  recordStep("jump");
+  await persist();
+  syncUrl();
+  location.reload();
+  return true;
 }
