@@ -15,6 +15,7 @@ import {
   isHugeCoordValue,
   foldToPageScopeCoord,
 } from "../lib/coords.js";
+import { syncUrl } from "./url.js";
 
 export function resetTrail({ randomCoords = false, scope = null } = {}) {
   if (randomCoords) [S.z, S.n] = randomCoord();
@@ -99,11 +100,23 @@ export async function newWalk() {
 }
 
 /**
- * Leave Mbit / book-linked space for the deterministic nearest page-map gallery
- * (low bits of each axis, capped at the page-map bit ceiling). Restores hallway wander.
+ * Leave Mbit for the nearest hallway-scale gallery, then hard-reload so the
+ * page boots clean (hover / exits / footer).
  */
-export function jumpToNearestPageScope() {
+export async function jumpToNearestPageScope() {
   const z = foldToPageScopeCoord(S.z);
   const n = foldToPageScopeCoord(S.n);
-  return jumpTo(z, n, { scope: "page" });
+  S.z = z;
+  S.n = n;
+  S.coordsHuge = false;
+  S.bijectionScope = "page";
+  S.titleEmbed = null;
+  S.bookOpenId = null;
+  S.currentBook = null;
+  clearBookIdentityCache();
+  recordStep("jump");
+  await persist();
+  syncUrl();
+  location.reload();
+  return true;
 }

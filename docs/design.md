@@ -70,7 +70,7 @@ Two universes of math share the same address labels `(z, n, book[, page])`:
   text), Digits (z, n) in the gallery notice (body copy uses the `.unit-mbit` mark), spines +
   colour map, but not lattice wander (see About → engines / scale).
   Escape hatch: **Jump to nearest page-scope** on the Mbit notice and under the
-  minimap/sigil — folds each axis to the low page-map bit ceiling
+  minimap/sigil — folds each axis to low signed-i64 bits
   (`foldToPageScopeCoord`) and restores hallway wander (deterministic for a given
   `(z, n)`).
 

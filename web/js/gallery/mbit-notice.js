@@ -84,8 +84,8 @@ function ensureWired() {
   wired = true;
   el("mbitNoticeGotIt")?.addEventListener("click", closeNotice);
   el("mbitNoticeToPage")?.addEventListener("click", () => {
-    jumpToNearestPageScope();
     closeNotice();
+    void jumpToNearestPageScope();
   });
   el("mbitNoticeEngines")?.addEventListener("click", () => {
     closeNotice();

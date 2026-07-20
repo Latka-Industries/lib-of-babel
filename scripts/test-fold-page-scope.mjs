@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Deterministic page-scope fold for Mbit → hallway escape (THI-160).
 import {
-  PAGE_MAP_MAX_BITS,
   foldToPageScopeCoord,
   encodeCoordParam,
   isHugeCoordValue,
@@ -11,7 +10,8 @@ function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
-const mask = (1n << BigInt(PAGE_MAP_MAX_BITS)) - 1n;
+/** Signed i64 magnitude mask (low 63 bits) — hallway / randomCoord scale. */
+const mask = (1n << 63n) - 1n;
 
 // Small bigint: low bits only, sign preserved.
 assert(foldToPageScopeCoord(12345n) === 12345n, "small positive");
@@ -32,7 +32,7 @@ assert(
 assert(foldToPageScopeCoord("99") === 99n, "decimal string");
 assert(foldToPageScopeCoord("-7") === -7n, "negative decimal string");
 
-// Huge compact `c…`: low PAGE_MAP_MAX_BITS bits of magnitude bytes.
+// Huge compact `c…`: low 8 bytes of magnitude (i64 fold).
 // Compact length must be ≥ HUGE_COMPACT_LEN (32_000) so isHugeCoordValue is true.
 const magLen = 24_000;
 const mag = new Uint8Array(magLen);
@@ -48,7 +48,7 @@ assert(compact.length >= 32_000, `compact len ${compact.length} should be huge`)
 assert(isHugeCoordValue(compact), "fixture is huge");
 
 const folded = foldToPageScopeCoord(compact);
-const byteLen = Math.ceil(PAGE_MAP_MAX_BITS / 8);
+const byteLen = 8;
 let expect = 0n;
 const slice = mag.subarray(mag.length - byteLen);
 for (const b of slice) expect = (expect << 8n) | BigInt(b);
@@ -62,6 +62,13 @@ assert(!isHugeCoordValue(pageCompact), "page compact not huge");
 assert(
   foldToPageScopeCoord(pageCompact) === ((1n << 40n) & mask),
   "page compact fold",
+);
+
+// Folded result stays within signed i64 magnitude.
+assert(folded <= mask && folded >= -mask, "folded in i64 magnitude");
+assert(
+  foldToPageScopeCoord(wide) <= mask,
+  "wide fold magnitude ≤ I64_MAX",
 );
 
 console.log("fold-page-scope ok");
