@@ -73,6 +73,10 @@ run = [
 description = "UI asset sheet (tokens, chrome, find, mbit copy) — mise run serve/dev only; stripped from Pages"
 run = "echo \"Open http://127.0.0.1:${PORT:-8777}/asset-sheet/ (mise run serve / mise run dev first)\""
 
+[tasks.health]
+description = "Write web/health.json (local stamp; CI writes the production one on deploy)"
+run = "node scripts/write-health.mjs"
+
 [tasks.gen-alphabets]
 description = "Regenerate Rust alphabet packs from data/alphabets/*.txt"
 run = "uv run --no-project --python 3.13 -- python scripts/gen-alphabet-packs.py"

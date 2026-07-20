@@ -39,6 +39,9 @@ jobs:
           # Local UI inventory — not for production
           rm -rf web/asset-sheet
 
+      - name: Write health.json (curl deploy check)
+        run: node scripts/write-health.mjs
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

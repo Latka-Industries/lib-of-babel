@@ -7,6 +7,9 @@ Cargo.lock.orig
 /pkg
 /web/pkg
 
+# Deploy stamp (written by scripts/write-health.mjs / CI)
+/web/health.json
+
 # Node (frontend toolchain, when added)
 node_modules
 dist

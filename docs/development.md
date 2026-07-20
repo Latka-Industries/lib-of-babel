@@ -11,6 +11,7 @@ lib-of-babel/
 │                 (config, basile, gallery, page, search, color, mosaic/, universe, wasm_api)
 ├── web/
 │   ├── assets/   favicon + OG share cards (svg sources + png)
+│   ├── health.json  deploy stamp (gitignored; CI / mise run health)
 │   ├── css/      chrome + reader styles
 │   ├── fonts/
 │   ├── pkg/      wasm-pack output
@@ -52,6 +53,7 @@ Open <http://127.0.0.1:8777/index.html>.
 | `mise run gen-basile-scramble`    | bake `data/basile_book_scramble_u0.bin` (universe 0 + Basile; slow once) — [data/README.md](../data/README.md) |
 | `mise run verify-basile-scramble` | warm via baked blob (`--verify-warm`; fails if slow / missing)                                                 |
 | `mise run asset-sheet`            | prints URL for `web/asset-sheet/` (dev UI inventory via `mise run serve`; stripped from Pages)                 |
+| `mise run health`                 | write `web/health.json` (local stamp; production one is written in the Deploy workflow)                        |
 | `mise run clean`                  | remove `target/` and `web/pkg`                                                                                 |
 
 Trail is IndexedDB (survives reload). **export** → JSON; **new walk** clears and restarts.
@@ -75,6 +77,7 @@ truncation still opens the book. Legacy / missing `gv` opens the migrate modal.
 - Mbit rooms: footer `12345…67890`; hover = scientific + bit width; click **gallery (z, n)** → notice with Axes + Digits + **Jump to nearest page-scope** (also under the minimap when in Mbit). About → scale table **Comparison** column is analogy only (not “digit count equals book length”). Scalar cells show `≈N` + `.unit-mbit` then `10^…` on a second line.
 - Search → photo / Babelgram: stamped PNG on the photo upload auto-switches to the Babelgram tab; each tab keeps its own upload slot so a Babelgram never becomes the photo Find input.
 - Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html`. Two canvases from `node scripts/make-og.mjs` (needs ImageMagick) into `web/assets/`: **`og.png`** — sigil fills the frame (Open Graph / Slack / iMessage thumbnails); **`og-large.png`** — sigil + wordmark + tagline (`twitter:image`). Crawlers do not pick by preview size; this is a platform split, not responsive media.
+- Deploy health: CI runs `node scripts/write-health.mjs` → `web/health.json` (`ok`, `sha`, `ref`, `built_at`, `generator_version`). Check: `curl -sS https://lib-of-babel.xyz/health.json` (local: `mise run health` then curl `http://127.0.0.1:8777/health.json`).
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
 - Search modes shipped in UI: **text** (content ≤ one page / 3200 cells **or** whole-book book-map when longer; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; glyph palette; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
 - Whole-book text locate: WASM `locate_book_json` off the UI thread (`mosaic-find-pool` / worker); UI in `search.js`; `#bo=` via `book-handoff.js` (`bookOpenHandoffUrl`). Babelgram from that hit paints `contentFlat` with `book_image_from_flat` (`book.js`)
