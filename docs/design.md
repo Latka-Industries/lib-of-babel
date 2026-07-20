@@ -18,19 +18,19 @@ Canonical dimensions:
 
 ## Core design decisions
 
-| Topic           | Decision                                                                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Topology**    | `(z, n)` lattice. Hallways = `n ± 1`, stairs = `z ± 1`.                                                                                                                      |
-| **Books**       | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view.                                                                                  |
-| **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored.                                                              |
-| **Hashing**     | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix.                                  |
-| **Wanderings**  | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). Universe switches at the same gallery count as steps (`◇`); hallway/stair/jump unchanged. |
-| **Alphabet**    | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md).                                                  |
-| **Colour map**  | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black.                                                                            |
-| **Universe**    | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports.                                                                                                       |
-| **Permalinks**  | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content                                                           | title`(re-locate on boot; page-band text only). Mosaic / whole-book text / Babelgram:`#bo=`(+ optional`#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png`sigil-fill for Open Graph;`og-large.png` branded for Twitter) — same for every hash URL. |
-| **Stack**       | Rust → WASM core + static web frontend (GitHub Pages).                                                                                                                       |
-| **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes.                                                                                   |
+| Topic | Decision |
+| --- | --- |
+| **Topology** | `(z, n)` lattice. Hallways = `n ± 1`, stairs = `z ± 1`. |
+| **Books** | 700 deterministic spines per gallery; full text **lazy** on open; text or colour page view. |
+| **Determinism** | `(universe, z, n) → gallery_seed → 700 book_seeds → node_hash`; alphabet projects spines/pages. Nothing stored. |
+| **Hashing** | BLAKE3-256 **room** fingerprint (universe, version, coordinate, book-slot seeds). Alphabet out of the digest. Footer shows a 64-bit prefix. |
+| **Wanderings** | Last 1000 steps in UI; full trail in IndexedDB (universe + lens frozen per visit). Universe switches at the same gallery count as steps (`◇`); hallway/stair/jump unchanged. |
+| **Alphabet** | View lens (`&a=` in permalinks; soft cap 4096 cells). DE/NL lenses also switch UI locale. See [alphabets.md](alphabets.md). |
+| **Colour map** | Glyphs → OKLCH: letters on an accent-seeded wheel, punct/digits muted opposite, space near-black. |
+| **Universe** | Named seed (`""` = 0) as outermost axis; WASM global; `&u=` + exports. |
+| **Permalinks** | Room: compact `(z, n)` (`c…` when large) + `u` / `a` / `b` / `p` / `img=1` / `gv` / `h`. Search: `#q=&find=content\|title` (re-locate on boot; page-band text only). Mosaic / whole-book text / Babelgram: `#bo=` (+ optional `#be=` print) via IndexedDB — local handoff only; cross-device reopen is Babelgram PNG. In-app flag guide: About → **url**. Site-wide share cards are static (`og.png` sigil-fill for Open Graph; `og-large.png` branded for Twitter) — same for every hash URL. |
+| **Stack** | Rust → WASM core + static web frontend (GitHub Pages). |
+| **Persistence** | IndexedDB trail (+ brief `&bo=` / `&be=` handoffs); JSON export of path + per-node hashes. |
 
 ## The generation chain (never store text)
 
