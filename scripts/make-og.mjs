@@ -5,8 +5,8 @@
 //
 // Two canvases — crawlers do not pick by preview size, so meta points each
 // at a different surface:
-//   web/og.png       — sigil fills the frame (thumbnail / Slack / iMessage)
-//   web/og-large.png — sigil + wordmark + tagline (Twitter summary_large_image)
+//   web/assets/og.png       — sigil fills the frame (thumbnail / Slack / iMessage)
+//   web/assets/og-large.png — sigil + wordmark + tagline (Twitter summary_large_image)
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -69,8 +69,8 @@ function svgLarge() {
 }
 
 function writePair(baseName, svg) {
-  const svgPath = join(root, `web/${baseName}.svg`);
-  const pngPath = join(root, `web/${baseName}.png`);
+  const svgPath = join(root, `web/assets/${baseName}.svg`);
+  const pngPath = join(root, `web/assets/${baseName}.png`);
   writeFileSync(svgPath, svg);
   const magick = spawnSync("magick", [svgPath, "-strip", pngPath], {
     encoding: "utf8",
@@ -81,7 +81,7 @@ function writePair(baseName, svg) {
     );
     process.exit(magick.status ?? 1);
   }
-  console.log(`wrote web/${baseName}.svg + web/${baseName}.png`);
+  console.log(`wrote web/assets/${baseName}.svg + web/assets/${baseName}.png`);
 }
 
 console.log(`sigil ${tile.hash} hue ${tile.hue}`);

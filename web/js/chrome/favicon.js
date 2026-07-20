@@ -1,4 +1,4 @@
-// Tab icon: static favicon.svg / .png are the cold fallback; once a gallery
+// Tab icon: static assets/favicon.svg / .png are the cold fallback; once a gallery
 // renders we swap the SVG link to a data-URI tinted with the room accent.
 
 import { accentHsl, getTheme } from "./theme.js";
@@ -11,7 +11,7 @@ let lastKey = null;
 
 /**
  * Point the SVG favicon at a data-URI aleph filled with the gallery accent.
- * Leaves favicon.png alone as a static fallback for browsers that prefer it.
+ * Leaves assets/favicon.png alone as a static fallback for browsers that prefer it.
  * @param {number} hue gallery accent hue degrees (same as `--accent`)
  */
 export function setAccentFavicon(hue) {

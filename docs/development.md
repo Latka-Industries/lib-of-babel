@@ -10,6 +10,7 @@ lib-of-babel/
 ├── src/          Rust → WASM generator
 │                 (config, basile, gallery, page, search, color, mosaic/, universe, wasm_api)
 ├── web/
+│   ├── assets/   favicon + OG share cards (svg sources + png)
 │   ├── css/      chrome + reader styles
 │   ├── fonts/
 │   ├── pkg/      wasm-pack output
@@ -73,7 +74,7 @@ truncation still opens the book. Legacy / missing `gv` opens the migrate modal.
 - About tabs: **overview → wander → engines → scale → alphabets → books → search → url → more** (engines hosts dual maps + Mbit UI; **scale** is the band table). Wander deep-links via accent chips (**ALPHABETS** / **BOOKS** / **SEARCH** / **URL** / **SCALE**). Control names use panel chips (`.ui`); search/dialog tab names use `.ui.ui-tab` (caps); About section jumpers stay `button.about-goto-tab`. Megabit as a unit in body/HTML copy uses `.unit-mbit` (sharp uppercase chip); section titles stay plain `MBIT` / `MBIT range`. Footer/tooltips stay plain text (`≈6.4 Mbit`) because they use `title` / `textContent`. The asset sheet discovers tokens + chip kinds from CSS / locale recipes.
 - Mbit rooms: footer `12345…67890`; hover = scientific + bit width; click **gallery (z, n)** → notice with Axes + Digits + **Jump to nearest page-scope** (also under the minimap when in Mbit). About → scale table **Comparison** column is analogy only (not “digit count equals book length”). Scalar cells show `≈N` + `.unit-mbit` then `10^…` on a second line.
 - Search → photo / Babelgram: stamped PNG on the photo upload auto-switches to the Babelgram tab; each tab keeps its own upload slot so a Babelgram never becomes the photo Find input.
-- Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html`. Two canvases from `node scripts/make-og.mjs` (needs ImageMagick): **`og.png`** — sigil fills the frame (Open Graph / Slack / iMessage thumbnails); **`og-large.png`** — sigil + wordmark + tagline (`twitter:image`). Crawlers do not pick by preview size; this is a platform split, not responsive media.
+- Link previews (GitHub Pages): static Open Graph / Twitter meta in `web/index.html`. Two canvases from `node scripts/make-og.mjs` (needs ImageMagick) into `web/assets/`: **`og.png`** — sigil fills the frame (Open Graph / Slack / iMessage thumbnails); **`og-large.png`** — sigil + wordmark + tagline (`twitter:image`). Crawlers do not pick by preview size; this is a platform split, not responsive media.
 - Header **actions…** and book **save…** are vanilla dropdowns (`web/js/chrome/dropdown.js`), not native `<select>`
 - Search modes shipped in UI: **text** (content ≤ one page / 3200 cells **or** whole-book book-map when longer; title ≤ 24), **photo** (alphabet mosaic ranked by rms / mae / corr; glyph palette; this-gallery + hit-gallery palette strips), **Babelgram** (exact-size stamped book-image PNG → verify seal+hash → locate; metrics + **go there** / copy link gated on verify)
 - Whole-book text locate: WASM `locate_book_json` off the UI thread (`mosaic-find-pool` / worker); UI in `search.js`; `#bo=` via `book-handoff.js` (`bookOpenHandoffUrl`). Babelgram from that hit paints `contentFlat` with `book_image_from_flat` (`book.js`)
